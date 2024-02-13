@@ -142,9 +142,6 @@ where
             ..
         } = &response;
 
-        println!("TX RESPONSEEEEEEEEEEEEEEEEEEEEEE {:#?}", response);
-        println!("PUBKEYYYYYYYYYYYYYYYYYYYYYYYYYYYY {:?}", self.pub_key);
-
         info!(height, tx_hash, "broadcasted transaction");
 
         self.confirm_tx(tx_hash).await?;

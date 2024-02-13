@@ -50,21 +50,6 @@ impl PartialEq<&Message> for GatewayEvent {
                 let event_dest_addr = String::from_utf8(destination_address.to_owned());
                 let event_dest_chain = String::from_utf8(destination_chain.to_owned());
 
-                println!(
-                    "IN EVENT CHECK 1 - {}",
-                    event_dest_addr.clone().unwrap() == msg.destination_address
-                );
-                println!(
-                    "IN EVENT CHECK 2 - {}",
-                    event_dest_chain.clone().unwrap() == msg.destination_chain.to_string()
-                );
-                println!(
-                    "IN EVENT CHECK 3 - {}",
-                    payload_hash.to_owned() == msg.payload_hash
-                );
-                println!("payload 1 {:#?}", payload_hash.to_owned());
-                println!("payload 2 {:#?}", msg.payload_hash);
-
                 event_dest_addr.is_ok()
                     && event_dest_chain.is_ok()
                     && event_dest_addr.unwrap() == msg.destination_address
@@ -114,110 +99,11 @@ pub fn verify_message(
             .account_keys
             .contains(source_gateway_address);
 
-    println!("CHECK 1 - {}", gw_event_parsed.unwrap() == message);
-    println!("CHECK 2- {}", tx.transaction.signatures[0] == message.tx_id);
-    println!(
-        "CHECK 3- {}",
-        tx.transaction
-            .message
-            .account_keys
-            .contains(source_gateway_address)
-    );
-    println!("EVENT VERIFIED - {}", verified);
-
     match verified {
         true => Vote::SucceededOnChain,
         false => Vote::FailedOnChain,
     }
 }
-
-// // CONTRACT_CALL_EVENT is in form of <module name>::<event type>
-// const CONTRACT_CALL_EVENT: &str = "gateway::ContractCall";
-//
-// // TODO: update after Sui gateway event finalization
-// #[derive(Deserialize)]
-// struct ContractCall {
-//     pub source_id: SuiAddress,
-//     pub destination_chain: String,
-//     pub destination_address: String,
-//     pub payload_hash: Hash,
-// }
-//
-// // Event type is in the form of: <gateway_address>::gateway::ContractCall
-// fn call_contract_type(gateway_address: &SuiAddress) -> StructTag {
-//     format!("{}::{}", gateway_address, CONTRACT_CALL_EVENT)
-//         .parse()
-//         .expect("failed to parse struct tag")
-// }
-
-// fn find_event(
-//     transaction_block: &SuiTransactionBlockResponse,
-//     event_seq: u64,
-// ) -> Option<&SuiEvent> {
-//     transaction_block
-//         .events
-//         .as_ref()
-//         .iter()
-//         .flat_map(|events| events.data.iter())
-//         .find(|event| event.id.event_seq == event_seq)
-// }
-
-// fn get_program_data_from_log(log_msgs: Option<&Vec<String>>) -> String {
-//     for msg in log_msgs.unwrap_or(&Vec::<String>::new()) {
-//         if let Some(pos) = msg.find("Program data:") {
-//             // Skip the "Program data:" part and extract the rest of the string
-//             let rest_of_string = &msg[pos + "Program data:".len()..].trim();
-//
-//             let prog_data = rest_of_string.trim().to_string();
-//
-//             return prog_data;
-//         }
-//     }
-//
-//     // TODO: Should probably error?
-//     return String::from("");
-// }
-
-// #[derive(Debug, BorshDeserialize, BorshSerialize, PartialEq)]
-// struct SolanaProgramData {
-//     pub sender: [u8; 32], //TODO: Should be Pubkey from solana_sdk
-//     pub destination_chain: String,
-//     pub destination_contract_address: String,
-//     pub payload_hash: [u8; 32],
-//     pub payload: Vec<u8>,
-// }
-
-// #[derive(Debug)]
-// enum DecodeProgDataErr {
-//     Base64DecodeErr(base64::DecodeError),
-//     BorshDeserializeErr(borsh::io::Error),
-// }
-//
-// impl From<base64::DecodeError> for DecodeProgDataErr {
-//     fn from(err: base64::DecodeError) -> Self {
-//         DecodeProgDataErr::Base64DecodeErr(err)
-//     }
-// }
-//
-// impl From<borsh::io::Error> for DecodeProgDataErr {
-//     fn from(err: borsh::io::Error) -> Self {
-//         DecodeProgDataErr::BorshDeserializeErr(err)
-//     }
-// }
-//
-// fn decode_program_data(prog_data: String) -> Result<SolanaProgramData, DecodeProgDataErr> {
-//     let borsh_bytes = base64::decode(prog_data)?;
-//     let mut slice: &[u8] = &borsh_bytes[..];
-//     let _: [u8; 8] = {
-//         let mut disc = [0; 8];
-//         disc.copy_from_slice(&borsh_bytes[..8]);
-//         slice = &slice[8..];
-//         disc
-//     };
-//     let prog_data: SolanaProgramData = from_slice(&slice)?;
-//
-//     return Ok(prog_data);
-// }
 
 #[cfg(test)]
 mod tests {
@@ -311,29 +197,38 @@ mod tests {
     #[ignore = "We are not checking the source address in the gateway event."]
     #[test]
     fn should_not_verify_msg_if_source_address_does_not_match() {
-         let (gateway_address, tx, mut msg) = get_matching_msg_and_tx_block();
-         msg.source_address = "bad_address".to_string();
-         assert_eq!(Vote::NotFound, verify_message(&gateway_address, &tx, &msg));
+        let (gateway_address, tx, mut msg) = get_matching_msg_and_tx_block();
+        msg.source_address = "bad_address".to_string();
+        assert_eq!(Vote::NotFound, verify_message(&gateway_address, &tx, &msg));
     }
 
     #[test]
     fn should_not_verify_msg_if_destination_chain_does_not_match() {
         let (gateway_address, tx, mut msg) = get_matching_msg_and_tx_block();
         msg.destination_chain = ChainName::from_str("bad_chain").unwrap();
-        assert_eq!(Vote::FailedOnChain, verify_message(&gateway_address, &tx, &msg));
+        assert_eq!(
+            Vote::FailedOnChain,
+            verify_message(&gateway_address, &tx, &msg)
+        );
     }
 
     #[test]
-    fn should_not_verify_msg_if_destination_address_does_not_match() {        
+    fn should_not_verify_msg_if_destination_address_does_not_match() {
         let (gateway_address, tx, mut msg) = get_matching_msg_and_tx_block();
         msg.destination_address = "bad_address".to_string();
-        assert_eq!(Vote::FailedOnChain, verify_message(&gateway_address, &tx, &msg));
+        assert_eq!(
+            Vote::FailedOnChain,
+            verify_message(&gateway_address, &tx, &msg)
+        );
     }
 
     #[test]
     fn should_not_verify_msg_if_payload_hash_does_not_match() {
         let (gateway_address, tx, mut msg) = get_matching_msg_and_tx_block();
         msg.payload_hash = [1; 32];
-        assert_eq!(Vote::FailedOnChain, verify_message(&gateway_address, &tx, &msg));
+        assert_eq!(
+            Vote::FailedOnChain,
+            verify_message(&gateway_address, &tx, &msg)
+        );
     }
 }

@@ -6,7 +6,6 @@ use crate::handlers::{self, config::deserialize_handler_configs};
 use crate::tofnd::Config as TofndConfig;
 use crate::url::Url;
 
-// Note from Stoyan: Config comes from config toml file. Check config_template.toml
 #[derive(Deserialize, Serialize, Debug, PartialEq)]
 #[serde(default)]
 pub struct Config {
