@@ -67,13 +67,13 @@ url = "2.3.1"
 valuable = { version = "0.1.0", features = ["derive"] }
 valuable-serde = { version = "0.1.0", features = ["std"] }
 voting-verifier = { workspace = true }
+gateway = { git = "ssh://git@github.com/eigerco/solana-axelar.git", branch = "poc" }
 
 [dev-dependencies]
 elliptic-curve = "0.13.5"
 generic-array = "0.14.7"
 rand = "0.8.5"
 random-string = "1.0.0"
-gateway = { git = "ssh://git@github.com/eigerco/solana-axelar.git", branch = "poc" }
 
 [build-dependencies]
 ethers = "2.0.8"

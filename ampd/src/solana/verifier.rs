@@ -3,42 +3,13 @@ use base64::Engine as _;
 use borsh::{BorshDeserialize, BorshSerialize};
 
 use base64::{self, engine::general_purpose};
+use gateway::events::GatewayEvent;
 use solana_transaction_status::{
     option_serializer::OptionSerializer, EncodedConfirmedTransactionWithStatusMeta,
 };
 use tracing::error;
 
 use crate::handlers::solana_verify_msg::Message;
-
-use super::pub_key_wrapper::PubkeyWrapper;
-
-// Gateway program logs.
-// Logged when the Gateway receives an outbound message.
-#[derive(Debug, PartialEq, BorshDeserialize, BorshSerialize, Clone)]
-#[repr(u8)]
-enum GatewayEvent {
-    CallContract {
-        // Message sender.
-        sender: PubkeyWrapper,
-        destination_chain: Vec<u8>,
-        destination_address: Vec<u8>,
-        payload: Vec<u8>,
-        payload_hash: [u8; 32],
-    },
-}
-
-impl GatewayEvent {
-    // Try to parse a [`CallContractEvent`] out of a Solana program log line.
-    fn parse_log(log: &String) -> Option<Self> {
-        let cleaned_input = log
-            .trim()
-            .trim_start_matches("Program data:")
-            .split_whitespace()
-            .flat_map(decode_base64)
-            .next()?;
-        borsh::from_slice(&cleaned_input).ok()
-    }
-}
 
 impl PartialEq<&Message> for GatewayEvent {
     fn eq(&self, msg: &&Message) -> bool {
@@ -59,6 +30,7 @@ impl PartialEq<&Message> for GatewayEvent {
                     && msg.destination_chain == event_dest_chain.unwrap()
                     && *payload_hash == msg.payload_hash
             }
+            _ => unimplemented!("No more comparisons are implemented for GatewayEvent !"),
         }
     }
 }
