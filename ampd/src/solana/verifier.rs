@@ -81,9 +81,14 @@ pub fn verify_message(
         }
     };
 
-    let tx_not_found = String::from("tx not found");
     // NOTE: first signature is always tx_id
-    let tx_id = ui_tx.signatures.first().unwrap_or(&tx_not_found);
+    let tx_id = match ui_tx.signatures.first() {
+        Some(tx) => tx,
+        None => {
+            error!("failed to parse solana tx signatures.");
+            return Vote::FailedOnChain;
+        }
+    };
 
     let tx_meta = match &tx.transaction.meta {
         Some(meta) => meta,
