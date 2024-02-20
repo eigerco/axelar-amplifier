@@ -97,7 +97,7 @@ pub fn verify_message(
                 tx_id = tx_id,
                 "Theres no available tx metadata to parse log messages from."
             );
-            return Vote::NotFound;
+            return Vote::FailedOnChain;
         }
     };
 
@@ -105,7 +105,7 @@ pub fn verify_message(
         OptionSerializer::Some(log) => log,
         _ => {
             error!(tx_id = tx_id, "Theres no log messages in tx.");
-            return Vote::NotFound;
+            return Vote::FailedOnChain;
         }
     };
 
