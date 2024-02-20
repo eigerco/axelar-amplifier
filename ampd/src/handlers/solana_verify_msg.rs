@@ -135,11 +135,8 @@ where
 
         let mut sol_txs: Vec<EncodedConfirmedTransactionWithStatusMeta> = Vec::new();
         for msg_tx in tx_ids_from_msg {
-            let result = self.rpc_client.get_transaction(msg_tx).await;
-            match result {
-                Ok(sol_tx) => sol_txs.push(sol_tx),
-                Err(err) => println!("ERR {:?}", err),
-            }
+            let sol_tx = self.rpc_client.get_transaction(msg_tx).await.map_err(|_|Error::TxReceipts)?;
+            sol_txs.push(sol_tx);
         }
 
         let mut votes: Vec<Vote> = vec![Vote::NotFound; messages.len()];
