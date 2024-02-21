@@ -1,6 +1,6 @@
 use axelar_wasm_std::voting::Vote;
 use base64::Engine as _;
-use borsh::{BorshDeserialize, BorshSerialize};
+
 
 use base64::{self, engine::general_purpose};
 use gateway::events::GatewayEvent;
@@ -96,7 +96,7 @@ pub fn verify_message(
     // Iterating over all logs till we found one of them that
     // can be parsed + verified.
     for log in log_messages.iter() {
-        match GatewayEvent::parse_log(&log) {
+        match GatewayEvent::parse_log(log) {
             Some(parsed_ev) => {
                 let verified = parsed_ev == message
                     && *tx_id == message.tx_id
@@ -138,7 +138,7 @@ mod tests {
         let tx_id = "fake_tx_id".to_string();
         let destination_chain = "eth".to_string();
         let destination_address = "0x0".to_string();
-        let payload: Vec<u8> = Vec::new();
+        let _payload: Vec<u8> = Vec::new();
         let payload_hash: [u8; 32] = [0; 32];
         let source_gateway_address: String = "sol_gateway_addr".to_string();
         let source_pubkey = Pubkey::from([0; 32]);
