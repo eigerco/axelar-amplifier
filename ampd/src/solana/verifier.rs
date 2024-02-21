@@ -15,7 +15,7 @@ impl PartialEq<&Message> for GatewayEvent {
     fn eq(&self, msg: &&Message) -> bool {
         match self {
             GatewayEvent::CallContract {
-                sender: _,
+                sender,
                 destination_chain,
                 destination_address,
                 payload: _,
@@ -25,6 +25,7 @@ impl PartialEq<&Message> for GatewayEvent {
                 let event_dest_chain = String::from_utf8(destination_chain.to_owned());
 
                 event_dest_addr.is_ok()
+                    && sender.to_string() == msg.source_address
                     && event_dest_chain.is_ok()
                     && event_dest_addr.unwrap() == msg.destination_address
                     && msg.destination_chain == event_dest_chain.unwrap()
@@ -113,6 +114,8 @@ pub fn verify_message(
 
 #[cfg(test)]
 mod tests {
+    use gateway::types::PubkeyWrapper;
+
     use std::str::FromStr;
 
     use connection_router::state::ChainName;
@@ -138,13 +141,15 @@ mod tests {
         let payload: Vec<u8> = Vec::new();
         let payload_hash: [u8; 32] = [0; 32];
         let source_gateway_address: String = "sol_gateway_addr".to_string();
+        let source_pubkey = Pubkey::from([0; 32]);
+        let source_address = PubkeyWrapper::from(source_pubkey);
 
         // Code below helps on generating the program log line for adding in the
         // tests/solana_tx.json file and use it as test fixture. See the "logMessages" field
         // on it.
         //
         // let event = gateway::events::GatewayEvent::CallContract {
-        //     sender: Pubkey::from([0; 32]).into(),
+        //     sender: source_address.clone(),
         //     destination_chain: destination_chain.clone().into_bytes(),
         //     destination_address: destination_address.clone().into_bytes(),
         //     payload,
@@ -167,7 +172,7 @@ mod tests {
             event_index: 0,
             destination_address: destination_address.clone(),
             destination_chain: ChainName::from_str(&destination_chain).unwrap(),
-            source_address: source_gateway_address.clone(),
+            source_address: source_address.to_string(),
             payload_hash,
         };
 
@@ -191,13 +196,6 @@ mod tests {
         msg.event_index = rand::random::<u64>();
         assert_eq!(Vote::NotFound, verify_message(&gateway_address, &tx, &msg));
     }
-    #[ignore = "We are not checking the source address in the gateway event."]
-    #[test]
-    fn should_not_verify_msg_if_source_address_does_not_match() {
-        let (gateway_address, tx, mut msg) = get_matching_msg_and_tx_block();
-        msg.source_address = "bad_address".to_string();
-        assert_eq!(Vote::NotFound, verify_message(&gateway_address, &tx, &msg));
-    }
 
     #[test]
     fn should_not_verify_msg_if_destination_chain_does_not_match() {
@@ -206,6 +204,16 @@ mod tests {
         assert_eq!(
             Vote::FailedOnChain,
             verify_message(&gateway_address, &tx, &msg)
+        );
+    }
+
+    #[test]
+    fn should_not_verify_msg_if_source_address_does_not_match() {
+        let (source_gateway_address, tx, mut msg) = get_matching_msg_and_tx_block();
+        msg.source_address = PubkeyWrapper::from(Pubkey::from([13; 32])).to_string();
+        assert_eq!(
+            Vote::FailedOnChain,
+            verify_message(&source_gateway_address, &tx, &msg)
         );
     }
 
