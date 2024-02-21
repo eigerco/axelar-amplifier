@@ -31,7 +31,7 @@ impl PartialEq<&Message> for GatewayEvent {
                     && msg.destination_chain == event_dest_chain.unwrap()
                     && *payload_hash == msg.payload_hash
             }
-            _ => unimplemented!("No more comparisons are implemented for GatewayEvent !"),
+            _ => false,
         }
     }
 }
