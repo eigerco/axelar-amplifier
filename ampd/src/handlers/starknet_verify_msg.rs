@@ -69,7 +69,8 @@ impl RPCMessageVerifier {
 #[async_trait]
 impl MessageVerifier for RPCMessageVerifier {
     async fn verify(&self, msg: &Message) -> core::result::Result<bool, Error> {
-        //self.verifier.get_event(msg.to_string())
+        println!("MSGGGGGGGG {:?}", msg);
+        // self.verifier.get_event(msg.to_string());
         unimplemented!("Check that `Message` model carries necesary inoformation for finding event in starknet side.")
     }
 }
@@ -241,13 +242,8 @@ mod test {
             &voting_verifier,
         );
 
-        let handler = super::Handler::new(
-            worker,
-            voting_verifier,
-            msg_verifier,
-            broadcast_client,
-            rx,
-        );
+        let handler =
+            super::Handler::new(worker, voting_verifier, msg_verifier, broadcast_client, rx);
 
         handler.handle(&event).await.unwrap();
     }
@@ -292,13 +288,8 @@ mod test {
             &voting_verifier,
         );
 
-        let handler = super::Handler::new(
-            worker,
-            voting_verifier,
-            msg_verifier,
-            broadcast_client,
-            rx,
-        );
+        let handler =
+            super::Handler::new(worker, voting_verifier, msg_verifier, broadcast_client, rx);
 
         handler.handle(&event).await.unwrap();
     }
@@ -325,13 +316,8 @@ mod test {
             &TMAddress::random(PREFIX), // A different, unexpected address comes from the event.
         );
 
-        let handler = super::Handler::new(
-            worker,
-            voting_verifier,
-            msg_verifier,
-            broadcast_client,
-            rx,
-        );
+        let handler =
+            super::Handler::new(worker, voting_verifier, msg_verifier, broadcast_client, rx);
 
         handler.handle(&event).await.unwrap();
     }
@@ -358,13 +344,8 @@ mod test {
             &voting_verifier,
         );
 
-        let handler = super::Handler::new(
-            worker,
-            voting_verifier,
-            msg_verifier,
-            broadcast_client,
-            rx,
-        );
+        let handler =
+            super::Handler::new(worker, voting_verifier, msg_verifier, broadcast_client, rx);
 
         handler.handle(&event).await.unwrap();
     }
@@ -391,13 +372,8 @@ mod test {
             &voting_verifier,
         );
 
-        let handler = super::Handler::new(
-            worker,
-            voting_verifier,
-            msg_verifier,
-            broadcast_client,
-            rx,
-        );
+        let handler =
+            super::Handler::new(worker, voting_verifier, msg_verifier, broadcast_client, rx);
 
         handler.handle(&event).await.unwrap();
     }

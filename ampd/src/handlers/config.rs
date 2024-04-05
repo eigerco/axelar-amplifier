@@ -46,8 +46,8 @@ pub enum Config {
     },
     StarknetMsgVerifier {
         cosmwasm_contract: TMAddress,
-        #[serde(flatten, with = "chain")]
         rpc_url: Url,
+        rpc_timeout: Option<Duration>,
     },
 }
 

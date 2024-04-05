@@ -300,6 +300,7 @@ where
                 handlers::config::Config::StarknetMsgVerifier {
                     cosmwasm_contract,
                     rpc_url,
+                    rpc_timeout: _,
                 } => self.create_handler_task(
                     "starknet-msg-verifier",
                     handlers::starknet_verify_msg::Handler::new(
