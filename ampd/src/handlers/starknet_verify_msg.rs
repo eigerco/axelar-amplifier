@@ -1,26 +1,26 @@
-use crate::handlers::errors::Error::DeserializeEvent;
-use crate::{
-    event_processor::EventHandler,
-    handlers::errors::Error,
-    queue::queued_broadcaster::BroadcasterClient,
-    types::{Hash, TMAddress},
-};
+// use starknet_verifier::Verifier;
+use std::collections::HashSet;
+use std::convert::TryInto;
+
 use async_trait::async_trait;
 use axelar_wasm_std::voting::{PollId, Vote};
 use base64::Engine;
 use connection_router_api::ChainName;
 use cosmrs::cosmwasm::MsgExecuteContract;
+use events::Error::EventTypeMismatch;
 use events_derive::try_from;
 use mockall::automock;
 use serde::Deserialize;
-use starknet_verifier::Verifier;
-use std::collections::HashSet;
-use std::convert::TryInto;
-
-use events::Error::EventTypeMismatch;
 use tokio::sync::watch::Receiver;
 use tracing::info;
 use voting_verifier::msg::ExecuteMsg;
+
+use crate::event_processor::EventHandler;
+use crate::handlers::errors::Error;
+use crate::handlers::errors::Error::DeserializeEvent;
+use crate::queue::queued_broadcaster::BroadcasterClient;
+use crate::starknet::verifier;
+use crate::types::{Hash, TMAddress};
 
 type Result<T> = error_stack::Result<T, Error>;
 
@@ -55,13 +55,13 @@ pub trait MessageVerifier {
 }
 
 pub struct RPCMessageVerifier {
-    verifier: Verifier,
+    verifier: verifier::Verifier,
 }
 
 impl RPCMessageVerifier {
     pub fn new(url: impl AsRef<str>) -> Self {
         Self {
-            verifier: Verifier::new(url).unwrap(), // todoo scale error ?
+            verifier: verifier::Verifier::new(url).unwrap(), // todoo scale error ?
         }
     }
 }
@@ -165,7 +165,8 @@ where
         }
 
         // Does not assume voting verifier emits unique tx ids.
-        // RPC will throw an error if the input contains any duplicate, deduplicate tx ids to avoid unnecessary failures.
+        // RPC will throw an error if the input contains any duplicate, deduplicate tx
+        // ids to avoid unnecessary failures.
         let mut received_msgs_tx = HashSet::new();
         let mut votes: Vec<Vote> = vec![];
 
@@ -196,12 +197,13 @@ mod test {
     use mockall::predicate::eq;
     use tendermint::abci;
     use tokio::sync::watch;
+    use tokio::test as async_test;
     use voting_verifier::events::{PollMetadata, PollStarted, TxEventConfirmation};
 
-    use crate::{queue::queued_broadcaster::MockBroadcasterClient, types::EVMAddress, PREFIX};
-    use tokio::test as async_test;
-
     use super::*;
+    use crate::queue::queued_broadcaster::MockBroadcasterClient;
+    use crate::types::EVMAddress;
+    use crate::PREFIX;
 
     #[async_test]
     async fn must_correctly_validate_messages() {
@@ -340,7 +342,9 @@ mod test {
         msg_verifier.expect_verify().never();
 
         let event: Event = get_event(
-            get_poll_started_event(participants(5, None), 100), // This worker is not in participant set. So will skip the event.
+            get_poll_started_event(participants(5, None), 100), /* This worker is not in
+                                                                 * participant set. So will skip
+                                                                 * the event. */
             &voting_verifier,
         );
 
