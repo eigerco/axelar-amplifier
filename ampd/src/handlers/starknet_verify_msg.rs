@@ -1,15 +1,13 @@
-// use starknet_verifier::Verifier;
 use std::collections::HashSet;
 use std::convert::TryInto;
 
 use async_trait::async_trait;
 use axelar_wasm_std::voting::{PollId, Vote};
-use base64::Engine;
 use connection_router_api::ChainName;
 use cosmrs::cosmwasm::MsgExecuteContract;
 use events::Error::EventTypeMismatch;
 use events_derive::try_from;
-use mockall::automock;
+use futures::future::join_all;
 use serde::Deserialize;
 use tokio::sync::watch::Receiver;
 use tracing::info;
@@ -19,17 +17,17 @@ use crate::event_processor::EventHandler;
 use crate::handlers::errors::Error;
 use crate::handlers::errors::Error::DeserializeEvent;
 use crate::queue::queued_broadcaster::BroadcasterClient;
-use crate::starknet::verifier;
+use crate::starknet::verifier::MessageVerifier;
 use crate::types::{Hash, TMAddress};
 
 type Result<T> = error_stack::Result<T, Error>;
 
 #[derive(Deserialize, Debug)]
 pub struct Message {
-    pub tx_id: Hash,
+    pub tx_id: String,
     pub event_index: u64,
     pub destination_address: String,
-    pub destination_chain: ChainName,
+    pub destination_chain: String,
     pub source_address: String,
     pub payload_hash: Hash,
 }
@@ -46,33 +44,6 @@ struct PollStartedEvent {
     expires_at: u64,
     messages: Vec<Message>,
     participants: Vec<TMAddress>,
-}
-
-#[automock]
-#[async_trait]
-pub trait MessageVerifier {
-    async fn verify(&self, msg: &Message) -> core::result::Result<bool, Error>;
-}
-
-pub struct RPCMessageVerifier {
-    verifier: verifier::Verifier,
-}
-
-impl RPCMessageVerifier {
-    pub fn new(url: impl AsRef<str>) -> Self {
-        Self {
-            verifier: verifier::Verifier::new(url).unwrap(), // todoo scale error ?
-        }
-    }
-}
-
-#[async_trait]
-impl MessageVerifier for RPCMessageVerifier {
-    async fn verify(&self, msg: &Message) -> core::result::Result<bool, Error> {
-        println!("MSGGGGGGGG {:?}", msg);
-        // self.verifier.get_event(msg.to_string());
-        unimplemented!("Check that `Message` model carries necesary inoformation for finding event in starknet side.")
-    }
 }
 
 pub struct Handler<V, B>
@@ -145,45 +116,63 @@ where
             participants,
         } = match event.try_into() as error_stack::Result<_, _> {
             Err(report) if matches!(report.current_context(), EventTypeMismatch(_)) => {
-                return Ok(())
+                return Ok(());
             }
             event => event.change_context(DeserializeEvent)?,
         };
 
         if self.voting_verifier != contract_address {
+            println!("VOTING_VERIFIER!=CONTRACT_ADDRESS");
             return Ok(());
         }
 
         if !participants.contains(&self.worker) {
+            println!("PARTICIPANT IS NOT THIS WORKER");
             return Ok(());
         }
 
         let latest_block_height = *self.latest_block_height.borrow();
         if latest_block_height >= expires_at {
+            println!("POLL EXPIRED?");
             info!(poll_id = poll_id.to_string(), "skipping expired poll");
             return Ok(());
         }
 
+        println!("ALL CHECKS PASSED");
+        let tx_hashes: HashSet<_> = messages
+            .iter()
+            .map(|message| message.tx_id.as_str())
+            .collect();
+
+        let votes: Vec<Vote> = join_all(
+            tx_hashes
+                .into_iter()
+                .map(|tx_hash| self.msg_verifier.verify(tx_hash)),
+        )
+        .await
+        .into_iter()
+        // TODO: Maybe log the errors (mostly with connection/serialization)?
+        .filter_map(|v| v.ok())
+        .collect();
+
         // Does not assume voting verifier emits unique tx ids.
         // RPC will throw an error if the input contains any duplicate, deduplicate tx
         // ids to avoid unnecessary failures.
-        let mut received_msgs_tx = HashSet::new();
-        let mut votes: Vec<Vote> = vec![];
-
-        for msg in messages.iter() {
-            let tx_id = msg.tx_id.to_string();
-            if received_msgs_tx.contains(&tx_id) {
-                continue;
-            }
-            votes.push(
-                // Todo, maybe we can query all of them concurrently.
-                match self.msg_verifier.verify(msg).await {
-                    Ok(_) => Vote::SucceededOnChain,
-                    Err(_) => Vote::NotFound,
-                },
-            );
-            received_msgs_tx.insert(tx_id);
-        }
+        // let mut received_msgs_tx = HashSet::new();
+        // let mut votes: Vec<Vote> = vec![];
+        //
+        // for msg in messages.iter() {
+        //     votes.push(
+        //         // Todo, maybe we can query all of them concurrently.
+        //         match self.msg_verifier.verify(msg).await {
+        //             Ok(_) => Vote::SucceededOnChain,
+        //             Err(err) => {
+        //                 println!("{:?} EEEEEER", err);
+        //                 Vote::NotFound
+        //             }
+        //         },
+        //     );
+        // }
         self.broadcast_votes(poll_id, votes).await
     }
 }
@@ -202,6 +191,7 @@ mod test {
 
     use super::*;
     use crate::queue::queued_broadcaster::MockBroadcasterClient;
+    use crate::starknet::verifier::MockMessageVerifier;
     use crate::types::EVMAddress;
     use crate::PREFIX;
 

@@ -306,7 +306,7 @@ where
                     handlers::starknet_verify_msg::Handler::new(
                         worker.clone(),
                         cosmwasm_contract,
-                        handlers::starknet_verify_msg::RPCMessageVerifier::new(rpc_url.as_str()),
+                        starknet::verifier::RPCMessageVerifier::new(rpc_url.as_str()),
                         self.broadcaster.client(),
                         self.block_height_monitor.latest_block_height(),
                     ),
