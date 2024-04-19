@@ -182,6 +182,7 @@ mod test {
 
     use axelar_wasm_std::nonempty;
     use base64::engine::general_purpose::STANDARD;
+    use base64::Engine;
     use events::Event;
     use mockall::predicate::eq;
     use tendermint::abci;
@@ -227,7 +228,7 @@ mod test {
         msg_verifier
             .expect_verify()
             .times(2)
-            .returning(|_| Ok(true));
+            .returning(|_| Ok(Vote::SucceededOnChain));
 
         let event: Event = get_event(
             get_poll_started_event(participants(5, Some(worker.clone())), 100),
@@ -273,7 +274,7 @@ mod test {
         msg_verifier
             .expect_verify()
             .once() // Only the first msg is verified, skipping the duplicated one.
-            .returning(|_| Ok(true));
+            .returning(|_| Ok(Vote::SucceededOnChain));
 
         let event: Event = get_event(
             get_poll_started_event_with_duplicates(participants(5, Some(worker.clone())), 100),

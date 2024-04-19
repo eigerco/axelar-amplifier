@@ -73,20 +73,6 @@ impl TryFrom<starknet_core::types::Event> for ContractCalledEvent {
         // let destination_address_byte_array: Vec<u8> = vec![0u8;
         // destination_address_bytes_length];
 
-        // TODO:
-        // - If word count is 0 - convert the pending word to a string
-        // - If word count > 0:
-        //   - for i=2; i < 2+eventData[1]; i++
-        //     - cut all leading 0s
-        //     - concatenate all field element hex bytes resulting in 31_word_bytes
-        //     - parse felt 1 to u32 and take element parsedFelt+2 which is the
-        //       pending_word
-        //       - parse elelemtn parsedFelt+3 as u8, which is pending_word_bytes_length
-        //       - take pending_words_byte_length worth of bytes from the pending_word
-        //     - take the pending_word bytes and concatenate them with the previous
-        //       31_word_bytes
-        //     - Convert those bytes to a string
-
         Ok(ContractCalledEvent {
             destination_address: todo!(),
             destination_chain,
