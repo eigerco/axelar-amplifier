@@ -31,11 +31,6 @@ pub struct StarknetClient {
 impl StarknetClient {
     /// Constructor.
     /// Expects URL of any JSON RPC entry point of Starknet.
-    /// ## Example
-    /// ```rust
-    ///    use crate::starknet::json_rpc::{StarknetClient, BLAST_STARKNET_SEPOLIA};
-    ///    assert!(Verifier::new(BLAST_STARKNET_SEPOLIA).is_ok());
-    /// ```
     pub fn new(starknet_url: impl AsRef<str>) -> Result<Self, StarknetClientError> {
         Ok(StarknetClient {
             client: JsonRpcClient::new(HttpTransport::new(Url::parse(starknet_url.as_ref())?)),
