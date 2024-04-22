@@ -10,6 +10,9 @@ use starknet_providers::{JsonRpcClient, Provider, ProviderError};
 use thiserror::Error;
 use url::Url;
 
+use crate::starknet::events::contract_called::ContractCallEvent;
+use crate::starknet::events::EventType;
+
 #[derive(Debug, Error)]
 pub enum StarknetClientError {
     #[error(transparent)]
@@ -44,10 +47,10 @@ impl StarknetClient {
         &self,
         tx_hash: impl AsRef<str>,
     ) -> Result<Option<starknet_core::types::Event>, StarknetClientError> {
-        println!(
-            "TX_IDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD {:?}",
-            tx_hash.as_ref()
-        );
+        // println!(
+        //     "TX_IDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD {:?}",
+        //     tx_hash.as_ref()
+        // );
 
         // TODO: Check ACCEPTED ON L1 times and decide if we should use it
         //
@@ -60,10 +63,10 @@ impl StarknetClient {
             .await
             .map_err(StarknetClientError::FetchingReceipt)?;
 
-        println!(
-            "KOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOORRRRR {:#?}",
-            receipt_type
-        );
+        // println!(
+        //     "KOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOORRRRR {:#?}",
+        //     receipt_type
+        // );
 
         if *receipt_type.execution_result() != ExecutionResult::Succeeded {
             return Err(StarknetClientError::UnsuccessfulTx);
@@ -75,31 +78,28 @@ impl StarknetClient {
                     // There should be only one event with key "starknet"
 
                     for e in tx.clone().events {
-                        for d in e.data {
-                            println!("EVENT DATA -> {:?}", d);
-                            println!("EVENT DATA -> {:?}", d.to_string());
-                            println!("EVENT DATA -> {:?}", d.to_bytes_be());
-                            println!("EVENT DATA -> {:?}", parse_cairo_short_string(&d));
-                            println!("");
-                        }
-
-                        for k in e.keys {
-                            println!("EVENT KEY -> {:?}", k);
-                            println!("EVENT KEY -> {:?}", k.to_string());
-                            println!("EVENT KEY -> {:?}", k.to_bytes_be());
-                            println!("EVENT KEY -> {:?}", parse_cairo_short_string(&k));
-                            println!("");
+                        //     for d in e.data {
+                        //         println!("EVENT DATA -> {:?}", d);
+                        //         println!("EVENT DATA -> {:?}", d.to_string());
+                        //         println!("EVENT DATA -> {:?}", d.to_bytes_be());
+                        //         println!("EVENT DATA -> {:?}", parse_cairo_short_string(&d));
+                        //         println!("");
+                        //     }
+                        //
+                        // for k in e.clone().keys {
+                        //     println!("EVENT KEY -> {:?}", parse_cairo_short_string(&k));
+                        //     println!("");
+                        // }
+                        println!("EVENTTTTTTTTTTTTTTTTTTTTT {:?}", e);
+                        match ContractCallEvent::try_from(e) {
+                            Ok(cce) => println!("SUCCESS {:?}", cce),
+                            Err(e) => println!("FAILURE {:?}", e),
                         }
                     }
 
-                    let event: Option<starknet_core::types::Event> = tx
-                        .events
-                        .into_iter()
-                        .find(|event| event.keys.iter().any(|key| key.to_string() == "starknet"));
+                    // println!("EVENTTTTTTTTTTTTTTTTTTTTT {:?}", event);
 
-                    println!("EVENTTTTTTTTTTTTTTTTTTTTT {:?}", event);
-
-                    event
+                    todo!();
                 }
                 starknet_core::types::TransactionReceipt::L1Handler(_) => None,
                 starknet_core::types::TransactionReceipt::Declare(_) => None,

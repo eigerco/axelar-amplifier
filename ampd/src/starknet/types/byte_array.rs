@@ -1,6 +1,3 @@
-use core::fmt;
-use std::ops::Not;
-
 use itertools::FoldWhile::{Continue, Done};
 use itertools::Itertools;
 use starknet_core::types::{FieldElement, ValueOutOfRangeError};
@@ -42,10 +39,10 @@ pub enum ByteArrayError {
 /// type as described in this document:
 /// https://docs.starknet.io/documentation/architecture_and_concepts/Smart_Contracts/serialization_of_Cairo_types/#serialization_of_byte_arrays
 ///
-/// # Example usage
+/// ## Example usage
 ///
-/// ```
-/// use self::ByteArray;
+/// ```rust
+/// use crate::starknet::types::ByteArray;
 /// use std::str::FromStr;
 /// use starknet_core::types::FieldElement;
 ///
@@ -71,6 +68,8 @@ impl TryFrom<Vec<FieldElement>> for ByteArray {
     type Error = ByteArrayError;
 
     fn try_from(data: Vec<FieldElement>) -> Result<Self, Self::Error> {
+        println!("CALLCONTRACT");
+        println!("{:?}", data);
         let mut byte_array = ByteArray {
             ..Default::default()
         };
@@ -163,10 +162,10 @@ impl TryFrom<Vec<FieldElement>> for ByteArray {
 impl ByteArray {
     /// Takes the ByteArray struct and tries to parse it as a single string
     ///
-    /// # Example usage with the string "hello"
+    /// ## Example usage with the string "hello"
     ///
-    /// ```
-    /// use self::ByteArray;
+    /// ```rust
+    /// use crate::starknet::types::ByteArray;
     /// use std::str::FromStr;
     /// use starknet_core::types::FieldElement;
     ///
@@ -186,12 +185,12 @@ impl ByteArray {
     /// ];
     ///
     /// let byte_array = ByteArray::try_from(data).unwrap();
-    /// assert_eq!("hello", byte_array.try_to_combine_in_string().unwrap());
+    /// assert_eq!("hello", byte_array.try_to_string().unwrap());
     /// ```
     ///
     /// Additional documentation you can find here:
     /// https://docs.starknet.io/documentation/architecture_and_concepts/Smart_Contracts/serialization_of_Cairo_types/#serialization_of_byte_arrays
-    fn try_to_combine_in_string(&self) -> Result<String, ByteArrayError> {
+    pub fn try_to_string(&self) -> Result<String, ByteArrayError> {
         match self
             .data
             .iter()
@@ -265,7 +264,7 @@ mod byte_array_tests {
         ];
 
         let byte_array = ByteArray::try_from(data).unwrap();
-        assert!(byte_array.try_to_combine_in_string().is_err());
+        assert!(byte_array.try_to_string().is_err());
     }
 
     #[test]
@@ -290,7 +289,7 @@ mod byte_array_tests {
         ];
 
         let byte_array = ByteArray::try_from(data).unwrap();
-        assert_eq!("hello", byte_array.try_to_combine_in_string().unwrap());
+        assert_eq!("hello", byte_array.try_to_string().unwrap());
     }
 
     #[test]
@@ -333,7 +332,7 @@ mod byte_array_tests {
         ];
 
         let byte_array = ByteArray::try_from(data).unwrap();
-        assert_eq!("Long long string, a lot more than 31 characters that wouldn't even fit in two felts, so we'll have at least two felts and a pending word.", byte_array.try_to_combine_in_string().unwrap());
+        assert_eq!("Long long string, a lot more than 31 characters that wouldn't even fit in two felts, so we'll have at least two felts and a pending word.", byte_array.try_to_string().unwrap());
     }
 
     #[test]
