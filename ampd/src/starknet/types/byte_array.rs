@@ -41,6 +41,32 @@ pub enum ByteArrayError {
 /// The Vec<FieldElement> should be only the representation of the ByteArray
 /// type as described in this document:
 /// https://docs.starknet.io/documentation/architecture_and_concepts/Smart_Contracts/serialization_of_Cairo_types/#serialization_of_byte_arrays
+///
+/// # Example usage
+///
+/// ```
+/// use self::ByteArray;
+/// use std::str::FromStr;
+/// use starknet_core::types::FieldElement;
+///
+/// let data = vec![
+///     FieldElement::from_str(
+///         "0x0000000000000000000000000000000000000000000000000000000000000000",
+///     )
+///     .unwrap(),
+///     FieldElement::from_str(
+///         "0x00000000000000000000000000000000000000000000000000000068656c6c6f",
+///     )
+///     .unwrap(),
+///     FieldElement::from_str(
+///         "0x0000000000000000000000000000000000000000000000000000000000000005",
+///     )
+///     .unwrap(),
+/// ];
+///
+/// let byte_array = ByteArray::try_from(data).unwrap();
+/// assert_eq!("hello", byte_array.is_ok());
+/// ```
 impl TryFrom<Vec<FieldElement>> for ByteArray {
     type Error = ByteArrayError;
 
@@ -136,6 +162,35 @@ impl TryFrom<Vec<FieldElement>> for ByteArray {
 
 impl ByteArray {
     /// Takes the ByteArray struct and tries to parse it as a single string
+    ///
+    /// # Example usage with the string "hello"
+    ///
+    /// ```
+    /// use self::ByteArray;
+    /// use std::str::FromStr;
+    /// use starknet_core::types::FieldElement;
+    ///
+    /// let data = vec![
+    ///     FieldElement::from_str(
+    ///         "0x0000000000000000000000000000000000000000000000000000000000000000",
+    ///     )
+    ///     .unwrap(),
+    ///     FieldElement::from_str(
+    ///         "0x00000000000000000000000000000000000000000000000000000068656c6c6f",
+    ///     )
+    ///     .unwrap(),
+    ///     FieldElement::from_str(
+    ///         "0x0000000000000000000000000000000000000000000000000000000000000005",
+    ///     )
+    ///     .unwrap(),
+    /// ];
+    ///
+    /// let byte_array = ByteArray::try_from(data).unwrap();
+    /// assert_eq!("hello", byte_array.try_to_combine_in_string().unwrap());
+    /// ```
+    ///
+    /// Additional documentation you can find here:
+    /// https://docs.starknet.io/documentation/architecture_and_concepts/Smart_Contracts/serialization_of_Cairo_types/#serialization_of_byte_arrays
     fn try_to_combine_in_string(&self) -> Result<String, ByteArrayError> {
         match self
             .data
