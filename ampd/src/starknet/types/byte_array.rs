@@ -1,5 +1,7 @@
 use core::fmt;
+use std::ops::Not;
 
+use itertools::FoldWhile::{Continue, Done};
 use itertools::Itertools;
 use starknet_core::types::{FieldElement, ValueOutOfRangeError};
 use starknet_core::utils::parse_cairo_short_string;
@@ -32,6 +34,8 @@ pub enum ByteArrayError {
     InvalidByteArray(String),
     #[error("Failed to parse felt - {0}")]
     ParsingFelt(#[from] ValueOutOfRangeError),
+    #[error("Failed to convert the byte array into a string")]
+    ToString,
 }
 
 /// The Vec<FieldElement> should be only the representation of the ByteArray
@@ -67,7 +71,7 @@ impl TryFrom<Vec<FieldElement>> for ByteArray {
             .unwrap_or(false);
         if !is_arr_el_count_valid {
             return Err(ByteArrayError::InvalidByteArray(
-                "invalid byte array structure".to_owned(),
+                "pre-defined count doesn't match actual 31byte element count".to_owned(),
             ));
         }
 
@@ -81,6 +85,29 @@ impl TryFrom<Vec<FieldElement>> for ByteArray {
         // pending word is always the next to last element
         let pending_word = data[data.len() - 2];
         byte_array.pending_word = pending_word;
+
+        // count bytes, excluding leading zeros
+        let non_zero_pw_length = pending_word
+            .to_bytes_be()
+            .iter()
+            .fold_while(32, |acc, n| {
+                if *n == 0 {
+                    Continue(acc - 1)
+                } else {
+                    Done(acc)
+                }
+            })
+            .into_inner();
+
+        let is_pending_word_len_valid = usize::try_from(pending_word_length)
+            .map(|count| non_zero_pw_length == count)
+            .unwrap_or(false);
+
+        if !is_pending_word_len_valid {
+            return Err(ByteArrayError::InvalidByteArray(
+                "pending_word length doesn't match it's defined length".to_owned(),
+            ));
+        }
 
         if word_count > 0 {
             byte_array.data = data[1..data.len() - 2].to_vec();
@@ -107,22 +134,19 @@ impl TryFrom<Vec<FieldElement>> for ByteArray {
     }
 }
 
-// TODO: Write tests
-impl fmt::Display for ByteArray {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        let felts_making_a_string: Vec<FieldElement> =
-            vec![self.data.clone(), vec![self.pending_word]].concat();
-        let as_string_result: Result<String, _> = felts_making_a_string
-            .into_iter()
-            .map(|felt| parse_cairo_short_string(&felt))
-            .collect();
-
-        let as_string = match as_string_result {
-            Ok(s) => s,
-            Err(_) => return Err(fmt::Error),
-        };
-
-        write!(f, "{}", as_string)
+impl ByteArray {
+    /// Takes the ByteArray struct and tries to parse it as a single string
+    fn try_to_combine_in_string(&self) -> Result<String, ByteArrayError> {
+        match self
+            .data
+            .iter()
+            .chain(std::iter::once(&self.pending_word))
+            .map(|felt| parse_cairo_short_string(felt))
+            .collect::<Result<String, _>>()
+        {
+            Ok(s) => Ok(s),
+            Err(_) => Err(ByteArrayError::ToString),
+        }
     }
 }
 
@@ -135,7 +159,62 @@ mod byte_array_tests {
     use crate::starknet::types::byte_array::ByteArray;
 
     #[test]
-    fn byte_array_single_pending_word_to_string_valid() {
+    fn byte_array_parse_fail_wrong_pending_word_length() {
+        // Example for a small string (fits in a single felt) taken from here:
+        // https://docs.starknet.io/documentation/architecture_and_concepts/Smart_Contracts/serialization_of_Cairo_types/#serialization_of_byte_arrays
+        //
+        // So this is the string "hello"
+        let data = vec![
+            FieldElement::from_str(
+                "0x0000000000000000000000000000000000000000000000000000000000000000",
+            )
+            .unwrap(),
+            FieldElement::from_str(
+                "0x0000000000000000000000000000000000000000000000000000068656c6c6f",
+            )
+            .unwrap(),
+            FieldElement::from_str(
+                // Should be of length 5 bytes, but we put 6 bytes, in order to fail
+                // the parsing
+                "0x0000000000000000000000000000000000000000000000000000000000000020",
+            )
+            .unwrap(),
+        ];
+
+        let byte_array = ByteArray::try_from(data);
+        assert!(byte_array.is_err());
+    }
+
+    #[test]
+    fn byte_array_to_string_error() {
+        // Example for a small string (fits in a single felt) taken from here:
+        // https://docs.starknet.io/documentation/architecture_and_concepts/Smart_Contracts/serialization_of_Cairo_types/#serialization_of_byte_arrays
+        //
+        // So this is the string "hello"
+        let data = vec![
+            FieldElement::from_str(
+                "0x0000000000000000000000000000000000000000000000000000000000000000",
+            )
+            .unwrap(),
+            // Note the 01 in the beginning. This is what causes the parse
+            // function to error.
+            FieldElement::from_str(
+                "0x01000000000000000000000000000000000000000000000000000068656c6c6f",
+            )
+            .unwrap(),
+            FieldElement::from_str(
+                // 32(0x20) bytes long pending_word
+                "0x0000000000000000000000000000000000000000000000000000000000000020",
+            )
+            .unwrap(),
+        ];
+
+        let byte_array = ByteArray::try_from(data).unwrap();
+        assert!(byte_array.try_to_combine_in_string().is_err());
+    }
+
+    #[test]
+    fn byte_array_single_pending_word_only_to_string_valid() {
         // Example for a small string (fits in a single felt) taken from here:
         // https://docs.starknet.io/documentation/architecture_and_concepts/Smart_Contracts/serialization_of_Cairo_types/#serialization_of_byte_arrays
         //
@@ -156,7 +235,7 @@ mod byte_array_tests {
         ];
 
         let byte_array = ByteArray::try_from(data).unwrap();
-        assert_eq!("hello", byte_array.to_string());
+        assert_eq!("hello", byte_array.try_to_combine_in_string().unwrap());
     }
 
     #[test]
@@ -199,7 +278,7 @@ mod byte_array_tests {
         ];
 
         let byte_array = ByteArray::try_from(data).unwrap();
-        assert_eq!("Long long string, a lot more than 31 characters that wouldn't even fit in two felts, so we'll have at least two felts and a pending word.", byte_array.to_string());
+        assert_eq!("Long long string, a lot more than 31 characters that wouldn't even fit in two felts, so we'll have at least two felts and a pending word.", byte_array.try_to_combine_in_string().unwrap());
     }
 
     #[test]
