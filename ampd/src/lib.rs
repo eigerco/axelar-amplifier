@@ -20,7 +20,7 @@ use tokio::signal::unix::{signal, SignalKind};
 use tokio::sync::oneshot;
 use tokio_stream::Stream;
 use tokio_util::sync::CancellationToken;
-use tracing::info;
+use tracing::{info, warn};
 use types::TMAddress;
 
 use crate::asyncutil::task::{CancellableTask, TaskError, TaskGroup};
@@ -40,7 +40,7 @@ mod handlers;
 mod health_check;
 mod json_rpc;
 mod queue;
-pub mod starknet;
+mod starknet;
 pub mod state;
 mod sui;
 mod tm_client;

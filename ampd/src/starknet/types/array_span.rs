@@ -1,50 +1,7 @@
 use starknet_core::types::{FieldElement, ValueOutOfRangeError};
 use thiserror::Error;
 
-/// Represents Cairo's Array and Span types.
-/// Implements `TryFrom<Vec<FieldElement>>`, which is the way to create it.
-///
-/// ## Example usage with the string "hello"
-///
-/// ```rust
-/// use ampd::starknet::types::array_span::ArraySpan;
-/// use std::str::FromStr;
-/// use starknet_core::types::FieldElement;
-///
-/// let data = vec![
-///     FieldElement::from_str(
-///         "0x0000000000000000000000000000000000000000000000000000000000000005",
-///     )
-///     .unwrap(),
-///     FieldElement::from_str(
-///         "0x0000000000000000000000000000000000000000000000000000000000000068",
-///     )
-///     .unwrap(),
-///     FieldElement::from_str(
-///         "0x0000000000000000000000000000000000000000000000000000000000000065",
-///     )
-///     .unwrap(),
-///     FieldElement::from_str(
-///         "0x000000000000000000000000000000000000000000000000000000000000006c",
-///     )
-///     .unwrap(),
-///     FieldElement::from_str(
-///         "0x000000000000000000000000000000000000000000000000000000000000006c",
-///     )
-///     .unwrap(),
-///     FieldElement::from_str(
-///         "0x000000000000000000000000000000000000000000000000000000000000006f",
-///     )
-///     .unwrap(),
-/// ];
-///
-/// let array_span = ArraySpan::try_from(data).unwrap();
-/// assert_eq!(array_span.bytes, vec![104, 101, 108, 108, 111]);
-/// assert_eq!(String::from_utf8(array_span.bytes).unwrap(), "hello");
-/// ```
-///
-/// For more info:
-/// https://docs.starknet.io/documentation/architecture_and_concepts/Smart_Contracts/serialization_of_Cairo_types/#serialization_of_byte_arrays
+/// Applies for bot a cairo Array and a Span
 #[derive(Debug)]
 pub struct ArraySpan {
     pub bytes: Vec<u8>,
@@ -62,24 +19,45 @@ impl TryFrom<Vec<FieldElement>> for ArraySpan {
     type Error = ArraySpanError;
 
     fn try_from(data: Vec<FieldElement>) -> Result<Self, Self::Error> {
-        // First element is always the array length, which is a felt (so u8 is enough)
-        let arr_length = u8::try_from(data[0])?;
+        // First element is always the array length.
+        // We also have to go from `u32` to usize, because
+        // there's no direct `usize` From impl.
+        let arr_length: u32 = match data[0].try_into() {
+            Ok(al) => al,
+            Err(err) => return Err(ArraySpanError::ParsingFelt(err)),
+        };
 
         // -1 because we have to offset the first element (the length itself)
-        let arr_length_usize = usize::from(arr_length);
-        if arr_length_usize != data.len().wrapping_sub(1) {
+        let is_arr_el_count_valid = usize::try_from(arr_length)
+            .map(|count| count == data.len() - 1)
+            .unwrap_or(false);
+
+        if !is_arr_el_count_valid {
             return Err(ArraySpanError::InvalidLength);
         }
 
-        let bytes: Result<Vec<u8>, ArraySpanError> = data
-            .get(1..)
-            .ok_or(ArraySpanError::InvalidLength)?
-            .iter()
-            .copied()
-            .map(|e| e.try_into().map_err(ArraySpanError::ParsingFelt))
-            .collect();
+        let bytes_parse: Result<Vec<u8>, ArraySpanError> = match data.get(1..) {
+            Some(b) => b,
+            None => return Err(ArraySpanError::InvalidLength),
+        }
+        .to_vec()
+        .into_iter()
+        .map(|e| {
+            let word_count: u8 = match e.try_into() {
+                Ok(wc) => wc,
+                Err(err) => return Err(ArraySpanError::ParsingFelt(err)),
+            };
 
-        Ok(ArraySpan { bytes: bytes? })
+            Ok(word_count)
+        })
+        .collect();
+
+        let bytes = match bytes_parse {
+            Ok(b) => b,
+            Err(e) => return Err(e),
+        };
+
+        Ok(ArraySpan { bytes })
     }
 }
 
