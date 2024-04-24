@@ -115,19 +115,19 @@ impl TryFrom<starknet_core::types::Event> for ContractCallEvent {
             }
         };
 
-        // payload_hash is a keccak256, which is a combination of two felts
-        // - first felt is highest bits
-        // - second felt is lowest bits
+        // payload_hash is a keccak256, which is a combination of two felts (chunks)
+        // - first felt contains the 128 least significat bits (LSB)
+        // - second felt contains the 128 most significat bits (MSG)
         let ph_chunk1_index: usize = da_elements_end_index + 1;
         let ph_chunk2_index: usize = ph_chunk1_index + 1;
         let mut payload_hash = [0; 32];
-        let highest_bits: [u8; 32] = starknet_event.data[ph_chunk1_index].to_bytes_be();
-        let lowest_bits: [u8; 32] = starknet_event.data[ph_chunk2_index].to_bytes_be();
+        let lsb: [u8; 32] = starknet_event.data[ph_chunk1_index].to_bytes_be();
+        let msb: [u8; 32] = starknet_event.data[ph_chunk2_index].to_bytes_be();
 
-        // lowest bits, go before highest bits for u256 construction
-        // check - https://www.starknetjs.com/docs/guides/define_call_message/#u256
-        payload_hash[..16].copy_from_slice(&lowest_bits[16..]);
-        payload_hash[16..].copy_from_slice(&highest_bits[16..]);
+        // most significat bits, go before least significant bits for u256 construction
+        // check - https://docs.starknet.io/documentation/architecture_and_concepts/Smart_Contracts/serialization_of_Cairo_types/#serialization_in_u256_values
+        payload_hash[..16].copy_from_slice(&msb[16..]);
+        payload_hash[16..].copy_from_slice(&lsb[16..]);
 
         Ok(ContractCallEvent {
             destination_address,
