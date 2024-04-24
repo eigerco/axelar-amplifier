@@ -35,7 +35,7 @@ pub enum ByteArrayError {
     ToString,
 }
 
-/// The Vec<FieldElement> should be only the representation of the ByteArray
+/// The Vec<FieldElement> should be the elements representing the ByteArray
 /// type as described in this document:
 /// https://docs.starknet.io/documentation/architecture_and_concepts/Smart_Contracts/serialization_of_Cairo_types/#serialization_of_byte_arrays
 ///
@@ -68,8 +68,6 @@ impl TryFrom<Vec<FieldElement>> for ByteArray {
     type Error = ByteArrayError;
 
     fn try_from(data: Vec<FieldElement>) -> Result<Self, Self::Error> {
-        println!("CALLCONTRACT");
-        println!("{:?}", data);
         let mut byte_array = ByteArray {
             ..Default::default()
         };

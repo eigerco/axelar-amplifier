@@ -1,5 +1,6 @@
 use std::fmt;
 
+use ethers::types::H256;
 use starknet_core::utils::parse_cairo_short_string;
 
 use crate::starknet::events::EventType;
@@ -57,6 +58,17 @@ impl TryFrom<starknet_core::types::Event> for ContractCallEvent {
             }
         };
 
+        // source_address represents the original callContract sender and
+        // is the first field in data, by the order defined in the event.
+        let source_address = match parse_cairo_short_string(&starknet_event.data[0]) {
+            Ok(sa) => sa,
+            Err(err) => {
+                return Err(EventParseError {
+                    message: format!("failed to parse source_address: {}", err),
+                })
+            }
+        };
+
         // destination_contract_address (ByteArray) is composed of FieldElements
         // from the second element to elemet X.
         let destination_address_chunks_count_felt = starknet_event.data[1];
@@ -81,8 +93,10 @@ impl TryFrom<starknet_core::types::Event> for ContractCallEvent {
 
         // It's + 3, because we need to offset the 0th element, pending_word and
         // pending_word_count, in addition to all chunks (da_chunks_count_usize)
+        let da_elements_start_index: usize = 1;
+        let da_elements_end_index: usize = da_chunks_count_usize + 3;
         let destination_address_byte_array: ByteArray = match ByteArray::try_from(
-            starknet_event.data[1..=da_chunks_count_usize + 3].to_vec(),
+            starknet_event.data[da_elements_start_index..=da_elements_end_index].to_vec(),
         ) {
             Ok(ba) => ba,
             Err(err) => {
@@ -101,17 +115,25 @@ impl TryFrom<starknet_core::types::Event> for ContractCallEvent {
             }
         };
 
-        println!("DEST CHAIN {}", destination_chain);
-        println!("DEST ADDRESS {}", destination_address);
+        // payload_hash is a keccak256, which is a combination of two felts
+        // - first felt is highest bits
+        // - second felt is lowest bits
+        let ph_chunk1_index: usize = da_elements_end_index + 1;
+        let ph_chunk2_index: usize = ph_chunk1_index + 1;
+        let mut payload_hash = [0; 32];
+        let highest_bits: [u8; 32] = starknet_event.data[ph_chunk1_index].to_bytes_be();
+        let lowest_bits: [u8; 32] = starknet_event.data[ph_chunk2_index].to_bytes_be();
 
-        // let destination_address_byte_array: Vec<u8> = vec![0u8;
-        // destination_address_bytes_length];
+        // lowest bits, go before highest bits for u256 construction
+        // check - https://www.starknetjs.com/docs/guides/define_call_message/#u256
+        payload_hash[..16].copy_from_slice(&lowest_bits[16..]);
+        payload_hash[16..].copy_from_slice(&highest_bits[16..]);
 
         Ok(ContractCallEvent {
             destination_address,
             destination_chain,
-            source_address: todo!(),
-            payload_hash: todo!(),
+            source_address,
+            payload_hash: H256::from_slice(&payload_hash),
         })
     }
 }
