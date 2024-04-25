@@ -1,4 +1,3 @@
-use std::fmt;
 use std::num::TryFromIntError;
 
 use ethers::types::H256;
