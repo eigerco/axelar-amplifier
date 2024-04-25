@@ -1,4 +1,4 @@
-use std::cell::OnceCell;
+use std::sync::OnceLock;
 
 use starknet_core::types::FieldElement;
 use starknet_core::utils::starknet_keccak;
@@ -6,8 +6,8 @@ use starknet_core::utils::starknet_keccak;
 pub mod contract_call;
 
 // Since a keccak hash over a string is a deterministic operation,
-// we can use `OnceCall` to eliminate useless hash calculations.
-const CALL_CONTRACT_FELT: OnceCell<FieldElement> = OnceCell::new();
+// we can use `OnceLock` to eliminate useless hash calculations.
+static CALL_CONTRACT_FELT: OnceLock<FieldElement> = OnceLock::new();
 
 /// All Axelar event types supported by starknet
 #[derive(Eq, PartialEq)]
@@ -17,8 +17,8 @@ pub enum EventType {
 
 impl EventType {
     fn parse(event_type_felt: FieldElement) -> Option<Self> {
-        let binding = CALL_CONTRACT_FELT;
-        let contract_call_type = binding.get_or_init(|| starknet_keccak("ContractCall".as_bytes()));
+        let contract_call_type =
+            CALL_CONTRACT_FELT.get_or_init(|| starknet_keccak("ContractCall".as_bytes()));
 
         if event_type_felt == *contract_call_type {
             Some(EventType::ContractCall)
