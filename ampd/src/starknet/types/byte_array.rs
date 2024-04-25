@@ -7,7 +7,7 @@ use thiserror::Error;
 /// Represents Cairo's ByteArray type.
 /// Implements `TryFrom<Vec<FieldElement>>`, which is the way to create it.
 ///
-/// ## Example usage with the strging "hello"
+/// ## Example usage with the string "hello"
 ///
 /// ```rust
 /// use ampd::starknet::types::byte_array::ByteArray;
@@ -60,7 +60,7 @@ impl Default for ByteArray {
 pub enum ByteArrayError {
     #[error("Invalid byte array - {0}")]
     InvalidByteArray(String),
-    #[error("Failed to parse felt - {0}")]
+    #[error("Failed to convert felt - {0}")]
     ParsingFelt(#[from] ValueOutOfRangeError),
     #[error("Failed to convert the byte array into a string")]
     ToString,
@@ -81,10 +81,7 @@ impl TryFrom<Vec<FieldElement>> for ByteArray {
         }
 
         // word count is always the first element
-        let word_count: u32 = match data[0].try_into() {
-            Ok(wc) => wc,
-            Err(err) => return Err(ByteArrayError::ParsingFelt(err)),
-        };
+        let word_count = u32::try_from(data[0])?;
 
         // vec element count should be whatever the word count is + 3
         // the 3 stands for the minimum 3 elements:
@@ -101,10 +98,7 @@ impl TryFrom<Vec<FieldElement>> for ByteArray {
         }
 
         // pending word byte count is always the last element
-        let pending_word_length: u8 = match data[data.len() - 1].try_into() {
-            Ok(bc) => bc,
-            Err(err) => return Err(ByteArrayError::ParsingFelt(err)),
-        };
+        let pending_word_length = u8::try_from(data[data.len() - 1])?;
         byte_array.pending_word_length = pending_word_length;
 
         // pending word is always the next to last element

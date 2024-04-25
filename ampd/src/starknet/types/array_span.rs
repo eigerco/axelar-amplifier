@@ -4,7 +4,7 @@ use thiserror::Error;
 /// Represents Cairo's Array and Span types.
 /// Implements `TryFrom<Vec<FieldElement>>`, which is the way to create it.
 ///
-/// ## Example usage with the strging "hello"
+/// ## Example usage with the string "hello"
 ///
 /// ```rust
 /// use ampd::starknet::types::array_span::ArraySpan;
@@ -65,10 +65,7 @@ impl TryFrom<Vec<FieldElement>> for ArraySpan {
         // First element is always the array length.
         // We also have to go from `u32` to usize, because
         // there's no direct `usize` From impl.
-        let arr_length: u32 = match data[0].try_into() {
-            Ok(al) => al,
-            Err(err) => return Err(ArraySpanError::ParsingFelt(err)),
-        };
+        let arr_length = u32::try_from(data[0])?;
 
         // -1 because we have to offset the first element (the length itself)
         let is_arr_el_count_valid = usize::try_from(arr_length)
@@ -79,7 +76,7 @@ impl TryFrom<Vec<FieldElement>> for ArraySpan {
             return Err(ArraySpanError::InvalidLength);
         }
 
-        let bytes_parse: Result<Vec<u8>, ArraySpanError> = match data.get(1..) {
+        let bytes: Result<Vec<u8>, ArraySpanError> = match data.get(1..) {
             Some(b) => b,
             None => return Err(ArraySpanError::InvalidLength),
         }
@@ -95,12 +92,7 @@ impl TryFrom<Vec<FieldElement>> for ArraySpan {
         })
         .collect();
 
-        let bytes = match bytes_parse {
-            Ok(b) => b,
-            Err(e) => return Err(e),
-        };
-
-        Ok(ArraySpan { bytes })
+        Ok(ArraySpan { bytes: bytes? })
     }
 }
 
