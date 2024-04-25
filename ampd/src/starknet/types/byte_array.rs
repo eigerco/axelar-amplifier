@@ -4,6 +4,37 @@ use starknet_core::types::{FieldElement, ValueOutOfRangeError};
 use starknet_core::utils::parse_cairo_short_string;
 use thiserror::Error;
 
+/// Represents Cairo's ByteArray type.
+/// Implements `TryFrom<Vec<FieldElement>>`, which is the way to create it.
+///
+/// ## Example usage with the strging "hello"
+///
+/// ```rust
+/// use ampd::starknet::types::byte_array::ByteArray;
+/// use std::str::FromStr;
+/// use starknet_core::types::FieldElement;
+///
+/// let data = vec![
+///     FieldElement::from_str(
+///         "0x0000000000000000000000000000000000000000000000000000000000000000",
+///     )
+///     .unwrap(),
+///     FieldElement::from_str(
+///         "0x00000000000000000000000000000000000000000000000000000068656c6c6f",
+///     )
+///     .unwrap(),
+///     FieldElement::from_str(
+///         "0x0000000000000000000000000000000000000000000000000000000000000005",
+///     )
+///     .unwrap(),
+/// ];
+///
+/// let byte_array = ByteArray::try_from(data);
+/// assert!(byte_array.is_ok());
+/// ```
+///
+/// For more info:
+/// https://docs.starknet.io/documentation/architecture_and_concepts/Smart_Contracts/serialization_of_Cairo_types/#serialization_of_byte_arrays
 #[derive(Debug)]
 pub struct ByteArray {
     /// The data byte array. Contains 31-byte chunks of the byte array.
@@ -35,35 +66,6 @@ pub enum ByteArrayError {
     ToString,
 }
 
-/// The Vec<FieldElement> should be the elements representing the ByteArray
-/// type as described in this document:
-/// https://docs.starknet.io/documentation/architecture_and_concepts/Smart_Contracts/serialization_of_Cairo_types/#serialization_of_byte_arrays
-///
-/// ## Example usage
-///
-/// ```rust
-/// use amd::starknet::types::ByteArray;
-/// use std::str::FromStr;
-/// use starknet_core::types::FieldElement;
-///
-/// let data = vec![
-///     FieldElement::from_str(
-///         "0x0000000000000000000000000000000000000000000000000000000000000000",
-///     )
-///     .unwrap(),
-///     FieldElement::from_str(
-///         "0x00000000000000000000000000000000000000000000000000000068656c6c6f",
-///     )
-///     .unwrap(),
-///     FieldElement::from_str(
-///         "0x0000000000000000000000000000000000000000000000000000000000000005",
-///     )
-///     .unwrap(),
-/// ];
-///
-/// let byte_array = ByteArray::try_from(data).unwrap();
-/// assert_eq!("hello", byte_array.is_ok());
-/// ```
 impl TryFrom<Vec<FieldElement>> for ByteArray {
     type Error = ByteArrayError;
 
@@ -137,23 +139,6 @@ impl TryFrom<Vec<FieldElement>> for ByteArray {
         }
 
         Ok(byte_array)
-
-        // TODO:
-        // - If word count is 0 - convert the pending word to a string
-        // - If word count > 0:
-        //   - for i=2; i < 2+eventData[1]; i++
-        //     - cut all leading 0s
-        //     - concatenate all field element hex bytes resulting in
-        //       31_word_bytes
-        //     - parse felt 1 to u32 and take element parsedFelt+2 which is the
-        //       pending_word
-        //       - parse elelemtn parsedFelt+3 as u8, which is
-        //         pending_word_bytes_length
-        //       - take pending_words_byte_length worth of bytes from the
-        //         pending_word
-        //     - take the pending_word bytes and concatenate them with the
-        //       previous 31_word_bytes
-        //     - Convert those bytes to a string
     }
 }
 
@@ -163,7 +148,7 @@ impl ByteArray {
     /// ## Example usage with the string "hello"
     ///
     /// ```rust
-    /// use ampd::starknet::types::ByteArray;
+    /// use ampd::starknet::types::byte_array::ByteArray;
     /// use std::str::FromStr;
     /// use starknet_core::types::FieldElement;
     ///

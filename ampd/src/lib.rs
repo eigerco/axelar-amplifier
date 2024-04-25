@@ -40,7 +40,7 @@ mod handlers;
 mod health_check;
 mod json_rpc;
 mod queue;
-mod starknet;
+pub mod starknet;
 pub mod state;
 mod sui;
 mod tm_client;

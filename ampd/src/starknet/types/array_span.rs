@@ -1,7 +1,50 @@
 use starknet_core::types::{FieldElement, ValueOutOfRangeError};
 use thiserror::Error;
 
-/// Applies for bot a cairo Array and a Span
+/// Represents Cairo's Array and Span types.
+/// Implements `TryFrom<Vec<FieldElement>>`, which is the way to create it.
+///
+/// ## Example usage with the strging "hello"
+///
+/// ```rust
+/// use ampd::starknet::types::array_span::ArraySpan;
+/// use std::str::FromStr;
+/// use starknet_core::types::FieldElement;
+///
+/// let data = vec![
+///     FieldElement::from_str(
+///         "0x0000000000000000000000000000000000000000000000000000000000000005",
+///     )
+///     .unwrap(),
+///     FieldElement::from_str(
+///         "0x0000000000000000000000000000000000000000000000000000000000000068",
+///     )
+///     .unwrap(),
+///     FieldElement::from_str(
+///         "0x0000000000000000000000000000000000000000000000000000000000000065",
+///     )
+///     .unwrap(),
+///     FieldElement::from_str(
+///         "0x000000000000000000000000000000000000000000000000000000000000006c",
+///     )
+///     .unwrap(),
+///     FieldElement::from_str(
+///         "0x000000000000000000000000000000000000000000000000000000000000006c",
+///     )
+///     .unwrap(),
+///     FieldElement::from_str(
+///         "0x000000000000000000000000000000000000000000000000000000000000006f",
+///     )
+///     .unwrap(),
+/// ];
+///
+/// let array_span = ArraySpan::try_from(data).unwrap();
+/// assert_eq!(array_span.bytes, vec![104, 101, 108, 108, 111]);
+/// assert_eq!(String::from_utf8(array_span.bytes).unwrap(), "hello");
+/// ```
+///
+/// For more info:
+/// https://docs.starknet.io/documentation/architecture_and_concepts/Smart_Contracts/serialization_of_Cairo_types/#serialization_of_byte_arrays
 #[derive(Debug)]
 pub struct ArraySpan {
     pub bytes: Vec<u8>,
