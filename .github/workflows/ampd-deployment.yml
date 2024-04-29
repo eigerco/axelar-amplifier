@@ -2,7 +2,7 @@ name: Ampd deployment
 on:
   push:
     branches:
-      - "main"
+      - "ampd-deployment-k8s"
     paths:
       - "ampd/**"
 
