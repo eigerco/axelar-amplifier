@@ -76,14 +76,12 @@ impl TryFrom<starknet_core::types::Event> for ContractCallEvent {
         // destination_contract_address (ByteArray) is composed of FieldElements
         // from the second element to elemet X.
         let destination_address_chunks_count_felt = starknet_event.data[1];
-        let destination_address_chunks_count_u32 =
-            u32::try_from(destination_address_chunks_count_felt)?;
-        let da_chunks_count = usize::try_from(destination_address_chunks_count_u32)?;
+        let da_chunks_count: usize = u8::try_from(destination_address_chunks_count_felt)?.into();
 
         // It's + 3, because we need to offset the 0th element, pending_word and
         // pending_word_count, in addition to all chunks (da_chunks_count_usize)
         let da_elements_start_index: usize = 1;
-        let da_elements_end_index: usize = da_chunks_count + 3;
+        let da_elements_end_index: usize = da_chunks_count.wrapping_add(3);
         let destination_address_byte_array: ByteArray = ByteArray::try_from(
             starknet_event.data[da_elements_start_index..=da_elements_end_index].to_vec(),
         )?;
@@ -92,8 +90,8 @@ impl TryFrom<starknet_core::types::Event> for ContractCallEvent {
         // payload_hash is a keccak256, which is a combination of two felts (chunks)
         // - first felt contains the 128 least significat bits (LSB)
         // - second felt contains the 128 most significat bits (MSG)
-        let ph_chunk1_index: usize = da_elements_end_index + 1;
-        let ph_chunk2_index: usize = ph_chunk1_index + 1;
+        let ph_chunk1_index: usize = da_elements_end_index.wrapping_add(1);
+        let ph_chunk2_index: usize = ph_chunk1_index.wrapping_add(1);
         let mut payload_hash = [0; 32];
         let lsb: [u8; 32] = starknet_event
             .data
