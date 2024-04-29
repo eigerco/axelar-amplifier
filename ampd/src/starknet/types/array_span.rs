@@ -38,16 +38,16 @@ use thiserror::Error;
 ///     .unwrap(),
 /// ];
 ///
-/// let array_span = ArraySpan::try_from(data).unwrap();
-/// assert_eq!(array_span.bytes, vec![104, 101, 108, 108, 111]);
-/// assert_eq!(String::from_utf8(array_span.bytes).unwrap(), "hello");
+/// let array_span = ArraySpan::<u8>::try_from(data).unwrap();
+/// assert_eq!(array_span.data, vec![104, 101, 108, 108, 111]);
+/// assert_eq!(String::from_utf8(array_span.data).unwrap(), "hello");
 /// ```
 ///
 /// For more info:
 /// https://docs.starknet.io/documentation/architecture_and_concepts/Smart_Contracts/serialization_of_Cairo_types/#serialization_of_byte_arrays
 #[derive(Debug)]
-pub struct ArraySpan {
-    pub bytes: Vec<u8>,
+pub struct ArraySpan<T> {
+    pub data: Vec<T>,
 }
 
 #[derive(Error, Debug)]
@@ -58,7 +58,7 @@ pub enum ArraySpanError {
     ParsingFelt(#[from] ValueOutOfRangeError),
 }
 
-impl TryFrom<Vec<FieldElement>> for ArraySpan {
+impl TryFrom<Vec<FieldElement>> for ArraySpan<u8> {
     type Error = ArraySpanError;
 
     fn try_from(data: Vec<FieldElement>) -> Result<Self, Self::Error> {
@@ -79,7 +79,7 @@ impl TryFrom<Vec<FieldElement>> for ArraySpan {
             .map(|e| e.try_into().map_err(ArraySpanError::ParsingFelt))
             .collect();
 
-        Ok(ArraySpan { bytes: bytes? })
+        Ok(ArraySpan { data: bytes? })
     }
 }
 
@@ -99,8 +99,8 @@ mod array_span_tests {
         )
         .unwrap()];
 
-        let array_span = ArraySpan::try_from(data).unwrap();
-        assert_eq!(array_span.bytes, Vec::<u8>::new());
+        let array_span = ArraySpan::<u8>::try_from(data).unwrap();
+        assert_eq!(array_span.data, Vec::<u8>::new());
     }
 
     #[test]
@@ -133,7 +133,7 @@ mod array_span_tests {
             .unwrap(),
         ];
 
-        let array_span = ArraySpan::try_from(data);
+        let array_span = ArraySpan::<u8>::try_from(data);
         assert!(array_span.is_err());
     }
 
@@ -167,7 +167,7 @@ mod array_span_tests {
             .unwrap(),
         ];
 
-        let array_span = ArraySpan::try_from(data);
+        let array_span = ArraySpan::<u8>::try_from(data);
         assert!(array_span.is_err());
     }
 
@@ -197,7 +197,7 @@ mod array_span_tests {
             .unwrap(),
         ];
 
-        let array_span = ArraySpan::try_from(data);
+        let array_span = ArraySpan::<u8>::try_from(data);
         assert!(array_span.is_err());
     }
 
@@ -232,7 +232,7 @@ mod array_span_tests {
             .unwrap(),
         ];
 
-        let array_span = ArraySpan::try_from(data);
+        let array_span = ArraySpan::<u8>::try_from(data);
         assert!(array_span.is_err());
     }
 
@@ -266,7 +266,7 @@ mod array_span_tests {
             .unwrap(),
         ];
 
-        let array_span = ArraySpan::try_from(data).unwrap();
-        assert_eq!(array_span.bytes, vec![104, 101, 108, 108, 111]);
+        let array_span = ArraySpan::<u8>::try_from(data).unwrap();
+        assert_eq!(array_span.data, vec![104, 101, 108, 108, 111]);
     }
 }

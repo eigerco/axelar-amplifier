@@ -10,7 +10,7 @@ pub mod contract_call;
 static CALL_CONTRACT_FELT: OnceLock<FieldElement> = OnceLock::new();
 
 /// All Axelar event types supported by starknet
-#[derive(Eq, PartialEq)]
+#[derive(Debug)]
 pub enum EventType {
     ContractCall,
 }
@@ -25,5 +25,27 @@ impl EventType {
         } else {
             None
         }
+    }
+}
+
+#[cfg(test)]
+mod event_type_tests {
+    use starknet_core::utils::starknet_keccak;
+
+    use crate::starknet::events::EventType;
+
+    #[test]
+    fn parse_contract_call() {
+        let contract_call_felt = starknet_keccak("ContractCall".as_bytes());
+        assert!(matches!(
+            EventType::parse(contract_call_felt),
+            Some(EventType::ContractCall)
+        ));
+    }
+
+    #[test]
+    fn parse_unknown_event() {
+        let contract_call_felt = starknet_keccak("UnknownEvent".as_bytes());
+        assert!(EventType::parse(contract_call_felt).is_none());
     }
 }
