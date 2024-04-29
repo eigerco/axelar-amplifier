@@ -31,6 +31,8 @@ pub enum ContractCallError {
     FeltOutOfRange(#[from] ValueOutOfRangeError),
     #[error("Failed int conversion: {0}")]
     TryFromConversion(#[from] TryFromIntError),
+    #[error("Event data/keys array index is out of bounds")]
+    OutOfBound,
     #[error("ByteArray type error: {0}")]
     ByteArray(#[from] ByteArrayError),
 }
@@ -83,7 +85,11 @@ impl TryFrom<starknet_core::types::Event> for ContractCallEvent {
         let da_elements_start_index: usize = 1;
         let da_elements_end_index: usize = da_chunks_count.wrapping_add(3);
         let destination_address_byte_array: ByteArray = ByteArray::try_from(
-            starknet_event.data[da_elements_start_index..=da_elements_end_index].to_vec(),
+            starknet_event
+                .data
+                .get(da_elements_start_index..=da_elements_end_index)
+                .ok_or(ContractCallError::OutOfBound)?
+                .to_vec(),
         )?;
         let destination_address = destination_address_byte_array.try_to_string()?;
 
