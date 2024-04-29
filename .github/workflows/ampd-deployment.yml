@@ -15,9 +15,7 @@ env:
   DEPLOYING_IMAGE_FQDN: solanaaxelartestnetregistry.azurecr.io/solana-axelar/ampd:${{ github.sha }}
 
 jobs:
-
   docker-image:
-    needs: code-checks
     runs-on: ubuntu-latest
     name: "Build and push docker image"
     steps:
