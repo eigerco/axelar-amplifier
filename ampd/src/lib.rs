@@ -20,7 +20,7 @@ use tokio::signal::unix::{signal, SignalKind};
 use tokio::sync::oneshot;
 use tokio_stream::Stream;
 use tokio_util::sync::CancellationToken;
-use tracing::{info, warn};
+use tracing::info;
 use types::TMAddress;
 
 use crate::asyncutil::task::{CancellableTask, TaskError, TaskGroup};

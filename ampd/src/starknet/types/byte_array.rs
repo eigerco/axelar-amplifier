@@ -35,7 +35,7 @@ use thiserror::Error;
 ///
 /// For more info:
 /// https://docs.starknet.io/documentation/architecture_and_concepts/Smart_Contracts/serialization_of_Cairo_types/#serialization_of_byte_arrays
-#[derive(Debug)]
+#[derive(Debug, Default)]
 pub struct ByteArray {
     /// The data byte array. Contains 31-byte chunks of the byte array.
     data: Vec<FieldElement>,
@@ -46,18 +46,10 @@ pub struct ByteArray {
     pending_word_length: u8, // can't be more than 30 bytes
 }
 
-impl Default for ByteArray {
-    fn default() -> Self {
-        Self {
-            data: Default::default(),
-            pending_word: Default::default(),
-            pending_word_length: Default::default(),
-        }
-    }
-}
-
 #[derive(Error, Debug)]
 pub enum ByteArrayError {
+    #[error("Failed to fetch element from byte array at index")]
+    OutOfBound,
     #[error("Invalid byte array - {0}")]
     InvalidByteArray(String),
     #[error("Failed to convert felt - {0}")]
@@ -70,6 +62,10 @@ impl TryFrom<Vec<FieldElement>> for ByteArray {
     type Error = ByteArrayError;
 
     fn try_from(data: Vec<FieldElement>) -> Result<Self, Self::Error> {
+        // pending word is always the next to last element
+        let pending_word_index = data.len().wrapping_sub(2);
+        let last_element_index = data.len().wrapping_sub(1);
+
         let mut byte_array = ByteArray {
             ..Default::default()
         };
@@ -80,56 +76,59 @@ impl TryFrom<Vec<FieldElement>> for ByteArray {
             ));
         }
 
-        // word count is always the first element
-        let word_count = u32::try_from(data[0])?;
+        // word count is always the first element, which is a felt (so u8 is enough)
+        let word_count = u8::try_from(data[0])?;
 
-        // vec element count should be whatever the word count is + 3
+        // vec element count should be whatever the word count is + an offset of 3
         // the 3 stands for the minimum 3 elements:
         // - word count
         // - pending_word
         // - pendint_word_length
-        let is_arr_el_count_valid = usize::try_from(word_count + 3)
-            .map(|count| count == data.len())
-            .unwrap_or(false);
-        if !is_arr_el_count_valid {
+        let word_count_usize = usize::from(word_count.wrapping_add(3));
+        if word_count_usize != data.len() {
             return Err(ByteArrayError::InvalidByteArray(
                 "pre-defined count doesn't match actual 31byte element count".to_owned(),
             ));
         }
 
         // pending word byte count is always the last element
-        let pending_word_length = u8::try_from(data[data.len() - 1])?;
+        let pending_word_length_felt = data
+            .get(last_element_index)
+            .ok_or(ByteArrayError::OutOfBound)?;
+        let pending_word_length = u8::try_from(*pending_word_length_felt)?;
         byte_array.pending_word_length = pending_word_length;
 
-        // pending word is always the next to last element
-        let pending_word = data[data.len() - 2];
-        byte_array.pending_word = pending_word;
+        let pending_word = data
+            .get(pending_word_index)
+            .ok_or(ByteArrayError::OutOfBound)?;
+        byte_array.pending_word = *pending_word;
 
         // count bytes, excluding leading zeros
         let non_zero_pw_length = pending_word
             .to_bytes_be()
             .iter()
-            .fold_while(32, |acc, n| {
+            .fold_while(32, |acc: u8, n| {
                 if *n == 0 {
-                    Continue(acc - 1)
+                    Continue(acc.saturating_sub(1))
                 } else {
                     Done(acc)
                 }
             })
             .into_inner();
 
-        let is_pending_word_len_valid = usize::try_from(pending_word_length)
-            .map(|count| non_zero_pw_length == count)
-            .unwrap_or(false);
-
-        if !is_pending_word_len_valid {
+        if pending_word_length != non_zero_pw_length {
             return Err(ByteArrayError::InvalidByteArray(
                 "pending_word length doesn't match it's defined length".to_owned(),
             ));
         }
 
         if word_count > 0 {
-            byte_array.data = data[1..data.len() - 2].to_vec();
+            let byte_array_data = data
+                .get(1..pending_word_index)
+                .ok_or(ByteArrayError::OutOfBound)?
+                .to_vec();
+
+            byte_array.data = byte_array_data;
         }
 
         Ok(byte_array)
@@ -172,7 +171,7 @@ impl ByteArray {
             .data
             .iter()
             .chain(std::iter::once(&self.pending_word))
-            .map(|felt| parse_cairo_short_string(felt))
+            .map(parse_cairo_short_string)
             .collect::<Result<String, _>>()
         {
             Ok(s) => Ok(s),
