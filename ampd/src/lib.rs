@@ -24,6 +24,7 @@ use tonic::transport::Channel;
 use tracing::info;
 use types::TMAddress;
 
+use crate::asyncutil::task::{CancellableTask, TaskError, TaskGroup};
 use crate::config::Config;
 
 mod asyncutil;
