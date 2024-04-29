@@ -115,7 +115,7 @@ dependencies = [
  "axelar-wasm-std 0.1.0",
  "axelar-wasm-std-derive 0.1.0",
  "connection-router-api",
- "cosmwasm-schema",
+ "cosmwasm-schema 1.5.3",
  "cosmwasm-std",
  "cosmwasm-storage",
  "cw-multi-test",
@@ -140,7 +140,7 @@ dependencies = [
  "axelar-wasm-std 0.1.0 (git+https://github.com/axelarnetwork/axelar-amplifier?rev=c0904e1c72c99a174a93b5f6c18b30f52d20b71f)",
  "axelar-wasm-std-derive 0.1.0 (git+https://github.com/axelarnetwork/axelar-amplifier?rev=c0904e1c72c99a174a93b5f6c18b30f52d20b71f)",
  "connection-router 0.1.0 (git+https://github.com/axelarnetwork/axelar-amplifier?rev=c0904e1c72c99a174a93b5f6c18b30f52d20b71f)",
- "cosmwasm-schema",
+ "cosmwasm-schema 1.5.3",
  "cosmwasm-std",
  "cosmwasm-storage",
  "cw-storage-plus 1.2.0",
@@ -803,19 +803,29 @@ checksum = "f1fdabc7756949593fe60f30ec81974b613357de856987752631dea1e3394c80"
 [[package]]
 name = "axelar-message-primitives"
 version = "0.1.0"
-source = "git+ssh://git@github.com/eigerco/solana-axelar.git?branch=poc#f6f328fd17c39ba09e53219dd837b91483d10a66"
+source = "git+https://github.com/eigerco/solana-axelar.git#7a44db9c243afb4eac4890f8f56e31cc9d9f7f11"
 dependencies = [
+ "anyhow",
+ "bcs",
+ "bnum",
  "borsh 1.4.0",
+ "bytemuck",
  "connection-router 0.1.0 (git+https://github.com/axelarnetwork/axelar-amplifier?rev=c0904e1c72c99a174a93b5f6c18b30f52d20b71f)",
+ "cosmwasm-schema 2.0.2",
+ "ethers-core",
  "hex",
+ "itertools 0.12.1",
+ "libsecp256k1 0.7.1",
+ "sha3 0.10.8",
  "solana-program",
+ "thiserror",
 ]
 
 [[package]]
 name = "axelar-wasm-std"
 version = "0.1.0"
 dependencies = [
- "cosmwasm-schema",
+ "cosmwasm-schema 1.5.3",
  "cosmwasm-std",
  "cosmwasm-storage",
  "cw-multi-test",
@@ -840,7 +850,7 @@ name = "axelar-wasm-std"
 version = "0.1.0"
 source = "git+https://github.com/axelarnetwork/axelar-amplifier?rev=c0904e1c72c99a174a93b5f6c18b30f52d20b71f#c0904e1c72c99a174a93b5f6c18b30f52d20b71f"
 dependencies = [
- "cosmwasm-schema",
+ "cosmwasm-schema 1.5.3",
  "cosmwasm-std",
  "cosmwasm-storage",
  "cw-storage-plus 1.2.0",
@@ -1890,7 +1900,7 @@ dependencies = [
  "axelar-wasm-std 0.1.0",
  "axelar-wasm-std-derive 0.1.0",
  "connection-router-api",
- "cosmwasm-schema",
+ "cosmwasm-schema 1.5.3",
  "cosmwasm-std",
  "cosmwasm-storage",
  "cw-multi-test",
@@ -1919,7 +1929,7 @@ source = "git+https://github.com/axelarnetwork/axelar-amplifier?rev=c0904e1c72c9
 dependencies = [
  "axelar-wasm-std 0.1.0 (git+https://github.com/axelarnetwork/axelar-amplifier?rev=c0904e1c72c99a174a93b5f6c18b30f52d20b71f)",
  "axelar-wasm-std-derive 0.1.0 (git+https://github.com/axelarnetwork/axelar-amplifier?rev=c0904e1c72c99a174a93b5f6c18b30f52d20b71f)",
- "cosmwasm-schema",
+ "cosmwasm-schema 1.5.3",
  "cosmwasm-std",
  "cosmwasm-storage",
  "cw-storage-plus 1.2.0",
@@ -1942,7 +1952,7 @@ version = "0.1.0"
 dependencies = [
  "axelar-wasm-std 0.1.0",
  "axelar-wasm-std-derive 0.1.0",
- "cosmwasm-schema",
+ "cosmwasm-schema 1.5.3",
  "cosmwasm-std",
  "cw-storage-plus 1.2.0",
  "error-stack",
@@ -2141,7 +2151,20 @@ version = "1.5.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "ac3e3a2136e2a60e8b6582f5dffca5d1a683ed77bf38537d330bc1dfccd69010"
 dependencies = [
- "cosmwasm-schema-derive",
+ "cosmwasm-schema-derive 1.5.3",
+ "schemars",
+ "serde",
+ "serde_json",
+ "thiserror",
+]
+
+[[package]]
+name = "cosmwasm-schema"
+version = "2.0.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "26dbdb5800ca67f2f2f938d67db59a7c5434af133c3e508779a4df7a9b5d533b"
+dependencies = [
+ "cosmwasm-schema-derive 2.0.2",
  "schemars",
  "serde",
  "serde_json",
@@ -2153,6 +2176,17 @@ name = "cosmwasm-schema-derive"
 version = "1.5.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "f5d803bea6bd9ed61bd1ee0b4a2eb09ee20dbb539cc6e0b8795614d20952ebb1"
+dependencies = [
+ "proc-macro2 1.0.79",
+ "quote 1.0.35",
+ "syn 1.0.109",
+]
+
+[[package]]
+name = "cosmwasm-schema-derive"
+version = "2.0.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "d8ee47cf29f7688ebfa6ade8ddabcf51fc153f1157a3b46f5b4b1ce7a0316fdf"
 dependencies = [
  "proc-macro2 1.0.79",
  "quote 1.0.35",
@@ -2411,7 +2445,7 @@ version = "0.15.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "0ae0b69fa7679de78825b4edeeec045066aa2b2c4b6e063d80042e565bb4da5c"
 dependencies = [
- "cosmwasm-schema",
+ "cosmwasm-schema 1.5.3",
  "cosmwasm-std",
  "cw2 0.15.1",
  "schemars",
@@ -2426,7 +2460,7 @@ version = "1.0.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "1c4a657e5caacc3a0d00ee96ca8618745d050b8f757c709babafb81208d4239c"
 dependencies = [
- "cosmwasm-schema",
+ "cosmwasm-schema 1.5.3",
  "cosmwasm-std",
  "cw2 1.1.2",
  "schemars",
@@ -2441,7 +2475,7 @@ version = "0.15.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "5abb8ecea72e09afff830252963cb60faf945ce6cef2c20a43814516082653da"
 dependencies = [
- "cosmwasm-schema",
+ "cosmwasm-schema 1.5.3",
  "cosmwasm-std",
  "cw-storage-plus 0.15.1",
  "schemars",
@@ -2454,7 +2488,7 @@ version = "1.1.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "c6c120b24fbbf5c3bedebb97f2cc85fbfa1c3287e09223428e7e597b5293c1fa"
 dependencies = [
- "cosmwasm-schema",
+ "cosmwasm-schema 1.5.3",
  "cosmwasm-std",
  "cw-storage-plus 1.2.0",
  "schemars",
@@ -3950,7 +3984,7 @@ dependencies = [
  "axelar-wasm-std 0.1.0",
  "axelar-wasm-std-derive 0.1.0",
  "connection-router-api",
- "cosmwasm-schema",
+ "cosmwasm-schema 1.5.3",
  "cosmwasm-std",
  "cosmwasm-storage",
  "cw-multi-test",
@@ -3975,7 +4009,7 @@ dependencies = [
  "axelar-wasm-std 0.1.0 (git+https://github.com/axelarnetwork/axelar-amplifier?rev=c0904e1c72c99a174a93b5f6c18b30f52d20b71f)",
  "axelar-wasm-std-derive 0.1.0 (git+https://github.com/axelarnetwork/axelar-amplifier?rev=c0904e1c72c99a174a93b5f6c18b30f52d20b71f)",
  "connection-router 0.1.0 (git+https://github.com/axelarnetwork/axelar-amplifier?rev=c0904e1c72c99a174a93b5f6c18b30f52d20b71f)",
- "cosmwasm-schema",
+ "cosmwasm-schema 1.5.3",
  "cosmwasm-std",
  "cosmwasm-storage",
  "cw-storage-plus 1.2.0",
@@ -3994,7 +4028,7 @@ name = "gateway-api"
 version = "0.1.0"
 dependencies = [
  "connection-router-api",
- "cosmwasm-schema",
+ "cosmwasm-schema 1.5.3",
 ]
 
 [[package]]
@@ -4082,7 +4116,7 @@ dependencies = [
 [[package]]
 name = "gmp-gateway"
 version = "0.1.0"
-source = "git+ssh://git@github.com/eigerco/solana-axelar.git?branch=poc#f6f328fd17c39ba09e53219dd837b91483d10a66"
+source = "git+https://github.com/eigerco/solana-axelar.git#7a44db9c243afb4eac4890f8f56e31cc9d9f7f11"
 dependencies = [
  "anyhow",
  "axelar-message-primitives",
@@ -4093,6 +4127,7 @@ dependencies = [
  "borsh 1.4.0",
  "bytemuck",
  "connection-router 0.1.0 (git+https://github.com/axelarnetwork/axelar-amplifier?rev=c0904e1c72c99a174a93b5f6c18b30f52d20b71f)",
+ "cosmwasm-schema 2.0.2",
  "cosmwasm-std",
  "hex",
  "itertools 0.12.1",
@@ -4681,7 +4716,7 @@ dependencies = [
  "axelar-wasm-std-derive 0.1.0",
  "connection-router 0.1.0",
  "connection-router-api",
- "cosmwasm-schema",
+ "cosmwasm-schema 1.5.3",
  "cosmwasm-std",
  "cosmwasm-storage",
  "cw-multi-test",
@@ -5269,7 +5304,7 @@ dependencies = [
  "axelar-wasm-std 0.1.0",
  "axelar-wasm-std-derive 0.1.0",
  "connection-router-api",
- "cosmwasm-schema",
+ "cosmwasm-schema 1.5.3",
  "cosmwasm-std",
  "cosmwasm-storage",
  "cw-multi-test",
@@ -5757,7 +5792,7 @@ dependencies = [
  "axelar-wasm-std-derive 0.1.0",
  "connection-router-api",
  "cosmwasm-crypto",
- "cosmwasm-schema",
+ "cosmwasm-schema 1.5.3",
  "cosmwasm-std",
  "cosmwasm-storage",
  "cw-multi-test",
@@ -5786,7 +5821,7 @@ dependencies = [
  "axelar-wasm-std-derive 0.1.0 (git+https://github.com/axelarnetwork/axelar-amplifier?rev=c0904e1c72c99a174a93b5f6c18b30f52d20b71f)",
  "connection-router 0.1.0 (git+https://github.com/axelarnetwork/axelar-amplifier?rev=c0904e1c72c99a174a93b5f6c18b30f52d20b71f)",
  "cosmwasm-crypto",
- "cosmwasm-schema",
+ "cosmwasm-schema 1.5.3",
  "cosmwasm-std",
  "cosmwasm-storage",
  "cw-storage-plus 1.2.0",
@@ -5812,7 +5847,7 @@ dependencies = [
  "axelar-wasm-std-derive 0.1.0",
  "bcs",
  "connection-router-api",
- "cosmwasm-schema",
+ "cosmwasm-schema 1.5.3",
  "cosmwasm-std",
  "cosmwasm-storage",
  "cw-multi-test",
@@ -5849,7 +5884,7 @@ dependencies = [
  "axelar-wasm-std-derive 0.1.0 (git+https://github.com/axelarnetwork/axelar-amplifier?rev=c0904e1c72c99a174a93b5f6c18b30f52d20b71f)",
  "bcs",
  "connection-router 0.1.0 (git+https://github.com/axelarnetwork/axelar-amplifier?rev=c0904e1c72c99a174a93b5f6c18b30f52d20b71f)",
- "cosmwasm-schema",
+ "cosmwasm-schema 1.5.3",
  "cosmwasm-std",
  "cosmwasm-storage",
  "cw-storage-plus 1.2.0",
@@ -6032,7 +6067,7 @@ dependencies = [
  "axelar-wasm-std 0.1.0",
  "axelar-wasm-std-derive 0.1.0",
  "connection-router-api",
- "cosmwasm-schema",
+ "cosmwasm-schema 1.5.3",
  "cosmwasm-std",
  "cw-storage-plus 1.2.0",
  "error-stack",
@@ -7129,7 +7164,7 @@ dependencies = [
 [[package]]
 name = "program-utils"
 version = "0.1.0"
-source = "git+ssh://git@github.com/eigerco/solana-axelar.git?branch=poc#f6f328fd17c39ba09e53219dd837b91483d10a66"
+source = "git+https://github.com/eigerco/solana-axelar.git#7a44db9c243afb4eac4890f8f56e31cc9d9f7f11"
 dependencies = [
  "borsh 1.4.0",
  "solana-program",
@@ -7720,7 +7755,7 @@ dependencies = [
  "axelar-wasm-std 0.1.0",
  "axelar-wasm-std-derive 0.1.0",
  "connection-router-api",
- "cosmwasm-schema",
+ "cosmwasm-schema 1.5.3",
  "cosmwasm-std",
  "cw-multi-test",
  "cw-storage-plus 1.2.0",
@@ -7739,7 +7774,7 @@ source = "git+https://github.com/axelarnetwork/axelar-amplifier?rev=c0904e1c72c9
 dependencies = [
  "axelar-wasm-std 0.1.0 (git+https://github.com/axelarnetwork/axelar-amplifier?rev=c0904e1c72c99a174a93b5f6c18b30f52d20b71f)",
  "axelar-wasm-std-derive 0.1.0 (git+https://github.com/axelarnetwork/axelar-amplifier?rev=c0904e1c72c99a174a93b5f6c18b30f52d20b71f)",
- "cosmwasm-schema",
+ "cosmwasm-schema 1.5.3",
  "cosmwasm-std",
  "cw-storage-plus 1.2.0",
  "error-stack",
@@ -8467,7 +8502,7 @@ dependencies = [
  "axelar-wasm-std 0.1.0",
  "axelar-wasm-std-derive 0.1.0",
  "connection-router-api",
- "cosmwasm-schema",
+ "cosmwasm-schema 1.5.3",
  "cosmwasm-std",
  "cosmwasm-storage",
  "cw-multi-test",
@@ -8489,7 +8524,7 @@ dependencies = [
  "axelar-wasm-std 0.1.0 (git+https://github.com/axelarnetwork/axelar-amplifier?rev=c0904e1c72c99a174a93b5f6c18b30f52d20b71f)",
  "axelar-wasm-std-derive 0.1.0 (git+https://github.com/axelarnetwork/axelar-amplifier?rev=c0904e1c72c99a174a93b5f6c18b30f52d20b71f)",
  "connection-router 0.1.0 (git+https://github.com/axelarnetwork/axelar-amplifier?rev=c0904e1c72c99a174a93b5f6c18b30f52d20b71f)",
- "cosmwasm-schema",
+ "cosmwasm-schema 1.5.3",
  "cosmwasm-std",
  "cosmwasm-storage",
  "cw-storage-plus 1.2.0",
@@ -8630,7 +8665,7 @@ dependencies = [
 name = "signature-verifier-api"
 version = "0.1.0"
 dependencies = [
- "cosmwasm-schema",
+ "cosmwasm-schema 1.5.3",
  "cosmwasm-std",
  "cosmwasm-storage",
  "error-stack",
@@ -11291,7 +11326,7 @@ dependencies = [
  "axelar-wasm-std 0.1.0",
  "axelar-wasm-std-derive 0.1.0",
  "connection-router-api",
- "cosmwasm-schema",
+ "cosmwasm-schema 1.5.3",
  "cosmwasm-std",
  "cosmwasm-storage",
  "cw-multi-test",
@@ -11317,7 +11352,7 @@ dependencies = [
  "axelar-wasm-std 0.1.0 (git+https://github.com/axelarnetwork/axelar-amplifier?rev=c0904e1c72c99a174a93b5f6c18b30f52d20b71f)",
  "axelar-wasm-std-derive 0.1.0 (git+https://github.com/axelarnetwork/axelar-amplifier?rev=c0904e1c72c99a174a93b5f6c18b30f52d20b71f)",
  "connection-router 0.1.0 (git+https://github.com/axelarnetwork/axelar-amplifier?rev=c0904e1c72c99a174a93b5f6c18b30f52d20b71f)",
- "cosmwasm-schema",
+ "cosmwasm-schema 1.5.3",
  "cosmwasm-std",
  "cosmwasm-storage",
  "cw-storage-plus 1.2.0",
