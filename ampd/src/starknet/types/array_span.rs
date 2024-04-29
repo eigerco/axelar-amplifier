@@ -62,35 +62,22 @@ impl TryFrom<Vec<FieldElement>> for ArraySpan {
     type Error = ArraySpanError;
 
     fn try_from(data: Vec<FieldElement>) -> Result<Self, Self::Error> {
-        // First element is always the array length.
-        // We also have to go from `u32` to usize, because
-        // there's no direct `usize` From impl.
-        let arr_length = u32::try_from(data[0])?;
+        // First element is always the array length, which is a felt (so u8 is enough)
+        let arr_length = u8::try_from(data[0])?;
 
         // -1 because we have to offset the first element (the length itself)
-        let is_arr_el_count_valid = usize::try_from(arr_length)
-            .map(|count| count == data.len() - 1)
-            .unwrap_or(false);
-
-        if !is_arr_el_count_valid {
+        let arr_length_usize = usize::from(arr_length);
+        if arr_length_usize != data.len().wrapping_sub(1) {
             return Err(ArraySpanError::InvalidLength);
         }
 
-        let bytes: Result<Vec<u8>, ArraySpanError> = match data.get(1..) {
-            Some(b) => b,
-            None => return Err(ArraySpanError::InvalidLength),
-        }
-        .to_vec()
-        .into_iter()
-        .map(|e| {
-            let word_count: u8 = match e.try_into() {
-                Ok(wc) => wc,
-                Err(err) => return Err(ArraySpanError::ParsingFelt(err)),
-            };
-
-            Ok(word_count)
-        })
-        .collect();
+        let bytes: Result<Vec<u8>, ArraySpanError> = data
+            .get(1..)
+            .ok_or(ArraySpanError::InvalidLength)?
+            .iter()
+            .copied()
+            .map(|e| e.try_into().map_err(ArraySpanError::ParsingFelt))
+            .collect();
 
         Ok(ArraySpan { bytes: bytes? })
     }
