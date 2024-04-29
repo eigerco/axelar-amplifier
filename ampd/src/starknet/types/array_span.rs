@@ -87,7 +87,7 @@ impl TryFrom<Vec<FieldElement>> for ArraySpan<u8> {
 mod array_span_tests {
     use std::str::FromStr;
 
-    use starknet_core::types::FieldElement;
+    use starknet_core::types::{FieldElement, FromStrError};
 
     use crate::starknet::types::array_span::ArraySpan;
 
@@ -106,98 +106,56 @@ mod array_span_tests {
     #[test]
     fn try_from_failed_to_parse_element_to_u8() {
         // the string "hello", but FieldElement is bigger than u8::max
-        let data = vec![
-            FieldElement::from_str(
-                "0x0000000000000000000000000000000000000000000000000000000000000005",
-            )
-            .unwrap(),
-            FieldElement::from_str(
-                "0x00FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF",
-            )
-            .unwrap(),
-            FieldElement::from_str(
-                "0x0000000000000000000000000000000000000000000000000000000000000065",
-            )
-            .unwrap(),
-            FieldElement::from_str(
-                "0x000000000000000000000000000000000000000000000000000000000000006c",
-            )
-            .unwrap(),
-            FieldElement::from_str(
-                "0x000000000000000000000000000000000000000000000000000000000000006c",
-            )
-            .unwrap(),
-            FieldElement::from_str(
-                "0x000000000000000000000000000000000000000000000000000000000000006f",
-            )
-            .unwrap(),
-        ];
+        let data: Result<Vec<FieldElement>, FromStrError> = vec![
+            "0x0000000000000000000000000000000000000000000000000000000000000005",
+            "0x00FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF",
+            "0x0000000000000000000000000000000000000000000000000000000000000065",
+            "0x000000000000000000000000000000000000000000000000000000000000006c",
+            "0x000000000000000000000000000000000000000000000000000000000000006c",
+            "0x000000000000000000000000000000000000000000000000000000000000006f",
+        ]
+        .into_iter()
+        .map(FieldElement::from_str)
+        .collect();
 
-        let array_span = ArraySpan::<u8>::try_from(data);
+        let array_span = ArraySpan::<u8>::try_from(data.unwrap());
         assert!(array_span.is_err());
     }
 
     #[test]
     fn try_from_failed_to_parse_elements_length_to_u32() {
         // the string "hello", but element counte bigger than u32::max
-        let data = vec![
-            FieldElement::from_str(
-                "0x00FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF",
-            )
-            .unwrap(),
-            FieldElement::from_str(
-                "0x0000000000000000000000000000000000000000000000000000000000000068",
-            )
-            .unwrap(),
-            FieldElement::from_str(
-                "0x0000000000000000000000000000000000000000000000000000000000000065",
-            )
-            .unwrap(),
-            FieldElement::from_str(
-                "0x000000000000000000000000000000000000000000000000000000000000006c",
-            )
-            .unwrap(),
-            FieldElement::from_str(
-                "0x000000000000000000000000000000000000000000000000000000000000006c",
-            )
-            .unwrap(),
-            FieldElement::from_str(
-                "0x000000000000000000000000000000000000000000000000000000000000006f",
-            )
-            .unwrap(),
-        ];
+        let data: Result<Vec<FieldElement>, FromStrError> = vec![
+            "0x00FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF",
+            "0x0000000000000000000000000000000000000000000000000000000000000068",
+            "0x0000000000000000000000000000000000000000000000000000000000000065",
+            "0x000000000000000000000000000000000000000000000000000000000000006c",
+            "0x000000000000000000000000000000000000000000000000000000000000006c",
+            "0x000000000000000000000000000000000000000000000000000000000000006f",
+        ]
+        .into_iter()
+        .map(FieldElement::from_str)
+        .collect();
 
-        let array_span = ArraySpan::<u8>::try_from(data);
+        let array_span = ArraySpan::<u8>::try_from(data.unwrap());
         assert!(array_span.is_err());
     }
 
     #[test]
     fn try_from_invalid_number_of_elements() {
         // the string "hello", but with only 4 bytes
-        let data = vec![
-            FieldElement::from_str(
-                "0x0000000000000000000000000000000000000000000000000000000000000005",
-            )
-            .unwrap(),
-            FieldElement::from_str(
-                "0x0000000000000000000000000000000000000000000000000000000000000068",
-            )
-            .unwrap(),
-            FieldElement::from_str(
-                "0x0000000000000000000000000000000000000000000000000000000000000065",
-            )
-            .unwrap(),
-            FieldElement::from_str(
-                "0x000000000000000000000000000000000000000000000000000000000000006c",
-            )
-            .unwrap(),
-            FieldElement::from_str(
-                "0x000000000000000000000000000000000000000000000000000000000000006c",
-            )
-            .unwrap(),
-        ];
+        let data: Result<Vec<FieldElement>, FromStrError> = vec![
+            "0x0000000000000000000000000000000000000000000000000000000000000005",
+            "0x0000000000000000000000000000000000000000000000000000000000000068",
+            "0x0000000000000000000000000000000000000000000000000000000000000065",
+            "0x000000000000000000000000000000000000000000000000000000000000006c",
+            "0x000000000000000000000000000000000000000000000000000000000000006c",
+        ]
+        .into_iter()
+        .map(FieldElement::from_str)
+        .collect();
 
-        let array_span = ArraySpan::<u8>::try_from(data);
+        let array_span = ArraySpan::<u8>::try_from(data.unwrap());
         assert!(array_span.is_err());
     }
 
@@ -205,68 +163,38 @@ mod array_span_tests {
     fn try_from_invalid_declared_length() {
         // the string "hello", with correct number of bytes, but only 4 declared,
         // instead of 5
-        let data = vec![
-            FieldElement::from_str(
-                "0x0000000000000000000000000000000000000000000000000000000000000004",
-            )
-            .unwrap(),
-            FieldElement::from_str(
-                "0x0000000000000000000000000000000000000000000000000000000000000068",
-            )
-            .unwrap(),
-            FieldElement::from_str(
-                "0x0000000000000000000000000000000000000000000000000000000000000065",
-            )
-            .unwrap(),
-            FieldElement::from_str(
-                "0x000000000000000000000000000000000000000000000000000000000000006c",
-            )
-            .unwrap(),
-            FieldElement::from_str(
-                "0x000000000000000000000000000000000000000000000000000000000000006c",
-            )
-            .unwrap(),
-            FieldElement::from_str(
-                "0x000000000000000000000000000000000000000000000000000000000000006f",
-            )
-            .unwrap(),
-        ];
+        let data: Result<Vec<FieldElement>, FromStrError> = vec![
+            "0x0000000000000000000000000000000000000000000000000000000000000004",
+            "0x0000000000000000000000000000000000000000000000000000000000000068",
+            "0x0000000000000000000000000000000000000000000000000000000000000065",
+            "0x000000000000000000000000000000000000000000000000000000000000006c",
+            "0x000000000000000000000000000000000000000000000000000000000000006c",
+            "0x000000000000000000000000000000000000000000000000000000000000006f",
+        ]
+        .into_iter()
+        .map(FieldElement::from_str)
+        .collect();
 
-        let array_span = ArraySpan::<u8>::try_from(data);
+        let array_span = ArraySpan::<u8>::try_from(data.unwrap());
         assert!(array_span.is_err());
     }
 
     #[test]
     fn try_from_valid() {
         // the string "hello"
-        let data = vec![
-            FieldElement::from_str(
-                "0x0000000000000000000000000000000000000000000000000000000000000005",
-            )
-            .unwrap(),
-            FieldElement::from_str(
-                "0x0000000000000000000000000000000000000000000000000000000000000068",
-            )
-            .unwrap(),
-            FieldElement::from_str(
-                "0x0000000000000000000000000000000000000000000000000000000000000065",
-            )
-            .unwrap(),
-            FieldElement::from_str(
-                "0x000000000000000000000000000000000000000000000000000000000000006c",
-            )
-            .unwrap(),
-            FieldElement::from_str(
-                "0x000000000000000000000000000000000000000000000000000000000000006c",
-            )
-            .unwrap(),
-            FieldElement::from_str(
-                "0x000000000000000000000000000000000000000000000000000000000000006f",
-            )
-            .unwrap(),
-        ];
+        let data: Result<Vec<FieldElement>, FromStrError> = vec![
+            "0x0000000000000000000000000000000000000000000000000000000000000005",
+            "0x0000000000000000000000000000000000000000000000000000000000000068",
+            "0x0000000000000000000000000000000000000000000000000000000000000065",
+            "0x000000000000000000000000000000000000000000000000000000000000006c",
+            "0x000000000000000000000000000000000000000000000000000000000000006c",
+            "0x000000000000000000000000000000000000000000000000000000000000006f",
+        ]
+        .into_iter()
+        .map(FieldElement::from_str)
+        .collect();
 
-        let array_span = ArraySpan::<u8>::try_from(data).unwrap();
+        let array_span = ArraySpan::<u8>::try_from(data.unwrap()).unwrap();
         assert_eq!(array_span.data, vec![104, 101, 108, 108, 111]);
     }
 }
