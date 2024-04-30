@@ -12,7 +12,7 @@ use thiserror::Error;
 /// use starknet_core::types::FieldElement;
 /// use starknet_core::types::FromStrError;
 ///
-/// let data: Result<Vec<FieldElement>, FromStrError> = vec![
+/// let data = vec![
 ///         "0x0000000000000000000000000000000000000000000000000000000000000005",
 ///         "0x0000000000000000000000000000000000000000000000000000000000000068",
 ///         "0x0000000000000000000000000000000000000000000000000000000000000065",
