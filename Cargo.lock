@@ -219,6 +219,7 @@ name = "ampd"
 version = "0.1.0"
 dependencies = [
  "async-trait",
+ "axelar-message-primitives",
  "axelar-wasm-std 0.1.0",
  "base64 0.21.7",
  "bcs",

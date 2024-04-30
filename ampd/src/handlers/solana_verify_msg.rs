@@ -273,7 +273,7 @@ mod test {
         let expiration = 100u64;
         let (_, rx) = watch::channel(expiration - 1);
         let source_chain = ChainName::from_str("solana").unwrap();
-        let poll_started_source_chain = ChainName::from_str("other_chain").unwrap(); // A different, unexpected source chain.
+        let poll_started_source_chain = ChainName::from_str("otherchain").unwrap(); // A different, unexpected source chain.
 
         // Prepare the message verifier and the vote broadcaster
         let mut broadcast_client = MockBroadcasterClient::new();

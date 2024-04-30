@@ -1,8 +1,8 @@
 use std::collections::HashMap;
 
+use axelar_message_primitives::command::Operators;
 use axelar_wasm_std::voting::Vote;
 
-use gmp_gateway::types::operator::Operators;
 use solana_transaction_status::EncodedConfirmedTransactionWithStatusMeta;
 use thiserror::Error;
 use tracing::{error, info};
@@ -43,7 +43,7 @@ pub async fn verify_worker_set(
     source_gateway_address: &String,
     sol_tx: &EncodedConfirmedTransactionWithStatusMeta,
     worker_set: &WorkerSetConfirmation,
-    account_data: &Vec<u8>,
+    onchain_operators: &Operators,
 ) -> Vote {
     let ui_tx = match &sol_tx.transaction.transaction {
         solana_transaction_status::EncodedTransaction::Json(tx) => tx,
@@ -80,43 +80,15 @@ pub async fn verify_worker_set(
         return Vote::FailedOnChain;
     }
 
-    let onchain_operators = match parse_onchain_operators(account_data) {
-        Ok(ops) => ops,
-        Err(err) => {
-            info!(tx_id = &worker_set.tx_id, err = err.to_string());
-            return Vote::FailedOnChain;
-        }
-    };
-
-    if worker_set.operators == onchain_operators {
+    if worker_set.operators == *onchain_operators {
         Vote::SucceededOnChain
     } else {
         Vote::FailedOnChain
     }
 }
 
-fn parse_onchain_operators(account_data: &Vec<u8>) -> Result<Operators> {
-    if account_data.is_empty() {
-        return Err(VerificationError::ParsingError(
-            "Solana account is empty.".to_string(),
-        ));
-    }
-
-    let operators = match borsh::de::from_slice::<Operators>(account_data) {
-        Ok(ops) => ops,
-        Err(err) => {
-            return Err(VerificationError::ParsingError(format!(
-                "Cannot borsh decode account data: {}",
-                err
-            )))
-        }
-    };
-
-    Ok(operators)
-}
-
-impl PartialEq<gmp_gateway::types::operator::Operators> for solana_verify_worker_set::Operators {
-    fn eq(&self, aw_ops: &gmp_gateway::types::operator::Operators) -> bool {
+impl PartialEq<Operators> for solana_verify_worker_set::Operators {
+    fn eq(&self, aw_ops: &Operators) -> bool {
         if self.threshold != *aw_ops.threshold() {
             return false;
         }
@@ -157,7 +129,9 @@ impl PartialEq<gmp_gateway::types::operator::Operators> for solana_verify_worker
             .iter()
             .zip(aw_ops.weights())
             .try_for_each(|(address, weight)| {
-                let Some((axelar_address, axelar_weight)) = addresses_weights.get_key_value(address.as_ref()) else {
+                let Some((axelar_address, axelar_weight)) =
+                    addresses_weights.get_key_value(address.as_ref())
+                else {
                     return Err(());
                 };
 
@@ -174,7 +148,7 @@ impl PartialEq<gmp_gateway::types::operator::Operators> for solana_verify_worker
     }
 }
 
-impl PartialEq<crate::types::U256> for gmp_gateway::types::u256::U256 {
+impl PartialEq<crate::types::U256> for axelar_message_primitives::command::U256 {
     fn eq(&self, loc_u256: &crate::types::U256) -> bool {
         let mut b: [u8; 32] = [0; 32];
         loc_u256.to_little_endian(&mut b);
@@ -182,8 +156,8 @@ impl PartialEq<crate::types::U256> for gmp_gateway::types::u256::U256 {
     }
 }
 
-impl PartialEq<gmp_gateway::types::u256::U256> for crate::types::U256 {
-    fn eq(&self, aw_u256: &gmp_gateway::types::u256::U256) -> bool {
+impl PartialEq<axelar_message_primitives::command::U256> for crate::types::U256 {
+    fn eq(&self, aw_u256: &axelar_message_primitives::command::U256) -> bool {
         let mut b: [u8; 32] = [0; 32];
         self.to_little_endian(&mut b);
         aw_u256.to_le_bytes() == b
@@ -195,87 +169,21 @@ mod tests {
     use crate::handlers::solana_verify_worker_set::Operators;
 
     use super::*;
-    use borsh::BorshSerialize;
+    use axelar_message_primitives::{command::U256, Address};
     use cosmwasm_std::Uint256;
-    use gmp_gateway::types::{address::Address, u256::U256};
     use std::convert::TryFrom;
-
-    #[test]
-    fn test_correct_deserialization_auth_weight_operators() {
-        let onchain_operators = gmp_gateway::types::operator::Operators::new(
-            vec![
-                Address::try_from(
-                    "03f57d1a813febaccbe6429603f9ec57969511b76cd680452dba91fa01f54e756d",
-                )
-                .unwrap(),
-                Address::try_from(
-                    "03f57d1a813febaccbe6429603f9ec57969511b76cd680452dba91fa01f54e756e",
-                )
-                .unwrap(),
-            ],
-            vec![U256::from(100u8), U256::from(200u8)],
-            U256::from(1u8),
-        );
-
-        let mut op_buff = Vec::new();
-        onchain_operators.serialize(&mut op_buff).unwrap();
-
-        assert_eq!(
-            onchain_operators,
-            parse_onchain_operators(&op_buff).unwrap()
-        )
-    }
-
-    #[test]
-    fn test_incorrect_deserialization_auth_weight_operators_failing_index() {
-        assert_eq!(
-            parse_onchain_operators(&vec![]),
-            Err(VerificationError::ParsingError(
-                "Solana account is empty.".to_string()
-            ))
-        )
-    }
-
-    #[test]
-    fn test_incorrect_deserialization_auth_weight_operators_failing_borsh_deserialization() {
-        let onchain_operators = gmp_gateway::types::operator::Operators::new(
-            vec![
-                Address::try_from(
-                    "03f57d1a813febaccbe6429603f9ec57969511b76cd680452dba91fa01f54e756d",
-                )
-                .unwrap(),
-                Address::try_from(
-                    "03f57d1a813febaccbe6429603f9ec57969511b76cd680452dba91fa01f54e756e",
-                )
-                .unwrap(),
-            ],
-            vec![U256::from(100u8), U256::from(200u8)],
-            U256::from(1u8),
-        );
-
-        let mut op_buff = Vec::new();
-        onchain_operators.serialize(&mut op_buff).unwrap();
-        op_buff[0] = 1; // We mangle the data in order to borsh to fail.
-
-        assert_eq!(
-            parse_onchain_operators(&op_buff),
-            Err(VerificationError::ParsingError(
-                "Cannot borsh decode account data: failed to fill whole buffer".to_string()
-            ))
-        );
-    }
 
     #[test]
     fn test_verify_worker_set_operators_data_happy_path() {
         let (ops, sol_ops) = matching_axelar_operators_and_onchain_operators();
-        assert!(&ops == &sol_ops)
+        assert!(ops == sol_ops)
     }
 
     #[test]
     fn test_verify_worker_set_operators_data_fails_not_eq_threshold() {
         let (mut ops, sol_ops) = matching_axelar_operators_and_onchain_operators();
         ops.threshold = crate::types::U256::from(Uint256::MAX);
-        assert!(&ops != &sol_ops)
+        assert!(ops != sol_ops)
     }
 
     #[test]
@@ -293,7 +201,7 @@ mod tests {
                 crate::types::U256::from(Uint256::from_u128(200)),
             ),
         ];
-        assert!(&ops != &sol_ops)
+        assert!(ops != sol_ops)
     }
 
     #[test]
@@ -309,14 +217,14 @@ mod tests {
                 crate::types::U256::from(Uint256::from_u128(1)), // here is a different weight than expected.
             ),
         ];
-        assert!(&ops != &sol_ops)
+        assert!(ops != sol_ops)
     }
 
     #[test]
     fn test_verify_worker_set_operators_data_fails_not_same_elements() {
         let (ops, _) = matching_axelar_operators_and_onchain_operators();
 
-        let sol_ops = gmp_gateway::types::operator::Operators::new(
+        let sol_ops = axelar_message_primitives::command::Operators::new(
             vec![
                 Address::try_from(
                     "03f57d1a813febaccbe6429603f9ec57969511b76cd680452dba91fa01f54e756d",
@@ -331,12 +239,12 @@ mod tests {
             U256::from(1u8),
         );
 
-        assert!(&ops != &sol_ops)
+        assert!(ops != sol_ops)
     }
 
     fn matching_axelar_operators_and_onchain_operators(
-    ) -> (Operators, gmp_gateway::types::operator::Operators) {
-        let onchain_operators = gmp_gateway::types::operator::Operators::new(
+    ) -> (Operators, axelar_message_primitives::command::Operators) {
+        let onchain_operators = axelar_message_primitives::command::Operators::new(
             vec![
                 Address::try_from(
                     "03f57d1a813febaccbe6429603f9ec57969511b76cd680452dba91fa01f54e756d",
@@ -373,7 +281,7 @@ mod tests {
     #[test]
     fn comparing_u256_and_aw_u256_works() {
         let u256 = crate::types::U256::from(Uint256::MAX);
-        let aw_u256 = gmp_gateway::types::u256::U256::from_le_bytes([255; 32]); // Does not have a U256::MAX
+        let aw_u256 = axelar_message_primitives::command::U256::from_le_bytes([255; 32]); // Does not have a U256::MAX
         assert!(u256 == aw_u256);
     }
 }

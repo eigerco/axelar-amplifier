@@ -75,6 +75,7 @@ valuable = { version = "0.1.0", features = ["derive"] }
 valuable-serde = { version = "0.1.0", features = ["std"] }
 voting-verifier = { workspace = true }
 gmp-gateway = { git = "https://github.com/eigerco/solana-axelar.git" }
+axelar-message-primitives = { git = "https://github.com/eigerco/solana-axelar.git" }
 lru = "0.12.3"
 
 [dev-dependencies]

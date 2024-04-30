@@ -1,5 +1,7 @@
+use std::borrow::Cow;
 use std::convert::TryInto;
 
+use axelar_message_primitives::command::TransferOperatorshipCommand;
 use cosmrs::cosmwasm::MsgExecuteContract;
 use error_stack::ResultExt;
 use serde::Deserialize;
@@ -194,10 +196,17 @@ where
 
         let gw_event = parse_gateway_event(&sol_tx).map_err(|_| Error::DeserializeEvent)?;
 
-        let pub_key = match gw_event {
-            GatewayEvent::OperatorshipTransferred {
-                info_account_address,
-            } => info_account_address,
+        let operators = match gw_event {
+            GatewayEvent::OperatorshipTransferred(Cow::Owned(TransferOperatorshipCommand {
+                operators,
+                weights,
+                quorum,
+                ..
+            })) => axelar_message_primitives::command::Operators::new(
+                operators,
+                weights.into_iter().map(axelar_message_primitives::command::U256::from).collect(),
+                axelar_message_primitives::command::U256::from(quorum),
+            ),
             _ => {
                 error!(
                     tx_signature = sol_tx_signature.to_string(),
@@ -208,21 +217,7 @@ where
             }
         };
 
-        let account_data = match self.rpc_client.get_account_data(&pub_key).await {
-            Ok(data) => data,
-            Err(err) => {
-                error!(
-                    tx_signature = sol_tx_signature.to_string(),
-                    pub_key = pub_key.to_string(),
-                    poll_id = poll_id.to_string(),
-                    err = format!("Error fetching account data: {}", err),
-                );
-                return self.broadcast_vote(poll_id, Vote::FailedOnChain).await;
-            }
-        };
-
-        let vote =
-            verify_worker_set(&source_gateway_address, &sol_tx, &worker_set, &account_data).await;
+        let vote = verify_worker_set(&source_gateway_address, &sol_tx, &worker_set, &operators).await;
         self.broadcast_vote(poll_id, vote).await
     }
 }
@@ -299,7 +294,7 @@ mod tests {
         let handler = Handler::new(
             worker.clone(),
             voting_verifier.clone(),
-            ChainName::from_str("not_matching_chain").unwrap(),
+            ChainName::from_str("notmatchingchain").unwrap(),
             rpc_client,
             broadcast_client,
             rx,
