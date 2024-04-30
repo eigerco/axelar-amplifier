@@ -13,23 +13,18 @@ use thiserror::Error;
 /// use ampd::starknet::types::byte_array::ByteArray;
 /// use std::str::FromStr;
 /// use starknet_core::types::FieldElement;
+/// use starknet_core::types::FromStrError;
 ///
-/// let data = vec![
-///     FieldElement::from_str(
+/// let data: Result<Vec<FieldElement>, FromStrError> = vec![
 ///         "0x0000000000000000000000000000000000000000000000000000000000000000",
-///     )
-///     .unwrap(),
-///     FieldElement::from_str(
 ///         "0x00000000000000000000000000000000000000000000000000000068656c6c6f",
-///     )
-///     .unwrap(),
-///     FieldElement::from_str(
 ///         "0x0000000000000000000000000000000000000000000000000000000000000005",
-///     )
-///     .unwrap(),
-/// ];
+/// ]
+/// .into_iter()
+/// .map(FieldElement::from_str)
+/// .collect();
 ///
-/// let byte_array = ByteArray::try_from(data);
+/// let byte_array = ByteArray::try_from(data.unwrap());
 /// assert!(byte_array.is_ok());
 /// ```
 ///
@@ -144,23 +139,18 @@ impl ByteArray {
     /// use ampd::starknet::types::byte_array::ByteArray;
     /// use std::str::FromStr;
     /// use starknet_core::types::FieldElement;
+    /// use starknet_core::types::FromStrError;
     ///
-    /// let data = vec![
-    ///     FieldElement::from_str(
+    /// let data: Result<Vec<FieldElement>, FromStrError> = vec![
     ///         "0x0000000000000000000000000000000000000000000000000000000000000000",
-    ///     )
-    ///     .unwrap(),
-    ///     FieldElement::from_str(
     ///         "0x00000000000000000000000000000000000000000000000000000068656c6c6f",
-    ///     )
-    ///     .unwrap(),
-    ///     FieldElement::from_str(
     ///         "0x0000000000000000000000000000000000000000000000000000000000000005",
-    ///     )
-    ///     .unwrap(),
-    /// ];
+    /// ]
+    /// .into_iter()
+    /// .map(FieldElement::from_str)
+    /// .collect();
     ///
-    /// let byte_array = ByteArray::try_from(data).unwrap();
+    /// let byte_array = ByteArray::try_from(data.unwrap()).unwrap();
     /// assert_eq!("hello", byte_array.try_to_string().unwrap());
     /// ```
     ///
@@ -184,7 +174,7 @@ impl ByteArray {
 mod byte_array_tests {
     use std::str::FromStr;
 
-    use starknet_core::types::FieldElement;
+    use starknet_core::types::{FieldElement, FromStrError};
 
     use crate::starknet::types::byte_array::ByteArray;
 
@@ -194,24 +184,18 @@ mod byte_array_tests {
         // https://docs.starknet.io/documentation/architecture_and_concepts/Smart_Contracts/serialization_of_Cairo_types/#serialization_of_byte_arrays
         //
         // So this is the string "hello"
-        let data = vec![
-            FieldElement::from_str(
-                "0x0000000000000000000000000000000000000000000000000000000000000000",
-            )
-            .unwrap(),
-            FieldElement::from_str(
-                "0x0000000000000000000000000000000000000000000000000000068656c6c6f",
-            )
-            .unwrap(),
-            FieldElement::from_str(
-                // Should be of length 5 bytes, but we put 6 bytes, in order to fail
-                // the parsing
-                "0x0000000000000000000000000000000000000000000000000000000000000020",
-            )
-            .unwrap(),
-        ];
+        let data: Result<Vec<FieldElement>, FromStrError> = vec![
+            "0x0000000000000000000000000000000000000000000000000000000000000000",
+            "0x0000000000000000000000000000000000000000000000000000068656c6c6f",
+            // Should be of length 5 bytes, but we put 6 bytes, in order to fail
+            // the parsing
+            "0x0000000000000000000000000000000000000000000000000000000000000020",
+        ]
+        .into_iter()
+        .map(FieldElement::from_str)
+        .collect();
 
-        let byte_array = ByteArray::try_from(data);
+        let byte_array = ByteArray::try_from(data.unwrap());
         assert!(byte_array.is_err());
     }
 
@@ -221,25 +205,19 @@ mod byte_array_tests {
         // https://docs.starknet.io/documentation/architecture_and_concepts/Smart_Contracts/serialization_of_Cairo_types/#serialization_of_byte_arrays
         //
         // So this is the string "hello"
-        let data = vec![
-            FieldElement::from_str(
-                "0x0000000000000000000000000000000000000000000000000000000000000000",
-            )
-            .unwrap(),
+        let data: Result<Vec<FieldElement>, FromStrError> = vec![
+            "0x0000000000000000000000000000000000000000000000000000000000000000",
             // Note the 01 in the beginning. This is what causes the parse
             // function to error.
-            FieldElement::from_str(
-                "0x01000000000000000000000000000000000000000000000000000068656c6c6f",
-            )
-            .unwrap(),
-            FieldElement::from_str(
-                // 32(0x20) bytes long pending_word
-                "0x0000000000000000000000000000000000000000000000000000000000000020",
-            )
-            .unwrap(),
-        ];
+            "0x01000000000000000000000000000000000000000000000000000068656c6c6f",
+            // 32(0x20) bytes long pending_word
+            "0x0000000000000000000000000000000000000000000000000000000000000020",
+        ]
+        .into_iter()
+        .map(FieldElement::from_str)
+        .collect();
 
-        let byte_array = ByteArray::try_from(data).unwrap();
+        let byte_array = ByteArray::try_from(data.unwrap()).unwrap();
         assert!(byte_array.try_to_string().is_err());
     }
 
@@ -249,22 +227,16 @@ mod byte_array_tests {
         // https://docs.starknet.io/documentation/architecture_and_concepts/Smart_Contracts/serialization_of_Cairo_types/#serialization_of_byte_arrays
         //
         // So this is the string "hello"
-        let data = vec![
-            FieldElement::from_str(
-                "0x0000000000000000000000000000000000000000000000000000000000000000",
-            )
-            .unwrap(),
-            FieldElement::from_str(
-                "0x00000000000000000000000000000000000000000000000000000068656c6c6f",
-            )
-            .unwrap(),
-            FieldElement::from_str(
-                "0x0000000000000000000000000000000000000000000000000000000000000005",
-            )
-            .unwrap(),
-        ];
+        let data: Result<Vec<FieldElement>, FromStrError> = vec![
+            "0x0000000000000000000000000000000000000000000000000000000000000000",
+            "0x00000000000000000000000000000000000000000000000000000068656c6c6f",
+            "0x0000000000000000000000000000000000000000000000000000000000000005",
+        ]
+        .into_iter()
+        .map(FieldElement::from_str)
+        .collect();
 
-        let byte_array = ByteArray::try_from(data).unwrap();
+        let byte_array = ByteArray::try_from(data.unwrap()).unwrap();
         assert_eq!("hello", byte_array.try_to_string().unwrap());
     }
 
@@ -276,94 +248,65 @@ mod byte_array_tests {
         // So this is the string "Long long string, a lot more than 31 characters that
         // wouldn't even fit in two felts, so we'll have at least two felts and a
         // pending word."
-        let data = vec![
-            FieldElement::from_str(
-                "0x0000000000000000000000000000000000000000000000000000000000000004",
-            )
-            .unwrap(),
-            FieldElement::from_str(
-                "0x00004c6f6e67206c6f6e6720737472696e672c2061206c6f74206d6f72652074",
-            )
-            .unwrap(),
-            FieldElement::from_str(
-                "0x000068616e2033312063686172616374657273207468617420776f756c646e27",
-            )
-            .unwrap(),
-            FieldElement::from_str(
-                "0x000074206576656e2066697420696e2074776f2066656c74732c20736f207765",
-            )
-            .unwrap(),
-            FieldElement::from_str(
-                "0x0000276c6c2068617665206174206c656173742074776f2066656c747320616e",
-            )
-            .unwrap(),
-            FieldElement::from_str(
-                "0x0000000000000000000000000000006420612070656e64696e6720776f72642e",
-            )
-            .unwrap(),
-            FieldElement::from_str(
-                "0x0000000000000000000000000000000000000000000000000000000000000011",
-            )
-            .unwrap(),
-        ];
+        let data: Result<Vec<FieldElement>, FromStrError> = vec![
+            "0x0000000000000000000000000000000000000000000000000000000000000004",
+            "0x00004c6f6e67206c6f6e6720737472696e672c2061206c6f74206d6f72652074",
+            "0x000068616e2033312063686172616374657273207468617420776f756c646e27",
+            "0x000074206576656e2066697420696e2074776f2066656c74732c20736f207765",
+            "0x0000276c6c2068617665206174206c656173742074776f2066656c747320616e",
+            "0x0000000000000000000000000000006420612070656e64696e6720776f72642e",
+            "0x0000000000000000000000000000000000000000000000000000000000000011",
+        ]
+        .into_iter()
+        .map(FieldElement::from_str)
+        .collect();
 
-        let byte_array = ByteArray::try_from(data).unwrap();
+        let byte_array = ByteArray::try_from(data.unwrap()).unwrap();
         assert_eq!("Long long string, a lot more than 31 characters that wouldn't even fit in two felts, so we'll have at least two felts and a pending word.", byte_array.try_to_string().unwrap());
     }
 
     #[test]
     fn try_from_vec_count_less_then_3() {
-        let data = vec![FieldElement::from_str(
-            "0x0000000000000000000000000000000000000000000000000000000000000005",
-        )
-        .unwrap()];
+        let data: Result<Vec<FieldElement>, FromStrError> =
+            vec!["0x0000000000000000000000000000000000000000000000000000000000000005"]
+                .into_iter()
+                .map(FieldElement::from_str)
+                .collect();
 
-        let byte_array_err = ByteArray::try_from(data);
+        let byte_array_err = ByteArray::try_from(data.unwrap());
         assert!(byte_array_err.is_err());
     }
 
     #[test]
     fn try_from_non_u32_word_count() {
-        let data = vec![
+        let data: Result<Vec<FieldElement>, FromStrError> = vec![
             // should be 0, because the message is short
             // enough to fit in a single FieldElement
-            FieldElement::from_str(
-                "0x00000000000000000000000000000000000000000000000000000068656c6c6f",
-            )
-            .unwrap(),
-            FieldElement::from_str(
-                "0x00000000000000000000000000000000000000000000000000000068656c6c6f",
-            )
-            .unwrap(),
-            FieldElement::from_str(
-                "0x0000000000000000000000000000000000000000000000000000000000000005",
-            )
-            .unwrap(),
-        ];
+            "0x00000000000000000000000000000000000000000000000000000068656c6c6f",
+            "0x00000000000000000000000000000000000000000000000000000068656c6c6f",
+            "0x0000000000000000000000000000000000000000000000000000000000000005",
+        ]
+        .into_iter()
+        .map(FieldElement::from_str)
+        .collect();
 
-        let byte_array_err = ByteArray::try_from(data);
+        let byte_array_err = ByteArray::try_from(data.unwrap());
         assert!(byte_array_err.is_err());
     }
     #[test]
     fn try_from_invalid_byte_array_element_count() {
-        let data = vec![
+        let data: Result<Vec<FieldElement>, FromStrError> = vec![
             // should be 0, because the message is short
             // enough to fit in a single FieldElement
-            FieldElement::from_str(
-                "0x0000000000000000000000000000000000000000000000000000000000000005",
-            )
-            .unwrap(),
-            FieldElement::from_str(
-                "0x00000000000000000000000000000000000000000000000000000068656c6c6f",
-            )
-            .unwrap(),
-            FieldElement::from_str(
-                "0x0000000000000000000000000000000000000000000000000000000000000005",
-            )
-            .unwrap(),
-        ];
+            "0x0000000000000000000000000000000000000000000000000000000000000005",
+            "0x00000000000000000000000000000000000000000000000000000068656c6c6f",
+            "0x0000000000000000000000000000000000000000000000000000000000000005",
+        ]
+        .into_iter()
+        .map(FieldElement::from_str)
+        .collect();
 
-        let byte_array_err = ByteArray::try_from(data);
+        let byte_array_err = ByteArray::try_from(data.unwrap());
         assert!(byte_array_err.is_err());
     }
 
@@ -373,22 +316,16 @@ mod byte_array_tests {
         // https://docs.starknet.io/documentation/architecture_and_concepts/Smart_Contracts/serialization_of_Cairo_types/#serialization_of_byte_arrays
         //
         // So this is the string "hello"
-        let data = vec![
-            FieldElement::from_str(
-                "0x0000000000000000000000000000000000000000000000000000000000000000",
-            )
-            .unwrap(),
-            FieldElement::from_str(
-                "0x00000000000000000000000000000000000000000000000000000068656c6c6f",
-            )
-            .unwrap(),
-            FieldElement::from_str(
-                "0x00000000000000000000000000000000000000000000000000000068656c6c6f",
-            )
-            .unwrap(),
-        ];
+        let data: Result<Vec<FieldElement>, FromStrError> = vec![
+            "0x0000000000000000000000000000000000000000000000000000000000000000",
+            "0x00000000000000000000000000000000000000000000000000000068656c6c6f",
+            "0x00000000000000000000000000000000000000000000000000000068656c6c6f",
+        ]
+        .into_iter()
+        .map(FieldElement::from_str)
+        .collect();
 
-        let byte_array = ByteArray::try_from(data);
+        let byte_array = ByteArray::try_from(data.unwrap());
         assert!(byte_array.is_err());
     }
 
@@ -398,22 +335,16 @@ mod byte_array_tests {
         // https://docs.starknet.io/documentation/architecture_and_concepts/Smart_Contracts/serialization_of_Cairo_types/#serialization_of_byte_arrays
         //
         // So this is the string "hello"
-        let data = vec![
-            FieldElement::from_str(
-                "0x0000000000000000000000000000000000000000000000000000000000000000",
-            )
-            .unwrap(),
-            FieldElement::from_str(
-                "0x00000000000000000000000000000000000000000000000000000068656c6c6f",
-            )
-            .unwrap(),
-            FieldElement::from_str(
-                "0x0000000000000000000000000000000000000000000000000000000000000005",
-            )
-            .unwrap(),
-        ];
+        let data: Result<Vec<FieldElement>, FromStrError> = vec![
+            "0x0000000000000000000000000000000000000000000000000000000000000000",
+            "0x00000000000000000000000000000000000000000000000000000068656c6c6f",
+            "0x0000000000000000000000000000000000000000000000000000000000000005",
+        ]
+        .into_iter()
+        .map(FieldElement::from_str)
+        .collect();
 
-        let byte_array = ByteArray::try_from(data).unwrap();
+        let byte_array = ByteArray::try_from(data.unwrap()).unwrap();
 
         assert_eq!(byte_array.data, vec![]);
         assert_eq!(
@@ -434,38 +365,20 @@ mod byte_array_tests {
         // So this is the string "Long long string, a lot more than 31 characters that
         // wouldn't even fit in two felts, so we'll have at least two felts and a
         // pending word."
-        let data = vec![
-            FieldElement::from_str(
-                "0x0000000000000000000000000000000000000000000000000000000000000004",
-            )
-            .unwrap(),
-            FieldElement::from_str(
-                "0x00004c6f6e67206c6f6e6720737472696e672c2061206c6f74206d6f72652074",
-            )
-            .unwrap(),
-            FieldElement::from_str(
-                "0x000068616e2033312063686172616374657273207468617420776f756c646e27",
-            )
-            .unwrap(),
-            FieldElement::from_str(
-                "0x000074206576656e2066697420696e2074776f2066656c74732c20736f207765",
-            )
-            .unwrap(),
-            FieldElement::from_str(
-                "0x0000276c6c2068617665206174206c656173742074776f2066656c747320616e",
-            )
-            .unwrap(),
-            FieldElement::from_str(
-                "0x0000000000000000000000000000006420612070656e64696e6720776f72642e",
-            )
-            .unwrap(),
-            FieldElement::from_str(
-                "0x0000000000000000000000000000000000000000000000000000000000000011",
-            )
-            .unwrap(),
-        ];
+        let data: Result<Vec<FieldElement>, FromStrError> = vec![
+            "0x0000000000000000000000000000000000000000000000000000000000000004",
+            "0x00004c6f6e67206c6f6e6720737472696e672c2061206c6f74206d6f72652074",
+            "0x000068616e2033312063686172616374657273207468617420776f756c646e27",
+            "0x000074206576656e2066697420696e2074776f2066656c74732c20736f207765",
+            "0x0000276c6c2068617665206174206c656173742074776f2066656c747320616e",
+            "0x0000000000000000000000000000006420612070656e64696e6720776f72642e",
+            "0x0000000000000000000000000000000000000000000000000000000000000011",
+        ]
+        .into_iter()
+        .map(FieldElement::from_str)
+        .collect();
 
-        let byte_array = ByteArray::try_from(data).unwrap();
+        let byte_array = ByteArray::try_from(data.unwrap()).unwrap();
 
         assert_eq!(
             byte_array.data,
@@ -504,26 +417,17 @@ mod byte_array_tests {
         // https://docs.starknet.io/documentation/architecture_and_concepts/Smart_Contracts/serialization_of_Cairo_types/#serialization_of_byte_arrays
         //
         // So this is the string "Long string, more than 31 characters."
-        let data = vec![
-            FieldElement::from_str(
-                "0x0000000000000000000000000000000000000000000000000000000000000001",
-            )
-            .unwrap(),
-            FieldElement::from_str(
-                "0x004c6f6e6720737472696e672c206d6f7265207468616e203331206368617261",
-            )
-            .unwrap(),
-            FieldElement::from_str(
-                "0x000000000000000000000000000000000000000000000000000063746572732e",
-            )
-            .unwrap(),
-            FieldElement::from_str(
-                "0x0000000000000000000000000000000000000000000000000000000000000006",
-            )
-            .unwrap(),
-        ];
+        let data: Result<Vec<FieldElement>, FromStrError> = vec![
+            "0x0000000000000000000000000000000000000000000000000000000000000001",
+            "0x004c6f6e6720737472696e672c206d6f7265207468616e203331206368617261",
+            "0x000000000000000000000000000000000000000000000000000063746572732e",
+            "0x0000000000000000000000000000000000000000000000000000000000000006",
+        ]
+        .into_iter()
+        .map(FieldElement::from_str)
+        .collect();
 
-        let byte_array = ByteArray::try_from(data).unwrap();
+        let byte_array = ByteArray::try_from(data.unwrap()).unwrap();
 
         assert_eq!(
             byte_array.data,
