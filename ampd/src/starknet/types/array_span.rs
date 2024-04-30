@@ -10,8 +10,9 @@ use thiserror::Error;
 /// use ampd::starknet::types::array_span::ArraySpan;
 /// use std::str::FromStr;
 /// use starknet_core::types::FieldElement;
+/// use starknet_core::types::FromStrError;
 ///
-/// let data = vec![
+/// let data: Result<Vec<FieldElement>, FromStrError> = vec![
 ///         "0x0000000000000000000000000000000000000000000000000000000000000005",
 ///         "0x0000000000000000000000000000000000000000000000000000000000000068",
 ///         "0x0000000000000000000000000000000000000000000000000000000000000065",
