@@ -1,0 +1,26 @@
+name: Ampd binary periodic build
+on:
+  schedule:
+    # 7 am in the morning. If there are errors due to dependencies, engineers will be notified.
+    # We are not fixing versions because everything is liquid right now.
+    - cron: "0 07 * * *"
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    name: "Build the code"
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # Initially do not cache deps, do a fresh build from zero.
+
+      # - uses: Swatinem/rust-cache@v2
+      #   with:
+      #     cache-all-crates: true
+      #     cache-on-failure: true
+      #     workspaces: "ampd -> target"
+      #     shared-key: "ampd"
+
+      - name: Build the code
+        run: cd ampd && cargo build
