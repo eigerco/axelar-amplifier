@@ -3,7 +3,7 @@ use connection_router_api::ChainName;
 use cosmrs::cosmwasm::MsgExecuteContract;
 use error_stack::ResultExt;
 use futures::stream::FuturesOrdered;
-use futures::{StreamExt, TryStreamExt};
+use futures::StreamExt;
 use serde::Deserialize;
 use solana_sdk::signature::Signature;
 use solana_transaction_status::UiTransactionEncoding;
@@ -138,7 +138,7 @@ where
                 }
             },
         };
-        Ok(verify_message(source_gateway_address, sol_tx, &msg))
+        Ok(verify_message(source_gateway_address, sol_tx, msg))
     }
 }
 
@@ -186,7 +186,7 @@ where
 
         let mut votes: Vec<Vote> = Vec::new();
 
-        let mut ord_fut: FuturesOrdered<_> =  messages
+        let mut ord_fut: FuturesOrdered<_> = messages
             .iter()
             .map(|msg| self.process_message(msg, &source_gateway_address))
             .collect();

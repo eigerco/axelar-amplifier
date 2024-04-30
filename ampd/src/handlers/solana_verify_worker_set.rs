@@ -126,7 +126,7 @@ where
             source_chain,
             source_gateway_address,
             expires_at,
-            confirmation_height: _,
+            confirmation_height,
             participants,
             worker_set,
         } = match event.try_into() as error_stack::Result<_, _> {

@@ -168,7 +168,7 @@ impl PartialEq<axelar_message_primitives::command::U256> for crate::types::U256 
 mod tests {
     use crate::handlers::solana_verify_worker_set::Operators;
 
-    use super::*;
+    
     use axelar_message_primitives::{command::U256, Address};
     use cosmwasm_std::Uint256;
     use std::convert::TryFrom;
