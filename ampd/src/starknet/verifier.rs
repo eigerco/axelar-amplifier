@@ -1,11 +1,14 @@
 use axelar_wasm_std::voting::Vote;
 use mockall::automock;
+use starknet_providers::jsonrpc::HttpTransport;
 use thiserror::Error;
 use tonic::async_trait;
+use url::Url;
 
 use super::events::contract_call::ContractCallEvent;
-use super::json_rpc::{StarknetClient, StarknetClientError};
+use super::json_rpc::{Client, StarknetClientError};
 use crate::handlers::starknet_verify_msg::Message;
+use crate::starknet::json_rpc::StarknetClient;
 
 #[derive(Error, Debug)]
 pub enum VerifierError {
@@ -24,13 +27,13 @@ pub trait MessageVerifier {
 }
 
 pub struct RPCMessageVerifier {
-    client: StarknetClient,
+    client: Client<HttpTransport>,
 }
 
 impl RPCMessageVerifier {
-    pub fn new(url: impl AsRef<str>) -> Self {
+    pub fn new(url: &str) -> Self {
         Self {
-            client: StarknetClient::new(url).unwrap(), /* todoo scale error ? */
+            client: Client::new(HttpTransport::new(Url::parse(url).unwrap())).unwrap(), /* todoo scale error ? */
         }
     }
 }
