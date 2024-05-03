@@ -4,11 +4,11 @@
 use std::str::FromStr;
 
 use async_trait::async_trait;
-use mockall::{automock, mock};
+use mockall::automock;
 use starknet_core::types::{
     ExecutionResult, FieldElement, FromStrError, MaybePendingTransactionReceipt, TransactionReceipt,
 };
-use starknet_providers::jsonrpc::{HttpTransport, HttpTransportError, JsonRpcTransport};
+use starknet_providers::jsonrpc::JsonRpcTransport;
 use starknet_providers::{JsonRpcClient, Provider, ProviderError};
 use thiserror::Error;
 
@@ -37,13 +37,26 @@ where
     client: JsonRpcClient<T>,
 }
 
+impl<T> Client<T>
+where
+    T: JsonRpcTransport + Send + Sync + 'static,
+{
+    /// Constructor.
+    /// Expects URL of any JSON RPC entry point of Starknet, which you can find
+    /// as constants in the `networks.rs` module
+    pub fn new(transport: T) -> Result<Self, StarknetClientError> {
+        Ok(Client {
+            client: JsonRpcClient::new(transport),
+        })
+    }
+}
+
 #[automock]
 #[async_trait]
 pub trait StarknetClient<T>
 where
     T: JsonRpcTransport + Send + Sync + 'static,
 {
-    fn new(transport: T) -> Result<Client<T>, StarknetClientError>;
     async fn get_event_by_hash(
         &self,
         tx_hash: &str,
@@ -55,15 +68,6 @@ impl<T> StarknetClient<T> for Client<T>
 where
     T: JsonRpcTransport + Send + Sync + 'static,
 {
-    /// Constructor.
-    /// Expects URL of any JSON RPC entry point of Starknet, which you can find
-    /// as constants in the `networks.rs` module
-    fn new(transport: T) -> Result<Self, StarknetClientError> {
-        Ok(Client {
-            client: JsonRpcClient::new(transport),
-        })
-    }
-
     /// Using given transaction hash, tries to fetch it from given
     /// `starknet_url`. Returns error if request fails, `false` if internal
     /// error returned by querry and `true` if transaction found
@@ -71,7 +75,7 @@ where
         &self,
         tx_hash: &str,
     ) -> Result<Option<(String, ContractCallEvent)>, StarknetClientError> {
-        let tx_hash_felt = FieldElement::from_str(tx_hash.as_ref())?;
+        let tx_hash_felt = FieldElement::from_str(tx_hash)?;
 
         // TODO: Check ACCEPTED ON L1 times and decide if we should use it
         //
@@ -256,8 +260,8 @@ mod test {
 
         async fn send_request<P, R>(
             &self,
-            method: JsonRpcMethod,
-            params: P,
+            _method: JsonRpcMethod,
+            _params: P,
         ) -> Result<JsonRpcResponse<R>, Self::Error>
         where
             P: Serialize + Send + Sync,
