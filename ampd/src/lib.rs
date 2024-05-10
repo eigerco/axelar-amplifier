@@ -1,4 +1,5 @@
 use std::pin::Pin;
+use std::str::FromStr;
 use std::time::Duration;
 
 use block_height_monitor::BlockHeightMonitor;
@@ -13,6 +14,7 @@ use events::Event;
 use evm::finalizer::{pick, Finalization};
 use evm::json_rpc::EthereumClient;
 use queue::queued_broadcaster::{QueuedBroadcaster, QueuedBroadcasterDriver};
+use starknet_providers::jsonrpc::HttpTransport;
 use state::StateUpdater;
 use thiserror::Error;
 use tofnd::grpc::{MultisigClient, SharableEcdsaClient};
@@ -22,6 +24,7 @@ use tokio_stream::Stream;
 use tokio_util::sync::CancellationToken;
 use tracing::info;
 use types::TMAddress;
+use url::Url;
 
 use crate::asyncutil::task::{CancellableTask, TaskError, TaskGroup};
 use crate::config::Config;
@@ -344,17 +347,24 @@ where
                     cosmwasm_contract,
                     rpc_url,
                     rpc_timeout: _,
-                } => self.create_handler_task(
-                    "starknet-msg-verifier",
-                    handlers::starknet_verify_msg::Handler::new(
-                        worker.clone(),
-                        cosmwasm_contract,
-                        starknet::verifier::RPCMessageVerifier::new(rpc_url.as_str()),
-                        self.broadcaster.client(),
-                        self.block_height_monitor.latest_block_height(),
-                    ),
-                    stream_timeout,
-                ),
+                } => {
+                    // let starknet_rpc_url = Url::from_str(rpc_url).unwrap();
+                    self.create_handler_task(
+                        "starknet-msg-verifier",
+                        handlers::starknet_verify_msg::Handler::new(
+                            worker.clone(),
+                            cosmwasm_contract,
+                            starknet::json_rpc::Client::new_with_transport(HttpTransport::new(
+                                &rpc_url.into(),
+                            ))
+                            .unwrap(),
+                            // starknet::verifier::RPCMessageVerifier::new(rpc_url.as_str()),
+                            self.broadcaster.client(),
+                            self.block_height_monitor.latest_block_height(),
+                        ),
+                        stream_timeout,
+                    )
+                }
             };
             self.event_processor = self.event_processor.add_task(task);
         }

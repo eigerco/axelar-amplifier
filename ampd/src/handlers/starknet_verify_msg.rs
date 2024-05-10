@@ -1,13 +1,13 @@
-use std::collections::HashSet;
+use std::collections::HashMap;
 use std::convert::TryInto;
 
 use async_trait::async_trait;
 use axelar_wasm_std::voting::{PollId, Vote};
-// use connection_router_api::ChainName;
 use cosmrs::cosmwasm::MsgExecuteContract;
+use error_stack::{FutureExt, ResultExt};
 use events::Error::EventTypeMismatch;
 use events_derive::try_from;
-use futures::future::join_all;
+use futures::future::try_join_all;
 use serde::Deserialize;
 use tokio::sync::watch::Receiver;
 use tracing::info;
@@ -17,7 +17,9 @@ use crate::event_processor::EventHandler;
 use crate::handlers::errors::Error;
 use crate::handlers::errors::Error::DeserializeEvent;
 use crate::queue::queued_broadcaster::BroadcasterClient;
-use crate::starknet::verifier::MessageVerifier;
+use crate::starknet::events::contract_call::ContractCallEvent;
+use crate::starknet::json_rpc::StarknetClient;
+use crate::starknet::verifier::verify_msg;
 use crate::types::{Hash, TMAddress};
 
 type Result<T> = error_stack::Result<T, Error>;
@@ -38,42 +40,40 @@ struct PollStartedEvent {
     #[serde(rename = "_contract_address")]
     contract_address: TMAddress,
     poll_id: PollId,
-    // source_chain: ChainName,
-    // source_gateway_address: String,
-    // confirmation_height: u64,
+    source_gateway_address: String,
     expires_at: u64,
     messages: Vec<Message>,
     participants: Vec<TMAddress>,
 }
 
-pub struct Handler<V, B>
+pub struct Handler<C, B>
 where
-    V: MessageVerifier,
+    C: StarknetClient,
     B: BroadcasterClient,
 {
     worker: TMAddress,
     voting_verifier: TMAddress,
-    msg_verifier: V,
+    rpc_client: C,
     broadcast_client: B,
     latest_block_height: Receiver<u64>,
 }
 
-impl<V, B> Handler<V, B>
+impl<C, B> Handler<C, B>
 where
-    V: MessageVerifier + Send + Sync,
+    C: StarknetClient + Send + Sync,
     B: BroadcasterClient,
 {
     pub fn new(
         worker: TMAddress,
         voting_verifier: TMAddress,
-        msg_verifier: V,
+        rpc_client: C,
         broadcast_client: B,
         latest_block_height: Receiver<u64>,
     ) -> Self {
         Self {
             worker,
             voting_verifier,
-            msg_verifier,
+            rpc_client,
             broadcast_client,
             latest_block_height,
         }
@@ -99,21 +99,20 @@ where
 #[async_trait]
 impl<V, B> EventHandler for Handler<V, B>
 where
-    V: MessageVerifier + Send + Sync,
+    V: StarknetClient + Send + Sync,
     B: BroadcasterClient + Send + Sync,
 {
     type Err = Error;
 
     async fn handle(&self, event: &events::Event) -> Result<()> {
         let PollStartedEvent {
-            contract_address,
             poll_id,
-            // source_chain,
-            // source_gateway_address: _,
-            // confirmation_height: _,
+            source_gateway_address,
             messages,
-            expires_at,
             participants,
+            expires_at,
+            contract_address,
+            ..
         } = match event.try_into() as error_stack::Result<_, _> {
             Err(report) if matches!(report.current_context(), EventTypeMismatch(_)) => {
                 return Ok(());
@@ -135,26 +134,29 @@ where
             return Ok(());
         }
 
-        let tx_hashes: HashSet<_> = messages
-            .iter()
-            .map(|message| message.tx_id.as_str())
-            .collect();
-
-        let unique_axl_msgs: Vec<&Message> = messages
-            .iter()
-            .filter(|m| tx_hashes.get(m.tx_id.as_str()).is_some())
-            .collect();
-
-        let votes: Vec<Vote> = join_all(
-            unique_axl_msgs
-                .into_iter()
-                .map(|msg| self.msg_verifier.verify_msg(msg)),
+        let events: HashMap<String, ContractCallEvent> = try_join_all(
+            messages
+                .iter()
+                .map(|msg| self.rpc_client.get_event_by_hash(msg.tx_id.as_str())),
         )
-        .await
+        .change_context(Error::TxReceipts)
+        .await?
         .into_iter()
-        // TODO: Maybe log the errors (mostly with connection/serialization)?
-        .filter_map(|v| v.ok())
+        .flatten()
         .collect();
+
+        let mut votes = vec![];
+        for msg in messages {
+            if !events.contains_key(&msg.tx_id) {
+                votes.push(Vote::NotFound);
+                continue;
+            }
+            votes.push(verify_msg(
+                events.get(&msg.tx_id).unwrap(), // safe to unwrap, because of previous check
+                &msg,
+                &source_gateway_address,
+            ));
+        }
 
         println!("VOTES {:?}", votes);
 
