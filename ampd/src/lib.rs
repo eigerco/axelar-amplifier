@@ -353,7 +353,7 @@ where
                             worker.clone(),
                             cosmwasm_contract,
                             starknet::json_rpc::Client::new_with_transport(HttpTransport::new(
-                                &rpc_url.into(),
+                                &rpc_url,
                             ))
                             .unwrap(),
                             // starknet::verifier::RPCMessageVerifier::new(rpc_url.as_str()),

@@ -162,7 +162,7 @@ where
             }
             votes.push(verify_msg(
                 events.get(&msg.tx_id).unwrap(), // safe to unwrap, because of previous check
-                &msg,
+                msg,
                 &source_gateway_address,
             ));
         }
@@ -397,9 +397,8 @@ mod tests {
 
     fn participants(n: u8, worker: Option<TMAddress>) -> Vec<TMAddress> {
         (0..n)
-            .into_iter()
             .map(|_| TMAddress::random(PREFIX))
-            .chain(worker.into_iter())
+            .chain(worker)
             .collect()
     }
 
@@ -440,7 +439,7 @@ mod tests {
             },
             messages: vec![
                 TxEventConfirmation {
-                    tx_id: format!("txhash123").parse().unwrap(),
+                    tx_id: "txhash123".parse().unwrap(),
                     event_index: 0,
                     source_address: "source_address".parse().unwrap(),
                     destination_chain: "ethereum".parse().unwrap(),
@@ -487,7 +486,7 @@ mod tests {
             },
             messages: vec![
                 TxEventConfirmation {
-                    tx_id: format!("txhash123").parse().unwrap(),
+                    tx_id: "txhash123".parse().unwrap(),
                     event_index: 0,
                     source_address: "source_address".parse().unwrap(),
                     destination_chain: "ethereum".parse().unwrap(),
