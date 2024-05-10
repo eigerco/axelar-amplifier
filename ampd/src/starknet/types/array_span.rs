@@ -10,35 +10,21 @@ use thiserror::Error;
 /// use ampd::starknet::types::array_span::ArraySpan;
 /// use std::str::FromStr;
 /// use starknet_core::types::FieldElement;
+/// use starknet_core::types::FromStrError;
 ///
-/// let data = vec![
-///     FieldElement::from_str(
+/// let data: Result<Vec<FieldElement>, FromStrError> = vec![
 ///         "0x0000000000000000000000000000000000000000000000000000000000000005",
-///     )
-///     .unwrap(),
-///     FieldElement::from_str(
 ///         "0x0000000000000000000000000000000000000000000000000000000000000068",
-///     )
-///     .unwrap(),
-///     FieldElement::from_str(
 ///         "0x0000000000000000000000000000000000000000000000000000000000000065",
-///     )
-///     .unwrap(),
-///     FieldElement::from_str(
 ///         "0x000000000000000000000000000000000000000000000000000000000000006c",
-///     )
-///     .unwrap(),
-///     FieldElement::from_str(
 ///         "0x000000000000000000000000000000000000000000000000000000000000006c",
-///     )
-///     .unwrap(),
-///     FieldElement::from_str(
 ///         "0x000000000000000000000000000000000000000000000000000000000000006f",
-///     )
-///     .unwrap(),
-/// ];
+/// ]
+///    .into_iter()
+///    .map(FieldElement::from_str)
+///    .collect();
 ///
-/// let array_span = ArraySpan::<u8>::try_from(data).unwrap();
+/// let array_span = ArraySpan::<u8>::try_from(data.unwrap()).unwrap();
 /// assert_eq!(array_span.data, vec![104, 101, 108, 108, 111]);
 /// assert_eq!(String::from_utf8(array_span.data).unwrap(), "hello");
 /// ```

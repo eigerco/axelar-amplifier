@@ -3,6 +3,7 @@ mod errors;
 pub mod evm_verify_msg;
 pub mod evm_verify_verifier_set;
 pub mod multisig;
+pub mod starknet_verify_msg;
 pub mod sui_verify_msg;
 pub mod sui_verify_verifier_set;
 
