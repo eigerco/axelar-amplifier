@@ -340,6 +340,21 @@ where
                     ),
                     stream_timeout,
                 ),
+                handlers::config::Config::StarknetMsgVerifier {
+                    cosmwasm_contract,
+                    rpc_url,
+                    rpc_timeout: _,
+                } => self.create_handler_task(
+                    "starknet-msg-verifier",
+                    handlers::starknet_verify_msg::Handler::new(
+                        worker.clone(),
+                        cosmwasm_contract,
+                        starknet::verifier::RPCMessageVerifier::new(rpc_url.as_str()),
+                        self.broadcaster.client(),
+                        self.block_height_monitor.latest_block_height(),
+                    ),
+                    stream_timeout,
+                ),
             };
             self.event_processor = self.event_processor.add_task(task);
         }

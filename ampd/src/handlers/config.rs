@@ -1,5 +1,6 @@
 use std::time::Duration;
 
+use connection_router_api::ChainName;
 use itertools::Itertools;
 use serde::de::{self, Deserializer};
 use serde::{Deserialize, Serialize};
@@ -8,7 +9,6 @@ use serde_with::with_prefix;
 use crate::evm::finalizer::Finalization;
 use crate::types::TMAddress;
 use crate::url::Url;
-use connection_router_api::ChainName;
 
 #[derive(Debug, Deserialize, Serialize, PartialEq)]
 pub struct Chain {
@@ -43,6 +43,11 @@ pub enum Config {
         rpc_timeout: Option<Duration>,
     },
     SuiWorkerSetVerifier {
+        cosmwasm_contract: TMAddress,
+        rpc_url: Url,
+        rpc_timeout: Option<Duration>,
+    },
+    StarknetMsgVerifier {
         cosmwasm_contract: TMAddress,
         rpc_url: Url,
         rpc_timeout: Option<Duration>,
@@ -142,6 +147,22 @@ where
     }
 }
 
+fn validate_starknet_msg_verifier_config<'de, D>(configs: &[Config]) -> Result<(), D::Error>
+where
+    D: Deserializer<'de>,
+{
+    match configs
+        .iter()
+        .filter(|config| matches!(config, Config::StarknetMsgVerifier { .. }))
+        .count()
+    {
+        count if count > 1 => Err(de::Error::custom(
+            "only one Starknet msg verifier config is allowed",
+        )),
+        _ => Ok(()),
+    }
+}
+
 pub fn deserialize_handler_configs<'de, D>(deserializer: D) -> Result<Vec<Config>, D::Error>
 where
     D: Deserializer<'de>,
@@ -153,6 +174,7 @@ where
     validate_multisig_signer_config::<D>(&configs)?;
     validate_sui_msg_verifier_config::<D>(&configs)?;
     validate_sui_worker_set_verifier_config::<D>(&configs)?;
+    validate_starknet_msg_verifier_config::<D>(&configs)?;
 
     Ok(configs)
 }
@@ -160,7 +182,8 @@ where
 #[cfg(test)]
 mod tests {
 
-    use crate::{evm::finalizer::Finalization, handlers::config::Chain};
+    use crate::evm::finalizer::Finalization;
+    use crate::handlers::config::Chain;
 
     #[test]
     fn finalizer_should_default_to_ethereum() {
