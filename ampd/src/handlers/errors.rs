@@ -12,6 +12,4 @@ pub enum Error {
     Sign,
     #[error("failed to get transaction receipts")]
     TxReceipts,
-    #[error("failed to verify message against event")]
-    Verification,
 }

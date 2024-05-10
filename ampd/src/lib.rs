@@ -1,5 +1,4 @@
 use std::pin::Pin;
-use std::str::FromStr;
 use std::time::Duration;
 
 use block_height_monitor::BlockHeightMonitor;
@@ -24,7 +23,6 @@ use tokio_stream::Stream;
 use tokio_util::sync::CancellationToken;
 use tracing::info;
 use types::TMAddress;
-use url::Url;
 
 use crate::asyncutil::task::{CancellableTask, TaskError, TaskGroup};
 use crate::config::Config;

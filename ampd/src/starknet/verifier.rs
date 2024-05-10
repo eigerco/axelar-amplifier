@@ -14,9 +14,6 @@ pub fn verify_msg(
     msg: &Message,
     source_gateway_address: &str,
 ) -> Vote {
-    dbg!(starknet_event);
-    dbg!(msg);
-    dbg!(source_gateway_address);
     if *starknet_event == *msg && starknet_event.from_contract_addr == source_gateway_address {
         Vote::SucceededOnChain
     } else {
@@ -26,13 +23,6 @@ pub fn verify_msg(
 
 impl PartialEq<Message> for ContractCallEvent {
     fn eq(&self, axl_msg: &Message) -> bool {
-        println!("{}", axl_msg.source_address == self.source_address);
-        println!("{}", axl_msg.destination_chain == self.destination_chain);
-        println!(
-            "{}",
-            axl_msg.destination_address == self.destination_address
-        );
-        println!("{}", axl_msg.payload_hash == self.payload_hash);
         axl_msg.source_address == self.source_address
             && axl_msg.destination_chain == self.destination_chain
             && axl_msg.destination_address == self.destination_address
@@ -44,7 +34,6 @@ impl PartialEq<Message> for ContractCallEvent {
 mod tests {
     use axelar_wasm_std::voting::Vote;
     use ethers::types::H256;
-    use starknet_core::utils::{parse_cairo_short_string, starknet_keccak};
 
     use super::verify_msg;
     use crate::handlers::starknet_verify_msg::Message;
