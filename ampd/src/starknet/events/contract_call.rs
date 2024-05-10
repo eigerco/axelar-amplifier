@@ -133,7 +133,7 @@ mod tests {
     use std::str::FromStr;
 
     use ethers::types::H256;
-    use starknet_core::types::FieldElement;
+    use starknet_core::types::{FieldElement, FromStrError};
     use starknet_core::utils::starknet_keccak;
 
     use super::ContractCallEvent;
@@ -217,6 +217,27 @@ mod tests {
     }
 
     fn get_dummy_event() -> starknet_core::types::Event {
+        // "hello" as payload
+        // "hello" as destination address
+        // "some_from_address" as source address
+        // "destination_chain" as destination_chain
+        let event_data: Result<Vec<FieldElement>, FromStrError> = vec![
+            "0xb3ff441a68610b30fd5e2abbf3a1548eb6ba6f3559f2862bf2dc757e5828ca",
+            "0x0000000000000000000000000000000000000000000000000000000000000000", // 0 datas
+            "0x00000000000000000000000000000000000000000000000000000068656c6c6f", // "hello"
+            "0x0000000000000000000000000000000000000000000000000000000000000005", // 5 bytes
+            "0x0000000000000000000000000000000056d9517b9c948127319a09a7a36deac8", // keccak256(hello)
+            "0x000000000000000000000000000000001c8aff950685c2ed4bc3174f3472287b",
+            "0x0000000000000000000000000000000000000000000000000000000000000005", // 5 bytes
+            "0x0000000000000000000000000000000000000000000000000000000000000068", // h
+            "0x0000000000000000000000000000000000000000000000000000000000000065", // e
+            "0x000000000000000000000000000000000000000000000000000000000000006c", // l
+            "0x000000000000000000000000000000000000000000000000000000000000006c", // l
+            "0x000000000000000000000000000000000000000000000000000000000000006f", // o
+        ]
+        .into_iter()
+        .map(FieldElement::from_str)
+        .collect();
         starknet_core::types::Event {
             // I think it's a pedersen hash, but  we don't use it, so any value should do
             from_address: starknet_keccak("some_from_address".as_bytes()),
@@ -227,56 +248,7 @@ mod tests {
                 )
                 .unwrap(),
             ],
-            data: vec![
-                FieldElement::from_str(
-                    "0xb3ff441a68610b30fd5e2abbf3a1548eb6ba6f3559f2862bf2dc757e5828ca",
-                )
-                .unwrap(),
-                FieldElement::from_str(
-                    "0x0000000000000000000000000000000000000000000000000000000000000000",
-                )
-                .unwrap(),
-                FieldElement::from_str(
-                    "0x00000000000000000000000000000000000000000000000000000068656c6c6f",
-                )
-                .unwrap(),
-                FieldElement::from_str(
-                    "0x0000000000000000000000000000000000000000000000000000000000000005",
-                )
-                .unwrap(),
-                FieldElement::from_str(
-                    "0x0000000000000000000000000000000056d9517b9c948127319a09a7a36deac8",
-                )
-                .unwrap(),
-                FieldElement::from_str(
-                    "0x000000000000000000000000000000001c8aff950685c2ed4bc3174f3472287b",
-                )
-                .unwrap(),
-                FieldElement::from_str(
-                    "0x0000000000000000000000000000000000000000000000000000000000000005",
-                )
-                .unwrap(),
-                FieldElement::from_str(
-                    "0x0000000000000000000000000000000000000000000000000000000000000068",
-                )
-                .unwrap(),
-                FieldElement::from_str(
-                    "0x0000000000000000000000000000000000000000000000000000000000000065",
-                )
-                .unwrap(),
-                FieldElement::from_str(
-                    "0x000000000000000000000000000000000000000000000000000000000000006c",
-                )
-                .unwrap(),
-                FieldElement::from_str(
-                    "0x000000000000000000000000000000000000000000000000000000000000006c",
-                )
-                .unwrap(),
-                FieldElement::from_str(
-                    "0x000000000000000000000000000000000000000000000000000000000000006f",
-                )
-                .unwrap(),
-            ],
+            data: event_data.unwrap(),
         }
     }
 }
