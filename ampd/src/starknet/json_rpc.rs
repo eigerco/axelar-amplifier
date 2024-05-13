@@ -82,6 +82,8 @@ where
         //
         // Finality status is always at least ACCEPTED_ON_L2 and this is what we're
         // looking for, because ACCEPTED_ON_L1 (Ethereum) will take a very long time.
+        //
+        // Check https://github.com/eigerco/giza-axelar-starknet/issues/90
         let receipt_type = self
             .client
             .get_transaction_receipt(tx_hash_felt)
@@ -94,6 +96,8 @@ where
 
         let event: Option<(String, ContractCallEvent)> = match receipt_type {
             // TODO: There is also a PendingReceipt type. Should we handle it?
+            //
+            // Check https://github.com/eigerco/giza-axelar-starknet/issues/90
             MaybePendingTransactionReceipt::Receipt(receipt) => match receipt {
                 TransactionReceipt::Invoke(tx) => {
                     // NOTE: There should be only one ContractCall event per gateway tx
