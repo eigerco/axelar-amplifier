@@ -47,7 +47,11 @@ impl Payload {
         match encoder {
             Encoder::Abi => abi::payload_hash_to_sign(domain_separator, curr_worker_set, self),
             Encoder::Bcs => todo!(),
-            Encoder::Borsh => borsh::payload_hash_to_sign(domain_separator, curr_worker_set, self),
+            Encoder::Borsh => Ok(borsh::payload_hash_to_sign(
+                domain_separator,
+                curr_worker_set,
+                self,
+            )),
         }
     }
 

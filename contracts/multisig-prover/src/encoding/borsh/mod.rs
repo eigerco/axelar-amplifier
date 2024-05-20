@@ -1,4 +1,4 @@
-use crate::{error::ContractError, payload::Payload};
+use crate::payload::Payload;
 use axelar_wasm_std::{hash::Hash, operators::Operators};
 use multisig::worker_set::WorkerSet;
 use router_api::{Message, CHAIN_NAME_DELIMITER};
@@ -24,12 +24,12 @@ pub fn payload_hash_to_sign(
     domain_separator: &Hash,
     signer: &WorkerSet,
     payload: &Payload,
-) -> Result<Hash, ContractError> {
+) -> Hash {
     let mut hasher = Keccak256::new();
     hasher.update(domain_separator);
     digest_worker_set(&mut hasher, signer);
     digest_payload(&mut hasher, payload);
-    Ok(hasher.finalize().into())
+    hasher.finalize().into()
 }
 
 fn digest_payload(hasher: &mut impl Digest, payload: &Payload) {
