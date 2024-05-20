@@ -1,6 +1,7 @@
 use crate::{error::ContractError, payload::Payload};
 use axelar_wasm_std::{hash::Hash, operators::Operators};
 use multisig::worker_set::WorkerSet;
+use sha3::{Digest, Keccak256};
 
 pub mod execute_data;
 
@@ -19,11 +20,19 @@ pub fn make_operators(worker_set: WorkerSet) -> Operators {
 }
 
 pub fn payload_hash_to_sign(
-    _domain_separator: &Hash,
-    _signer: &WorkerSet,
-    _payload: &Payload,
+    domain_separator: &Hash,
+    signer: &WorkerSet,
+    payload: &Payload,
 ) -> Result<Hash, ContractError> {
-    todo!()
+    let signer_hash = signer.hash();
+    let encoded_payload = encode(payload)?;
+
+    let mut digest = Keccak256::new();
+    digest.update(domain_separator);
+    digest.update(signer_hash);
+    digest.update(encoded_payload);
+
+    Ok(digest.finalize().into())
 }
 
 pub fn encode(_payload: &Payload) -> Result<Vec<u8>, ContractError> {
