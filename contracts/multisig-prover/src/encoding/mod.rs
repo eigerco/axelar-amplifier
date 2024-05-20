@@ -1,4 +1,5 @@
 pub mod abi;
+pub mod borsh;
 
 use cosmwasm_schema::cw_serde;
 
@@ -10,12 +11,14 @@ use multisig::worker_set::WorkerSet;
 pub enum Encoder {
     Abi,
     Bcs,
+    Borsh,
 }
 
 pub fn make_operators(worker_set: WorkerSet, encoder: Encoder) -> Operators {
     match encoder {
         Encoder::Abi => abi::make_operators(worker_set),
         Encoder::Bcs => todo!(),
+        Encoder::Borsh => borsh::make_operators(worker_set),
     }
 }
 

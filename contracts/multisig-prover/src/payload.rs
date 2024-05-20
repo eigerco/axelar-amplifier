@@ -8,7 +8,7 @@ use multisig::worker_set::WorkerSet;
 use router_api::{CrossChainId, Message};
 
 use crate::{
-    encoding::{abi, Encoder},
+    encoding::{abi, borsh, Encoder},
     error::ContractError,
     types::BatchId,
 };
@@ -47,6 +47,7 @@ impl Payload {
         match encoder {
             Encoder::Abi => abi::payload_hash_to_sign(domain_separator, curr_worker_set, self),
             Encoder::Bcs => todo!(),
+            Encoder::Borsh => borsh::payload_hash_to_sign(domain_separator, curr_worker_set, self),
         }
     }
 
@@ -71,6 +72,9 @@ impl Payload {
                 abi::execute_data::encode(worker_set, signers_with_sigs, &payload_hash, payload)
             }
             Encoder::Bcs => todo!(),
+            Encoder::Borsh => {
+                borsh::execute_data::encode(worker_set, signers_with_sigs, &payload_hash, payload)
+            }
         }
     }
 }
