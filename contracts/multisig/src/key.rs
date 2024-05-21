@@ -87,7 +87,7 @@ impl TryFrom<HexBinary> for NonRecoverable {
 pub struct Recoverable(HexBinary);
 
 impl Recoverable {
-    const LEN: usize = 65;
+    pub const LEN: usize = 65;
 }
 
 impl AsRef<[u8]> for Recoverable {
