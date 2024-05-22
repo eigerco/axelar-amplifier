@@ -3,7 +3,6 @@ use crate::payload::Payload;
 use axelar_wasm_std::{hash::Hash, operators::Operators};
 use multisig::worker_set::WorkerSet;
 
-mod encoder;
 pub mod execute_data;
 mod hasher;
 mod visitor;

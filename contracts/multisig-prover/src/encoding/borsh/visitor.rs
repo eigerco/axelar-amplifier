@@ -8,7 +8,7 @@ pub(super) trait Visitor {
     fn visit_payload(&mut self, payload: &Payload) {
         match payload {
             Payload::Messages(messages) => {
-                self.tag(b"message");
+                self.tag(b"messages");
                 for message in messages {
                     self.visit_message(message);
                 }
