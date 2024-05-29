@@ -152,8 +152,6 @@ where
         .flatten()
         .collect();
 
-        dbg!(events.clone());
-
         let mut votes = vec![];
         for msg in unique_msgs {
             if !events.contains_key(&msg.tx_id) {
@@ -166,8 +164,6 @@ where
                 &source_gateway_address,
             ));
         }
-
-        println!("VOTES {:?}", votes);
 
         self.broadcast_votes(poll_id, votes).await
     }

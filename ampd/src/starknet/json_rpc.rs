@@ -104,6 +104,8 @@ where
                     tx.events
                         .iter()
                         .filter_map(|e| {
+                            // NOTE: Here we ignore the error, because the event might
+                            // not be ContractCall and that by itself is not erroneous behavior
                             if let Ok(cce) = ContractCallEvent::try_from(e.clone()) {
                                 Some((format!("0x{:064x}", tx.transaction_hash).to_owned(), cce))
                             } else {
