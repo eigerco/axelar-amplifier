@@ -350,7 +350,10 @@ where
                     handlers::starknet_verify_msg::Handler::new(
                         worker.clone(),
                         cosmwasm_contract,
-                        starknet::verifier::RPCMessageVerifier::new(rpc_url.as_str()),
+                        starknet::json_rpc::Client::new_with_transport(HttpTransport::new(
+                            &rpc_url,
+                        ))
+                        .unwrap(),
                         self.broadcaster.client(),
                         self.block_height_monitor.latest_block_height(),
                     ),

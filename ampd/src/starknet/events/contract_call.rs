@@ -11,8 +11,9 @@ use crate::types::Hash;
 
 /// This is the event emitted by the gateway cairo contract on Starknet,
 /// when the call_contract method is called from a third party.
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone)]
 pub struct ContractCallEvent {
+    pub from_contract_addr: String,
     pub destination_address: String,
     pub destination_chain: String,
     pub source_address: String,
@@ -58,6 +59,12 @@ impl TryFrom<starknet_core::types::Event> for ContractCallEvent {
                 "not a ContractCall event".to_owned(),
             ));
         }
+
+        // `event.from_address` is the contract address, which emitted the event
+        let from_contract_addr = format!(
+            "0x{}",
+            hex::encode(starknet_event.from_address.to_bytes_be())
+        );
 
         // destination_chain is the second key in the event keys list (the first key
         // defined from the event)
@@ -120,6 +127,7 @@ impl TryFrom<starknet_core::types::Event> for ContractCallEvent {
         payload_hash[16..].copy_from_slice(&lsb[16..]);
 
         Ok(ContractCallEvent {
+            from_contract_addr,
             destination_address,
             destination_chain,
             source_address,
@@ -133,11 +141,12 @@ mod tests {
     use std::str::FromStr;
 
     use ethers::types::H256;
-    use starknet_core::types::{FieldElement, FromStrError};
+    use starknet_core::types::{FieldElement, FromStrError, ValueOutOfRangeError};
     use starknet_core::utils::starknet_keccak;
 
     use super::ContractCallEvent;
     use crate::starknet::events::contract_call::ContractCallError;
+    use crate::starknet::types::byte_array::ByteArrayError;
 
     #[test]
     fn destination_address_chunks_offset_out_of_range() {
@@ -149,7 +158,10 @@ mod tests {
         .unwrap();
 
         let event = ContractCallEvent::try_from(starknet_event).unwrap_err();
-        assert!(matches!(event, ContractCallError::ByteArray(_)));
+        assert!(matches!(
+            event,
+            ContractCallError::ByteArray(ByteArrayError::ParsingFelt(ValueOutOfRangeError))
+        ));
     }
 
     #[test]
@@ -198,11 +210,14 @@ mod tests {
     fn valid_call_contract_event() {
         // the payload is the word "hello"
         let starknet_event = get_dummy_event();
-
         let event = ContractCallEvent::try_from(starknet_event).unwrap();
+
         assert_eq!(
             event,
             ContractCallEvent {
+                from_contract_addr: String::from(
+                    "0x035410be6f4bf3f67f7c1bb4a93119d9d410b2f981bfafbf5dbbf5d37ae7439e"
+                ),
                 destination_address: String::from("hello"),
                 destination_chain: String::from("destination_chain"),
                 source_address: String::from(
@@ -219,11 +234,11 @@ mod tests {
     fn get_dummy_event() -> starknet_core::types::Event {
         // "hello" as payload
         // "hello" as destination address
-        // "some_from_address" as source address
+        // "some_contract_address" as source address
         // "destination_chain" as destination_chain
         let event_data: Result<Vec<FieldElement>, FromStrError> = vec![
-            "0xb3ff441a68610b30fd5e2abbf3a1548eb6ba6f3559f2862bf2dc757e5828ca",
-            "0x0000000000000000000000000000000000000000000000000000000000000000", // 0 datas
+            "0xb3ff441a68610b30fd5e2abbf3a1548eb6ba6f3559f2862bf2dc757e5828ca", // the caller addr
+            "0x0000000000000000000000000000000000000000000000000000000000000000", // 0 data
             "0x00000000000000000000000000000000000000000000000000000068656c6c6f", // "hello"
             "0x0000000000000000000000000000000000000000000000000000000000000005", // 5 bytes
             "0x0000000000000000000000000000000056d9517b9c948127319a09a7a36deac8", // keccak256(hello)
@@ -239,10 +254,11 @@ mod tests {
         .map(FieldElement::from_str)
         .collect();
         starknet_core::types::Event {
-            // I think it's a pedersen hash, but  we don't use it, so any value should do
-            from_address: starknet_keccak("some_from_address".as_bytes()),
+            // I think it's a pedersen hash in actuallity, but for the tests I think it's ok
+            from_address: starknet_keccak("some_contract_address".as_bytes()),
             keys: vec![
                 starknet_keccak("ContractCall".as_bytes()),
+                // destination chain
                 FieldElement::from_str(
                     "0x00000000000000000000000000000064657374696e6174696f6e5f636861696e",
                 )
