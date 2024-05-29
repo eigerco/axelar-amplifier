@@ -110,7 +110,7 @@ mod array_span_tests {
 
     #[test]
     fn try_from_failed_to_parse_elements_length_to_u32() {
-        // the string "hello", but element counte bigger than u32::max
+        // the string "hello", but element count is bigger than u32::max
         let data: Result<Vec<FieldElement>, FromStrError> = vec![
             "0x00FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF",
             "0x0000000000000000000000000000000000000000000000000000000000000068",
