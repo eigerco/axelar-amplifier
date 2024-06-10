@@ -3,6 +3,7 @@ use std::time::Duration;
 
 use asyncutil::task::{CancellableTask, TaskError, TaskGroup};
 use block_height_monitor::BlockHeightMonitor;
+use broadcaster::Broadcaster;
 use cosmrs::proto::cosmos::{
     auth::v1beta1::query_client::QueryClient, tx::v1beta1::service_client::ServiceClient,
 };
@@ -17,20 +18,12 @@ use router_api::ChainName;
 use starknet_providers::jsonrpc::HttpTransport;
 use state::StateUpdater;
 use thiserror::Error;
-use tofnd::grpc::{MultisigClient, SharableEcdsaClient};
+use tofnd::grpc::{Multisig, MultisigClient};
 use tokio::signal::unix::{signal, SignalKind};
 use tokio::sync::oneshot;
 use tokio_stream::Stream;
 use tokio_util::sync::CancellationToken;
 use tracing::info;
-use asyncutil::task::{CancellableTask, TaskError, TaskGroup};
-use broadcaster::Broadcaster;
-use event_processor::EventHandler;
-use event_sub::EventSub;
-use events::Event;
-use queue::queued_broadcaster::{QueuedBroadcaster, QueuedBroadcasterDriver};
-use state::StateUpdater;
-use tofnd::grpc::{Multisig, MultisigClient};
 use types::TMAddress;
 
 use crate::config::Config;
