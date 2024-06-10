@@ -1,6 +1,5 @@
 use std::time::Duration;
 
-use connection_router_api::ChainName;
 use itertools::Itertools;
 use serde::de::{self, Deserializer};
 use serde::{Deserialize, Serialize};
