@@ -77,7 +77,6 @@ impl Handler {
     }
 
     fn vote_msg(&self, poll_id: PollId, votes: Vec<Vote>) -> MsgExecuteContract {
-        // todo do not panic here. transfer this to starknet PR.
         MsgExecuteContract {
             sender: self.verifier.as_ref().clone(),
             contract: self.voting_verifier.as_ref().clone(),
