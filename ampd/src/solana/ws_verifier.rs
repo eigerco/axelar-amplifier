@@ -5,7 +5,7 @@ use hex::ToHex;
 use crate::handlers::solana_verify_worker_set::VerifierSetConfirmation;
 use solana_transaction_status::EncodedConfirmedTransactionWithStatusMeta;
 use thiserror::Error;
-use tracing::{error};
+use tracing::error;
 
 use gmp_gateway::events::GatewayEvent;
 
@@ -37,6 +37,7 @@ pub fn parse_gateway_event(tx: &EncodedConfirmedTransactionWithStatusMeta) -> Re
         .ok_or(VerificationError::NoGatewayEventFound)
 }
 
+#[tracing::instrument(name = "sol_verify_verifier_set")]
 pub fn verify_verifier_set(
     verifier_set_conf: &VerifierSetConfirmation,
     signers: &Vec<Address>,
@@ -48,28 +49,62 @@ pub fn verify_verifier_set(
     let verifier_set_threshold = verifier_set.threshold.u128();
 
     if signers.len() != weights.len() {
+        error!(
+            tx_id,
+            "signers length do not match in sol data: signers len() was {}, weights len() was {}",
+            signers.len(),
+            weights.len()
+        );
         return Vote::FailedOnChain;
     }
 
     if verifier_set_threshold != quorum {
+        error!(
+            tx_id,
+            "threshold do not match: axelar was {}, solana was {}", verifier_set.threshold, quorum
+        );
         return Vote::FailedOnChain;
     }
 
     for (sol_addr, sol_weight) in signers.iter().zip(weights.iter()) {
         let sol_addr = sol_addr.encode_hex::<String>();
         let Some((addr, signer)) = verifier_set.signers.get_key_value(&sol_addr) else {
+            error!(
+                tx_id,
+                "Lookup for sol signer failed on axelar data, missing sol address was: {}",
+                sol_addr
+            );
             return Vote::FailedOnChain;
         };
         let signer_address = signer.address.to_string();
         if *addr != signer_address {
+            error!(
+                tx_id,
+                "Axelar data seems corrupted. Map key seems different than signer address. Map key was {}, while signer address was {}.",
+                addr,
+                signer_address
+            );
             return Vote::FailedOnChain;
         }
-
-        if sol_addr != signer.pub_key.encode_hex::<String>() {
+        let signer_pub_key = signer.pub_key.encode_hex::<String>();
+        if sol_addr != signer_pub_key {
+            error!(
+                tx_id,
+                "Solana address seems different than Axelar signer public key. Solana address was {}. Axelar signer pubkey was {}",
+                sol_addr,
+                signer_pub_key
+            );
             return Vote::FailedOnChain;
         }
 
         if *sol_weight != signer.weight.u128() {
+            error!(
+                tx_id,
+                "Weight differs for sol signer {}. Solana weight was {}, Axelar weight was {}",
+                sol_addr,
+                sol_weight,
+                signer.weight.u128()
+            );
             return Vote::FailedOnChain;
         }
     }
