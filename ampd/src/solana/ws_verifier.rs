@@ -2,7 +2,7 @@ use axelar_message_primitives::Address;
 use axelar_wasm_std::voting::Vote;
 use hex::ToHex;
 
-use crate::handlers::solana_verify_worker_set::VerifierSetConfirmation;
+use crate::handlers::solana_verify_verifier_set::VerifierSetConfirmation;
 use solana_transaction_status::EncodedConfirmedTransactionWithStatusMeta;
 use thiserror::Error;
 use tracing::error;

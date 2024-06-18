@@ -369,7 +369,7 @@ where
                     chain,
                 } => self.create_handler_task(
                     format!("{}-worker-set-verifier", chain.name),
-                    handlers::solana_verify_worker_set::Handler::new(
+                    handlers::solana_verify_verifier_set::Handler::new(
                         verifier.clone(),
                         cosmwasm_contract,
                         chain.name,
