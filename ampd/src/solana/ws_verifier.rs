@@ -39,7 +39,7 @@ pub fn parse_gateway_event(tx: &EncodedConfirmedTransactionWithStatusMeta) -> Re
 
 pub fn verify_verifier_set(
     verifier_set_conf: &VerifierSetConfirmation,
-    operators: &Vec<Address>,
+    signers: &Vec<Address>,
     weights: &Vec<u128>,
     quorum: u128,
 ) -> Vote {
@@ -49,11 +49,11 @@ pub fn verify_verifier_set(
         return Vote::FailedOnChain;
     }
 
-    if operators.len() != weights.len() {
+    if signers.len() != weights.len() {
         return Vote::FailedOnChain;
     }
 
-    for (sol_addr, sol_weight) in operators.iter().zip(weights.iter()) {
+    for (sol_addr, sol_weight) in signers.iter().zip(weights.iter()) {
         let sol_addr = sol_addr.encode_hex::<String>();
         let Some((addr, signer)) = verifier_set.signers.get_key_value(&sol_addr) else {
             return Vote::FailedOnChain;
