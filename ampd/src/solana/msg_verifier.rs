@@ -305,7 +305,7 @@ mod tests {
                 &tx_id,
                 &log_messages,
                 &msg,
-                &vec![gateway_address.clone()],
+                &[gateway_address.clone()],
                 &gateway_address
             )
         );
@@ -351,7 +351,7 @@ mod tests {
                 &tx_id,
                 &log_messages,
                 &msg,
-                &vec![gateway_address.clone()],
+                &[gateway_address.clone()],
                 &gateway_address
             )
         );
@@ -369,7 +369,7 @@ mod tests {
                 &tx_id,
                 &log_messages,
                 &msg,
-                &vec![gateway_address.clone()],
+                &[gateway_address.clone()],
                 &gateway_address
             )
         );
