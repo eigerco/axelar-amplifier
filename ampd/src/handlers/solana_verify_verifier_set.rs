@@ -23,7 +23,7 @@ use voting_verifier::msg::ExecuteMsg;
 
 use crate::event_processor::EventHandler;
 use crate::handlers::errors::Error;
-use crate::solana::ws_verifier::{parse_gateway_event, verify_verifier_set};
+use crate::solana::verifier_set_verifier::{parse_gateway_event, verify_verifier_set};
 use crate::types::TMAddress;
 
 use gmp_gateway::events::GatewayEvent;
