@@ -15,8 +15,6 @@ pub enum VerificationError {
     NoLogMessages,
     #[error("Tried to get gateway event from program logs, but couldn't find anything.")]
     NoGatewayEventFound,
-    #[error("Parsing error: {0}")]
-    ParsingError(String),
 }
 
 type Result<T> = std::result::Result<T, VerificationError>;
