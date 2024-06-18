@@ -45,9 +45,9 @@ struct PollStartedEvent {
     verifier_set: VerifierSetConfirmation,
     poll_id: PollId,
     source_chain: router_api::ChainName,
-    source_gateway_address: String,
+    _source_gateway_address: String,
     expires_at: u64,
-    confirmation_height: u64,
+    _confirmation_height: u64,
     participants: Vec<TMAddress>,
 }
 
@@ -97,11 +97,10 @@ impl EventHandler for Handler {
             contract_address,
             poll_id,
             source_chain,
-            source_gateway_address: _,
             expires_at,
-            confirmation_height: _,
             participants,
             verifier_set,
+            ..
         } = match event.try_into() as error_stack::Result<_, _> {
             Err(report) if matches!(report.current_context(), EventTypeMismatch(_)) => {
                 return Ok(vec![])
