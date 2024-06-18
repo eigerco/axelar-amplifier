@@ -111,9 +111,9 @@ pub fn verify_message(
 // When the first matching log message is found, its index will be returned.
 fn find_first_log_message_match(
     tx_id: &str,
-    log_messages: &Vec<String>,
+    log_messages: &[String],
     message: &Message,
-    account_keys: &Vec<String>,
+    account_keys: &[String],
     source_gateway_address: &String,
 ) -> Option<usize> {
     for (i, log) in log_messages.iter().enumerate() {
