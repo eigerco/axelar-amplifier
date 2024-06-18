@@ -219,13 +219,13 @@ mod tests {
 
         let sol_signers = verifier_set
             .signers
-            .iter()
-            .map(|(_, v)| Address::try_from(v.address.as_str()).unwrap())
+            .values()
+            .map(|v| Address::try_from(v.address.as_str()).unwrap())
             .collect();
         let sol_weights = verifier_set
             .signers
-            .iter()
-            .map(|(_, v)| v.weight.u128())
+            .values()
+            .map(|v| v.weight.u128())
             .collect::<Vec<_>>();
         let sol_quorum = verifier_set.threshold.u128();
 
