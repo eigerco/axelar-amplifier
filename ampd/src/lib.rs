@@ -24,7 +24,6 @@ use tonic::transport::Channel;
 use tracing::info;
 use types::TMAddress;
 
-use crate::asyncutil::task::{CancellableTask, TaskError, TaskGroup};
 use crate::config::Config;
 
 mod asyncutil;
@@ -362,13 +361,12 @@ where
                 } => self.create_handler_task(
                     "starknet-msg-verifier",
                     handlers::starknet_verify_msg::Handler::new(
-                        worker.clone(),
+                        verifier.clone(),
                         cosmwasm_contract,
                         starknet::json_rpc::Client::new_with_transport(HttpTransport::new(
                             &rpc_url,
                         ))
                         .unwrap(),
-                        self.broadcaster.client(),
                         self.block_height_monitor.latest_block_height(),
                     ),
                     stream_timeout,
