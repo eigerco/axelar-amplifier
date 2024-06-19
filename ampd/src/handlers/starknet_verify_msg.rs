@@ -4,6 +4,7 @@ use std::convert::TryInto;
 use async_trait::async_trait;
 use axelar_wasm_std::voting::{PollId, Vote};
 use cosmrs::cosmwasm::MsgExecuteContract;
+use cosmrs::{tx::Msg, Any};
 use error_stack::{FutureExt, ResultExt};
 use events::Error::EventTypeMismatch;
 use events_derive::try_from;
@@ -17,7 +18,6 @@ use voting_verifier::msg::ExecuteMsg;
 use crate::event_processor::EventHandler;
 use crate::handlers::errors::Error;
 use crate::handlers::errors::Error::DeserializeEvent;
-use crate::queue::queued_broadcaster::BroadcasterClient;
 use crate::starknet::events::contract_call::ContractCallEvent;
 use crate::starknet::json_rpc::StarknetClient;
 use crate::starknet::verifier::verify_msg;
@@ -47,65 +47,53 @@ struct PollStartedEvent {
     participants: Vec<TMAddress>,
 }
 
-pub struct Handler<C, B>
+pub struct Handler<C>
 where
     C: StarknetClient,
-    B: BroadcasterClient,
 {
     worker: TMAddress,
     voting_verifier: TMAddress,
     rpc_client: C,
-    broadcast_client: B,
     latest_block_height: Receiver<u64>,
 }
 
-impl<C, B> Handler<C, B>
+impl<C> Handler<C>
 where
     C: StarknetClient + Send + Sync,
-    B: BroadcasterClient,
 {
     pub fn new(
         worker: TMAddress,
         voting_verifier: TMAddress,
         rpc_client: C,
-        broadcast_client: B,
         latest_block_height: Receiver<u64>,
     ) -> Self {
         Self {
             worker,
             voting_verifier,
             rpc_client,
-            broadcast_client,
             latest_block_height,
         }
     }
 
-    async fn broadcast_votes(&self, poll_id: PollId, votes: Vec<Vote>) -> Result<()> {
-        let msg = serde_json::to_vec(&ExecuteMsg::Vote { poll_id, votes })
-            .expect("vote msg should serialize");
-        let tx = MsgExecuteContract {
+    fn vote_msg(&self, poll_id: PollId, votes: Vec<Vote>) -> MsgExecuteContract {
+        MsgExecuteContract {
             sender: self.worker.as_ref().clone(),
             contract: self.voting_verifier.as_ref().clone(),
-            msg,
+            msg: serde_json::to_vec(&ExecuteMsg::Vote { poll_id, votes })
+                .expect("vote msg should serialize"),
             funds: vec![],
-        };
-
-        self.broadcast_client
-            .broadcast(tx)
-            .await
-            .change_context(Error::Broadcaster)
+        }
     }
 }
 
 #[async_trait]
-impl<V, B> EventHandler for Handler<V, B>
+impl<V> EventHandler for Handler<V>
 where
     V: StarknetClient + Send + Sync,
-    B: BroadcasterClient + Send + Sync,
 {
     type Err = Error;
 
-    async fn handle(&self, event: &events::Event) -> Result<()> {
+    async fn handle(&self, event: &events::Event) -> Result<Vec<Any>> {
         let PollStartedEvent {
             poll_id,
             source_gateway_address,
@@ -116,30 +104,30 @@ where
             ..
         } = match event.try_into() as error_stack::Result<_, _> {
             Err(report) if matches!(report.current_context(), EventTypeMismatch(_)) => {
-                return Ok(());
+                return Ok(vec![]);
             }
             event => event.change_context(DeserializeEvent)?,
         };
 
         if self.voting_verifier != contract_address {
-            return Ok(());
+            return Ok(vec![]);
         }
 
         if !participants.contains(&self.worker) {
-            return Ok(());
+            return Ok(vec![]);
         }
 
         let latest_block_height = *self.latest_block_height.borrow();
         if latest_block_height >= expires_at {
             info!(poll_id = poll_id.to_string(), "skipping expired poll");
-            return Ok(());
+            return Ok(vec![]);
         }
 
         let unique_msgs = messages
             .iter()
             .unique_by(|msg| &msg.tx_id)
             .collect::<Vec<_>>();
-        //
+
         // key is the tx_hash of the tx holding the event
         let events: HashMap<String, ContractCallEvent> = try_join_all(
             unique_msgs
@@ -165,7 +153,10 @@ where
             ));
         }
 
-        self.broadcast_votes(poll_id, votes).await
+        Ok(vec![self
+            .vote_msg(poll_id, votes)
+            .into_any()
+            .expect("vote msg should serialize")])
     }
 }
 
@@ -182,7 +173,6 @@ mod tests {
     use voting_verifier::events::{PollMetadata, PollStarted, TxEventConfirmation};
 
     use super::*;
-    use crate::queue::queued_broadcaster::MockBroadcasterClient;
     use crate::starknet::json_rpc::MockStarknetClient;
     use crate::PREFIX;
 
@@ -200,21 +190,7 @@ mod tests {
         })
         .expect("vote msg should serialize");
 
-        let tx = MsgExecuteContract {
-            sender: worker.as_ref().clone(),
-            contract: voting_verifier.as_ref().clone(),
-            msg: vote_broadcast_msg,
-            funds: vec![],
-        };
-
         // Prepare the rpc client, which fetches the event and the vote broadcaster
-        let mut broadcast_client = MockBroadcasterClient::new();
-        broadcast_client
-            .expect_broadcast::<MsgExecuteContract>()
-            .once()
-            .with(eq(tx))
-            .returning(|_| Ok(()));
-
         let mut rpc_client = MockStarknetClient::new();
         rpc_client.expect_get_event_by_hash().returning(|_| {
             Ok(Some((
@@ -237,8 +213,7 @@ mod tests {
             &voting_verifier,
         );
 
-        let handler =
-            super::Handler::new(worker, voting_verifier, rpc_client, broadcast_client, rx);
+        let handler = super::Handler::new(worker, voting_verifier, rpc_client, rx);
 
         handler.handle(&event).await.unwrap();
     }
@@ -256,13 +231,6 @@ mod tests {
             votes: vec![Vote::SucceededOnChain],
         })
         .expect("vote msg should serialize");
-
-        let tx = MsgExecuteContract {
-            sender: worker.as_ref().clone(),
-            contract: voting_verifier.as_ref().clone(),
-            msg: vote_broadcast_msg,
-            funds: vec![],
-        };
 
         // Prepare the rpc client, which fetches the event and the vote broadcaster
         let mut rpc_client = MockStarknetClient::new();
@@ -287,20 +255,12 @@ mod tests {
                 )))
             });
 
-        let mut broadcast_client = MockBroadcasterClient::new();
-        broadcast_client
-            .expect_broadcast::<MsgExecuteContract>()
-            .once()
-            .with(eq(tx))
-            .returning(|_| Ok(()));
-
         let event: Event = get_event(
             get_poll_started_event_with_duplicate_msgs(participants(5, Some(worker.clone())), 100),
             &voting_verifier,
         );
 
-        let handler =
-            super::Handler::new(worker, voting_verifier, rpc_client, broadcast_client, rx);
+        let handler = super::Handler::new(worker, voting_verifier, rpc_client, rx);
 
         handler.handle(&event).await.unwrap();
     }
@@ -317,18 +277,12 @@ mod tests {
         let mut rpc_client = MockStarknetClient::new();
         rpc_client.expect_get_event_by_hash().times(0);
 
-        let mut broadcast_client = MockBroadcasterClient::new();
-        broadcast_client
-            .expect_broadcast::<MsgExecuteContract>()
-            .times(0);
-
         let event: Event = get_event(
             get_poll_started_event_with_duplicate_msgs(participants(5, Some(worker.clone())), 100),
             &TMAddress::random(PREFIX), // some other random address
         );
 
-        let handler =
-            super::Handler::new(worker, voting_verifier, rpc_client, broadcast_client, rx);
+        let handler = super::Handler::new(worker, voting_verifier, rpc_client, rx);
 
         handler.handle(&event).await.unwrap();
     }
@@ -345,19 +299,13 @@ mod tests {
         let mut rpc_client = MockStarknetClient::new();
         rpc_client.expect_get_event_by_hash().times(0);
 
-        let mut broadcast_client = MockBroadcasterClient::new();
-        broadcast_client
-            .expect_broadcast::<MsgExecuteContract>()
-            .times(0);
-
         let event: Event = get_event(
             // woker is not in participat set
             get_poll_started_event_with_duplicate_msgs(participants(5, None), 100),
             &voting_verifier,
         );
 
-        let handler =
-            super::Handler::new(worker, voting_verifier, rpc_client, broadcast_client, rx);
+        let handler = super::Handler::new(worker, voting_verifier, rpc_client, rx);
 
         handler.handle(&event).await.unwrap();
     }
@@ -374,19 +322,13 @@ mod tests {
         let mut rpc_client = MockStarknetClient::new();
         rpc_client.expect_get_event_by_hash().times(0);
 
-        let mut broadcast_client = MockBroadcasterClient::new();
-        broadcast_client
-            .expect_broadcast::<MsgExecuteContract>()
-            .times(0);
-
         let event: Event = get_event(
             // woker is not in participat set
             get_poll_started_event_with_duplicate_msgs(participants(5, None), 100),
             &voting_verifier,
         );
 
-        let handler =
-            super::Handler::new(worker, voting_verifier, rpc_client, broadcast_client, rx);
+        let handler = super::Handler::new(worker, voting_verifier, rpc_client, rx);
 
         handler.handle(&event).await.unwrap();
     }
