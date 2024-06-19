@@ -190,13 +190,6 @@ mod tests {
         })
         .expect("vote msg should serialize");
 
-        let tx = MsgExecuteContract {
-            sender: worker.as_ref().clone(),
-            contract: voting_verifier.as_ref().clone(),
-            msg: vote_broadcast_msg,
-            funds: vec![],
-        };
-
         // Prepare the rpc client, which fetches the event and the vote broadcaster
         let mut rpc_client = MockStarknetClient::new();
         rpc_client.expect_get_event_by_hash().returning(|_| {
@@ -238,13 +231,6 @@ mod tests {
             votes: vec![Vote::SucceededOnChain],
         })
         .expect("vote msg should serialize");
-
-        let tx = MsgExecuteContract {
-            sender: worker.as_ref().clone(),
-            contract: voting_verifier.as_ref().clone(),
-            msg: vote_broadcast_msg,
-            funds: vec![],
-        };
 
         // Prepare the rpc client, which fetches the event and the vote broadcaster
         let mut rpc_client = MockStarknetClient::new();
