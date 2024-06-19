@@ -1,34 +1,31 @@
 use std::pin::Pin;
 use std::time::Duration;
 
+use asyncutil::task::{CancellableTask, TaskError, TaskGroup};
 use block_height_monitor::BlockHeightMonitor;
+use broadcaster::Broadcaster;
 use cosmrs::proto::cosmos::{
     auth::v1beta1::query_client::QueryClient, tx::v1beta1::service_client::ServiceClient,
 };
 use error_stack::{report, FutureExt, Result, ResultExt};
 use event_processor::EventHandler;
+use event_sub::EventSub;
 use events::Event;
 use evm::finalizer::{pick, Finalization};
 use evm::json_rpc::EthereumClient;
+use queue::queued_broadcaster::{QueuedBroadcaster, QueuedBroadcasterDriver};
 use router_api::ChainName;
+use starknet_providers::jsonrpc::HttpTransport;
+use state::StateUpdater;
 use thiserror::Error;
-use tofnd::grpc::{MultisigClient, SharableEcdsaClient};
+use tofnd::grpc::{Multisig, MultisigClient};
 use tokio::signal::unix::{signal, SignalKind};
 use tokio::sync::oneshot;
 use tokio_stream::Stream;
 use tokio_util::sync::CancellationToken;
 use tracing::info;
-use asyncutil::task::{CancellableTask, TaskError, TaskGroup};
-use broadcaster::Broadcaster;
-use event_processor::EventHandler;
-use event_sub::EventSub;
-use events::Event;
-use queue::queued_broadcaster::{QueuedBroadcaster, QueuedBroadcasterDriver};
-use state::StateUpdater;
-use tofnd::grpc::{Multisig, MultisigClient};
 use types::TMAddress;
 
-use crate::asyncutil::task::{CancellableTask, TaskError, TaskGroup};
 use crate::config::Config;
 use crate::state::State;
 
@@ -348,13 +345,12 @@ where
                 } => self.create_handler_task(
                     "starknet-msg-verifier",
                     handlers::starknet_verify_msg::Handler::new(
-                        worker.clone(),
+                        verifier.clone(),
                         cosmwasm_contract,
                         starknet::json_rpc::Client::new_with_transport(HttpTransport::new(
                             &rpc_url,
                         ))
                         .unwrap(),
-                        self.broadcaster.client(),
                         self.block_height_monitor.latest_block_height(),
                     ),
                     stream_timeout,
