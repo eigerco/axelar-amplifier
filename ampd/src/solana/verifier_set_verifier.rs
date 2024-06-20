@@ -4,7 +4,9 @@ use hex::ToHex;
 use multisig::key::PublicKey;
 
 use crate::handlers::solana_verify_verifier_set::VerifierSetConfirmation;
-use solana_transaction_status::EncodedConfirmedTransactionWithStatusMeta;
+use solana_transaction_status::{
+    option_serializer::OptionSerializer, EncodedConfirmedTransactionWithStatusMeta,
+};
 use thiserror::Error;
 use tracing::error;
 
@@ -25,9 +27,8 @@ pub fn parse_gateway_event(tx: &EncodedConfirmedTransactionWithStatusMeta) -> Re
         return Err(VerificationError::NoLogMessages);
     };
 
-    let log_messages = match &meta.log_messages {
-        solana_transaction_status::option_serializer::OptionSerializer::Some(log_msg) => log_msg,
-        _ => return Err(VerificationError::NoLogMessages),
+    let OptionSerializer::Some(log_messages) = &meta.log_messages else {
+        return Err(VerificationError::NoLogMessages);
     };
 
     log_messages
