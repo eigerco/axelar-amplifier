@@ -80,7 +80,7 @@ impl Handler {
             sender: self.verifier.as_ref().clone(),
             contract: self.voting_verifier.as_ref().clone(),
             msg: serde_json::to_vec(&ExecuteMsg::Vote { poll_id, votes })
-                .expect("vote msg should serialize"),
+                .expect("vote msg should serialize"), // This should serialize as inputs are controlled.
             funds: vec![],
         }
     }
