@@ -36,7 +36,7 @@ pub fn parse_gateway_event(tx: &EncodedConfirmedTransactionWithStatusMeta) -> Re
         .ok_or(VerificationError::NoGatewayEventFound)
 }
 
-#[tracing::instrument(name = "sol_verify_verifier_set")]
+#[tracing::instrument(name = "solana_verify_verifier_set")]
 pub fn verify_verifier_set(
     verifier_set_conf: &VerifierSetConfirmation,
     solana_signers: &[Address],
@@ -50,9 +50,9 @@ pub fn verify_verifier_set(
     if solana_signers.len() != solana_weights.len() {
         error!(
             tx_id,
-            "signers length do not match in sol data: signers len() was {}, weights len() was {}",
-            solana_signers.len(),
-            solana_weights.len()
+            solana_signers_count = solana_signers.len(),
+            solana_weights_count = solana_weights.len(),
+            "Signers length do not match in solana onchain data.",
         );
         return Vote::FailedOnChain;
     }
@@ -60,7 +60,9 @@ pub fn verify_verifier_set(
     if verifier_set_threshold != solana_quorum {
         error!(
             tx_id,
-            "threshold do not match: axelar was {}, solana was {}", verifier_set.threshold, solana_quorum
+            axelar_threshold = verifier_set_threshold,
+            solana_quorum,
+            "Verifier set threshold do not match."
         );
         return Vote::FailedOnChain;
     }
@@ -70,8 +72,7 @@ pub fn verify_verifier_set(
         let Some((addr, signer)) = verifier_set.signers.get_key_value(&solana_addr_hex) else {
             error!(
                 tx_id,
-                "Lookup for sol signer failed on axelar data, missing sol address was: {}",
-                solana_addr_hex
+                solana_addr_hex, "Lookup for solana signer address failed on axelar verifier set",
             );
             return Vote::FailedOnChain;
         };
@@ -79,9 +80,9 @@ pub fn verify_verifier_set(
         if *addr != signer_address {
             error!(
                 tx_id,
-                "Axelar data seems corrupted. Map key seems different than signer address. Map key was {}, while signer address was {}.",
-                addr,
-                signer_address
+                verifier_set_map_key=addr,
+                verifier_set_inner_signer_address=signer_address,
+                "Axelar verifier set has inconsistencies. Map key (Address) is different than the inner signer address.",
             );
             return Vote::FailedOnChain;
         }
@@ -92,9 +93,9 @@ pub fn verify_verifier_set(
             let signer_pub_key_hex = signer.pub_key.encode_hex::<String>();
             error!(
                 tx_id,
-                "Solana address seems different than Axelar signer public key. Solana address was {}. Axelar signer pubkey was {}",
                 solana_addr_hex,
-                signer_pub_key_hex
+                signer_pub_key_hex,
+                "Solana address is different than Axelar signer public key.",
             );
             return Vote::FailedOnChain;
         }
@@ -102,10 +103,10 @@ pub fn verify_verifier_set(
         if *solana_weight != signer.weight.u128() {
             error!(
                 tx_id,
-                "Weight differs for sol signer {}. Solana weight was {}, Axelar weight was {}",
                 solana_addr_hex,
                 solana_weight,
-                signer.weight.u128()
+                axelar_signer_weight = signer.weight.u128(),
+                "Signer weight differs",
             );
             return Vote::FailedOnChain;
         }
