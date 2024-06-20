@@ -1,6 +1,7 @@
 use axelar_message_primitives::Address;
 use axelar_wasm_std::voting::Vote;
 use hex::ToHex;
+use multisig::key::PublicKey;
 
 use crate::handlers::solana_verify_verifier_set::VerifierSetConfirmation;
 use solana_transaction_status::EncodedConfirmedTransactionWithStatusMeta;
@@ -65,12 +66,12 @@ pub fn verify_verifier_set(
     }
 
     for (sol_addr, sol_weight) in signers.iter().zip(weights.iter()) {
-        let sol_addr = sol_addr.encode_hex::<String>();
-        let Some((addr, signer)) = verifier_set.signers.get_key_value(&sol_addr) else {
+        let sol_addr_hex = sol_addr.encode_hex::<String>();
+        let Some((addr, signer)) = verifier_set.signers.get_key_value(&sol_addr_hex) else {
             error!(
                 tx_id,
                 "Lookup for sol signer failed on axelar data, missing sol address was: {}",
-                sol_addr
+                sol_addr_hex
             );
             return Vote::FailedOnChain;
         };
@@ -84,13 +85,16 @@ pub fn verify_verifier_set(
             );
             return Vote::FailedOnChain;
         }
-        let signer_pub_key = signer.pub_key.encode_hex::<String>();
-        if sol_addr != signer_pub_key {
+        let signer_pub_key = match &signer.pub_key {
+            PublicKey::Ecdsa(hb) | PublicKey::Ed25519(hb) => hb,
+        };
+        if sol_addr.as_ref() != signer_pub_key.as_slice() {
+            let signer_pub_key_hex = signer.pub_key.encode_hex::<String>();
             error!(
                 tx_id,
                 "Solana address seems different than Axelar signer public key. Solana address was {}. Axelar signer pubkey was {}",
-                sol_addr,
-                signer_pub_key
+                sol_addr_hex,
+                signer_pub_key_hex
             );
             return Vote::FailedOnChain;
         }
@@ -99,7 +103,7 @@ pub fn verify_verifier_set(
             error!(
                 tx_id,
                 "Weight differs for sol signer {}. Solana weight was {}, Axelar weight was {}",
-                sol_addr,
+                sol_addr_hex,
                 sol_weight,
                 signer.weight.u128()
             );
