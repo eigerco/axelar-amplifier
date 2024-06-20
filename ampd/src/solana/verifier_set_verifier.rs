@@ -38,8 +38,8 @@ pub fn parse_gateway_event(tx: &EncodedConfirmedTransactionWithStatusMeta) -> Re
 #[tracing::instrument(name = "sol_verify_verifier_set")]
 pub fn verify_verifier_set(
     verifier_set_conf: &VerifierSetConfirmation,
-    signers: &Vec<Address>,
-    weights: &Vec<u128>,
+    signers: &[Address],
+    weights: &[u128],
     quorum: u128,
 ) -> Vote {
     let tx_id = &verifier_set_conf.tx_id;
