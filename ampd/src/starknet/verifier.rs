@@ -33,7 +33,7 @@ impl PartialEq<Message> for ContractCallEvent {
 #[cfg(test)]
 mod tests {
     use axelar_wasm_std::voting::Vote;
-    use ethers::types::H256;
+    use ethers_core::types::H256;
 
     use super::verify_msg;
     use crate::handlers::starknet_verify_msg::Message;
