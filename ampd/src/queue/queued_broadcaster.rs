@@ -211,7 +211,6 @@ where
 
         Ok(())
     }
-}
 
 async fn handle_tx_response(tx_res: TxResponse) -> Result {
     let tx_hash = tx_res.response.txhash;
@@ -329,6 +328,9 @@ mod test {
 
                 Ok(TxResponse::default())
             });
+        let mut broadcast_interval = interval(Duration::from_millis(100));
+        // get rid of tick on startup
+        broadcast_interval.tick().await;
 
         let (tx_confirmer_sender, tx_confirmer_receiver) = mpsc::channel(1000);
         let (tx_res_sender, tx_res_receiver) = mpsc::channel(1000);

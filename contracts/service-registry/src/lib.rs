@@ -9,4 +9,6 @@ pub use state::{
     AuthorizationState, BondingState, Service, Verifier, WeightedVerifier, VERIFIER_WEIGHT,
 };
 
+mod migrations;
+
 pub use crate::error::ContractError;

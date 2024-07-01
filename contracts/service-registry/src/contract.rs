@@ -8,6 +8,7 @@ use cosmwasm_std::{
 use error_stack::{bail, Report, ResultExt};
 
 use crate::error::ContractError;
+use crate::migrations;
 use crate::msg::{ExecuteMsg, InstantiateMsg, QueryMsg};
 use crate::state::{AuthorizationState, BondingState, Service, SERVICES, VERIFIERS};
 
