@@ -1,6 +1,6 @@
 use std::num::TryFromIntError;
 
-use ethers::types::H256;
+use ethers_core::types::H256;
 use starknet_core::types::ValueOutOfRangeError;
 use starknet_core::utils::{parse_cairo_short_string, ParseCairoShortStringError};
 use thiserror::Error;
@@ -140,7 +140,7 @@ impl TryFrom<starknet_core::types::Event> for ContractCallEvent {
 mod tests {
     use std::str::FromStr;
 
-    use ethers::types::H256;
+    use ethers_core::types::H256;
     use starknet_core::types::{FieldElement, FromStrError, ValueOutOfRangeError};
     use starknet_core::utils::starknet_keccak;
 
