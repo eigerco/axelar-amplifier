@@ -24,7 +24,9 @@ enum-display-derive = "0.1.1"
 error-stack = { workspace = true }
 ethers-contract = { workspace = true }
 ethers-core = { workspace = true }
-ethers-providers = { version = "2.0.13", default-features = false, features = ["rustls"] }
+ethers-providers = { version = "2.0.13", default-features = false, features = [
+  "rustls",
+] }
 events = { workspace = true }
 events-derive = { workspace = true }
 evm-gateway = { workspace = true }
@@ -54,7 +56,7 @@ sui-types = { git = "https://github.com/mystenlabs/sui", features = ["test-utils
 # The fix for the issue is at https://github.com/axelarnetwork/tendermint-rs/commit/e97033e20e660a7e707ea86db174ec047bbba50d.
 tendermint = { git = "https://github.com/axelarnetwork/tendermint-rs.git", branch = "v0.33.x" }
 tendermint-rpc = { git = "https://github.com/axelarnetwork/tendermint-rs.git", branch = "v0.33.x", features = [
-    "http-client",
+  "http-client",
 ] }
 thiserror = { workspace = true }
 tokio = { workspace = true, features = ["signal"] }
