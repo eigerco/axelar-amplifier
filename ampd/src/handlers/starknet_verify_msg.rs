@@ -4,7 +4,8 @@ use std::convert::TryInto;
 use async_trait::async_trait;
 use axelar_wasm_std::voting::{PollId, Vote};
 use cosmrs::cosmwasm::MsgExecuteContract;
-use cosmrs::{tx::Msg, Any};
+use cosmrs::tx::Msg;
+use cosmrs::Any;
 use error_stack::{FutureExt, ResultExt};
 use events::Error::EventTypeMismatch;
 use events_derive::try_from;
@@ -164,7 +165,7 @@ where
 mod tests {
     use base64::engine::general_purpose::STANDARD;
     use base64::Engine;
-    use ethers::types::H256;
+    use ethers_core::types::H256;
     use events::Event;
     use mockall::predicate::eq;
     use tendermint::abci;

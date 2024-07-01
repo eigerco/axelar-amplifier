@@ -130,7 +130,7 @@ where
 mod test {
 
     use axum::async_trait;
-    use ethers::types::H256;
+    use ethers_core::types::H256;
     use serde::de::DeserializeOwned;
     use serde::Serialize;
     use starknet_core::types::FieldElement;
