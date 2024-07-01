@@ -1,33 +1,28 @@
-use std::pin::Pin;
 use std::time::Duration;
 
 use asyncutil::task::{CancellableTask, TaskError, TaskGroup};
 use block_height_monitor::BlockHeightMonitor;
 use broadcaster::Broadcaster;
-use cosmrs::proto::cosmos::{
-    auth::v1beta1::query_client::QueryClient, tx::v1beta1::service_client::ServiceClient,
-};
-use error_stack::{report, FutureExt, Result, ResultExt};
+use cosmrs::proto::cosmos::auth::v1beta1::query_client::QueryClient as AuthQueryClient;
+use cosmrs::proto::cosmos::bank::v1beta1::query_client::QueryClient as BankQueryClient;
+use cosmrs::proto::cosmos::tx::v1beta1::service_client::ServiceClient;
+use error_stack::{FutureExt, Result, ResultExt};
 use event_processor::EventHandler;
-use event_sub::EventSub;
-use events::Event;
 use evm::finalizer::{pick, Finalization};
 use evm::json_rpc::EthereumClient;
-use queue::queued_broadcaster::{QueuedBroadcaster, QueuedBroadcasterDriver};
+use queue::queued_broadcaster::QueuedBroadcaster;
 use router_api::ChainName;
 use starknet_providers::jsonrpc::HttpTransport;
-use state::StateUpdater;
 use thiserror::Error;
 use tofnd::grpc::{Multisig, MultisigClient};
 use tokio::signal::unix::{signal, SignalKind};
-use tokio::sync::oneshot;
-use tokio_stream::Stream;
+use tokio::time::interval;
 use tokio_util::sync::CancellationToken;
 use tracing::info;
 use types::TMAddress;
 
 use crate::config::Config;
-use crate::state::State;
+use crate::event_sub::EventSub;
 
 mod asyncutil;
 mod block_height_monitor;
@@ -44,7 +39,6 @@ mod health_check;
 mod json_rpc;
 mod queue;
 pub mod starknet;
-pub mod state;
 mod sui;
 mod tm_client;
 mod tofnd;
@@ -56,18 +50,11 @@ pub use grpc::{client, proto};
 const PREFIX: &str = "axelar";
 const DEFAULT_RPC_TIMEOUT: Duration = Duration::from_secs(3);
 
-type HandlerStream<E> = Pin<Box<dyn Stream<Item = Result<Event, E>> + Send>>;
-
-pub async fn run(cfg: Config, state: State) -> (State, Result<(), Error>) {
-    let app = prepare_app(cfg, state.clone()).await;
-
-    match app {
-        Ok(app) => app.run().await,
-        Err(err) => (state, Err(err)),
-    }
+pub async fn run(cfg: Config) -> Result<(), Error> {
+    prepare_app(cfg).await?.run().await
 }
 
-async fn prepare_app(cfg: Config, state: State) -> Result<App<impl Broadcaster>, Error> {
+async fn prepare_app(cfg: Config) -> Result<App<impl Broadcaster>, Error> {
     let Config {
         tm_jsonrpc,
         tm_grpc,
@@ -85,7 +72,10 @@ async fn prepare_app(cfg: Config, state: State) -> Result<App<impl Broadcaster>,
     let service_client = ServiceClient::connect(tm_grpc.to_string())
         .await
         .change_context(Error::Connection)?;
-    let query_client = QueryClient::connect(tm_grpc.to_string())
+    let auth_query_client = AuthQueryClient::connect(tm_grpc.to_string())
+        .await
+        .change_context(Error::Connection)?;
+    let bank_query_client = BankQueryClient::connect(tm_grpc.to_string())
         .await
         .change_context(Error::Connection)?;
     let multisig_client = MultisigClient::new(tofnd_config.party_uid, tofnd_config.url)
@@ -96,40 +86,34 @@ async fn prepare_app(cfg: Config, state: State) -> Result<App<impl Broadcaster>,
         .await
         .change_context(Error::Connection)?;
 
-    let mut state_updater = StateUpdater::new(state);
-    let pub_key = match state_updater.state().pub_key {
-        Some(pub_key) => pub_key,
-        None => {
-            let pub_key = multisig_client
-                .keygen(&tofnd_config.key_uid, tofnd::Algorithm::Ecdsa)
-                .await
-                .change_context(Error::Tofnd)?;
-            state_updater.as_mut().pub_key = Some(pub_key);
+    let pub_key = multisig_client
+        .keygen(&tofnd_config.key_uid, tofnd::Algorithm::Ecdsa)
+        .await
+        .change_context(Error::Tofnd)?;
 
-            pub_key
-        }
-    };
+    let broadcaster = broadcaster::UnvalidatedBasicBroadcaster::builder()
+        .auth_query_client(auth_query_client)
+        .bank_query_client(bank_query_client)
+        .address_prefix(PREFIX.to_string())
+        .client(service_client)
+        .signer(multisig_client.clone())
+        .pub_key((tofnd_config.key_uid, pub_key))
+        .config(broadcast.clone())
+        .build()
+        .validate_fee_denomination()
+        .await
+        .change_context(Error::Broadcaster)?;
+
+    let health_check_server = health_check::Server::new(health_check_bind_addr);
 
     let verifier: TMAddress = pub_key
         .account_id(PREFIX)
         .expect("failed to convert to account identifier")
         .into();
 
-    let broadcaster = broadcaster::BroadcastClient::builder()
-        .query_client(query_client)
-        .address(verifier.clone())
-        .client(service_client)
-        .signer(multisig_client.clone())
-        .pub_key((tofnd_config.key_uid, pub_key))
-        .config(broadcast.clone())
-        .build();
-
-    let health_check_server = health_check::Server::new(health_check_bind_addr);
-
     App::new(
         tm_client,
         broadcaster,
-        state_updater,
         multisig_client,
         broadcast,
         event_buffer_cap,
@@ -164,9 +148,6 @@ where
     event_subscriber: event_sub::EventSubscriber,
     event_processor: TaskGroup<event_processor::Error>,
     broadcaster: QueuedBroadcaster<T>,
-    #[allow(dead_code)]
-    broadcaster_driver: QueuedBroadcasterDriver,
-    state_updater: StateUpdater,
     multisig_client: MultisigClient,
     block_height_monitor: BlockHeightMonitor<tendermint_rpc::HttpClient>,
     health_check_server: health_check::Server,
@@ -181,7 +162,6 @@ where
     fn new(
         tm_client: tendermint_rpc::HttpClient,
         broadcaster: T,
-        state_updater: StateUpdater,
         multisig_client: MultisigClient,
         broadcast_cfg: broadcaster::Config,
         event_buffer_cap: usize,
@@ -192,17 +172,13 @@ where
 
         let (event_publisher, event_subscriber) =
             event_sub::EventPublisher::new(tm_client, event_buffer_cap);
-        let event_publisher = match state_updater.state().min_handler_block_height() {
-            Some(min_height) => event_publisher.start_from(min_height.increment()),
-            None => event_publisher,
-        };
 
         let event_processor = TaskGroup::new();
-        let (broadcaster, broadcaster_driver) = QueuedBroadcaster::new(
+        let broadcaster = QueuedBroadcaster::new(
             broadcaster,
             broadcast_cfg.batch_gas_limit,
             broadcast_cfg.queue_cap,
-            broadcast_cfg.broadcast_interval,
+            interval(broadcast_cfg.broadcast_interval),
         );
 
         Self {
@@ -210,8 +186,6 @@ where
             event_subscriber,
             event_processor,
             broadcaster,
-            broadcaster_driver,
-            state_updater,
             multisig_client,
             block_height_monitor,
             health_check_server,
@@ -372,33 +346,20 @@ where
         L: AsRef<str>,
         H: EventHandler + Send + Sync + 'static,
     {
-        let (handler, rx) = handlers::end_block::with_block_height_notifier(handler);
-        self.state_updater.register_event(label.as_ref(), rx);
-
+        let label = label.as_ref().to_string();
         let broadcaster = self.broadcaster.client();
-        let sub: HandlerStream<_> = match self
-            .state_updater
-            .state()
-            .handler_block_height(label.as_ref())
-        {
-            None => Box::pin(self.event_subscriber.subscribe()),
-            Some(&completed_height) => Box::pin(event_sub::skip_to_block(
-                self.event_subscriber.subscribe(),
-                completed_height.increment(),
-            )),
-        };
+        let sub = self.event_subscriber.subscribe();
 
         CancellableTask::create(move |token| {
-            event_processor::consume_events(handler, broadcaster, sub, stream_timeout, token)
+            event_processor::consume_events(label, handler, broadcaster, sub, stream_timeout, token)
         })
     }
 
-    async fn run(self) -> (State, Result<(), Error>) {
+    async fn run(self) -> Result<(), Error> {
         let Self {
             event_publisher,
             event_processor,
             broadcaster,
-            state_updater,
             block_height_monitor,
             health_check_server,
             token,
@@ -420,9 +381,7 @@ where
             exit_token.cancel();
         });
 
-        let (state_tx, mut state_rx) = oneshot::channel::<State>();
-
-        let execution_result = TaskGroup::new()
+        TaskGroup::new()
             .add_task(CancellableTask::create(|token| {
                 block_height_monitor
                     .run(token)
@@ -446,22 +405,8 @@ where
             .add_task(CancellableTask::create(|_| {
                 broadcaster.run().change_context(Error::Broadcaster)
             }))
-            .add_task(CancellableTask::create(|_| async move {
-                // assert: the state updater only stops when all handlers that are updating
-                // their states have stopped
-                state_tx
-                    .send(state_updater.run().await)
-                    .map_err(|_| report!(Error::ReturnState))
-            }))
             .run(token)
-            .await;
-
-        // assert: all tasks have exited, it is safe to receive the state
-        let state = state_rx
-            .try_recv()
-            .expect("the state sender should have been able to send the state");
-
-        (state, execution_result)
+            .await
     }
 }
 

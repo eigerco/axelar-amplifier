@@ -7,7 +7,7 @@ use error_stack::ResultExt;
 
 use crate::{
     error::ContractError,
-    execute, migrations,
+    execute,
     msg::{ExecuteMsg, InstantiateMsg, QueryMsg},
     query, reply,
     state::{Config, CONFIG},
@@ -121,7 +121,8 @@ pub fn query(
         QueryMsg::GetProof {
             multisig_session_id,
         } => to_json_binary(&query::get_proof(deps, multisig_session_id)?),
-        QueryMsg::GetVerifierSet {} => to_json_binary(&query::get_verifier_set(deps)?),
+        QueryMsg::CurrentVerifierSet {} => to_json_binary(&query::current_verifier_set(deps)?),
+        QueryMsg::NextVerifierSet {} => to_json_binary(&query::next_verifier_set(deps)?),
     }
     .change_context(ContractError::SerializeResponse)
     .map_err(axelar_wasm_std::ContractError::from)
@@ -135,7 +136,7 @@ pub fn migrate(
 ) -> Result<Response, axelar_wasm_std::ContractError> {
     cw2::set_contract_version(deps.storage, CONTRACT_NAME, CONTRACT_VERSION)?;
 
-    migrations::v_0_5::migrate_verifier_sets(deps)
+    Ok(Response::default())
 }
 
 #[cfg(test)]
@@ -153,6 +154,7 @@ mod tests {
 
     use crate::{
         contract::execute::should_update_verifier_set,
+        msg::VerifierSetResponse,
         test::test_utils::{
             mock_querier_handler, ADMIN, COORDINATOR_ADDRESS, GATEWAY_ADDRESS, GOVERNANCE,
             MULTISIG_ADDRESS, SERVICE_NAME, SERVICE_REGISTRY_ADDRESS, VOTING_VERIFIER_ADDRESS,
@@ -298,8 +300,8 @@ mod tests {
 
     fn query_get_verifier_set(
         deps: Deps,
-    ) -> Result<Option<VerifierSet>, axelar_wasm_std::ContractError> {
-        query(deps, mock_env(), QueryMsg::GetVerifierSet {}).map(|res| from_json(res).unwrap())
+    ) -> Result<Option<VerifierSetResponse>, axelar_wasm_std::ContractError> {
+        query(deps, mock_env(), QueryMsg::CurrentVerifierSet {}).map(|res| from_json(res).unwrap())
     }
 
     #[test]
@@ -404,7 +406,7 @@ mod tests {
         let expected_verifier_set =
             test_operators_to_verifier_set(test_data::operators(), mock_env().block.height);
 
-        assert_eq!(verifier_set, expected_verifier_set);
+        assert_eq!(verifier_set, expected_verifier_set.into());
     }
 
     #[test]
@@ -474,7 +476,7 @@ mod tests {
         let expected_verifier_set =
             test_operators_to_verifier_set(test_data::operators(), mock_env().block.height);
 
-        assert_eq!(verifier_set, expected_verifier_set);
+        assert_eq!(verifier_set, expected_verifier_set.into());
     }
 
     #[test]
@@ -508,7 +510,7 @@ mod tests {
         let expected_verifier_set =
             test_operators_to_verifier_set(new_verifier_set, mock_env().block.height);
 
-        assert_eq!(verifier_set, expected_verifier_set);
+        assert_eq!(verifier_set, expected_verifier_set.into());
     }
 
     #[test]
@@ -542,7 +544,7 @@ mod tests {
         let expected_verifier_set =
             test_operators_to_verifier_set(test_data::operators(), mock_env().block.height);
 
-        assert_eq!(verifier_set, expected_verifier_set);
+        assert_eq!(verifier_set, expected_verifier_set.into());
     }
 
     #[test]
@@ -699,7 +701,10 @@ mod tests {
     /// Calls update_signing_threshold, increasing the threshold by one.
     /// Returns (initial threshold, new threshold)
     fn update_signing_threshold_increase_by_one(deps: DepsMut) -> (Uint128, Uint128) {
-        let verifier_set = query_get_verifier_set(deps.as_ref()).unwrap().unwrap();
+        let verifier_set = query_get_verifier_set(deps.as_ref())
+            .unwrap()
+            .unwrap()
+            .verifier_set;
         let initial_threshold = verifier_set.threshold;
         let total_weight = verifier_set
             .signers
@@ -734,7 +739,10 @@ mod tests {
             update_signing_threshold_increase_by_one(deps.as_mut());
         assert_ne!(initial_threshold, new_threshold);
 
-        let verifier_set = query_get_verifier_set(deps.as_ref()).unwrap().unwrap();
+        let verifier_set = query_get_verifier_set(deps.as_ref())
+            .unwrap()
+            .unwrap()
+            .verifier_set;
         assert_eq!(verifier_set.threshold, initial_threshold);
     }
 
@@ -752,7 +760,10 @@ mod tests {
         let governance = Addr::unchecked(GOVERNANCE);
         confirm_verifier_set(deps.as_mut(), governance).unwrap();
 
-        let verifier_set = query_get_verifier_set(deps.as_ref()).unwrap().unwrap();
+        let verifier_set = query_get_verifier_set(deps.as_ref())
+            .unwrap()
+            .unwrap()
+            .verifier_set;
         assert_eq!(verifier_set.threshold, new_threshold);
     }
 
@@ -770,7 +781,10 @@ mod tests {
         let res = confirm_verifier_set(deps.as_mut(), Addr::unchecked("relayer"));
         assert!(res.is_ok());
 
-        let verifier_set = query_get_verifier_set(deps.as_ref()).unwrap().unwrap();
+        let verifier_set = query_get_verifier_set(deps.as_ref())
+            .unwrap()
+            .unwrap()
+            .verifier_set;
         assert_eq!(verifier_set.threshold, new_threshold);
     }
 
