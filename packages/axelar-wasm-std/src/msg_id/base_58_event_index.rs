@@ -29,7 +29,7 @@ impl Base58TxDigestAndEventIndex {
     }
 }
 
-const PATTERN: &str = "^([1-9A-HJ-NP-Za-km-z]{32,44})-(0|[1-9][0-9]*)$";
+const PATTERN: &str = "^([1-9A-HJ-NP-Za-km-z]{32,88})-(0|[1-9][0-9]*)$";
 lazy_static! {
     static ref REGEX: Regex = Regex::new(PATTERN).expect("invalid regex");
 }
