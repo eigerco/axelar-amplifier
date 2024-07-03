@@ -4,9 +4,11 @@ use cosmwasm_schema::cw_serde;
 use error_stack::Report;
 
 use self::{
+    base58_solana_event_index::Base58SolanaTxDigestAndEventIndex,
     base_58_event_index::Base58TxDigestAndEventIndex, tx_hash_event_index::HexTxHashAndEventIndex,
 };
 
+pub mod base58_solana_event_index;
 pub mod base_58_event_index;
 pub mod tx_hash_event_index;
 
@@ -39,6 +41,7 @@ pub trait MessageId: FromStr + Display {}
 pub enum MessageIdFormat {
     HexTxHashAndEventIndex,
     Base58TxDigestAndEventIndex,
+    Base58SolanaAndEventIndex,
 }
 
 // function the router calls to verify msg ids
@@ -49,6 +52,9 @@ pub fn verify_msg_id(message_id: &str, format: &MessageIdFormat) -> Result<(), R
         }
         MessageIdFormat::Base58TxDigestAndEventIndex => {
             Base58TxDigestAndEventIndex::from_str(message_id).map(|_| ())
+        }
+        MessageIdFormat::Base58SolanaAndEventIndex => {
+            Base58SolanaTxDigestAndEventIndex::from_str(message_id).map(|_| ())
         }
     }
 }

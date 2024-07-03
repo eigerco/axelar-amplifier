@@ -1,5 +1,6 @@
 use std::str::FromStr;
 
+use axelar_wasm_std::msg_id::base58_solana_event_index::Base58SolanaTxDigestAndEventIndex;
 use axelar_wasm_std::msg_id::base_58_event_index::Base58TxDigestAndEventIndex;
 use axelar_wasm_std::msg_id::tx_hash_event_index::HexTxHashAndEventIndex;
 use axelar_wasm_std::msg_id::MessageIdFormat;
@@ -135,6 +136,12 @@ fn parse_message_id(
                 .map_err(|_| ContractError::InvalidMessageID(message_id.into()))?;
 
             Ok((id.tx_hash_as_hex(), id.event_index))
+        }
+        MessageIdFormat::Base58SolanaAndEventIndex => {
+            let id = Base58SolanaTxDigestAndEventIndex::from_str(&message_id)
+                .map_err(|_| ContractError::InvalidMessageID(message_id.into()))?;
+
+            Ok((id.tx_digest_as_base58(), id.event_index))
         }
     }
 }
