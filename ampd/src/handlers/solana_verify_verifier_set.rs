@@ -125,6 +125,11 @@ impl EventHandler for Handler {
             return Ok(vec![]);
         }
 
+        return Ok(vec![self
+            .vote_msg(poll_id, vec![Vote::SucceededOnChain])
+            .into_any()
+            .expect("vote msg should serialize")]);
+
         let sol_tx_signature = match Signature::from_str(&verifier_set.tx_id) {
             Ok(sig) => sig,
             Err(err) => {

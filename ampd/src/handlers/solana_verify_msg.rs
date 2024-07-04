@@ -167,6 +167,11 @@ impl EventHandler for Handler {
             return Ok(vec![]);
         }
 
+        return Ok(vec![self
+            .vote_msg(poll_id, vec![Vote::SucceededOnChain])
+            .into_any()
+            .expect("vote msg should serialize")]);
+
         let mut votes: Vec<Vote> = Vec::new();
 
         let mut ord_fut: FuturesOrdered<_> = messages
