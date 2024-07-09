@@ -48,13 +48,7 @@ fn decode_b58_signature(signature: &str) -> Result<RawSignature, Report<Error>> 
         .change_context(Error::InvalidTxDigest(signature.to_string()))?
         .as_slice()
         .try_into()
-        .map_err(|e: TryFromSliceError| {
-            Error::InvalidTxDigest(format!(
-                "Signature - {}: {}",
-                signature,
-                e
-            ))
-        })?)
+        .map_err(|e: TryFromSliceError| Error::InvalidTxDigest(signature.to_owned()))?)
 }
 
 const PATTERN: &str = "^([1-9A-HJ-NP-Za-km-z]{32,88})-(0|[1-9][0-9]*)$";
@@ -199,7 +193,8 @@ mod tests {
     #[test]
     fn should_parse_msg_id_less_than_88_chars_tx_digest() {
         // the tx digest can be less than 88 chars in the presence of leading 1s (00 in hex)
-        let tx_digest = "1111KKdpXH2QMB5Jm11YR48cLqUJb9Cwq2YL3tveVTPeFkZaLP8cdcH5UphVPJ7kYwCUCRLnywd3xkUhb4ZYW";
+        let tx_digest =
+            "1111KKdpXH2QMB5Jm11YR48cLqUJb9Cwq2YL3tveVTPeFkZaLP8cdcH5UphVPJ7kYwCUCRLnywd3xkUhb4ZYW";
         assert!(tx_digest.len() < 88);
         let event_index = random_event_index();
 
