@@ -48,7 +48,7 @@ fn decode_b58_signature(signature: &str) -> Result<RawSignature, Report<Error>> 
         .change_context(Error::InvalidTxDigest(signature.to_string()))?
         .as_slice()
         .try_into()
-        .map_err(|e: TryFromSliceError| Error::InvalidTxDigest(signature.to_owned()))?)
+        .map_err(|_| Error::InvalidTxDigest(signature.to_owned()))?)
 }
 
 const PATTERN: &str = "^([1-9A-HJ-NP-Za-km-z]{32,88})-(0|[1-9][0-9]*)$";
@@ -169,7 +169,7 @@ mod tests {
 
     #[test]
     fn should_not_parse_msg_id_with_correct_length_base58_but_wrong_length_hex() {
-        // this is 88 chars and valid base58, but will encode to 33 bytes
+        // this is 88 chars and valid base58, but will decode to 33 bytes
         // the leading 1s are encoded as 00 in hex and thus result in too many bytes
         let tx_digest = "1111KKdpXH2QMB5Jm11YR48cLqUJb9Cwq2YL3tveVTPeFkZaLP8cdcH5UphVPJ7kYwCUCRLnywd3xkUhb4ZYWtf5";
         let event_index = random_event_index();
