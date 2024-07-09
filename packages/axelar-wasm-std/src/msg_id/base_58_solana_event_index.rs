@@ -120,8 +120,8 @@ mod tests {
         let res = Base58SolanaTxDigestAndEventIndex::from_str(
             "4hHzKKdpXH2QMB5Jm11YR48cLqUJb9Cwq2YL3tveVTPeFkZaLP8cdcH5UphVPJ7kYwCUCRLnywd3xkUhb4ZYWtf5-0",
         );
-        res.unwrap();
-
+        assert!(res.is_ok());
+        
         for _ in 0..1000 {
             let tx_digest = random_tx_digest();
             let event_index = random_event_index();
