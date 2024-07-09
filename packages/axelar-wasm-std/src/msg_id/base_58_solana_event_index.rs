@@ -146,7 +146,7 @@ mod tests {
         assert!(res.is_err());
 
         // too short
-        let msg_id = format!("{}-{}", &tx_digest[0..30], event_index);
+        let msg_id = format!("{}-{}", &tx_digest[0..63], event_index);
         let res = Base58SolanaTxDigestAndEventIndex::from_str(&msg_id);
         assert!(res.is_err());
     }
