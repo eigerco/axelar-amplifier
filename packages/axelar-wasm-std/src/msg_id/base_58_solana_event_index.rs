@@ -99,7 +99,7 @@ mod tests {
 
     use super::*;
 
-    fn random_bytes() -> [u8; 64] {
+    fn random_bytes() -> RawSignature {
         let mut bytes = [0; 64];
         for b in &mut bytes {
             *b = rand::random();
