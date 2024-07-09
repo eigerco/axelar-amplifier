@@ -51,7 +51,7 @@ fn decode_b58_signature(signature: &str) -> Result<RawSignature, Report<Error>> 
         .map_err(|_| Error::InvalidTxDigest(signature.to_owned()))?)
 }
 
-const PATTERN: &str = "^([1-9A-HJ-NP-Za-km-z]{32,88})-(0|[1-9][0-9]*)$";
+const PATTERN: &str = "^([1-9A-HJ-NP-Za-km-z]{64,88})-(0|[1-9][0-9]*)$";
 lazy_static! {
     static ref REGEX: Regex = Regex::new(PATTERN).expect("invalid regex");
 }
