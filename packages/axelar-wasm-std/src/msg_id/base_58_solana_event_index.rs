@@ -169,7 +169,7 @@ mod tests {
 
     #[test]
     fn should_not_parse_msg_id_with_correct_length_base58_but_wrong_length_hex() {
-        // this is 88 chars and valid base58, but will decode to 33 bytes
+        // this is 88 chars and valid base58, but will decode to 66 bytes
         // the leading 1s are encoded as 00 in hex and thus result in too many bytes
         let tx_digest = "1111KKdpXH2QMB5Jm11YR48cLqUJb9Cwq2YL3tveVTPeFkZaLP8cdcH5UphVPJ7kYwCUCRLnywd3xkUhb4ZYWtf5";
         let event_index = random_event_index();
@@ -181,8 +181,8 @@ mod tests {
 
         // this is 44 chars and valid base 58, but will encode to 33 bytes
         // (z is the largest base58 digit, and so this will overflow 2^256)
-        let tx_digest = "zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz";
-        assert_eq!(tx_digest.len(), 44);
+        let tx_digest = "zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz";
+        assert_eq!(tx_digest.len(), 88);
         let msg_id = format!("{}-{}", tx_digest, event_index);
 
         assert!(REGEX.captures(&msg_id).is_some());
