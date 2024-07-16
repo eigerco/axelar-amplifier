@@ -1,5 +1,4 @@
 use std::str::FromStr;
-use std::vec::Vec;
 
 use axelar_wasm_std::msg_id::Base58SolanaTxSignatureAndEventIndex;
 use axelar_wasm_std::msg_id::Base58TxDigestAndEventIndex;
