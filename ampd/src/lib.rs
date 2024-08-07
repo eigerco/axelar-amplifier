@@ -343,7 +343,7 @@ where
                         .unwrap(),
                         self.block_height_monitor.latest_block_height(),
                     ),
-                    stream_timeout,
+                    event_processor_config.clone(),
                 ),
             };
             self.event_processor = self.event_processor.add_task(task);
