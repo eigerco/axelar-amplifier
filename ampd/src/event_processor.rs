@@ -100,14 +100,6 @@ where
             );
         }
 
-        if let StreamStatus::Active(Event::BlockEnd(height)) = &stream_status {
-            info!(
-                handler = handler_label,
-                height = height.value(),
-                "handler finished processing block"
-            );
-        }
-
         if should_task_stop(stream_status, &token) {
             return Ok(());
         }

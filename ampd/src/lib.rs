@@ -13,6 +13,7 @@ use evm::finalizer::{pick, Finalization};
 use evm::json_rpc::EthereumClient;
 use queue::queued_broadcaster::QueuedBroadcaster;
 use router_api::ChainName;
+use starknet_providers::jsonrpc::HttpTransport;
 use thiserror::Error;
 use tofnd::grpc::{Multisig, MultisigClient};
 use tokio::signal::unix::{signal, SignalKind};
@@ -37,6 +38,7 @@ mod handlers;
 mod health_check;
 mod json_rpc;
 mod queue;
+mod starknet;
 mod sui;
 mod tm_client;
 mod tofnd;
@@ -324,7 +326,7 @@ where
                         .unwrap(),
                         self.block_height_monitor.latest_block_height(),
                     ),
-                    stream_timeout,
+                    event_processor_config.clone(),
                 ),
             };
             self.event_processor = self.event_processor.add_task(task);

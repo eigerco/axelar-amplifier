@@ -240,9 +240,6 @@ mod test {
                     .expect("Failed to send broadcast completion signal");
                 Ok(TxResponse::default())
             });
-        let mut broadcast_interval = interval(Duration::from_millis(100));
-        // get rid of tick on startup
-        broadcast_interval.tick().await;
 
         let mut broadcast_interval = interval(interval_duration);
         broadcast_interval.tick().await;
