@@ -1,4 +1,4 @@
-use axelar_wasm_std_derive::IntoContractError;
+use axelar_wasm_std::IntoContractError;
 use cosmwasm_std::StdError;
 use thiserror::Error;
 
@@ -13,6 +13,9 @@ pub const CHAIN_NAME_REGEX: &str = "^[A-Z]?[a-z]+(-?[0-9]+)?$";
 pub enum Error {
     #[error(transparent)]
     Std(#[from] StdError),
+
+    #[error("amplifier routing is disabled")]
+    RoutingDisabled,
 
     #[error("chain already exists")]
     ChainAlreadyExists,

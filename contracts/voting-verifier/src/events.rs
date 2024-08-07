@@ -1,14 +1,14 @@
 use std::str::FromStr;
 use std::vec::Vec;
 
-use axelar_wasm_std::msg_id::base_58_event_index::Base58TxDigestAndEventIndex;
-use axelar_wasm_std::msg_id::tx_hash_event_index::HexTxHashAndEventIndex;
-use axelar_wasm_std::msg_id::MessageIdFormat;
-use cosmwasm_schema::cw_serde;
-use cosmwasm_std::{Addr, Attribute, Event};
-
+use axelar_wasm_std::msg_id::{
+    Base58SolanaTxSignatureAndEventIndex, Base58TxDigestAndEventIndex, HexTxHashAndEventIndex,
+    MessageIdFormat,
+};
 use axelar_wasm_std::voting::{PollId, Vote};
 use axelar_wasm_std::{nonempty, VerificationStatus};
+use cosmwasm_schema::cw_serde;
+use cosmwasm_std::{Addr, Attribute, Event};
 use multisig::verifier_set::VerifierSet;
 use router_api::{Address, ChainName, Message};
 
@@ -17,23 +17,44 @@ use crate::state::Config;
 
 impl From<Config> for Vec<Attribute> {
     fn from(other: Config) -> Self {
+        // destructuring the Config struct so changes to the fields don't go unnoticed
+        let Config {
+            service_name,
+            service_registry_contract,
+            source_gateway_address,
+            voting_threshold,
+            block_expiry,
+            confirmation_height,
+            source_chain,
+            rewards_contract,
+            msg_id_format,
+            address_format,
+        } = other;
+
         vec![
-            ("service_name", other.service_name.to_string()),
+            ("service_name", service_name.to_string()),
             (
                 "service_registry_contract",
-                other.service_registry_contract.to_string(),
+                service_registry_contract.to_string(),
             ),
-            (
-                "source_gateway_address",
-                other.source_gateway_address.to_string(),
-            ),
+            ("source_gateway_address", source_gateway_address.to_string()),
             (
                 "voting_threshold",
-                serde_json::to_string(&other.voting_threshold)
+                serde_json::to_string(&voting_threshold)
                     .expect("failed to serialize voting_threshold"),
             ),
-            ("block_expiry", other.block_expiry.to_string()),
-            ("confirmation_height", other.confirmation_height.to_string()),
+            ("block_expiry", block_expiry.to_string()),
+            ("confirmation_height", confirmation_height.to_string()),
+            ("source_chain", source_chain.to_string()),
+            ("rewards_contract", rewards_contract.to_string()),
+            (
+                "msg_id_format",
+                serde_json::to_string(&msg_id_format).expect("failed to serialize msg_id_format"),
+            ),
+            (
+                "address_format",
+                serde_json::to_string(&address_format).expect("failed to serialize address_format"),
+            ),
         ]
         .into_iter()
         .map(Attribute::from)
@@ -122,27 +143,33 @@ pub struct VerifierSetConfirmation {
 
 /// If parsing is successful, returns (tx_id, event_index). Otherwise returns ContractError::InvalidMessageID
 fn parse_message_id(
-    message_id: nonempty::String,
+    message_id: &str,
     msg_id_format: &MessageIdFormat,
 ) -> Result<(nonempty::String, u32), ContractError> {
     match msg_id_format {
         MessageIdFormat::Base58TxDigestAndEventIndex => {
-            let id = Base58TxDigestAndEventIndex::from_str(&message_id)
-                .map_err(|_| ContractError::InvalidMessageID(message_id.into()))?;
+            let id = Base58TxDigestAndEventIndex::from_str(message_id)
+                .map_err(|_| ContractError::InvalidMessageID(message_id.to_string()))?;
             Ok((id.tx_digest_as_base58(), id.event_index))
         }
         MessageIdFormat::HexTxHashAndEventIndex => {
-            let id = HexTxHashAndEventIndex::from_str(&message_id)
-                .map_err(|_| ContractError::InvalidMessageID(message_id.into()))?;
+            let id = HexTxHashAndEventIndex::from_str(message_id)
+                .map_err(|_| ContractError::InvalidMessageID(message_id.to_string()))?;
 
             Ok((id.tx_hash_as_hex(), id.event_index))
+        }
+        MessageIdFormat::Base58SolanaTxSignatureAndEventIndex => {
+            let id = Base58SolanaTxSignatureAndEventIndex::from_str(message_id)
+                .map_err(|_| ContractError::InvalidMessageID(message_id.to_string()))?;
+
+            Ok((id.signature_as_base58(), id.event_index))
         }
     }
 }
 
 impl VerifierSetConfirmation {
     pub fn new(
-        message_id: nonempty::String,
+        message_id: &str,
         msg_id_format: MessageIdFormat,
         verifier_set: VerifierSet,
     ) -> Result<Self, ContractError> {
@@ -173,7 +200,7 @@ pub struct TxEventConfirmation {
 impl TryFrom<(Message, &MessageIdFormat)> for TxEventConfirmation {
     type Error = ContractError;
     fn try_from((msg, msg_id_format): (Message, &MessageIdFormat)) -> Result<Self, Self::Error> {
-        let (tx_id, event_index) = parse_message_id(msg.cc_id.id, msg_id_format)?;
+        let (tx_id, event_index) = parse_message_id(&msg.cc_id.message_id, msg_id_format)?;
 
         Ok(TxEventConfirmation {
             tx_id,
@@ -204,6 +231,7 @@ impl From<Voted> for Event {
 
 pub struct PollEnded {
     pub poll_id: PollId,
+    pub source_chain: ChainName,
     pub results: Vec<Option<Vote>>,
 }
 
@@ -215,6 +243,11 @@ impl From<PollEnded> for Event {
                 serde_json::to_string(&other.poll_id).expect("failed to serialize poll_id"),
             )
             .add_attribute(
+                "source_chain",
+                serde_json::to_string(&other.source_chain)
+                    .expect("failed to serialize source_chain"),
+            )
+            .add_attribute(
                 "results",
                 serde_json::to_string(&other.results).expect("failed to serialize results"),
             )
@@ -224,6 +257,7 @@ impl From<PollEnded> for Event {
 pub struct QuorumReached<T> {
     pub content: T,
     pub status: VerificationStatus,
+    pub poll_id: PollId,
 }
 
 impl<T> From<QuorumReached<T>> for Event
@@ -240,6 +274,10 @@ where
                 "status",
                 serde_json::to_string(&value.status).expect("failed to serialize status"),
             )
+            .add_attribute(
+                "poll_id",
+                serde_json::to_string(&value.poll_id).expect("failed to serialize poll_id"),
+            )
     }
 }
 
@@ -247,13 +285,10 @@ where
 mod test {
     use std::collections::BTreeMap;
 
-    use axelar_wasm_std::{
-        msg_id::{
-            base_58_event_index::Base58TxDigestAndEventIndex,
-            tx_hash_event_index::HexTxHashAndEventIndex, MessageIdFormat,
-        },
-        nonempty,
+    use axelar_wasm_std::msg_id::{
+        Base58TxDigestAndEventIndex, HexTxHashAndEventIndex, MessageIdFormat,
     };
+    use axelar_wasm_std::nonempty;
     use cosmwasm_std::Uint128;
     use multisig::verifier_set::VerifierSet;
     use router_api::{CrossChainId, Message};
@@ -270,11 +305,8 @@ mod test {
 
     fn generate_msg(msg_id: nonempty::String) -> Message {
         Message {
-            cc_id: CrossChainId {
-                chain: "source-chain".parse().unwrap(),
-                id: msg_id,
-            },
-            source_address: "source_address".parse().unwrap(),
+            cc_id: CrossChainId::new("source-chain", msg_id).unwrap(),
+            source_address: "source-address".parse().unwrap(),
             destination_chain: "destination-chain".parse().unwrap(),
             destination_address: "destination-address".parse().unwrap(),
             payload_hash: [0; 32],
@@ -359,7 +391,7 @@ mod test {
             created_at: 1,
         };
         let event = VerifierSetConfirmation::new(
-            msg_id.to_string().parse().unwrap(),
+            &msg_id.to_string(),
             MessageIdFormat::HexTxHashAndEventIndex,
             verifier_set.clone(),
         )
@@ -382,7 +414,7 @@ mod test {
             created_at: 1,
         };
         let event = VerifierSetConfirmation::new(
-            msg_id.to_string().parse().unwrap(),
+            &msg_id.to_string(),
             MessageIdFormat::Base58TxDigestAndEventIndex,
             verifier_set.clone(),
         )
@@ -403,7 +435,7 @@ mod test {
         };
 
         let event = VerifierSetConfirmation::new(
-            msg_id.to_string().parse().unwrap(),
+            msg_id,
             MessageIdFormat::Base58TxDigestAndEventIndex,
             verifier_set,
         );
@@ -423,7 +455,7 @@ mod test {
         };
 
         let event = VerifierSetConfirmation::new(
-            msg_id.to_string().parse().unwrap(),
+            &msg_id.to_string(),
             MessageIdFormat::Base58TxDigestAndEventIndex,
             verifier_set,
         );

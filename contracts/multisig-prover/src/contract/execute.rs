@@ -1,66 +1,56 @@
 use std::collections::{BTreeMap, HashSet};
 
+use axelar_wasm_std::permission_control::Permission;
+use axelar_wasm_std::snapshot::{Participant, Snapshot};
+use axelar_wasm_std::{permission_control, FnExt, MajorityThreshold, VerificationStatus};
 use cosmwasm_std::{
-    to_json_binary, wasm_execute, Addr, DepsMut, Env, MessageInfo, QuerierWrapper, QueryRequest,
-    Response, Storage, SubMsg, WasmQuery,
+    to_json_binary, wasm_execute, Addr, DepsMut, Env, QuerierWrapper, QueryRequest, Response,
+    Storage, SubMsg, WasmQuery,
 };
+use error_stack::{report, ResultExt};
 use itertools::Itertools;
-
-use axelar_wasm_std::{
-    snapshot::{Participant, Snapshot},
-    FnExt, MajorityThreshold, VerificationStatus,
-};
-use multisig::{msg::Signer, verifier_set::VerifierSet};
+use multisig::msg::Signer;
+use multisig::verifier_set::VerifierSet;
 use router_api::{ChainName, CrossChainId, Message};
 use service_registry::state::{Service, WeightedVerifier};
 
-use crate::{
-    contract::START_MULTISIG_REPLY_ID,
-    error::ContractError,
-    payload::Payload,
-    state::{Config, CONFIG, CURRENT_VERIFIER_SET, NEXT_VERIFIER_SET, PAYLOAD, REPLY_TRACKER},
+use crate::contract::START_MULTISIG_REPLY_ID;
+use crate::error::ContractError;
+use crate::payload::Payload;
+use crate::state::{
+    Config, CONFIG, CURRENT_VERIFIER_SET, NEXT_VERIFIER_SET, PAYLOAD, REPLY_TRACKER,
 };
-
-pub fn require_admin(deps: &DepsMut, info: MessageInfo) -> Result<(), ContractError> {
-    match CONFIG.load(deps.storage)?.admin {
-        admin if admin == info.sender => Ok(()),
-        _ => Err(ContractError::Unauthorized),
-    }
-}
-
-pub fn require_governance(deps: &DepsMut, info: MessageInfo) -> Result<(), ContractError> {
-    match CONFIG.load(deps.storage)?.governance {
-        governance if governance == info.sender => Ok(()),
-        _ => Err(ContractError::Unauthorized),
-    }
-}
 
 pub fn construct_proof(
     deps: DepsMut,
     message_ids: Vec<CrossChainId>,
 ) -> error_stack::Result<Response, ContractError> {
     let config = CONFIG.load(deps.storage).map_err(ContractError::from)?;
-    let payload_id = message_ids.as_slice().into();
 
-    let messages = get_messages(
+    let messages = messages(
         deps.querier,
         message_ids,
         config.gateway.clone(),
         config.chain_name.clone(),
     )?;
 
-    let payload = match PAYLOAD
+    let payload = Payload::Messages(messages);
+    let payload_id = payload.id();
+
+    match PAYLOAD
         .may_load(deps.storage, &payload_id)
         .map_err(ContractError::from)?
     {
-        Some(payload) => payload,
+        Some(stored_payload) => {
+            if stored_payload != payload {
+                return Err(report!(ContractError::PayloadMismatch))
+                    .attach_printable_lazy(|| format!("{:?}", stored_payload));
+            }
+        }
         None => {
-            let payload = Payload::Messages(messages);
             PAYLOAD
                 .save(deps.storage, &payload_id, &payload)
                 .map_err(ContractError::from)?;
-
-            payload
         }
     };
 
@@ -89,7 +79,7 @@ pub fn construct_proof(
     Ok(Response::new().add_submessage(SubMsg::reply_on_success(wasm_msg, START_MULTISIG_REPLY_ID)))
 }
 
-fn get_messages(
+fn messages(
     querier: QuerierWrapper,
     message_ids: Vec<CrossChainId>,
     gateway: Addr,
@@ -97,7 +87,7 @@ fn get_messages(
 ) -> Result<Vec<Message>, ContractError> {
     let length = message_ids.len();
 
-    let query = gateway_api::msg::QueryMsg::GetOutgoingMessages { message_ids };
+    let query = gateway_api::msg::QueryMsg::OutgoingMessages(message_ids);
     let messages: Vec<Message> = querier.query(&QueryRequest::Wasm(WasmQuery::Smart {
         contract_addr: gateway.into(),
         msg: to_json_binary(&query)?,
@@ -109,14 +99,17 @@ fn get_messages(
         "violated invariant: returned gateway messages count mismatch"
     );
 
-    if messages
+    if let Some(wrong_destination) = messages
         .iter()
-        .any(|msg| msg.destination_chain != chain_name)
+        .find(|msg| msg.destination_chain != chain_name)
     {
-        panic!("violated invariant: messages from different chain found");
+        Err(ContractError::InvalidDestinationChain {
+            expected: chain_name,
+            actual: wrong_destination.destination_chain.clone(),
+        })
+    } else {
+        Ok(messages)
     }
-
-    Ok(messages)
 }
 
 fn make_verifier_set(
@@ -124,7 +117,7 @@ fn make_verifier_set(
     env: &Env,
     config: &Config,
 ) -> Result<VerifierSet, ContractError> {
-    let active_verifiers_query = service_registry::msg::QueryMsg::GetActiveVerifiers {
+    let active_verifiers_query = service_registry::msg::QueryMsg::ActiveVerifiers {
         service_name: config.service_name.clone(),
         chain_name: config.chain_name.clone(),
     };
@@ -139,7 +132,7 @@ fn make_verifier_set(
         .querier
         .query::<Service>(&QueryRequest::Wasm(WasmQuery::Smart {
             contract_addr: config.service_registry.to_string(),
-            msg: to_json_binary(&service_registry::msg::QueryMsg::GetService {
+            msg: to_json_binary(&service_registry::msg::QueryMsg::Service {
                 service_name: config.service_name.clone(),
             })?,
         }))?
@@ -148,7 +141,7 @@ fn make_verifier_set(
     let participants_with_pubkeys = verifiers
         .into_iter()
         .filter_map(|verifier| {
-            let pub_key_query = multisig::msg::QueryMsg::GetPublicKey {
+            let pub_key_query = multisig::msg::QueryMsg::PublicKey {
                 verifier_address: verifier.verifier_info.address.to_string(),
                 key_type: config.key_type,
             };
@@ -183,7 +176,7 @@ fn make_verifier_set(
     ))
 }
 
-fn get_next_verifier_set(
+fn next_verifier_set(
     deps: &DepsMut,
     env: &Env,
     config: &Config,
@@ -252,7 +245,7 @@ pub fn update_verifier_set(
             ))
         }
         Some(cur_verifier_set) => {
-            let new_verifier_set = get_next_verifier_set(&deps, &env, &config)?
+            let new_verifier_set = next_verifier_set(&deps, &env, &config)?
                 .ok_or(ContractError::VerifierSetUnchanged)?;
 
             save_next_verifier_set(deps.storage, &new_verifier_set)?;
@@ -303,9 +296,7 @@ fn ensure_verifier_set_verification(
     config: &Config,
     deps: &DepsMut,
 ) -> Result<(), ContractError> {
-    let query = voting_verifier::msg::QueryMsg::GetVerifierSetStatus {
-        new_verifier_set: verifier_set.clone(),
-    };
+    let query = voting_verifier::msg::QueryMsg::VerifierSetStatus(verifier_set.clone());
 
     let status: VerificationStatus = deps.querier.query(&QueryRequest::Wasm(WasmQuery::Smart {
         contract_addr: config.voting_verifier.to_string(),
@@ -322,9 +313,12 @@ fn ensure_verifier_set_verification(
 pub fn confirm_verifier_set(deps: DepsMut, sender: Addr) -> Result<Response, ContractError> {
     let config = CONFIG.load(deps.storage)?;
 
-    let verifier_set = NEXT_VERIFIER_SET.load(deps.storage)?;
+    let verifier_set = NEXT_VERIFIER_SET
+        .may_load(deps.storage)?
+        .ok_or(ContractError::NoVerifierSetToConfirm)?;
 
-    if sender != config.governance {
+    let sender_role = permission_control::sender_role(deps.storage, &sender)?;
+    if !sender_role.contains(Permission::Governance) {
         ensure_verifier_set_verification(&verifier_set, &config, &deps)?;
     }
 
@@ -415,33 +409,23 @@ pub fn update_signing_threshold(
 }
 
 pub fn update_admin(deps: DepsMut, new_admin_address: String) -> Result<Response, ContractError> {
-    CONFIG.update(
-        deps.storage,
-        |mut config| -> Result<Config, ContractError> {
-            config.admin = deps.api.addr_validate(&new_admin_address)?;
-            Ok(config)
-        },
-    )?;
+    let new_admin = deps.api.addr_validate(&new_admin_address)?;
+    permission_control::set_admin(deps.storage, &new_admin)?;
     Ok(Response::new())
 }
 
 #[cfg(test)]
 mod tests {
-    use axelar_wasm_std::Threshold;
-    use cosmwasm_std::{
-        testing::{mock_dependencies, mock_env},
-        Addr,
-    };
-    use router_api::ChainName;
-
-    use crate::{
-        execute::should_update_verifier_set,
-        state::{Config, NEXT_VERIFIER_SET},
-        test::test_data,
-    };
     use std::collections::BTreeMap;
 
-    use super::{different_set_in_progress, get_next_verifier_set};
+    use axelar_wasm_std::Threshold;
+    use cosmwasm_std::testing::{mock_dependencies, mock_env};
+    use cosmwasm_std::Addr;
+    use router_api::ChainName;
+
+    use super::{different_set_in_progress, next_verifier_set, should_update_verifier_set};
+    use crate::state::{Config, NEXT_VERIFIER_SET};
+    use crate::test::test_data;
 
     #[test]
     fn should_update_verifier_set_no_change() {
@@ -547,21 +531,19 @@ mod tests {
     }
 
     #[test]
-    fn get_next_verifier_set_should_return_pending() {
+    fn next_verifier_set_should_return_pending() {
         let mut deps = mock_dependencies();
         let env = mock_env();
         let new_verifier_set = test_data::new_verifier_set();
         NEXT_VERIFIER_SET
             .save(deps.as_mut().storage, &new_verifier_set)
             .unwrap();
-        let ret_verifier_set = get_next_verifier_set(&deps.as_mut(), &env, &mock_config());
+        let ret_verifier_set = next_verifier_set(&deps.as_mut(), &env, &mock_config());
         assert_eq!(ret_verifier_set.unwrap().unwrap(), new_verifier_set);
     }
 
     fn mock_config() -> Config {
         Config {
-            admin: Addr::unchecked("doesn't matter"),
-            governance: Addr::unchecked("doesn't matter"),
             gateway: Addr::unchecked("doesn't matter"),
             multisig: Addr::unchecked("doesn't matter"),
             coordinator: Addr::unchecked("doesn't matter"),

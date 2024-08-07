@@ -1,6 +1,6 @@
 [package]
 name = "multisig"
-version = "0.4.0"
+version = "1.0.0"
 rust-version = { workspace = true }
 edition = "2021"
 description = "Multisig contract"
@@ -40,8 +40,7 @@ optimize = """docker run --rm -v "$(pwd)":/code \
 """
 
 [dependencies]
-axelar-wasm-std = { workspace = true }
-axelar-wasm-std-derive = { workspace = true }
+axelar-wasm-std = { workspace = true, features = ["derive"] }
 cosmwasm-crypto = "1.2.7"
 cosmwasm-schema = { workspace = true }
 cosmwasm-std = { workspace = true }
@@ -54,6 +53,7 @@ error-stack = { workspace = true }
 getrandom = { version = "0.2", default-features = false, features = ["custom"] }
 itertools = "0.11.0"
 k256 = { version = "0.13.1", features = ["ecdsa"] }
+msgs-derive = { workspace = true }
 report = { workspace = true }
 rewards = { workspace = true, features = ["library"] }
 router-api = { workspace = true }
@@ -66,6 +66,8 @@ thiserror = { workspace = true }
 [dev-dependencies]
 curve25519-dalek = "4.1.1"
 cw-multi-test = "0.15.1"
+goldie = { workspace = true }
+hex = "0.4"
 
 [lints]
 workspace = true
