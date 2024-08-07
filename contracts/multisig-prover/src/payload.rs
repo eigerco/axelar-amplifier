@@ -55,6 +55,7 @@ impl Payload {
                 &domain_separator,
                 &to_verifier_set(cur_verifier_set)?,
                 &axelar_rkyv_encoding::types::Payload::try_from(self)?,
+                axelar_rkyv_encoding::hasher::generic::Keccak256Hasher::default(),
             )),
         }
     }
@@ -255,7 +256,11 @@ mod test {
             .collect();
         let vs =
             axelar_rkyv_encoding::types::VerifierSet::new(created_at, signers, u256_thereshold);
-        let archived_hash = archived_data.hash_payload_for_verifier_set(&domain_separator, &vs);
+        let archived_hash = archived_data.hash_payload_for_verifier_set(
+            &domain_separator,
+            &vs,
+            axelar_rkyv_encoding::hasher::generic::Keccak256Hasher::default(),
+        );
         assert_eq!(archived_hash, digest_hash)
     }
 }
