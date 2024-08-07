@@ -180,6 +180,7 @@ mod test {
     use tokio::test;
     use tokio::time::{interval, timeout, Duration, Instant};
 
+
     use super::{Error, QueuedBroadcaster};
     use crate::broadcaster::{self, MockBroadcaster};
     use crate::queue::queued_broadcaster::BroadcasterClient;
@@ -242,6 +243,7 @@ mod test {
             });
 
         let mut broadcast_interval = interval(interval_duration);
+
         broadcast_interval.tick().await;
 
         let queued_broadcaster =
@@ -299,8 +301,12 @@ mod test {
             .returning(move |msgs| {
                 assert_eq!(msgs.len(), 9);
 
+
                 Ok(TxResponse::default())
             });
+        let mut broadcast_interval = interval(Duration::from_millis(100));
+        // get rid of tick on startup
+        broadcast_interval.tick().await;
 
         let mut broadcast_interval = interval(interval_duration);
         broadcast_interval.tick().await;

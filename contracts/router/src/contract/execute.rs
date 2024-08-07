@@ -13,6 +13,7 @@ use router_api::{ChainEndpoint, ChainName, Gateway, GatewayDirection, Message};
 use crate::events::{
     ChainFrozen, ChainRegistered, ChainUnfrozen, GatewayInfo, GatewayUpgraded, MessageRouted,
 };
+
 use crate::state::{chain_endpoints, Config};
 use crate::{events, state};
 
@@ -343,6 +344,7 @@ mod test {
             frozen_status: FlagSet::from(GatewayDirection::Incoming),
             msg_id_format: axelar_wasm_std::msg_id::MessageIdFormat::HexTxHashAndEventIndex,
         };
+      
         chain_endpoints()
             .save(deps.as_mut().storage, source_chain.clone(), &chain_endpoint)
             .unwrap();
@@ -384,6 +386,7 @@ mod test {
             frozen_status: FlagSet::from(GatewayDirection::None),
             msg_id_format: axelar_wasm_std::msg_id::MessageIdFormat::HexTxHashAndEventIndex,
         };
+      
         chain_endpoints()
             .save(deps.as_mut().storage, source_chain.clone(), &chain_endpoint)
             .unwrap();
@@ -437,6 +440,7 @@ mod test {
             frozen_status: FlagSet::from(GatewayDirection::Bidirectional),
             msg_id_format: axelar_wasm_std::msg_id::MessageIdFormat::HexTxHashAndEventIndex,
         };
+      
         chain_endpoints()
             .save(
                 deps.as_mut().storage,
@@ -478,6 +482,7 @@ mod test {
             frozen_status: FlagSet::from(GatewayDirection::None),
             msg_id_format: axelar_wasm_std::msg_id::MessageIdFormat::HexTxHashAndEventIndex,
         };
+
         chain_endpoints()
             .save(
                 deps.as_mut().storage,
@@ -544,6 +549,7 @@ mod test {
             frozen_status: FlagSet::from(GatewayDirection::None),
             msg_id_format: axelar_wasm_std::msg_id::MessageIdFormat::Base58TxDigestAndEventIndex,
         };
+      
         chain_endpoints()
             .save(
                 deps.as_mut().storage,
@@ -626,6 +632,7 @@ mod test {
             frozen_status: FlagSet::from(GatewayDirection::None),
             msg_id_format: axelar_wasm_std::msg_id::MessageIdFormat::HexTxHashAndEventIndex,
         };
+
         chain_endpoints()
             .save(
                 deps.as_mut().storage,
@@ -690,6 +697,7 @@ mod test {
             frozen_status: FlagSet::from(GatewayDirection::None),
             msg_id_format: axelar_wasm_std::msg_id::MessageIdFormat::HexTxHashAndEventIndex,
         };
+
         chain_endpoints()
             .save(
                 deps.as_mut().storage,
@@ -768,6 +776,7 @@ mod test {
             frozen_status: FlagSet::from(GatewayDirection::None),
             msg_id_format: axelar_wasm_std::msg_id::MessageIdFormat::HexTxHashAndEventIndex,
         };
+
         chain_endpoints()
             .save(
                 deps.as_mut().storage,

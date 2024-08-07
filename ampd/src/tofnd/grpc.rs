@@ -129,3 +129,17 @@ impl Multisig for MultisigClient {
             })
     }
 }
+
+#[derive(Sequence)]
+struct Asn1Signature<'a> {
+    pub signature_algorithm: AlgorithmIdentifierRef<'a>,
+    pub signature: BitStringRef<'a>,
+}
+
+fn parse_der_ed25519_signature(der_sig: &[u8]) -> Result<Signature> {
+    let der_decoded = Asn1Signature::from_der(der_sig).change_context(Error::ParsingFailed)?;
+
+    ed25519_dalek::Signature::from_slice(der_decoded.signature.raw_bytes())
+        .map(|s| s.to_vec())
+        .change_context(Error::ParsingFailed)
+}
