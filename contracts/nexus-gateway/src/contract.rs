@@ -407,4 +407,228 @@ mod tests {
         )
         .unwrap();
     }
+
+    #[test]
+    fn route_to_router_unauthorized() {
+        let mut deps = mock_dependencies();
+        instantiate_contract(deps.as_mut());
+
+        let res = execute(
+            deps.as_mut(),
+            mock_env(),
+            mock_info("unauthorized", &[]),
+            ExecuteMsg::RouteMessagesFromNexus(vec![]),
+        );
+
+        assert!(res.is_err_and(|err| err_contains!(
+            err.report,
+            permission_control::Error,
+            permission_control::Error::AddressNotWhitelisted { .. }
+        )));
+    }
+
+    #[test]
+    fn route_to_router_with_no_msg() {
+        let mut deps = mock_dependencies();
+        instantiate_contract(deps.as_mut());
+
+        let res = execute(
+            deps.as_mut(),
+            mock_env(),
+            mock_info(NEXUS, &[]),
+            ExecuteMsg::RouteMessagesFromNexus(vec![]),
+        );
+
+        assert!(res.is_ok_and(|res| res.messages.is_empty()));
+    }
+
+    #[test]
+    fn route_to_router_with_msgs() {
+        let mut deps = mock_dependencies();
+        instantiate_contract(deps.as_mut());
+
+        let res = execute(
+            deps.as_mut(),
+            mock_env(),
+            mock_info(NEXUS, &[]),
+            ExecuteMsg::RouteMessagesFromNexus(nexus_messages()),
+        );
+
+        assert!(res.is_ok_and(|res| {
+            if res.messages.len() != 1 {
+                return false;
+            }
+
+            match &res.messages[0].msg {
+                CosmosMsg::Wasm(WasmMsg::Execute {
+                    contract_addr,
+                    msg,
+                    funds,
+                }) => {
+                    if let Ok(router_api::msg::ExecuteMsg::RouteMessages(msgs)) = from_json(msg) {
+                        return *contract_addr == Addr::unchecked(ROUTER)
+                            && msgs.len() == 2
+                            && funds.is_empty();
+                    }
+
+                    false
+                }
+                _ => false,
+            }
+        }));
+    }
+
+    #[test]
+    fn route_to_nexus_unauthorized() {
+        let mut deps = mock_dependencies();
+        instantiate_contract(deps.as_mut());
+
+        let res = execute(
+            deps.as_mut(),
+            mock_env(),
+            mock_info("unauthorized", &[]),
+            ExecuteMsg::RouteMessages(vec![]),
+        );
+
+        assert!(res.is_err_and(|err| err_contains!(
+            err.report,
+            permission_control::Error,
+            permission_control::Error::AddressNotWhitelisted { .. }
+        )));
+    }
+
+    #[test]
+    fn route_to_nexus_with_no_msg() {
+        let mut deps = mock_dependencies();
+        instantiate_contract(deps.as_mut());
+
+        let res = execute(
+            deps.as_mut(),
+            mock_env(),
+            mock_info(ROUTER, &[]),
+            ExecuteMsg::RouteMessages(vec![]),
+        );
+
+        assert!(res.is_ok_and(|res| res.messages.is_empty()));
+    }
+
+    #[test]
+    fn route_to_nexus_with_msgs_only_route_once() {
+        let mut deps = mock_dependencies();
+        instantiate_contract(deps.as_mut());
+
+        let msgs = router_messages();
+        let res = execute(
+            deps.as_mut(),
+            mock_env(),
+            mock_info(ROUTER, &[]),
+            ExecuteMsg::RouteMessages(msgs.clone()),
+        );
+
+        assert!(res.is_ok_and(|res| res.messages.len() == 2));
+
+        let res = execute(
+            deps.as_mut(),
+            mock_env(),
+            mock_info(ROUTER, &[]),
+            ExecuteMsg::RouteMessages(msgs.clone()),
+        );
+
+        assert!(res.is_ok_and(|res| res.messages.is_empty()));
+    }
+
+    fn nexus_messages() -> Vec<nexus::Message> {
+        let msg_ids = [
+            HexTxHashAndEventIndex {
+                tx_hash: vec![0x2f; 32].try_into().unwrap(),
+                event_index: 100,
+            },
+            HexTxHashAndEventIndex {
+                tx_hash: vec![0x23; 32].try_into().unwrap(),
+                event_index: 1000,
+            },
+        ];
+        let msgs = vec![
+            nexus::Message {
+                source_chain: "sourceChain".parse().unwrap(),
+                source_address: "0xb860".parse().unwrap(),
+                destination_address: "0xD419".parse().unwrap(),
+                destination_chain: "destinationChain".parse().unwrap(),
+                payload_hash: decode(
+                    "bb9b5566c2f4876863333e481f4698350154259ffe6226e283b16ce18a64bcf1",
+                )
+                .unwrap()
+                .try_into()
+                .unwrap(),
+                source_tx_id: msg_ids[0].tx_hash.to_vec().try_into().unwrap(),
+                source_tx_index: msg_ids[0].event_index as u64,
+                id: msg_ids[0].to_string(),
+            },
+            nexus::Message {
+                source_chain: "sourceChain".parse().unwrap(),
+                source_address: "0xc860".parse().unwrap(),
+                destination_address: "0xA419".parse().unwrap(),
+                destination_chain: "destinationChain".parse().unwrap(),
+                payload_hash: decode(
+                    "cb9b5566c2f4876853333e481f4698350154259ffe6226e283b16ce18a64bcf1",
+                )
+                .unwrap()
+                .try_into()
+                .unwrap(),
+                source_tx_id: msg_ids[1].tx_hash.to_vec().try_into().unwrap(),
+                source_tx_index: msg_ids[1].event_index as u64,
+                id: msg_ids[1].to_string(),
+            },
+        ];
+        msgs
+    }
+
+    fn router_messages() -> Vec<router_api::Message> {
+        let msgs = vec![
+            router_api::Message {
+                cc_id: CrossChainId {
+                    source_chain: "sourceChain".parse().unwrap(),
+                    message_id: "0x2fe4:0".parse().unwrap(),
+                },
+                source_address: "0xb860".parse().unwrap(),
+                destination_address: "0xD419".parse().unwrap(),
+                destination_chain: "destinationChain".parse().unwrap(),
+                payload_hash: decode(
+                    "bb9b5566c2f4876863333e481f4698350154259ffe6226e283b16ce18a64bcf1",
+                )
+                .unwrap()
+                .try_into()
+                .unwrap(),
+            },
+            router_api::Message {
+                cc_id: CrossChainId {
+                    source_chain: "sourceChain".parse().unwrap(),
+                    message_id: "0x6b33:10".parse().unwrap(),
+                },
+                source_address: "0x70725".parse().unwrap(),
+                destination_address: "0x7FAD".parse().unwrap(),
+                destination_chain: "destinationChain".parse().unwrap(),
+                payload_hash: decode(
+                    "bb9b5566c2f4876863333e481f4698350154259ffe6226e283b16ce18a64bcf1",
+                )
+                .unwrap()
+                .try_into()
+                .unwrap(),
+            },
+        ];
+        msgs
+    }
+
+    fn instantiate_contract(deps: DepsMut) {
+        instantiate(
+            deps,
+            mock_env(),
+            mock_info("admin", &[]),
+            InstantiateMsg {
+                nexus: NEXUS.to_string(),
+                router: ROUTER.to_string(),
+            },
+        )
+        .unwrap();
+    }
 }

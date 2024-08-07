@@ -203,6 +203,7 @@ mod tests {
     #[test]
     fn migrate_sets_contract_version() {
         let mut deps = mock_dependencies();
+        v0_4_0::tests::instantiate_contract(deps.as_mut(), "denom");
 
         #[allow(deprecated)]
         migrations::v1_0_0::tests::instantiate_contract(deps.as_mut(), "denom");

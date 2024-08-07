@@ -3,6 +3,8 @@ use into_inner_derive::IntoInner;
 
 use crate::nonempty::Error;
 
+use crate::nonempty::Error;
+
 #[cw_serde]
 #[derive(IntoInner)]
 pub struct Timestamp(cosmwasm_std::Timestamp);

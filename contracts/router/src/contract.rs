@@ -9,7 +9,6 @@ use router_api::msg::{ExecuteMsg, QueryMsg};
 
 use crate::contract::migrations::v0_3_3;
 use crate::events::RouterInstantiated;
-use crate::migrations;
 use crate::msg::InstantiateMsg;
 use crate::state;
 use crate::state::{load_chain_by_gateway, load_config, Config};
@@ -31,6 +30,7 @@ pub fn migrate(
     // this needs to be the last thing to do during migration,
     // because previous migration steps should check the old version
     cw2::set_contract_version(deps.storage, CONTRACT_NAME, CONTRACT_VERSION)?;
+
     Ok(Response::default())
 }
 

@@ -310,6 +310,7 @@ mod test {
                     payer: None,
                 })
             });
+
         broadcaster
             .expect_sender_address()
             .once()

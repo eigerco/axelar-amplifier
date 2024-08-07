@@ -8,6 +8,7 @@ use error_stack::ResultExt;
 use gateway_api::msg::{ExecuteMsg, QueryMsg};
 use router_api::client::Router;
 
+use crate::contract::migrations::v0_2_3;
 use crate::msg::InstantiateMsg;
 use crate::state;
 use crate::state::Config;

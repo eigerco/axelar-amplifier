@@ -91,7 +91,7 @@ pub fn verify_messages(
     deps: DepsMut,
     env: Env,
     messages: Vec<Message>,
-) -> Result<Response, ContractError> {
+) -> Result<Response, Report<ContractError>> {
     if messages.is_empty() {
         return Err(report!(ContractError::EmptyMessages));
     }
@@ -289,6 +289,11 @@ pub fn end_poll(deps: DepsMut, env: Env, poll_id: PollId) -> Result<Response, Co
         .range(deps.storage, None, None, cosmwasm_std::Order::Ascending)
         .try_collect()
         .change_context(ContractError::StorageError)?;
+
+    let votes: Vec<(String, Vec<Vote>)> = VOTES
+        .prefix(poll_id)
+        .range(deps.storage, None, None, cosmwasm_std::Order::Ascending)
+        .try_collect()?;
 
     let poll_result = match &poll {
         Poll::Messages(poll) | Poll::ConfirmVerifierSet(poll) => {

@@ -369,7 +369,24 @@ where
                         .unwrap(),
                         self.block_height_monitor.latest_block_height(),
                     ),
-                    stream_timeout,
+                    event_processor_config.clone(),
+                ),
+                handlers::config::Config::StarknetMsgVerifier {
+                    cosmwasm_contract,
+                    rpc_url,
+                    rpc_timeout: _,
+                } => self.create_handler_task(
+                    "starknet-msg-verifier",
+                    handlers::starknet_verify_msg::Handler::new(
+                        verifier.clone(),
+                        cosmwasm_contract,
+                        starknet::json_rpc::Client::new_with_transport(HttpTransport::new(
+                            &rpc_url,
+                        ))
+                        .unwrap(),
+                        self.block_height_monitor.latest_block_height(),
+                    ),
+                    event_processor_config.clone(),
                 ),
             };
             self.event_processor = self.event_processor.add_task(task);

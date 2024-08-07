@@ -10,7 +10,7 @@ use crate::contract::Error;
 use crate::events::GatewayEvent;
 use crate::state;
 
-pub fn verify_messages(
+pub(crate) fn verify_messages(
     verifier: &voting_verifier::Client,
     msgs: Vec<Message>,
 ) -> Result<Response, Error> {

@@ -5,6 +5,8 @@ use into_inner_derive::IntoInner;
 
 use crate::nonempty::Error;
 
+use crate::nonempty::Error;
+
 #[cw_serde]
 #[serde(try_from = "cosmwasm_std::Uint64")]
 #[serde(into = "cosmwasm_std::Uint64")]
@@ -185,6 +187,12 @@ mod tests {
 
         // non-zero
         assert!(Uint256::try_from(cosmwasm_std::Uint128::one()).is_ok());
+    }
+
+    #[test]
+    fn convert_from_uint128_to_non_empty_uint128() {
+        assert!(Uint128::try_from(0u128).is_err());
+        assert!(Uint128::try_from(1u128).is_ok());
     }
 
     #[test]

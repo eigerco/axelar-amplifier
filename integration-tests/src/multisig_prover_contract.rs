@@ -7,6 +7,9 @@ use multisig_prover::Encoder;
 use crate::contract::Contract;
 use crate::protocol::Protocol;
 
+use crate::contract::Contract;
+use crate::protocol::Protocol;
+
 #[derive(Clone)]
 pub struct MultisigProverContract {
     pub contract_addr: Addr,
