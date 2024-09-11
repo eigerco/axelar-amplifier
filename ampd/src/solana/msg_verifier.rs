@@ -1,5 +1,6 @@
 use axelar_wasm_std::voting::Vote;
 use gmp_gateway::events::{ArchivedCallContract, ArchivedGatewayEvent, GatewayEvent};
+use solana_sdk::pubkey::Pubkey;
 use solana_transaction_status::{
     option_serializer::OptionSerializer, EncodedConfirmedTransactionWithStatusMeta,
 };
@@ -18,9 +19,8 @@ impl PartialEq<&Message> for &ArchivedGatewayEvent {
                 payload: _,
                 payload_hash,
             }) => {
-                let sender = String::from_utf8(sender.to_vec()); // todo. review this string conversion.
-                sender.is_ok()
-                    && sender.unwrap() == msg.source_address
+                let sender = Pubkey::from(*sender).to_string();
+                    sender == msg.source_address
                     && msg.destination_chain == destination_chain.as_str()
                     && msg.destination_address == destination_address.as_str()
                     && *payload_hash == msg.payload_hash
