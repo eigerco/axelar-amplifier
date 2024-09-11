@@ -56,7 +56,7 @@ fn hash_verifier_set(verifier_set: &VerifierSet) -> [u8; 32] {
     let mut hasher = Keccak256::new();
 
     // Length prefix the bytes to be hashed to prevent hash collisions
-    hasher.update(verifier_set.signers.len().to_be_bytes());
+    hasher.update(verifier_set.signers.len().to_le_bytes());
 
     verifier_set.signers.values().for_each(|signer| {
         match signer.pub_key {
@@ -68,7 +68,7 @@ fn hash_verifier_set(verifier_set: &VerifierSet) -> [u8; 32] {
     });
 
     hasher.update(verifier_set.threshold.to_le_bytes());
-    hasher.update(verifier_set.created_at.to_be_bytes());
+    hasher.update(verifier_set.created_at.to_le_bytes());
 
     hasher.finalize().into()
 }
