@@ -4,6 +4,7 @@ use solana_sdk::pubkey::Pubkey;
 use solana_transaction_status::{
     option_serializer::OptionSerializer, EncodedConfirmedTransactionWithStatusMeta,
 };
+use std::str::FromStr;
 use std::sync::Arc;
 use tracing::error;
 
@@ -19,8 +20,9 @@ impl PartialEq<&Message> for &ArchivedGatewayEvent {
                 payload: _,
                 payload_hash,
             }) => {
-                let sender = Pubkey::from(*sender).to_string();
-                    sender == msg.source_address
+                let msg_sender = Pubkey::from_str(msg.source_address.as_str());
+                msg_sender.is_ok()
+                    && sender == &msg_sender.unwrap().to_bytes()
                     && msg.destination_chain == destination_chain.as_str()
                     && msg.destination_address == destination_address.as_str()
                     && *payload_hash == msg.payload_hash
@@ -117,10 +119,6 @@ fn find_first_log_message_match(
         match GatewayEvent::parse_log(log) {
             Some(parsed_ev) => {
                 let arch_gw_event = parsed_ev.parse();
-
-                println!("{:?}<<<______parsed__________", arch_gw_event);
-                println!("{:?}<<<______parsed_______msg___", message);
-
                 let verified = arch_gw_event == message
                     && *tx_id == message.tx_id
                     && account_keys.contains(source_gateway_address);
@@ -180,16 +178,16 @@ mod tests {
         // tests/solana_tx.json file and use it as test fixture. See the "logMessages" field
         // on it.
 
-        println!(
-            "------> {}",
-            get_tx_log_message(
-                source_address.clone(),
-                destination_chain.clone().into_bytes(),
-                destination_address.clone().into_bytes(),
-                payload,
-                payload_hash
-            )
-        );
+        // println!(
+        //     "------> {}",
+        //     get_tx_log_message(
+        //         source_address.clone(),
+        //         destination_chain.clone().into_bytes(),
+        //         destination_address.clone().into_bytes(),
+        //         payload,
+        //         payload_hash
+        //     )
+        // );
 
         // We prefer to parse a tx from a json file, as its cleaner than filling types.
         // Changing this "golden file" may result in broken tests.
