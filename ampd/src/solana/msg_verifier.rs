@@ -4,8 +4,8 @@ use solana_sdk::pubkey::Pubkey;
 use solana_transaction_status::{
     option_serializer::OptionSerializer, EncodedConfirmedTransactionWithStatusMeta,
 };
-use std::str::FromStr;
 use std::sync::Arc;
+use std::str::FromStr;
 use tracing::error;
 
 use crate::handlers::solana_verify_msg::Message;

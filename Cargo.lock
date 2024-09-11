@@ -908,7 +908,7 @@ checksum = "0c4b4d0bd25bd0b74681c0ad21497610ce1b7c91b1022cd21c80c6fbdd9476b0"
 [[package]]
 name = "axelar-message-primitives"
 version = "0.1.0"
-source = "git+https://github.com/eigerco/solana-axelar.git?branch=main#c1df988b43539b6c92872e321e16d9a0f4f5f3ec"
+source = "git+https://github.com/eigerco/solana-axelar.git?branch=main#80171c678822ea7ba51101b65a21520e048f8a81"
 dependencies = [
  "alloy-sol-types",
  "anyhow",
@@ -942,7 +942,7 @@ dependencies = [
 [[package]]
 name = "axelar-rkyv-encoding"
 version = "0.1.0"
-source = "git+https://github.com/eigerco/solana-axelar.git?branch=main#c1df988b43539b6c92872e321e16d9a0f4f5f3ec"
+source = "git+https://github.com/eigerco/solana-axelar.git?branch=main#80171c678822ea7ba51101b65a21520e048f8a81"
 dependencies = [
  "bnum",
  "bs58 0.5.1",
@@ -3947,7 +3947,7 @@ dependencies = [
 [[package]]
 name = "gmp-gateway"
 version = "0.1.0"
-source = "git+https://github.com/eigerco/solana-axelar.git?branch=main#c1df988b43539b6c92872e321e16d9a0f4f5f3ec"
+source = "git+https://github.com/eigerco/solana-axelar.git?branch=main#80171c678822ea7ba51101b65a21520e048f8a81"
 dependencies = [
  "axelar-message-primitives",
  "axelar-rkyv-encoding 0.1.0 (git+https://github.com/eigerco/solana-axelar.git?branch=main)",
@@ -7055,7 +7055,7 @@ dependencies = [
 [[package]]
 name = "program-utils"
 version = "0.1.0"
-source = "git+https://github.com/eigerco/solana-axelar.git?branch=main#c1df988b43539b6c92872e321e16d9a0f4f5f3ec"
+source = "git+https://github.com/eigerco/solana-axelar.git?branch=main#80171c678822ea7ba51101b65a21520e048f8a81"
 dependencies = [
  "borsh 1.5.1",
  "solana-program",
