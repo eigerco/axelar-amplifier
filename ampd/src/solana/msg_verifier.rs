@@ -4,8 +4,8 @@ use solana_sdk::pubkey::Pubkey;
 use solana_transaction_status::{
     option_serializer::OptionSerializer, EncodedConfirmedTransactionWithStatusMeta,
 };
-use std::sync::Arc;
 use std::str::FromStr;
+use std::sync::Arc;
 use tracing::error;
 
 use crate::handlers::solana_verify_msg::Message;
@@ -20,9 +20,12 @@ impl PartialEq<&Message> for &ArchivedGatewayEvent {
                 payload: _,
                 payload_hash,
             }) => {
-                let msg_sender = Pubkey::from_str(msg.source_address.as_str());
-                msg_sender.is_ok()
-                    && sender == &msg_sender.unwrap().to_bytes()
+                
+                let Ok(msg_sender) = Pubkey::from_str(msg.source_address.as_str()) else {
+                    return false;
+                };
+
+                sender == &msg_sender.to_bytes()
                     && msg.destination_chain == destination_chain.as_str()
                     && msg.destination_address == destination_address.as_str()
                     && *payload_hash == msg.payload_hash
