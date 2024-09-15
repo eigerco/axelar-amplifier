@@ -11,6 +11,7 @@ axelar-wasm-std = { workspace = true }
 axum = "0.7.5"
 base64 = "0.21.2"
 bcs = { workspace = true }
+borsh = { version = "1.2.0", features = ["derive"] }
 clap = { version = "4.2.7", features = ["derive", "cargo"] }
 config = "0.13.2"
 cosmrs = { version = "0.14.0", features = ["cosmwasm", "grpc"] }
@@ -49,6 +50,15 @@ serde = { version = "1.0.147", features = ["derive"] }
 serde_json = { workspace = true }
 serde_with = "3.2.0"
 service-registry = { workspace = true }
+solana-account-decoder = "2.0.1"
+solana-client = "2.0.1"
+solana-program = "2.0.1"
+solana-sdk = "2.0.1"
+solana-rpc-client-api = "2.0.1"
+solana-version = "2.0.1"
+solana-zk-token-sdk = "2.0.1"
+solana-transaction-status = "2.0.1"
+
 sha3 = { workspace = true }
 stellar = { workspace = true }
 stellar-rs = "0.3.2"
@@ -79,6 +89,8 @@ url = "2.3.1"
 valuable = { version = "0.1.0", features = ["derive"] }
 valuable-serde = { version = "0.1.0", features = ["std"] }
 voting-verifier = { workspace = true }
+gmp-gateway = { git = "https://github.com/eigerco/solana-axelar.git", branch = "main" }
+lru = "0.12.3"
 
 [dev-dependencies]
 ed25519-dalek = { workspace = true, features = ["rand_core"] }
@@ -89,6 +101,7 @@ multisig = { workspace = true, features = ["test", "library"] }
 rand = "0.8.5"
 random-string = "1.0.0"
 tokio = { workspace = true, features = ["test-util"] }
+axelar-rkyv-encoding = { workspace = true }
 
 [build-dependencies]
 tonic-build = "0.8.3"

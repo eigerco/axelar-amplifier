@@ -1,5 +1,6 @@
 mod abi;
 mod bcs;
+pub mod rkyv;
 mod stellar_xdr;
 
 use axelar_wasm_std::hash::Hash;
@@ -18,6 +19,7 @@ use crate::payload::Payload;
 pub enum Encoder {
     Abi,
     Bcs,
+    Rkyv,
     StellarXdr,
 }
 
@@ -34,6 +36,7 @@ impl Encoder {
             Encoder::StellarXdr => {
                 stellar_xdr::payload_digest(domain_separator, verifier_set, payload)
             }
+            Encoder::Rkyv => rkyv::payload_digest(domain_separator, verifier_set, payload),
         }
     }
 
@@ -58,6 +61,12 @@ impl Encoder {
                 payload,
             ),
             Encoder::StellarXdr => stellar_xdr::encode_execute_data(verifier_set, sigs, payload),
+            Encoder::Rkyv => rkyv::encode_execute_data(
+                sigs,
+                self.digest(domain_separator, verifier_set, payload)?,
+                verifier_set,
+                payload,
+            ),
         }
     }
 }
@@ -70,6 +79,7 @@ where
     let recovery_transform = match encoder {
         Encoder::Abi => add_27,
         Encoder::Bcs => no_op,
+        Encoder::Rkyv => add_27,
         _ => panic!("unsupported encoder"),
     };
     signers
