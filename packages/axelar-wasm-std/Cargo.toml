@@ -6,8 +6,8 @@ edition = { workspace = true }
 description = "Axelar cosmwasm standard library crate"
 
 exclude = [
-    "contract.wasm",
-    "hash.txt"
+  "contract.wasm",
+  "hash.txt",
 ]
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
@@ -50,6 +50,7 @@ stellar-xdr = { workspace = true }
 strum = { workspace = true }
 sui-types = { workspace = true }
 thiserror = { workspace = true }
+solana-sdk = { workspace = true }
 valuable = { version = "0.1.0", features = ["derive"] }
 
 [dev-dependencies]
