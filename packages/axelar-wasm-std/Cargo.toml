@@ -50,7 +50,7 @@ stellar-xdr = { workspace = true }
 strum = { workspace = true }
 sui-types = { workspace = true }
 thiserror = { workspace = true }
-solana-sdk = { workspace = true }
+solana-program = { workspace = true }
 valuable = { version = "0.1.0", features = ["derive"] }
 
 [dev-dependencies]
