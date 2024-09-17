@@ -59,7 +59,7 @@ serde_json = "1.0.89"
 service-registry = { version = "^1.0.0", path = "contracts/service-registry" }
 sha3 = { version = "0.10.8", default-features = false, features = [] }
 signature-verifier-api = { version = "^1.0.0", path = "packages/signature-verifier-api" }
-axelar-rkyv-encoding = { git = "https://github.com/eigerco/solana-axelar.git", branch = "main" }
+axelar-rkyv-encoding = { git = "https://github.com/eigerco/solana-axelar.git", branch = "devnet-deployment" }
 stellar = { version = "^1.0.0", path = "external-gateways/stellar" }
 stellar-xdr = { version = "21.2.0" }
 strum = { version = "0.25", default-features = false, features = ["derive"] }
