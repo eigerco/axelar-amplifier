@@ -4,7 +4,6 @@ use alloy_primitives::Address;
 use cosmwasm_schema::cw_serde;
 use cosmwasm_std::{Addr, Api};
 use error_stack::{bail, Result, ResultExt};
-use solana_program::pubkey::Pubkey;
 use stellar_xdr::curr::ScAddress;
 use sui_types::SuiAddress;
 
@@ -41,7 +40,12 @@ pub fn validate_address(address: &str, format: &AddressFormat) -> Result<(), Err
                 .change_context(Error::InvalidAddress(address.to_string()))?;
         }
         AddressFormat::Base58Solana => {
-            Pubkey::from_str(address).change_context(Error::InvalidAddress(address.to_string()))?;
+            let pubkey_vec = bs58::decode(address)
+                .into_vec()
+                .change_context(Error::InvalidAddress(address.to_string()))?;
+            if pubkey_vec.len() != 32 {
+                bail!(Error::InvalidAddress(address.to_string()))
+            }
         }
     }
 
