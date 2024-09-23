@@ -40,10 +40,12 @@ pub fn validate_address(address: &str, format: &AddressFormat) -> Result<(), Err
                 .change_context(Error::InvalidAddress(address.to_string()))?;
         }
         AddressFormat::Base58Solana => {
+            const SOLANA_PUBKEY_LEN: usize = 32;
+
             let pubkey_vec = bs58::decode(address)
                 .into_vec()
                 .change_context(Error::InvalidAddress(address.to_string()))?;
-            if pubkey_vec.len() != 32 {
+            if pubkey_vec.len() != SOLANA_PUBKEY_LEN {
                 bail!(Error::InvalidAddress(address.to_string()))
             }
         }
