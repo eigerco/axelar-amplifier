@@ -388,6 +388,18 @@ where
                     ),
                     event_processor_config.clone(),
                 ),
+                handlers::config::Config::StarknetMsgVerifier {
+                    cosmwasm_contract,
+                    rpc_url,
+                    rpc_timeout,
+                } => self.create_handler_task(
+                    "starknet-msg-verifier",
+                    handlers::starknet_verify_msg::Handler::new(
+                        verifier.clone(),
+                        cosmwasm_contract,
+                    ),
+                    event_processor_config.clone(),
+                ),
             };
             self.event_processor = self.event_processor.add_task(task);
         }
