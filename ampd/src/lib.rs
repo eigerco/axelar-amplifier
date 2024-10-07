@@ -14,6 +14,7 @@ use evm::json_rpc::EthereumClient;
 use multiversx_sdk::gateway::GatewayProxy;
 use queue::queued_broadcaster::QueuedBroadcaster;
 use router_api::ChainName;
+use starknet_providers::jsonrpc::HttpTransport;
 use thiserror::Error;
 use tofnd::grpc::{Multisig, MultisigClient};
 use tokio::signal::unix::{signal, SignalKind};
@@ -397,6 +398,11 @@ where
                     handlers::starknet_verify_msg::Handler::new(
                         verifier.clone(),
                         cosmwasm_contract,
+                        starknet::json_rpc::Client::new_with_transport(HttpTransport::new(
+                            &rpc_url,
+                        ))
+                        .unwrap(),
+                        self.block_height_monitor.latest_block_height(),
                     ),
                     event_processor_config.clone(),
                 ),
