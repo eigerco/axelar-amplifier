@@ -897,7 +897,6 @@ dependencies = [
  "hex",
  "itertools 0.11.0",
  "msgs-derive",
- "nexus-gateway",
  "rand",
  "report",
  "router-api",
@@ -4092,6 +4091,7 @@ dependencies = [
  "alloy-primitives",
  "alloy-sol-types",
  "assert_ok",
+ "axelar-core-std",
  "axelar-wasm-std",
  "axelarnet-gateway",
  "client",
@@ -5244,34 +5244,6 @@ dependencies = [
  "pasta_curves",
  "serde",
  "trait-set",
-]
-
-[[package]]
-name = "nexus-gateway"
-version = "1.0.0"
-dependencies = [
- "assert_ok",
- "axelar-core-std",
- "axelar-wasm-std",
- "client",
- "cosmwasm-schema",
- "cosmwasm-std",
- "cw-storage-plus 1.2.0",
- "cw2 1.1.2",
- "error-stack",
- "goldie",
- "hex",
- "mockall 0.11.4",
- "msgs-derive",
- "rand",
- "report",
- "router-api",
- "schemars",
- "serde",
- "serde_json",
- "sha3",
- "thiserror",
- "voting-verifier",
 ]
 
 [[package]]
@@ -6874,8 +6846,9 @@ dependencies = [
 
 [[package]]
 name = "router"
-version = "1.0.0"
+version = "1.0.1"
 dependencies = [
+ "assert_ok",
  "axelar-core-std",
  "axelar-wasm-std",
  "client",
