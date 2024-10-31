@@ -232,6 +232,57 @@ mod test {
         deps
     }
 
+    fn setup_aleo(
+        verifiers: Vec<Verifier>,
+        msg_id_format: &MessageIdFormat,
+    ) -> OwnedDeps<MockStorage, MockApi, MockQuerier, Empty> {
+        // TODO: THIS IS WIP. JUST FOR SANITY TESTING
+        let mut deps = mock_dependencies();
+
+        instantiate(
+            deps.as_mut(),
+            mock_env(),
+            mock_info("admin", &[]),
+            InstantiateMsg {
+                governance_address: GOVERNANCE.parse().unwrap(),
+                service_registry_address: SERVICE_REGISTRY_ADDRESS.parse().unwrap(),
+                service_name: SERVICE_NAME.parse().unwrap(),
+                source_gateway_address:
+                    "aleo1e99v90s6ekwjxpjnly7gnsrwkzgurn48xrgnddj0kjk5rchcvugs5vnzt4"
+                        .parse()
+                        .unwrap(),
+                voting_threshold: initial_voting_threshold(),
+                block_expiry: POLL_BLOCK_EXPIRY.try_into().unwrap(),
+                confirmation_height: 100,
+                source_chain: source_chain(),
+                rewards_address: REWARDS_ADDRESS.parse().unwrap(),
+                msg_id_format: msg_id_format.clone(),
+                address_format: AddressFormat::Aleo,
+            },
+        )
+        .unwrap();
+
+        deps.querier.update_wasm(move |wq| match wq {
+            WasmQuery::Smart { contract_addr, .. } if contract_addr == SERVICE_REGISTRY_ADDRESS => {
+                Ok(to_json_binary(
+                    &verifiers
+                        .clone()
+                        .into_iter()
+                        .map(|v| WeightedVerifier {
+                            verifier_info: v,
+                            weight: VERIFIER_WEIGHT,
+                        })
+                        .collect::<Vec<WeightedVerifier>>(),
+                )
+                .into())
+                .into()
+            }
+            _ => panic!("no mock for this query"),
+        });
+
+        deps
+    }
+
     fn message_id(id: &str, index: u64, msg_id_format: &MessageIdFormat) -> nonempty::String {
         match msg_id_format {
             MessageIdFormat::HexTxHashAndEventIndex => HexTxHashAndEventIndex {
@@ -319,6 +370,12 @@ mod test {
                 should_fail: false,
             },
             TestCase {
+                source_gateway_address:
+                    "aleo1q3t7cjwk9ncxcdxfm8r5ax83mzudd923gffncv5egfjyevfevuyscvcvzj".to_string(),
+                address_format: AddressFormat::Aleo,
+                should_fail: false,
+            },
+            TestCase {
                 source_gateway_address: "0x4f4495243837681061C4743b74B3eEdf548D56A5".to_string(),
                 address_format: AddressFormat::Eip55,
                 should_fail: true,
@@ -348,6 +405,12 @@ mod test {
                         .to_string()
                         .to_uppercase(),
                 address_format: AddressFormat::Sui,
+                should_fail: true,
+            },
+            TestCase {
+                source_gateway_address:
+                    "aleo1q3t7cjwk9ncxcdxfm8r5ax83mzudd923gffncv5egfjyevfevuyscvcvz".to_string(),
+                address_format: AddressFormat::Aleo,
                 should_fail: true,
             },
         ];
@@ -387,6 +450,45 @@ mod test {
                 assert_ok!(result);
             }
         }
+    }
+
+    #[test]
+    fn test_drive() {
+        // TODO: THIS IS WIP. JUST FOR SANITY TESTING
+        let msg_id_format = MessageIdFormat::HexTxHashAndEventIndex;
+        let verifiers = verifiers(2);
+        let mut deps = setup_aleo(verifiers.clone(), &msg_id_format);
+
+        let msg = ExecuteMsg::VerifyMessages(vec![
+            Message {
+                cc_id: CrossChainId::new(source_chain(), message_id("id", 1, &msg_id_format))
+                    .unwrap(),
+                source_address: "aleo1thg4clvgc2d0vpl6jzgnzw7zvdulq7r4xuluw66lq2wg7sw4hszs00d8dd"
+                    .to_owned()
+                    .parse()
+                    .unwrap(),
+                destination_chain: "destination-chain1".parse().unwrap(),
+                destination_address: "destination-address1".parse().unwrap(),
+                payload_hash: [0; 32],
+            },
+            Message {
+                cc_id: CrossChainId::new(source_chain(), message_id("id", 2, &msg_id_format))
+                    .unwrap(),
+                source_address: "aleo1thg4clvgc2d0vpl6jzgnzw7zvdulq7r4xuluw66lq2wg7sw4hszs00d8dd"
+                    .to_owned()
+                    .parse()
+                    .unwrap(),
+                destination_chain: "destination-chain2".parse().unwrap(),
+                destination_address: "destination-address2".parse().unwrap(),
+                payload_hash: [0; 32],
+            },
+        ]);
+        assert_ok!(execute(
+            deps.as_mut(),
+            mock_env(),
+            mock_info(SENDER, &[]),
+            msg
+        ));
     }
 
     #[test]

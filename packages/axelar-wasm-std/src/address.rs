@@ -4,6 +4,7 @@ use alloy_primitives::Address;
 use cosmwasm_schema::cw_serde;
 use cosmwasm_std::{Addr, Api};
 use error_stack::{bail, Result, ResultExt};
+use snarkvm_wasm::console::program::Console;
 use stellar_xdr::curr::ScAddress;
 use sui_types::SuiAddress;
 
@@ -19,6 +20,7 @@ pub enum AddressFormat {
     Eip55,
     Sui,
     Stellar,
+    Aleo,
 }
 
 pub fn validate_address(address: &str, format: &AddressFormat) -> Result<(), Error> {
@@ -37,6 +39,10 @@ pub fn validate_address(address: &str, format: &AddressFormat) -> Result<(), Err
             }
             ScAddress::from_str(address)
                 .change_context(Error::InvalidAddress(address.to_string()))?;
+        }
+        AddressFormat::Aleo => {
+            snarkvm_wasm::console::account::Address::<Console>::from_str(address)
+                .map_err(|_| Error::InvalidAddress(address.to_string()))?;
         }
     }
 
