@@ -4,11 +4,13 @@ use std::str::FromStr;
 use cosmwasm_schema::cw_serde;
 use error_stack::Report;
 
+pub use self::aleo_transaction::AleoTransition;
 pub use self::base_58_event_index::Base58TxDigestAndEventIndex;
 pub use self::base_58_solana_event_index::Base58SolanaTxSignatureAndEventIndex;
 pub use self::tx_hash::HexTxHash;
 pub use self::tx_hash_event_index::HexTxHashAndEventIndex;
 
+mod aleo_transaction;
 mod base_58_event_index;
 mod base_58_solana_event_index;
 mod tx_hash;
@@ -45,6 +47,7 @@ pub enum MessageIdFormat {
     Base58TxDigestAndEventIndex,
     Base58SolanaTxSignatureAndEventIndex,
     HexTxHash,
+    AleoTransition,
 }
 
 // function the router calls to verify msg ids
@@ -60,6 +63,7 @@ pub fn verify_msg_id(message_id: &str, format: &MessageIdFormat) -> Result<(), R
             Base58SolanaTxSignatureAndEventIndex::from_str(message_id).map(|_| ())
         }
         MessageIdFormat::HexTxHash => HexTxHash::from_str(message_id).map(|_| ()),
+        MessageIdFormat::AleoTransition => AleoTransition::from_str(message_id).map(|_| ()),
     }
 }
 

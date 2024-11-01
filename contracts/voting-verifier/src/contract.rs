@@ -314,6 +314,7 @@ mod test {
             .to_string()
             .parse()
             .unwrap(),
+            MessageIdFormat::AleoTransition => unreachable!(),
         }
     }
 

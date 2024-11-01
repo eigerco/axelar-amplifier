@@ -2,7 +2,7 @@ use std::str::FromStr;
 use std::vec::Vec;
 
 use axelar_wasm_std::msg_id::{
-    Base58SolanaTxSignatureAndEventIndex, Base58TxDigestAndEventIndex, HexTxHash,
+    AleoTransition, Base58SolanaTxSignatureAndEventIndex, Base58TxDigestAndEventIndex, HexTxHash,
     HexTxHashAndEventIndex, MessageIdFormat,
 };
 use axelar_wasm_std::voting::{PollId, Vote};
@@ -185,6 +185,13 @@ fn parse_message_id(
                 .map_err(|_| ContractError::InvalidMessageID(message_id.into()))?;
 
             Ok((id.tx_hash_as_hex(), 0))
+        }
+        MessageIdFormat::AleoTransition => {
+            let transission_id = AleoTransition::from_str(message_id)
+                .map_err(|_| ContractError::InvalidMessageID(message_id.into()))?
+                .transition_id()
+                .to_string();
+            Ok((transission_id.try_into()?, 0))
         }
     }
 }
