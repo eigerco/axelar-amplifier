@@ -1,7 +1,8 @@
 use std::str::FromStr;
 
 use alloy_primitives::Address;
-use bech32::{primitives::decode::CheckedHrpstring, Bech32m};
+use bech32::primitives::decode::CheckedHrpstring;
+use bech32::Bech32m;
 use cosmwasm_schema::cw_serde;
 use cosmwasm_std::{Addr, Api};
 use error_stack::{bail, Result, ResultExt};
@@ -13,6 +14,8 @@ use sui_types::SuiAddress;
 pub enum Error {
     #[error("invalid address '{0}'")]
     InvalidAddress(String),
+    #[error("invalid Aleo program name '{0}'")]
+    InvalidAleoProgramName(String),
 }
 
 #[cw_serde]
@@ -21,6 +24,21 @@ pub enum AddressFormat {
     Sui,
     Stellar,
     Aleo,
+}
+
+pub fn validate_contract_address(address: &str, format: &AddressFormat) -> Result<(), Error> {
+    match format {
+        AddressFormat::Aleo => {
+            const PROGRAM_SUFFIX: &str = ".aleo";
+
+            if !address.ends_with(PROGRAM_SUFFIX) {
+                bail!(Error::InvalidAleoProgramName(address.to_string()))
+            }
+
+            Ok(())
+        }
+        _ => validate_address(address, format),
+    }
 }
 
 pub fn validate_address(address: &str, format: &AddressFormat) -> Result<(), Error> {
@@ -44,14 +62,19 @@ pub fn validate_address(address: &str, format: &AddressFormat) -> Result<(), Err
             const ADDRESS_PREFIX: &str = "aleo";
 
             if address.len() != 63 {
-                bail!(Error::InvalidAddress(format!("Invalid account address length: found {}, expected 63", address.len())));
+                bail!(Error::InvalidAddress(format!(
+                    "Invalid account address length: found {}, expected 63",
+                    address.len()
+                )));
             }
 
             let checked = CheckedHrpstring::new::<Bech32m>(address)
                 .change_context(Error::InvalidAddress(address.to_string()))?;
 
             if checked.hrp().as_str() != ADDRESS_PREFIX {
-                bail!(Error::InvalidAddress(format!("'aleo1' address prefix is not matching: {address}")));
+                bail!(Error::InvalidAddress(format!(
+                    "'aleo1' address prefix is not matching: {address}"
+                )));
             }
             if checked.data_part_ascii_no_checksum().is_empty() {
                 bail!(Error::InvalidAddress(address.to_string()))

@@ -1,4 +1,4 @@
-use axelar_wasm_std::address::validate_address;
+use axelar_wasm_std::address::validate_contract_address;
 use axelar_wasm_std::{address, permission_control, FnExt};
 #[cfg(not(feature = "library"))]
 use cosmwasm_std::entry_point;
@@ -31,7 +31,7 @@ pub fn instantiate(
     let governance = address::validate_cosmwasm_address(deps.api, &msg.governance_address)?;
     permission_control::set_governance(deps.storage, &governance)?;
 
-    validate_address(&msg.source_gateway_address, &msg.address_format)
+    validate_contract_address(&msg.source_gateway_address, &msg.address_format)
         .change_context(ContractError::InvalidSourceGatewayAddress)?;
 
     let config = Config {
@@ -247,10 +247,7 @@ mod test {
                 governance_address: GOVERNANCE.parse().unwrap(),
                 service_registry_address: SERVICE_REGISTRY_ADDRESS.parse().unwrap(),
                 service_name: SERVICE_NAME.parse().unwrap(),
-                source_gateway_address:
-                    "aleo1e99v90s6ekwjxpjnly7gnsrwkzgurn48xrgnddj0kjk5rchcvugs5vnzt4"
-                        .parse()
-                        .unwrap(),
+                source_gateway_address: "gateway.aleo".parse().unwrap(),
                 voting_threshold: initial_voting_threshold(),
                 block_expiry: POLL_BLOCK_EXPIRY.try_into().unwrap(),
                 confirmation_height: 100,
@@ -372,7 +369,7 @@ mod test {
             },
             TestCase {
                 source_gateway_address:
-                    "aleo1q3t7cjwk9ncxcdxfm8r5ax83mzudd923gffncv5egfjyevfevuyscvcvzj".to_string(),
+                    "gateway.aleo".to_string(),
                 address_format: AddressFormat::Aleo,
                 should_fail: false,
             },
