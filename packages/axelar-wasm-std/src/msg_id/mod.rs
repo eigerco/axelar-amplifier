@@ -27,6 +27,8 @@ pub enum Error {
     InvalidTxHash(String),
     #[error("invalid tx digest in message id '{0}'")]
     InvalidTxDigest(String),
+    #[error("invalid aleo transition id")]
+    InvalidAleoTransition(String),
 }
 
 /// Any message id format must implement this trait.

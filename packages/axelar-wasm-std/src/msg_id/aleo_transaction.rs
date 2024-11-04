@@ -1,17 +1,17 @@
 use std::str::FromStr;
 
-use error_stack::{Report, ResultExt};
-use snarkvm_wasm::console::network::MainnetV0;
-use snarkvm_wasm::console::program::Network;
+use bech32::primitives::decode::CheckedHrpstring;
+use bech32::Bech32m;
+use error_stack::{bail, Report, ResultExt};
 
 use super::Error;
 
 pub struct AleoTransition {
-    transition_id: <MainnetV0 as Network>::TransitionID,
+    transition_id: String,
 }
 
 impl AleoTransition {
-    pub fn transition_id(&self) -> &<MainnetV0 as Network>::TransitionID {
+    pub fn transition_id(&self) -> &String {
         &self.transition_id
     }
 }
@@ -23,8 +23,21 @@ impl FromStr for AleoTransition {
     where
         Self: Sized,
     {
+        const PREFIX: &str = "au";
+
+        let checked = CheckedHrpstring::new::<Bech32m>(message_id)
+            .change_context(Error::InvalidAleoTransition(message_id.to_owned()))?;
+
+        if checked.hrp().as_str() != PREFIX {
+            bail!(Error::InvalidAleoTransition(message_id.to_owned()));
+        }
+
+        if checked.data_part_ascii_no_checksum().is_empty() {
+            bail!(Error::InvalidAleoTransition(message_id.to_owned()));
+        }
+
         Ok(Self {
-            transition_id: <MainnetV0 as Network>::TransitionID::from_str(message_id).unwrap(),
+            transition_id: message_id.to_owned(),
         })
     }
 }
