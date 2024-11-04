@@ -7,7 +7,6 @@ use cosmwasm_std::{
 };
 use error_stack::ResultExt;
 
-use crate::contract::migrations::v0_5_0;
 use crate::error::ContractError;
 use crate::msg::{ExecuteMsg, InstantiateMsg, QueryMsg};
 use crate::state::{Config, CONFIG};
@@ -111,7 +110,25 @@ pub fn migrate(
     _env: Env,
     _msg: Empty,
 ) -> Result<Response, axelar_wasm_std::error::ContractError> {
-    v0_5_0::migrate(deps.storage)?;
+    // v0_5_0::migrate(deps.storage)?; // TODO: THIS SHOULD BE REVERTED, AND THE CODE ADDED BELOW SHOULD
+    // BE DELETED
+    let prev_config = CONFIG.load(deps.storage)?;
+    CONFIG.remove(deps.storage);
+
+    let config = Config {
+        service_registry_contract: prev_config.service_registry_contract,
+        service_name: prev_config.service_name,
+        source_chain: "Aleo".parse().unwrap(),
+        rewards_contract: prev_config.rewards_contract,
+        block_expiry: prev_config.block_expiry,
+        confirmation_height: prev_config.confirmation_height,
+        msg_id_format: prev_config.msg_id_format,
+        source_gateway_address: "gateway.aleo".parse().unwrap(),
+        voting_threshold: prev_config.voting_threshold,
+        address_format: address::AddressFormat::Aleo,
+    };
+
+    CONFIG.save(deps.storage, &config)?;
 
     Ok(Response::default())
 }
@@ -368,8 +385,7 @@ mod test {
                 should_fail: false,
             },
             TestCase {
-                source_gateway_address:
-                    "gateway.aleo".to_string(),
+                source_gateway_address: "gateway.aleo".to_string(),
                 address_format: AddressFormat::Aleo,
                 should_fail: false,
             },

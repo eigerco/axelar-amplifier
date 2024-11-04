@@ -264,3 +264,4 @@ mod tests {
         pub msg_id_format: MessageIdFormat,
     }
 }
+
