@@ -219,6 +219,8 @@ where
     ) -> Result<App<T>, Error> {
         for config in handler_configs {
             let task = match config {
+                handlers::config::Config::AleoMsgVerifier {} => todo!(),
+                handlers::config::Config::AleoVerifierSetVerifier {} => todo!(),
                 handlers::config::Config::EvmMsgVerifier {
                     chain,
                     cosmwasm_contract,

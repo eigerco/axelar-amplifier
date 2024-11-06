@@ -1,6 +1,6 @@
 use std::str::FromStr;
 
-use aleo_types::AleoAddress;
+use aleo_types::address::Address as AleoAddress;
 use alloy_primitives::Address;
 use cosmwasm_schema::cw_serde;
 use cosmwasm_std::{Addr, Api};

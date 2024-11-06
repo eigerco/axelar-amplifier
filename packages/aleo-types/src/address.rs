@@ -8,17 +8,17 @@ use crate::Error;
 
 const ADDRESS_PREFIX: &str = "aleo";
 
-pub struct AleoAddress {
+pub struct Address {
     address: String,
 }
 
-impl AleoAddress {
+impl Address {
     pub fn address(&self) -> &str {
         self.address.as_str()
     }
 }
 
-impl FromStr for AleoAddress {
+impl FromStr for Address {
     type Err = Report<Error>;
 
     fn from_str(address: &str) -> Result<Self, Error> {

@@ -13,6 +13,7 @@ rust-version = "1.78.0" # be sure there is an optimizer release supporting this 
 edition = "2021"
 
 [workspace.dependencies]
+aleo-types = { path = "packages/aleo-types" }
 alloy-primitives = { version = "0.7.6", default-features = false, features = ["std"] }
 alloy-sol-types = { version = "0.7.6", default-features = false, features = ["std"] }
 anyhow = "1.0.89"
@@ -21,6 +22,7 @@ axelar-wasm-std = { version = "^1.0.0", path = "packages/axelar-wasm-std" }
 axelar-wasm-std-derive = { version = "^1.0.0", path = "packages/axelar-wasm-std-derive" }
 axelarnet-gateway = { version = "^1.0.0", path = "contracts/axelarnet-gateway" }
 bcs = "0.1.5"
+bech32 = "0.11.0"
 client = { version = "^1.0.0", path = "packages/client" }
 coordinator = { version = "^1.0.0", path = "contracts/coordinator" }
 cosmwasm-schema = "1.5.5"

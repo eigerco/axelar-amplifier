@@ -22,6 +22,8 @@ with_prefix!(chain "chain_");
 #[derive(Debug, Deserialize, Serialize, PartialEq)]
 #[serde(tag = "type")]
 pub enum Config {
+    AleoMsgVerifier {},
+    AleoVerifierSetVerifier {},
     EvmMsgVerifier {
         cosmwasm_contract: TMAddress,
         #[serde(flatten, with = "chain")]
@@ -158,6 +160,12 @@ where
         &configs,
         Config::StellarVerifierSetVerifier,
         "Stellar verifier set verifier"
+    )?;
+    ensure_unique_config!(&configs, Config::AleoMsgVerifier, "Aleo message verifier")?;
+    ensure_unique_config!(
+        &configs,
+        Config::AleoVerifierSetVerifier,
+        "Aleo verifier set verifier"
     )?;
 
     Ok(configs)
