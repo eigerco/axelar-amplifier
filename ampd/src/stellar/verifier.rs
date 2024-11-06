@@ -8,8 +8,8 @@ use crate::handlers::stellar_verify_msg::Message;
 use crate::handlers::stellar_verify_verifier_set::VerifierSetConfirmation;
 use crate::stellar::http_client::TxResponse;
 
-const TOPIC_CALLED: &str = "called";
-const TOPIC_ROTATED: &str = "rotated";
+const TOPIC_CONTRACT_CALLED: &str = "contract_called";
+const TOPIC_SIGNERS_ROTATED: &str = "signers_rotated";
 
 impl PartialEq<ContractEventBody> for Message {
     fn eq(&self, event: &ContractEventBody) -> bool {
@@ -25,8 +25,10 @@ impl PartialEq<ContractEventBody> for Message {
             return false;
         };
 
-        let expected_topic: ScVal =
-            ScSymbol(StringM::from_str(TOPIC_CALLED).expect("must convert str to ScSymbol")).into();
+        let expected_topic: ScVal = ScSymbol(
+            StringM::from_str(TOPIC_CONTRACT_CALLED).expect("must convert str to ScSymbol"),
+        )
+        .into();
 
         expected_topic == *symbol
             && (ScVal::Address(self.source_address.clone()) == *source_address)
@@ -48,9 +50,10 @@ impl PartialEq<ContractEventBody> for VerifierSetConfirmation {
             return false;
         };
 
-        let expected_topic: ScVal =
-            ScSymbol(StringM::from_str(TOPIC_ROTATED).expect("must convert str to ScSymbol"))
-                .into();
+        let expected_topic: ScVal = ScSymbol(
+            StringM::from_str(TOPIC_SIGNERS_ROTATED).expect("must convert str to ScSymbol"),
+        )
+        .into();
 
         let Some(weighted_signers_hash) = WeightedSigners::try_from(&self.verifier_set)
             .ok()
@@ -71,8 +74,8 @@ pub fn verify_message(gateway_address: &ScAddress, tx_receipt: &TxResponse, msg:
         gateway_address,
         tx_receipt,
         msg,
-        msg.tx_id.clone(),
-        msg.event_index,
+        msg.message_id.tx_hash_as_hex_no_prefix().to_string(),
+        msg.message_id.event_index,
     )
 }
 
@@ -85,8 +88,11 @@ pub fn verify_verifier_set(
         gateway_address,
         tx_receipt,
         verifier_set_confirmation,
-        verifier_set_confirmation.tx_id.clone(),
-        verifier_set_confirmation.event_index,
+        verifier_set_confirmation
+            .message_id
+            .tx_hash_as_hex_no_prefix()
+            .to_string(),
+        verifier_set_confirmation.message_id.event_index,
     )
 }
 
@@ -95,7 +101,7 @@ fn verify<'a>(
     tx_receipt: &'a TxResponse,
     to_verify: impl PartialEq<&'a ContractEventBody>,
     expected_tx_id: String,
-    expected_event_index: u32,
+    expected_event_index: u64,
 ) -> Vote {
     if expected_tx_id != tx_receipt.transaction_hash {
         return Vote::NotFound;
@@ -123,6 +129,7 @@ fn verify<'a>(
 mod test {
     use std::str::FromStr;
 
+    use axelar_wasm_std::msg_id::HexTxHashAndEventIndex;
     use axelar_wasm_std::voting::Vote;
     use cosmrs::tx::MessageExt;
     use cosmwasm_std::{Addr, HexBinary, Uint128};
@@ -141,7 +148,7 @@ mod test {
     use crate::handlers::stellar_verify_verifier_set::VerifierSetConfirmation;
     use crate::stellar::http_client::TxResponse;
     use crate::stellar::verifier::{
-        verify_message, verify_verifier_set, TOPIC_CALLED, TOPIC_ROTATED,
+        verify_message, verify_verifier_set, TOPIC_CONTRACT_CALLED, TOPIC_SIGNERS_ROTATED,
     };
     use crate::types::{EVMAddress, Hash};
     use crate::PREFIX;
@@ -149,7 +156,7 @@ mod test {
     #[test]
     fn should_not_verify_msg_if_tx_id_does_not_match() {
         let (gateway_address, tx_response, mut msg) = matching_msg_and_tx_block();
-        msg.tx_id = "different_tx_hash".to_string();
+        msg.message_id.tx_hash = Hash::random().into();
 
         assert_eq!(
             verify_message(&gateway_address, &tx_response, &msg),
@@ -160,7 +167,7 @@ mod test {
     #[test]
     fn should_not_verify_msg_if_event_index_does_not_match() {
         let (gateway_address, tx_response, mut msg) = matching_msg_and_tx_block();
-        msg.event_index = 1;
+        msg.message_id.event_index = 1;
 
         assert_eq!(
             verify_message(&gateway_address, &tx_response, &msg),
@@ -233,7 +240,7 @@ mod test {
     #[test]
     fn should_not_verify_verifier_set_if_tx_id_does_not_match() {
         let (gateway_address, tx_response, mut confirmation) = matching_verifier_set_and_tx_block();
-        confirmation.tx_id = "different_tx_hash".to_string();
+        confirmation.message_id.tx_hash = Hash::random().into();
 
         assert_eq!(
             verify_verifier_set(&gateway_address, &tx_response, &confirmation),
@@ -244,7 +251,7 @@ mod test {
     #[test]
     fn should_not_verify_verifier_set_if_event_index_does_not_match() {
         let (gateway_address, tx_response, mut confirmation) = matching_verifier_set_and_tx_block();
-        confirmation.event_index = 1;
+        confirmation.message_id.event_index = 1;
 
         assert_eq!(
             verify_verifier_set(&gateway_address, &tx_response, &confirmation),
@@ -289,8 +296,7 @@ mod test {
         let signing_key = SigningKey::generate(&mut OsRng);
 
         let msg = Message {
-            tx_id: format!("{:x}", Hash::random()),
-            event_index: 0,
+            message_id: HexTxHashAndEventIndex::new(Hash::random(), 0u64),
             source_address: ScAddress::Account(AccountId(PublicKey::PublicKeyTypeEd25519(
                 Uint256::from(signing_key.verifying_key().to_bytes()),
             ))),
@@ -304,7 +310,7 @@ mod test {
 
         let event_body = ContractEventBody::V0(ContractEventV0 {
             topics: vec![
-                ScVal::Symbol(ScSymbol(StringM::from_str(TOPIC_CALLED).unwrap())),
+                ScVal::Symbol(ScSymbol(StringM::from_str(TOPIC_CONTRACT_CALLED).unwrap())),
                 ScVal::Address(msg.source_address.clone()),
                 ScVal::String(msg.destination_chain.clone()),
                 ScVal::String(msg.destination_address.clone()),
@@ -323,7 +329,7 @@ mod test {
         };
 
         let tx_response = TxResponse {
-            transaction_hash: msg.tx_id.clone(),
+            transaction_hash: msg.message_id.tx_hash_as_hex_no_prefix().to_string(),
             source_address: msg.source_address.clone(),
             successful: true,
             contract_events: Some(vec![event].try_into().unwrap()),
@@ -341,8 +347,7 @@ mod test {
         let threshold = Uint128::new(2u128);
 
         let verifier_set_confirmation = VerifierSetConfirmation {
-            tx_id: format!("{:x}", Hash::random()),
-            event_index: 0,
+            message_id: HexTxHashAndEventIndex::new(Hash::random(), 0u64),
             verifier_set: VerifierSet {
                 signers: signers
                     .iter()
@@ -363,7 +368,7 @@ mod test {
 
         let event_body = ContractEventBody::V0(ContractEventV0 {
             topics: vec![
-                ScVal::Symbol(ScSymbol(StringM::from_str(TOPIC_ROTATED).unwrap())),
+                ScVal::Symbol(ScSymbol(StringM::from_str(TOPIC_SIGNERS_ROTATED).unwrap())),
                 ScVal::U64(1),
                 ScVal::Bytes(ScBytes(weighted_signers_hash)),
             ]
@@ -380,7 +385,10 @@ mod test {
         };
 
         let tx_response = TxResponse {
-            transaction_hash: verifier_set_confirmation.tx_id.clone(),
+            transaction_hash: verifier_set_confirmation
+                .message_id
+                .tx_hash_as_hex_no_prefix()
+                .to_string(),
             source_address: ScAddress::Account(AccountId(PublicKey::PublicKeyTypeEd25519(
                 Uint256::from(SigningKey::generate(&mut OsRng).verifying_key().to_bytes()),
             ))),
