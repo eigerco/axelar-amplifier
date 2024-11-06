@@ -1,8 +1,9 @@
 use std::str::FromStr;
 use std::vec::Vec;
 
+use aleo_types::AleoTransition;
 use axelar_wasm_std::msg_id::{
-    AleoTransition, Base58SolanaTxSignatureAndEventIndex, Base58TxDigestAndEventIndex, HexTxHash,
+    Base58SolanaTxSignatureAndEventIndex, Base58TxDigestAndEventIndex, HexTxHash,
     HexTxHashAndEventIndex, MessageIdFormat,
 };
 use axelar_wasm_std::voting::{PollId, Vote};

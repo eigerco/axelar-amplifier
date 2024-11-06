@@ -4,7 +4,7 @@ use bech32::primitives::decode::CheckedHrpstring;
 use bech32::Bech32m;
 use error_stack::{bail, Report, ResultExt};
 
-use super::Error;
+use crate::Error;
 
 pub struct AleoTransition {
     transition_id: String,
@@ -37,7 +37,7 @@ impl FromStr for AleoTransition {
         }
 
         Ok(Self {
-            transition_id: message_id.to_owned(),
+            transition_id: message_id.to_string(),
         })
     }
 }

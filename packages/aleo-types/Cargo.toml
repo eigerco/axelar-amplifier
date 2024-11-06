@@ -1,0 +1,15 @@
+[package]
+name = "aleo-types"
+version = "0.1.0"
+edition = { workspace = true }
+rust-version = { workspace = true }
+
+[dependencies]
+error-stack = { workspace = true }
+hex = { workspace = true }
+serde = { workspace = true }
+thiserror = { workspace = true }
+bech32 = { workspace = true }
+
+[lints]
+workspace = true

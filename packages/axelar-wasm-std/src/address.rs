@@ -1,8 +1,7 @@
 use std::str::FromStr;
 
+use aleo_types::AleoAddress;
 use alloy_primitives::Address;
-use bech32::primitives::decode::CheckedHrpstring;
-use bech32::Bech32m;
 use cosmwasm_schema::cw_serde;
 use cosmwasm_std::{Addr, Api};
 use error_stack::{bail, Result, ResultExt};
@@ -59,26 +58,8 @@ pub fn validate_address(address: &str, format: &AddressFormat) -> Result<(), Err
                 .change_context(Error::InvalidAddress(address.to_string()))?;
         }
         AddressFormat::Aleo => {
-            const ADDRESS_PREFIX: &str = "aleo";
-
-            if address.len() != 63 {
-                bail!(Error::InvalidAddress(format!(
-                    "Invalid account address length: found {}, expected 63",
-                    address.len()
-                )));
-            }
-
-            let checked = CheckedHrpstring::new::<Bech32m>(address)
+            AleoAddress::from_str(address)
                 .change_context(Error::InvalidAddress(address.to_string()))?;
-
-            if checked.hrp().as_str() != ADDRESS_PREFIX {
-                bail!(Error::InvalidAddress(format!(
-                    "'aleo1' address prefix is not matching: {address}"
-                )));
-            }
-            if checked.data_part_ascii_no_checksum().is_empty() {
-                bail!(Error::InvalidAddress(address.to_string()))
-            }
         }
     }
 
