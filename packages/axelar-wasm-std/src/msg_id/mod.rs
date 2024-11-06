@@ -1,7 +1,7 @@
 use std::fmt::Display;
 use std::str::FromStr;
 
-use aleo_types::AleoTransition;
+use aleo_types::Transition as AleoTransition;
 use cosmwasm_schema::cw_serde;
 use error_stack::{Report, ResultExt};
 

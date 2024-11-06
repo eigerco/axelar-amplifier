@@ -8,17 +8,17 @@ use serde::{Deserialize, Serialize};
 use crate::Error;
 
 #[derive(Serialize, Deserialize, Debug)]
-pub struct AleoTransition {
+pub struct Transition {
     transition_id: String,
 }
 
-impl AleoTransition {
+impl Transition {
     pub fn transition_id(&self) -> &String {
         &self.transition_id
     }
 }
 
-impl FromStr for AleoTransition {
+impl FromStr for Transition {
     type Err = Report<Error>;
 
     fn from_str(message_id: &str) -> Result<Self, Self::Err>
