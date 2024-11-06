@@ -6,7 +6,6 @@ rust-version = { workspace = true }
 
 [dependencies]
 error-stack = { workspace = true }
-hex = { workspace = true }
 serde = { workspace = true }
 thiserror = { workspace = true }
 bech32 = { workspace = true }

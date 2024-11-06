@@ -3,11 +3,13 @@ use std::str::FromStr;
 use bech32::primitives::decode::CheckedHrpstring;
 use bech32::Bech32m;
 use error_stack::{ensure, Report, Result, ResultExt};
+use serde::{Deserialize, Serialize};
 
 use crate::Error;
 
 const ADDRESS_PREFIX: &str = "aleo";
 
+#[derive(Serialize, Deserialize, Debug)]
 pub struct Address {
     address: String,
 }

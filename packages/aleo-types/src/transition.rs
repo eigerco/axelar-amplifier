@@ -3,9 +3,11 @@ use std::str::FromStr;
 use bech32::primitives::decode::CheckedHrpstring;
 use bech32::Bech32m;
 use error_stack::{bail, Report, ResultExt};
+use serde::{Deserialize, Serialize};
 
 use crate::Error;
 
+#[derive(Serialize, Deserialize, Debug)]
 pub struct AleoTransition {
     transition_id: String,
 }
