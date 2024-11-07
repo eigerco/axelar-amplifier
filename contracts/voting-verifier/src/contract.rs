@@ -1,4 +1,5 @@
 use axelar_wasm_std::address::validate_contract_address;
+use axelar_wasm_std::msg_id::{MessageId, MessageIdFormat};
 use axelar_wasm_std::{address, permission_control, FnExt};
 #[cfg(not(feature = "library"))]
 use cosmwasm_std::entry_point;
@@ -122,7 +123,7 @@ pub fn migrate(
         rewards_contract: prev_config.rewards_contract,
         block_expiry: prev_config.block_expiry,
         confirmation_height: prev_config.confirmation_height,
-        msg_id_format: prev_config.msg_id_format,
+        msg_id_format: MessageIdFormat::AleoTransition,
         source_gateway_address: "gateway.aleo".parse().unwrap(),
         voting_threshold: prev_config.voting_threshold,
         address_format: address::AddressFormat::Aleo,
