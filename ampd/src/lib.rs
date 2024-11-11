@@ -46,6 +46,7 @@ mod tm_client;
 mod tofnd;
 mod types;
 mod url;
+mod aleo;
 
 pub use grpc::{client, proto};
 

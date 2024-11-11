@@ -8,34 +8,34 @@ use serde::{Deserialize, Serialize};
 use crate::Error;
 
 #[derive(Serialize, Deserialize, Debug, PartialEq, Eq, Hash, Clone)]
-pub struct Transition {
+pub struct Transaction {
     transition_id: String,
 }
 
-impl Transition {
+impl Transaction {
     pub fn transition_id(&self) -> &str {
         self.transition_id.as_str()
     }
 }
 
-impl FromStr for Transition {
+impl FromStr for Transaction {
     type Err = Report<Error>;
 
     fn from_str(message_id: &str) -> Result<Self, Self::Err>
     where
         Self: Sized,
     {
-        const PREFIX: &str = "au";
+        const PREFIX: &str = "at";
 
         let checked = CheckedHrpstring::new::<Bech32m>(message_id)
-            .change_context(Error::InvalidAleoTransition(message_id.to_owned()))?;
+            .change_context(Error::InvalidAleoTransaction(message_id.to_owned()))?;
 
         if checked.hrp().as_str() != PREFIX {
-            bail!(Error::InvalidAleoTransition(message_id.to_owned()));
+            bail!(Error::InvalidAleoTransaction(message_id.to_owned()));
         }
 
         if checked.data_part_ascii_no_checksum().is_empty() {
-            bail!(Error::InvalidAleoTransition(message_id.to_owned()));
+            bail!(Error::InvalidAleoTransaction(message_id.to_owned()));
         }
 
         Ok(Self {
@@ -44,7 +44,7 @@ impl FromStr for Transition {
     }
 }
 
-impl Display for Transition {
+impl Display for Transaction {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{}", self.transition_id)
     }
@@ -58,25 +58,25 @@ mod tests {
     use super::*;
 
     #[test]
-    fn validate_aleo_transition() {
-        let addr = "au1fnywazjhsvpvga7yszfhye3ftnsd6q35qpmuw4ugl9sghqtmucxqk4ksv8";
-        assert_ok!(Transition::from_str(addr));
+    fn validate_aleo_transaction() {
+        let addr = "at1pvhkv0gt5qfnljte2nlav7u9rqrafgf04hzwkfu97sctynwghvqskfua6g";
+        assert_ok!(Transaction::from_str(addr));
     }
 
     #[test]
-    fn validate_aleo_transition_errors() {
-        let addr = "at1fnywazjhsvpvga7yszfhye3ftnsd6q35qpmuw4ugl9sghqtmucxqk4ksv8";
+    fn validate_aleo_transaction_errors() {
+        let addr = "au1pvhkv0gt5qfnljte2nlav7u9rqrafgf04hzwkfu97sctynwghvqskfua6g";
         assert_err_contains!(
-            Transition::from_str(addr),
+            Transaction::from_str(addr),
             crate::Error,
-            crate::Error::InvalidAleoTransition(..)
+            crate::Error::InvalidAleoTransaction(..)
         );
 
-        let addr = "au1fnywazjhsvpvga7yszfhye3ftnsd6q35qpmuw4ugl9sghqtmucxqk4ksv9";
+        let addr = "at1fnywazjhsvpvga7yszfhye3ftnsd6q35qpmuw4ugl9sghqtmucxqk4ksv9";
         assert_err_contains!(
-            Transition::from_str(addr),
+            Transaction::from_str(addr),
             crate::Error,
-            crate::Error::InvalidAleoTransition(..)
+            crate::Error::InvalidAleoTransaction(..)
         );
     }
 }

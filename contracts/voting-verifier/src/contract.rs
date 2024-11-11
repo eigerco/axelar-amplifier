@@ -123,7 +123,7 @@ pub fn migrate(
         rewards_contract: prev_config.rewards_contract,
         block_expiry: prev_config.block_expiry,
         confirmation_height: prev_config.confirmation_height,
-        msg_id_format: MessageIdFormat::AleoTransition,
+        msg_id_format: MessageIdFormat::AleoTransaction,
         source_gateway_address: "gateway.aleo".parse().unwrap(),
         voting_threshold: prev_config.voting_threshold,
         address_format: address::AddressFormat::Aleo,
@@ -329,7 +329,7 @@ mod test {
             .to_string()
             .parse()
             .unwrap(),
-            MessageIdFormat::AleoTransition => unreachable!(),
+            MessageIdFormat::AleoTransaction => unreachable!(),
         }
     }
 

@@ -1,9 +1,9 @@
 use std::fmt::Display;
 use std::str::FromStr;
 
-use aleo_types::Transition as AleoTransition;
+use aleo_types::Transaction as AleoTransaction;
 use cosmwasm_schema::cw_serde;
-use error_stack::{Report, ResultExt};
+use error_stack::Report;
 
 pub use self::base_58_event_index::Base58TxDigestAndEventIndex;
 pub use self::base_58_solana_event_index::Base58SolanaTxSignatureAndEventIndex;
@@ -26,6 +26,8 @@ pub enum Error {
     InvalidTxHash(String),
     #[error("invalid tx digest in message id '{0}'")]
     InvalidTxDigest(String),
+    #[error("{0}")]
+    InvalidAleoMessageId(String),
 }
 
 /// Any message id format must implement this trait.
@@ -46,7 +48,7 @@ pub enum MessageIdFormat {
     Base58TxDigestAndEventIndex,
     Base58SolanaTxSignatureAndEventIndex,
     HexTxHash,
-    AleoTransition,
+    AleoTransaction,
 }
 
 // function the router calls to verify msg ids
@@ -62,9 +64,9 @@ pub fn verify_msg_id(message_id: &str, format: &MessageIdFormat) -> Result<(), R
             Base58SolanaTxSignatureAndEventIndex::from_str(message_id).map(|_| ())
         }
         MessageIdFormat::HexTxHash => HexTxHash::from_str(message_id).map(|_| ()),
-        MessageIdFormat::AleoTransition => AleoTransition::from_str(message_id)
-            .map(|_| ())
-            .change_context(todo!()),
+        MessageIdFormat::AleoTransaction => AleoTransaction::from_str(message_id)
+            .map_err(|e| Report::new(Error::InvalidAleoMessageId(e.to_string())))
+            .map(|_| ()),
     }
 }
 

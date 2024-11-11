@@ -187,7 +187,7 @@ fn parse_message_id(
 
             Ok((id.tx_hash_as_hex(), 0))
         }
-        MessageIdFormat::AleoTransition => {
+        MessageIdFormat::AleoTransaction => {
             let transission_id = AleoTransition::from_str(message_id)
                 .map_err(|_| ContractError::InvalidMessageID(message_id.into()))?
                 .transition_id()
