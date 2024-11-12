@@ -30,7 +30,7 @@ pub enum Error {
     InvalidTxDigest(String),
     #[error("Invalid Aleo message Id: '{0}'")]
     InvalidAleoMessageId(String),
-    #[error("Expected format: 'AleoTransitionId-AleoTransactionId-Index' '{0}'")]
+    #[error("Expected format: 'AleoTransitionId-AleoTransactionId-Index', index is a u32 number, '{0}'")]
     InvalidAleoMessageIdFormat(String),
 }
 
@@ -119,5 +119,23 @@ mod test {
         }
         .to_string();
         assert!(verify_msg_id(&msg_id, &MessageIdFormat::HexTxHashAndEventIndex).is_err());
+    }
+
+    #[test]
+    fn should_verify_aleo_transaction() {
+        let message_id = "at1hs0xk375g4kvw53rcem9nyjsdw5lsv94fl065n77cpt0774nsyysdecaju-au1d6952458dhu835xt4dk4mmyjrs7vrg30guv6eupryfq8mhajxqzqym3al9-1";
+        assert!(verify_msg_id(message_id, &MessageIdFormat::AleoTransaction).is_ok());
+    }
+
+    #[test]
+    fn should_not_verify_aleo_transaction() {
+        let message_id = "a1hs0xk375g4kvw53rcem9nyjsdw5lsv94fl065n77cpt0774nsyysdecaju-au1d6952458dhu835xt4dk4mmyjrs7vrg30guv6eupryfq8mhajxqzqym3al9-0";
+        assert!(verify_msg_id(message_id, &MessageIdFormat::AleoTransaction).is_err());
+
+        let message_id = "at1hs0xk375g4kvw53rcem9nyjsdw5lsv94fl065n77cpt0774nsyysdecaju-a1d6952458dhu835xt4dk4mmyjrs7vrg30guv6eupryfq8mhajxqzqym3al9-1";
+        assert!(verify_msg_id(message_id, &MessageIdFormat::AleoTransaction).is_err());
+
+        let message_id = "at1hs0xk375g4kvw53rcem9nyjsdw5lsv94fl065n77cpt0774nsyysdecaju-au1d6952458dhu835xt4dk4mmyjrs7vrg30guv6eupryfq8mhajxqzqym3al9-a";
+        assert!(verify_msg_id(message_id, &MessageIdFormat::AleoTransaction).is_err());
     }
 }

@@ -1,7 +1,7 @@
 use std::str::FromStr;
 
 use aleo_types::{Transaction, Transition};
-use error_stack::Report;
+use error_stack::{IntoReport, Report, ResultExt};
 
 use super::Error;
 
@@ -30,29 +30,33 @@ impl FromStr for AleoMessageId {
     {
         let mut parts = message_id.split("-");
 
-        let transition_id = Transition::from_str(
-            parts
-                .next()
-                .ok_or(Error::InvalidAleoMessageIdFormat(message_id.to_owned()))?,
-        )
-        .map_err(|e| Report::new(Error::InvalidAleoMessageId(e.to_string())))?;
-
         let transaction_id = Transaction::from_str(
             parts
                 .next()
                 .ok_or(Error::InvalidAleoMessageIdFormat(message_id.to_owned()))?,
         )
-        .map_err(|e| Report::new(Error::InvalidAleoMessageId(e.to_string())))?;
+        .map_err(|e| e.change_context(Error::InvalidAleoMessageId(message_id.to_string())))?;
+
+        let transition_id = Transition::from_str(
+            parts
+                .next()
+                .ok_or(Error::InvalidAleoMessageIdFormat(message_id.to_owned()))?,
+        )
+        .map_err(|e| e.change_context(Error::InvalidAleoMessageId(message_id.to_string())))?;
 
         let index = parts
             .next()
             .ok_or(Error::InvalidAleoMessageIdFormat(message_id.to_owned()))?
             .parse()
-            .map_err(|_| Error::EventIndexOverflow(message_id.to_string()))?;
+            .map_err(Report::from)
+            .map_err(|e| {
+                e.attach_printable("Failed to parse index")
+                    .change_context(Error::InvalidAleoMessageId(message_id.to_string()))
+            })?;
 
         Ok(Self {
-            transition_id,
             transaction_id,
+            transition_id,
             index,
         })
     }
