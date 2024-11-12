@@ -3,7 +3,7 @@ use std::vec::Vec;
 
 use aleo_types::Transition as AleoTransition;
 use axelar_wasm_std::msg_id::{
-    Base58SolanaTxSignatureAndEventIndex, Base58TxDigestAndEventIndex, HexTxHash,
+    Base58SolanaTxSignatureAndEventIndex, Base58TxDigestAndEventIndex, Bech32mFormat, HexTxHash,
     HexTxHashAndEventIndex, MessageIdFormat,
 };
 use axelar_wasm_std::voting::{PollId, Vote};
@@ -187,12 +187,10 @@ fn parse_message_id(
 
             Ok((id.tx_hash_as_hex(), 0))
         }
-        MessageIdFormat::AleoTransaction => {
-            let transission_id = AleoTransition::from_str(message_id)
-                .map_err(|_| ContractError::InvalidMessageID(message_id.into()))?
-                .transition_id()
-                .to_string();
-            Ok((transission_id.try_into()?, 0))
+        MessageIdFormat::Bech32m => {
+            let bech32m_message_id = Bech32mFormat::from_str(message_id)
+                .map_err(|_| ContractError::InvalidMessageID(message_id.into()))?;
+            Ok((bech32m_message_id.to_string().try_into()?, 0))
         }
     }
 }

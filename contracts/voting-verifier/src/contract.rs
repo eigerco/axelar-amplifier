@@ -123,7 +123,7 @@ pub fn migrate(
         rewards_contract: prev_config.rewards_contract,
         block_expiry: prev_config.block_expiry,
         confirmation_height: prev_config.confirmation_height,
-        msg_id_format: MessageIdFormat::AleoTransaction,
+        msg_id_format: MessageIdFormat::Bech32m,
         source_gateway_address: "gateway.aleo".parse().unwrap(),
         voting_threshold: prev_config.voting_threshold,
         address_format: address::AddressFormat::Aleo,
@@ -147,6 +147,7 @@ mod test {
         assert_err_contains, err_contains, nonempty, MajorityThreshold, Threshold,
         VerificationStatus,
     };
+    use bech32::{Bech32m, Hrp};
     use cosmwasm_std::testing::{
         mock_dependencies, mock_env, mock_info, MockApi, MockQuerier, MockStorage,
     };
@@ -329,7 +330,16 @@ mod test {
             .to_string()
             .parse()
             .unwrap(),
-            MessageIdFormat::AleoTransaction => unreachable!(),
+            MessageIdFormat::Bech32m => {
+                let data = format!("{id}-{index}");
+                let prefix = "bech32m";
+                let hrp = Hrp::parse(prefix).expect("valid hrp");
+                bech32::encode::<Bech32m>(hrp, data.as_bytes())
+                    .unwrap()
+                    .to_string()
+                    .parse()
+                    .unwrap()
+            }
         }
     }
 

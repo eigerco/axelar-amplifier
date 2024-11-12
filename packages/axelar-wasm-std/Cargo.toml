@@ -30,6 +30,7 @@ optimize = """docker run --rm -v "$(pwd)":/code \
 aleo-types = { workspace = true }
 alloy-primitives = { workspace = true }
 axelar-wasm-std-derive = { workspace = true, optional = true }
+bech32 = { workspace = true }
 bs58 = "0.5.1"
 cosmwasm-schema = { workspace = true }
 cosmwasm-std = { workspace = true }

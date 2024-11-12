@@ -6,13 +6,13 @@ use error_stack::Report;
 
 pub use self::base_58_event_index::Base58TxDigestAndEventIndex;
 pub use self::base_58_solana_event_index::Base58SolanaTxSignatureAndEventIndex;
+pub use self::bech32m::Bech32mFormat;
 pub use self::tx_hash::HexTxHash;
 pub use self::tx_hash_event_index::HexTxHashAndEventIndex;
-pub use self::aleo_message_id::AleoMessageId;
 
-mod aleo_message_id;
 mod base_58_event_index;
 mod base_58_solana_event_index;
+mod bech32m;
 mod tx_hash;
 mod tx_hash_event_index;
 
@@ -27,12 +27,8 @@ pub enum Error {
     InvalidTxHash(String),
     #[error("invalid tx digest in message id '{0}'")]
     InvalidTxDigest(String),
-    #[error("Invalid Aleo message Id: '{0}'")]
-    InvalidAleoMessageId(String),
-    #[error(
-        "Expected format: 'AleoTransitionId-AleoTransactionId-Index', index is a u32 number, '{0}'"
-    )]
-    InvalidAleoMessageIdFormat(String),
+    #[error("Invalid bech32m: '{0}'")]
+    InvalidBech32m(String),
 }
 
 /// Any message id format must implement this trait.
@@ -53,7 +49,7 @@ pub enum MessageIdFormat {
     Base58TxDigestAndEventIndex,
     Base58SolanaTxSignatureAndEventIndex,
     HexTxHash,
-    AleoTransaction,
+    Bech32m,
 }
 
 // function the router calls to verify msg ids
@@ -69,7 +65,7 @@ pub fn verify_msg_id(message_id: &str, format: &MessageIdFormat) -> Result<(), R
             Base58SolanaTxSignatureAndEventIndex::from_str(message_id).map(|_| ())
         }
         MessageIdFormat::HexTxHash => HexTxHash::from_str(message_id).map(|_| ()),
-        MessageIdFormat::AleoTransaction => AleoMessageId::from_str(message_id).map(|_| ()),
+        MessageIdFormat::Bech32m => Bech32mFormat::from_str(message_id).map(|_| ()),
     }
 }
 
@@ -123,17 +119,17 @@ mod test {
     }
 
     #[test]
-    fn should_verify_aleo_transaction() {
-        let message_id = "at1hs0xk375g4kvw53rcem9nyjsdw5lsv94fl065n77cpt0774nsyysdecaju-au1d6952458dhu835xt4dk4mmyjrs7vrg30guv6eupryfq8mhajxqzqym3al9";
-        assert!(verify_msg_id(message_id, &MessageIdFormat::AleoTransaction).is_ok());
+    fn should_verify_bech32m() {
+        let message_id = "at1hs0xk375g4kvw53rcem9nyjsdw5lsv94fl065n77cpt0774nsyysdecaju";
+        assert!(verify_msg_id(message_id, &MessageIdFormat::Bech32m).is_ok());
     }
 
     #[test]
-    fn should_not_verify_aleo_transaction() {
-        let message_id = "a1hs0xk375g4kvw53rcem9nyjsdw5lsv94fl065n77cpt0774nsyysdecaju-au1d6952458dhu835xt4dk4mmyjrs7vrg30guv6eupryfq8mhajxqzqym3al9";
-        assert!(verify_msg_id(message_id, &MessageIdFormat::AleoTransaction).is_err());
+    fn should_not_verify_bech32m() {
+        let message_id = "aths0xk375g4kvw53rcem9nyjsdw5lsv94fl065n77cpt0774nsyysdecaju";
+        assert!(verify_msg_id(message_id, &MessageIdFormat::Bech32m).is_err());
 
-        let message_id = "at1hs0xk375g4kvw53rcem9nyjsdw5lsv94fl065n77cpt0774nsyysdecaju-a1d6952458dhu835xt4dk4mmyjrs7vrg30guv6eupryfq8mhajxqzqym3al9";
-        assert!(verify_msg_id(message_id, &MessageIdFormat::AleoTransaction).is_err());
+        let message_id = "ath1s0xk375g4kvw53rcem9nyjsdw5lsv94fl065n77cpt0774nsyysdecaj";
+        assert!(verify_msg_id(message_id, &MessageIdFormat::Bech32m).is_err());
     }
 }
