@@ -25,6 +25,8 @@ pub enum AddressFormat {
     Aleo,
 }
 
+/// Aleo has different id to find for programs
+/// Each program has an associated Aleo address, but the program name is used as the program id when is needed to find the program.
 pub fn validate_contract_address(address: &str, format: &AddressFormat) -> Result<(), Error> {
     match format {
         AddressFormat::Aleo => {

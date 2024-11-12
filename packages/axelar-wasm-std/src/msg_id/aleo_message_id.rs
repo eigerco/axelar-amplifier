@@ -1,7 +1,7 @@
 use std::str::FromStr;
 
 use aleo_types::{Transaction, Transition};
-use error_stack::{IntoReport, Report, ResultExt};
+use error_stack::Report;
 
 use super::Error;
 

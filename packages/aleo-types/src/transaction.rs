@@ -1,4 +1,5 @@
-use std::{fmt::Display, str::FromStr};
+use std::fmt::Display;
+use std::str::FromStr;
 
 use bech32::primitives::decode::CheckedHrpstring;
 use bech32::Bech32m;

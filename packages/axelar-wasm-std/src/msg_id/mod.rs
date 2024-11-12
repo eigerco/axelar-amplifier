@@ -2,7 +2,6 @@ use std::fmt::Display;
 use std::str::FromStr;
 
 use aleo_message_id::AleoMessageId;
-use aleo_types::Transaction as AleoTransaction;
 use cosmwasm_schema::cw_serde;
 use error_stack::Report;
 
@@ -30,7 +29,9 @@ pub enum Error {
     InvalidTxDigest(String),
     #[error("Invalid Aleo message Id: '{0}'")]
     InvalidAleoMessageId(String),
-    #[error("Expected format: 'AleoTransitionId-AleoTransactionId-Index', index is a u32 number, '{0}'")]
+    #[error(
+        "Expected format: 'AleoTransitionId-AleoTransactionId-Index', index is a u32 number, '{0}'"
+    )]
     InvalidAleoMessageIdFormat(String),
 }
 
