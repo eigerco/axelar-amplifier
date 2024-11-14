@@ -1,16 +1,13 @@
 use axelar_wasm_std::hash::Hash;
 use cosmwasm_std::HexBinary;
 use error_stack::{Result, ResultExt};
-use ethers_contract::contract::EthCall;
 use ethers_core::abi::{encode as abi_encode, Token, Tokenizable, Tokenize};
 use evm_gateway::{CommandType, Proof, RotateSignersCall, WeightedSigners};
 use itertools::Itertools;
-use k256::ecdsa::RecoveryId;
-use multisig::key::Signature;
 use multisig::msg::SignerWithSig;
 use multisig::verifier_set::VerifierSet;
 use sha3::{Digest, Keccak256};
-use starknet_types::StarknetMessage;
+use starknet_types::types::starknet_message::StarknetMessage;
 
 use crate::error::ContractError;
 use crate::payload::Payload;

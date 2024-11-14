@@ -11,9 +11,8 @@ use starknet_core::types::{
 };
 use starknet_providers::jsonrpc::JsonRpcTransport;
 use starknet_providers::{JsonRpcClient, Provider, ProviderError};
+use starknet_types::events::contract_call::ContractCallEvent;
 use thiserror::Error;
-
-use crate::starknet::events::contract_call::ContractCallEvent;
 
 type Result<T> = error_stack::Result<T, StarknetClientError>;
 
@@ -140,10 +139,9 @@ mod test {
         HttpTransportError, JsonRpcMethod, JsonRpcResponse, JsonRpcTransport,
     };
     use starknet_providers::ProviderError;
+    use starknet_types::events::contract_call::ContractCallEvent;
 
-    use super::{Client, StarknetClient};
-    use crate::starknet::events::contract_call::ContractCallEvent;
-    use crate::starknet::json_rpc::StarknetClientError;
+    use super::{Client, StarknetClient, StarknetClientError};
 
     #[tokio::test]
     async fn invalid_tx_hash_stirng() {

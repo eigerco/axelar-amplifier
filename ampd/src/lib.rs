@@ -41,7 +41,7 @@ mod health_check;
 mod json_rpc;
 mod mvx;
 mod queue;
-mod starknet;
+pub(crate) mod starknet;
 mod stellar;
 mod sui;
 mod tm_client;

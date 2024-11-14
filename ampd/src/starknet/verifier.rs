@@ -1,6 +1,6 @@
 use axelar_wasm_std::voting::Vote;
+use starknet_types::events::contract_call::ContractCallEvent;
 
-use super::events::contract_call::ContractCallEvent;
 use crate::handlers::starknet_verify_msg::Message;
 
 /// Attempts to fetch the tx provided in `axl_msg.tx_id`.
@@ -37,10 +37,10 @@ mod tests {
     use axelar_wasm_std::voting::Vote;
     use ethers_core::types::H256;
     use starknet_core::types::FieldElement;
+    use starknet_types::events::contract_call::ContractCallEvent;
 
     use super::verify_msg;
     use crate::handlers::starknet_verify_msg::Message;
-    use crate::starknet::events::contract_call::ContractCallEvent;
 
     // "hello" as payload
     // "hello" as destination address
