@@ -32,8 +32,11 @@ impl PartialEq<Message> for ContractCallEvent {
 
 #[cfg(test)]
 mod tests {
+    use std::str::FromStr;
+
     use axelar_wasm_std::voting::Vote;
     use ethers_core::types::H256;
+    use starknet_core::types::FieldElement;
 
     use super::verify_msg;
     use crate::handlers::starknet_verify_msg::Message;
@@ -50,9 +53,10 @@ mod tests {
             ),
             destination_address: String::from("destination_address"),
             destination_chain: String::from("destination_chain"),
-            source_address: String::from(
+            source_address: FieldElement::from_str(
                 "0x00b3ff441a68610b30fd5e2abbf3a1548eb6ba6f3559f2862bf2dc757e5828ca",
-            ),
+            )
+            .unwrap(),
             payload_hash: H256::from_slice(&[
                 28u8, 138, 255, 149, 6, 133, 194, 237, 75, 195, 23, 79, 52, 114, 40, 123, 86, 217,
                 81, 123, 156, 148, 129, 39, 49, 154, 9, 167, 163, 109, 234, 200,
@@ -66,9 +70,10 @@ mod tests {
             event_index: 0,
             destination_address: String::from("destination_address"),
             destination_chain: String::from("destination_chain"),
-            source_address: String::from(
+            source_address: FieldElement::from_str(
                 "0x00b3ff441a68610b30fd5e2abbf3a1548eb6ba6f3559f2862bf2dc757e5828ca",
-            ),
+            )
+            .unwrap(),
             payload_hash: H256::from_slice(&[
                 28u8, 138, 255, 149, 6, 133, 194, 237, 75, 195, 23, 79, 52, 114, 40, 123, 86, 217,
                 81, 123, 156, 148, 129, 39, 49, 154, 9, 167, 163, 109, 234, 200,
@@ -103,7 +108,7 @@ mod tests {
         assert_eq!(verify_msg(&event, &msg, &source_gw_address), Vote::NotFound);
 
         let mut event = { mock_valid_event() };
-        event.source_address = String::from("different");
+        event.source_address = FieldElement::THREE;
         assert_eq!(verify_msg(&event, &msg, &source_gw_address), Vote::NotFound);
 
         let mut event = { mock_valid_event() };
@@ -130,7 +135,7 @@ mod tests {
         assert_eq!(verify_msg(&event, &msg, &source_gw_address), Vote::NotFound);
 
         let mut msg = { mock_valid_message() };
-        msg.source_address = String::from("different");
+        msg.source_address = FieldElement::THREE;
         assert_eq!(verify_msg(&event, &msg, &source_gw_address), Vote::NotFound);
 
         let mut msg = { mock_valid_message() };

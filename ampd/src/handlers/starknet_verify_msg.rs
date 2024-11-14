@@ -12,6 +12,7 @@ use events_derive::try_from;
 use futures::future::try_join_all;
 use itertools::Itertools;
 use serde::Deserialize;
+use starknet_core::types::FieldElement;
 use tokio::sync::watch::Receiver;
 use tracing::info;
 use voting_verifier::msg::ExecuteMsg;
@@ -32,7 +33,7 @@ pub struct Message {
     pub event_index: u64,
     pub destination_address: String,
     pub destination_chain: String,
-    pub source_address: String,
+    pub source_address: FieldElement,
     pub payload_hash: Hash,
 }
 
@@ -185,22 +186,16 @@ mod tests {
         let expiration = 100u64;
         let (_, rx) = watch::channel(expiration - 1);
 
-        let vote_broadcast_msg = serde_json::to_vec(&ExecuteMsg::Vote {
-            poll_id: "100".parse().unwrap(),
-            votes: vec![Vote::SucceededOnChain, Vote::NotFound],
-        })
-        .expect("vote msg should serialize");
-
         // Prepare the rpc client, which fetches the event and the vote broadcaster
         let mut rpc_client = MockStarknetClient::new();
         rpc_client.expect_get_event_by_hash().returning(|_| {
             Ok(Some((
                 String::from("txhash123"),
                 ContractCallEvent {
-                    from_contract_addr: String::from("source_gw_addr"),
-                    destination_address: String::from("destination_address"),
+                    from_contract_addr: String::from("source-gw-addr"),
+                    destination_address: String::from("destination-address"),
                     destination_chain: String::from("ethereum"),
-                    source_address: String::from("source_address"),
+                    source_address: FieldElement::ONE,
                     payload_hash: H256::from_slice(&[
                         28u8, 138, 255, 149, 6, 133, 194, 237, 75, 195, 23, 79, 52, 114, 40, 123,
                         86, 217, 81, 123, 156, 148, 129, 39, 49, 154, 9, 167, 163, 109, 234, 200,
@@ -210,13 +205,15 @@ mod tests {
         });
 
         let event: Event = get_event(
-            get_poll_started_event_with_two_msgs(participants(5, Some(worker.clone())), 100),
+            get_poll_started_event_with_two_msgs(participants(5, Some(worker.clone())), 100_u64),
             &voting_verifier,
         );
 
         let handler = super::Handler::new(worker, voting_verifier, rpc_client, rx);
+        let result = handler.handle(&event).await.unwrap();
 
-        handler.handle(&event).await.unwrap();
+        assert_eq!(result.len(), 1);
+        assert!(MsgExecuteContract::from_any(result.first().unwrap()).is_ok());
     }
 
     #[async_test]
@@ -226,12 +223,6 @@ mod tests {
         let worker = TMAddress::random(PREFIX);
         let expiration = 100u64;
         let (_, rx) = watch::channel(expiration - 1);
-
-        let vote_broadcast_msg = serde_json::to_vec(&ExecuteMsg::Vote {
-            poll_id: "100".parse().unwrap(),
-            votes: vec![Vote::SucceededOnChain],
-        })
-        .expect("vote msg should serialize");
 
         // Prepare the rpc client, which fetches the event and the vote broadcaster
         let mut rpc_client = MockStarknetClient::new();
@@ -243,10 +234,10 @@ mod tests {
                 Ok(Some((
                     String::from("txhash123"),
                     ContractCallEvent {
-                        from_contract_addr: String::from("source_gw_addr"),
-                        destination_address: String::from("destination_address"),
+                        from_contract_addr: String::from("source-gw-addr"),
+                        destination_address: String::from("destination-address"),
                         destination_chain: String::from("ethereum"),
-                        source_address: String::from("source_address"),
+                        source_address: FieldElement::ONE,
                         payload_hash: H256::from_slice(&[
                             28u8, 138, 255, 149, 6, 133, 194, 237, 75, 195, 23, 79, 52, 114, 40,
                             123, 86, 217, 81, 123, 156, 148, 129, 39, 49, 154, 9, 167, 163, 109,
@@ -262,8 +253,10 @@ mod tests {
         );
 
         let handler = super::Handler::new(worker, voting_verifier, rpc_client, rx);
+        let result = handler.handle(&event).await.unwrap();
 
-        handler.handle(&event).await.unwrap();
+        assert_eq!(result.len(), 1);
+        assert!(MsgExecuteContract::from_any(result.first().unwrap()).is_ok());
     }
 
     #[async_test]
@@ -285,7 +278,8 @@ mod tests {
 
         let handler = super::Handler::new(worker, voting_verifier, rpc_client, rx);
 
-        handler.handle(&event).await.unwrap();
+        let result = handler.handle(&event).await.unwrap();
+        assert_eq!(result, vec![]);
     }
 
     #[async_test]
@@ -308,7 +302,8 @@ mod tests {
 
         let handler = super::Handler::new(worker, voting_verifier, rpc_client, rx);
 
-        handler.handle(&event).await.unwrap();
+        let result = handler.handle(&event).await.unwrap();
+        assert_eq!(result, vec![]);
     }
 
     #[async_test]
@@ -324,14 +319,14 @@ mod tests {
         rpc_client.expect_get_event_by_hash().times(0);
 
         let event: Event = get_event(
-            // woker is not in participat set
-            get_poll_started_event_with_duplicate_msgs(participants(5, None), 100),
+            get_poll_started_event_with_duplicate_msgs(participants(5, Some(worker.clone())), 100),
             &voting_verifier,
         );
 
         let handler = super::Handler::new(worker, voting_verifier, rpc_client, rx);
 
-        handler.handle(&event).await.unwrap();
+        let result = handler.handle(&event).await.unwrap();
+        assert_eq!(result, vec![]);
     }
 
     fn participants(n: u8, worker: Option<TMAddress>) -> Vec<TMAddress> {
@@ -368,7 +363,7 @@ mod tests {
             metadata: PollMetadata {
                 poll_id: "100".parse().unwrap(),
                 source_chain: "starknet".parse().unwrap(),
-                source_gateway_address: "source_gw_addr".parse().unwrap(),
+                source_gateway_address: "source-gw-addr".parse().unwrap(),
                 confirmation_height: 15,
                 expires_at,
                 participants: participants
@@ -379,10 +374,14 @@ mod tests {
             messages: vec![
                 TxEventConfirmation {
                     tx_id: "txhash123".parse().unwrap(),
+                    message_id: "txhash123-0".parse().unwrap(),
                     event_index: 0,
-                    source_address: "source_address".parse().unwrap(),
+                    source_address:
+                        "0x0000000000000000000000000000000000000000000000000000000000000001"
+                            .parse()
+                            .unwrap(),
                     destination_chain: "ethereum".parse().unwrap(),
-                    destination_address: "destination_address".parse().unwrap(),
+                    destination_address: "destination-address".parse().unwrap(),
                     payload_hash: H256::from_slice(&[
                         // keccak256("hello")
                         28u8, 138, 255, 149, 6, 133, 194, 237, 75, 195, 23, 79, 52, 114, 40, 123,
@@ -392,10 +391,14 @@ mod tests {
                 },
                 TxEventConfirmation {
                     tx_id: "txhash456".parse().unwrap(),
+                    message_id: "txhash456-1".parse().unwrap(),
                     event_index: 1,
-                    source_address: "source_address".parse().unwrap(),
+                    source_address:
+                        "0x0000000000000000000000000000000000000000000000000000000000000001"
+                            .parse()
+                            .unwrap(),
                     destination_chain: "ethereum".parse().unwrap(),
-                    destination_address: "destination_address".parse().unwrap(),
+                    destination_address: "destination-address".parse().unwrap(),
                     payload_hash: H256::from_slice(&[
                         // keccak256("hello")
                         28u8, 138, 255, 149, 6, 133, 194, 237, 75, 195, 23, 79, 52, 114, 40, 123,
@@ -415,7 +418,7 @@ mod tests {
             metadata: PollMetadata {
                 poll_id: "100".parse().unwrap(),
                 source_chain: "starknet".parse().unwrap(),
-                source_gateway_address: "source_gw_addr".parse().unwrap(),
+                source_gateway_address: "source-gw-addr".parse().unwrap(),
                 confirmation_height: 15,
                 expires_at,
                 participants: participants
@@ -426,10 +429,14 @@ mod tests {
             messages: vec![
                 TxEventConfirmation {
                     tx_id: "txhash123".parse().unwrap(),
+                    message_id: "txhash123-0".parse().unwrap(),
                     event_index: 0,
-                    source_address: "source_address".parse().unwrap(),
+                    source_address:
+                        "0x0000000000000000000000000000000000000000000000000000000000000001"
+                            .parse()
+                            .unwrap(),
                     destination_chain: "ethereum".parse().unwrap(),
-                    destination_address: "destination_address".parse().unwrap(),
+                    destination_address: "destination-address".parse().unwrap(),
                     payload_hash: H256::from_slice(&[
                         // keccak256("hello")
                         28u8, 138, 255, 149, 6, 133, 194, 237, 75, 195, 23, 79, 52, 114, 40, 123,
@@ -439,10 +446,14 @@ mod tests {
                 },
                 TxEventConfirmation {
                     tx_id: "txhash123".parse().unwrap(),
+                    message_id: "txhash123-1".parse().unwrap(),
                     event_index: 1,
-                    source_address: "source_address".parse().unwrap(),
+                    source_address:
+                        "0x0000000000000000000000000000000000000000000000000000000000000001"
+                            .parse()
+                            .unwrap(),
                     destination_chain: "ethereum".parse().unwrap(),
-                    destination_address: "destination_address".parse().unwrap(),
+                    destination_address: "destination-address".parse().unwrap(),
                     payload_hash: H256::from_slice(&[
                         // keccak256("hello")
                         28u8, 138, 255, 149, 6, 133, 194, 237, 75, 195, 23, 79, 52, 114, 40, 123,

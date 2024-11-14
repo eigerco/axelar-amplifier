@@ -129,6 +129,8 @@ where
 #[cfg(test)]
 mod test {
 
+    use std::str::FromStr;
+
     use axum::async_trait;
     use ethers_core::types::H256;
     use serde::de::DeserializeOwned;
@@ -254,9 +256,10 @@ mod test {
                     "0x0000000000000000000000000000000000000000000000000000000000000002".to_owned(),
                 destination_address: String::from("hello"),
                 destination_chain: String::from("destination_chain"),
-                source_address: String::from(
+                source_address: FieldElement::from_str(
                     "0x00b3ff441a68610b30fd5e2abbf3a1548eb6ba6f3559f2862bf2dc757e5828ca"
-                ),
+                )
+                .unwrap(),
                 payload_hash: H256::from_slice(&[
                     28u8, 138, 255, 149, 6, 133, 194, 237, 75, 195, 23, 79, 52, 114, 40, 123, 86,
                     217, 81, 123, 156, 148, 129, 39, 49, 154, 9, 167, 163, 109, 234, 200

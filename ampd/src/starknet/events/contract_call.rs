@@ -1,7 +1,7 @@
 use std::num::TryFromIntError;
 
 use ethers_core::types::H256;
-use starknet_core::types::ValueOutOfRangeError;
+use starknet_core::types::{FieldElement, ValueOutOfRangeError};
 use starknet_core::utils::{parse_cairo_short_string, ParseCairoShortStringError};
 use thiserror::Error;
 
@@ -16,7 +16,7 @@ pub struct ContractCallEvent {
     pub from_contract_addr: String,
     pub destination_address: String,
     pub destination_chain: String,
-    pub source_address: String,
+    pub source_address: FieldElement,
     pub payload_hash: Hash,
 }
 
@@ -80,7 +80,7 @@ impl TryFrom<starknet_core::types::Event> for ContractCallEvent {
         // the pedersen hash of the felt as described here, to get the actual address,
         // although I'm not sure that we can do it as described here:
         // https://docs.starknet.io/documentation/architecture_and_concepts/Smart_Contracts/contract-address/
-        let source_address = format!("0x{:064x}", starknet_event.data[0]);
+        let source_address = starknet_event.data[0];
 
         // destination_contract_address (ByteArray) is composed of FieldElements
         // from the second element to elemet X.
@@ -220,9 +220,10 @@ mod tests {
                 ),
                 destination_address: String::from("hello"),
                 destination_chain: String::from("destination_chain"),
-                source_address: String::from(
+                source_address: FieldElement::from_str(
                     "0x00b3ff441a68610b30fd5e2abbf3a1548eb6ba6f3559f2862bf2dc757e5828ca"
-                ),
+                )
+                .unwrap(),
                 payload_hash: H256::from_slice(&[
                     28u8, 138, 255, 149, 6, 133, 194, 237, 75, 195, 23, 79, 52, 114, 40, 123, 86,
                     217, 81, 123, 156, 148, 129, 39, 49, 154, 9, 167, 163, 109, 234, 200
