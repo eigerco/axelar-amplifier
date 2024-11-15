@@ -13,8 +13,6 @@ use sui_types::SuiAddress;
 pub enum Error {
     #[error("invalid address '{0}'")]
     InvalidAddress(String),
-    #[error("invalid Aleo program name '{0}'")]
-    InvalidAleoProgramName(String),
 }
 
 #[cw_serde]
@@ -30,11 +28,8 @@ pub enum AddressFormat {
 pub fn validate_contract_address(address: &str, format: &AddressFormat) -> Result<(), Error> {
     match format {
         AddressFormat::Aleo => {
-            const PROGRAM_SUFFIX: &str = ".aleo";
-
-            if !address.ends_with(PROGRAM_SUFFIX) {
-                bail!(Error::InvalidAleoProgramName(address.to_string()))
-            }
+            aleo_types::program::Program::from_str(address)
+                .change_context(Error::InvalidAddress(address.to_string()))?;
 
             Ok(())
         }
@@ -208,6 +203,55 @@ mod tests {
         let invalid = "MA7QYNF7SOWQ3GLR2BGMZEHXAVIRZA4KVWLTJJFC7MGXUA74P7UJVAAAAAAAAAAAAAJLK";
         assert_err_contains!(
             address::validate_address(invalid, &address::AddressFormat::Stellar),
+            address::Error,
+            address::Error::InvalidAddress(..)
+        );
+    }
+
+    #[test]
+    fn validate_aleo_program_name() {
+        let program_name = "hello.aleo";
+        assert_ok!(address::validate_contract_address(
+            program_name,
+            &address::AddressFormat::Aleo
+        ));
+
+        let program_name = "hello123.aleo";
+        assert_ok!(address::validate_contract_address(
+            program_name,
+            &address::AddressFormat::Aleo
+        ));
+
+        let program_name = "hello_123.aleo";
+        assert_ok!(address::validate_contract_address(
+            program_name,
+            &address::AddressFormat::Aleo
+        ));
+
+        let program_name = "hello";
+        assert_err_contains!(
+            address::validate_contract_address(program_name, &address::AddressFormat::Aleo),
+            address::Error,
+            address::Error::InvalidAddress(..)
+        );
+
+        let program_name = ".aleo";
+        assert_err_contains!(
+            address::validate_contract_address(program_name, &address::AddressFormat::Aleo),
+            address::Error,
+            address::Error::InvalidAddress(..)
+        );
+
+        let program_name = "";
+        assert_err_contains!(
+            address::validate_contract_address(program_name, &address::AddressFormat::Aleo),
+            address::Error,
+            address::Error::InvalidAddress(..)
+        );
+
+        let program_name = "hello$.aleo";
+        assert_err_contains!(
+            address::validate_contract_address(program_name, &address::AddressFormat::Aleo),
             address::Error,
             address::Error::InvalidAddress(..)
         );

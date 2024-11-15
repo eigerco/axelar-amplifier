@@ -49,11 +49,11 @@ type = "MultisigSigner"
 # chain_name = 'avalanche'
 # chain_rpc_url = "https://api.avax-test.network/ext/bc/C/rpc"
 
-# [[handlers]]
-# type = 'AleoMsgVerifier'
-# cosmwasm_contract = 'axelar19r4wxttfjtyenmqvm220nfjwckya0xaqzs7s3zwuk06vkry9vntql4cd4d'
-# chain_name = 'aleo'
-#
+[[handlers]]
+type = 'AleoMsgVerifier'
+cosmwasm_contract = 'axelar19r4wxttfjtyenmqvm220nfjwckya0xaqzs7s3zwuk06vkry9vntql4cd4d'
+chain_name = 'aleo'
+
 # [[handlers]]
 # type = 'AleoVerifierSetVerifier'
 # cosmwasm_contract = 'axelar19r4wxttfjtyenmqvm220nfjwckya0xaqzs7s3zwuk06vkry9vntql4cd4d'

@@ -1,4 +1,5 @@
 pub mod address;
+pub mod program;
 pub mod transaction;
 pub mod transition;
 
@@ -12,6 +13,8 @@ pub enum Error {
     InvalidAleoTransition(String),
     #[error("invalid aleo transaction id: {0}")]
     InvalidAleoTransaction(String),
+    #[error("invalid aleo program name: {0}")]
+    InvalidProgramName(String),
 }
 
 pub use address::*;

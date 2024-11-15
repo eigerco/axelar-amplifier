@@ -1,4 +1,4 @@
-use std::str::FromStr;
+use std::{fmt::Display, str::FromStr};
 
 use aleo_types::{Transaction, Transition};
 use error_stack::Report;
@@ -8,15 +8,13 @@ use super::Error;
 pub struct AleoMessageId {
     pub transaction_id: Transaction,
     pub transition_id: Transition,
-    pub index: u32,
 }
 
 impl AleoMessageId {
-    pub fn new(transaction_id: Transaction, transition_id: Transition, index: u32) -> Self {
+    pub fn new(transaction_id: Transaction, transition_id: Transition) -> Self {
         Self {
             transaction_id,
             transition_id,
-            index,
         }
     }
 }
@@ -44,20 +42,15 @@ impl FromStr for AleoMessageId {
         )
         .map_err(|e| e.change_context(Error::InvalidAleoMessageId(message_id.to_string())))?;
 
-        let index = parts
-            .next()
-            .ok_or(Error::InvalidAleoMessageIdFormat(message_id.to_owned()))?
-            .parse()
-            .map_err(Report::from)
-            .map_err(|e| {
-                e.attach_printable("Failed to parse index")
-                    .change_context(Error::InvalidAleoMessageId(message_id.to_string()))
-            })?;
-
         Ok(Self {
             transaction_id,
             transition_id,
-            index,
         })
+    }
+}
+
+impl Display for AleoMessageId {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}-{}", self.transaction_id, self.transition_id)
     }
 }

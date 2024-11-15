@@ -26,6 +26,7 @@ use types::TMAddress;
 
 use crate::config::Config;
 
+mod aleo;
 mod asyncutil;
 mod block_height_monitor;
 mod broadcaster;
@@ -46,7 +47,6 @@ mod tm_client;
 mod tofnd;
 mod types;
 mod url;
-mod aleo;
 
 pub use grpc::{client, proto};
 
@@ -220,7 +220,33 @@ where
     ) -> Result<App<T>, Error> {
         for config in handler_configs {
             let task = match config {
-                handlers::config::Config::AleoMsgVerifier {} => todo!(),
+                handlers::config::Config::AleoMsgVerifier {
+                    cosmwasm_contract,
+                    chain,
+                    timeout,
+                    base_url,
+                    network,
+                } => {
+                    let rest_client = reqwest::ClientBuilder::new()
+                        .connect_timeout(timeout.unwrap_or(DEFAULT_RPC_TIMEOUT))
+                        .timeout(timeout.unwrap_or(DEFAULT_RPC_TIMEOUT))
+                        .build()
+                        .change_context(Error::Connection)?;
+
+                    let client =
+                        aleo::http_client::Client::new(rest_client, base_url, network).unwrap();
+
+                    self.create_handler_task(
+                        format!("{}-msg-verifier", chain.name),
+                        handlers::aleo_verify_msg::Handler::new(
+                            verifier.clone(),
+                            cosmwasm_contract,
+                            client,
+                            self.block_height_monitor.latest_block_height(),
+                        ),
+                        event_processor_config.clone(),
+                    )
+                }
                 handlers::config::Config::AleoVerifierSetVerifier {} => todo!(),
                 handlers::config::Config::EvmMsgVerifier {
                     chain,

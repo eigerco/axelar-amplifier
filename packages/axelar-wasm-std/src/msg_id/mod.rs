@@ -1,7 +1,6 @@
 use std::fmt::Display;
 use std::str::FromStr;
 
-use aleo_message_id::AleoMessageId;
 use cosmwasm_schema::cw_serde;
 use error_stack::Report;
 
@@ -9,6 +8,7 @@ pub use self::base_58_event_index::Base58TxDigestAndEventIndex;
 pub use self::base_58_solana_event_index::Base58SolanaTxSignatureAndEventIndex;
 pub use self::tx_hash::HexTxHash;
 pub use self::tx_hash_event_index::HexTxHashAndEventIndex;
+pub use self::aleo_message_id::AleoMessageId;
 
 mod aleo_message_id;
 mod base_58_event_index;
@@ -124,19 +124,16 @@ mod test {
 
     #[test]
     fn should_verify_aleo_transaction() {
-        let message_id = "at1hs0xk375g4kvw53rcem9nyjsdw5lsv94fl065n77cpt0774nsyysdecaju-au1d6952458dhu835xt4dk4mmyjrs7vrg30guv6eupryfq8mhajxqzqym3al9-1";
+        let message_id = "at1hs0xk375g4kvw53rcem9nyjsdw5lsv94fl065n77cpt0774nsyysdecaju-au1d6952458dhu835xt4dk4mmyjrs7vrg30guv6eupryfq8mhajxqzqym3al9";
         assert!(verify_msg_id(message_id, &MessageIdFormat::AleoTransaction).is_ok());
     }
 
     #[test]
     fn should_not_verify_aleo_transaction() {
-        let message_id = "a1hs0xk375g4kvw53rcem9nyjsdw5lsv94fl065n77cpt0774nsyysdecaju-au1d6952458dhu835xt4dk4mmyjrs7vrg30guv6eupryfq8mhajxqzqym3al9-0";
+        let message_id = "a1hs0xk375g4kvw53rcem9nyjsdw5lsv94fl065n77cpt0774nsyysdecaju-au1d6952458dhu835xt4dk4mmyjrs7vrg30guv6eupryfq8mhajxqzqym3al9";
         assert!(verify_msg_id(message_id, &MessageIdFormat::AleoTransaction).is_err());
 
-        let message_id = "at1hs0xk375g4kvw53rcem9nyjsdw5lsv94fl065n77cpt0774nsyysdecaju-a1d6952458dhu835xt4dk4mmyjrs7vrg30guv6eupryfq8mhajxqzqym3al9-1";
-        assert!(verify_msg_id(message_id, &MessageIdFormat::AleoTransaction).is_err());
-
-        let message_id = "at1hs0xk375g4kvw53rcem9nyjsdw5lsv94fl065n77cpt0774nsyysdecaju-au1d6952458dhu835xt4dk4mmyjrs7vrg30guv6eupryfq8mhajxqzqym3al9-a";
+        let message_id = "at1hs0xk375g4kvw53rcem9nyjsdw5lsv94fl065n77cpt0774nsyysdecaju-a1d6952458dhu835xt4dk4mmyjrs7vrg30guv6eupryfq8mhajxqzqym3al9";
         assert!(verify_msg_id(message_id, &MessageIdFormat::AleoTransaction).is_err());
     }
 }

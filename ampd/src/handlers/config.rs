@@ -22,7 +22,14 @@ with_prefix!(chain "chain_");
 #[derive(Debug, Deserialize, Serialize, PartialEq)]
 #[serde(tag = "type")]
 pub enum Config {
-    AleoMsgVerifier {},
+    AleoMsgVerifier {
+        cosmwasm_contract: TMAddress,
+        #[serde(flatten, with = "chain")]
+        chain: Chain,
+        timeout: Option<Duration>,
+        base_url: String,
+        network: String,
+    },
     AleoVerifierSetVerifier {},
     EvmMsgVerifier {
         cosmwasm_contract: TMAddress,
