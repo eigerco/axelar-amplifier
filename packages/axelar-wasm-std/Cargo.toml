@@ -60,6 +60,7 @@ cw-multi-test = "0.15.1"
 goldie = { workspace = true }
 hex = { version = "0.4.3", default-features = false }
 rand = { workspace = true }
+crypto-bigint = { version = "0.5.5", features = ["rand_core"] }
 
 [lints]
 workspace = true

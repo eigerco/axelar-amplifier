@@ -6,11 +6,13 @@ use error_stack::Report;
 
 pub use self::base_58_event_index::Base58TxDigestAndEventIndex;
 pub use self::base_58_solana_event_index::Base58SolanaTxSignatureAndEventIndex;
+pub use self::starknet_field_element_event_index::FieldElementAndEventIndex;
 pub use self::tx_hash::HexTxHash;
 pub use self::tx_hash_event_index::HexTxHashAndEventIndex;
 
 mod base_58_event_index;
 mod base_58_solana_event_index;
+mod starknet_field_element_event_index;
 mod tx_hash;
 mod tx_hash_event_index;
 
@@ -25,6 +27,8 @@ pub enum Error {
     InvalidTxHash(String),
     #[error("invalid tx digest in message id '{0}'")]
     InvalidTxDigest(String),
+    #[error("invalid field element '{0}'")]
+    InvalidFieldElement(String),
 }
 
 /// Any message id format must implement this trait.
@@ -41,6 +45,7 @@ pub trait MessageId: FromStr + Display {}
 /// enum to pass to the router when registering a new chain
 #[cw_serde]
 pub enum MessageIdFormat {
+    FieldElementAndEventIndex,
     HexTxHashAndEventIndex,
     Base58TxDigestAndEventIndex,
     Base58SolanaTxSignatureAndEventIndex,
@@ -50,6 +55,9 @@ pub enum MessageIdFormat {
 // function the router calls to verify msg ids
 pub fn verify_msg_id(message_id: &str, format: &MessageIdFormat) -> Result<(), Report<Error>> {
     match format {
+        MessageIdFormat::FieldElementAndEventIndex => {
+            FieldElementAndEventIndex::from_str(message_id).map(|_| ())
+        }
         MessageIdFormat::HexTxHashAndEventIndex => {
             HexTxHashAndEventIndex::from_str(message_id).map(|_| ())
         }

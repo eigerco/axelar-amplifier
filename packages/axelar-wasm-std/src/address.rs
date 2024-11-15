@@ -41,19 +41,22 @@ pub fn validate_address(address: &str, format: &AddressFormat) -> Result<(), Err
                 .change_context(Error::InvalidAddress(address.to_string()))?;
         }
         AddressFormat::Starknet => {
-            // Contract addresses in Starknet are FieldElements, which are 31 byte decimals.
+            // Contract addresses in Starknet are FieldElements, which are decimals in a
+            // prime field, which fit in 252 bytes and can't exceed that prime field.
             // We'll only accept hex representation of the FieldElements, because they're the most
             // commonly used representation for addresses.
             //
-            // FieldElement max value is 31 bytes, which is a hex starting with `0`.
-            // This means 64 characters, the first being a 0.
-            //
-            // We'll also accept 63 char values, because a 63 chars non-0-padded hex,
-            // is also a valid address and `FieldElement::from_hex_be` pads it.
+            // We'll only accept 64 char hex strings.
+            // 62 and 63 hex string chars is also a valid address but we expect those to be padded
+            // with zeroes.
 
-            // The address.len() also includes a possible `0x` prefix, which is not required.
+            if !address.starts_with("0x") {
+                bail!(Error::InvalidAddress("0x prefix is missing".to_string()))
+            }
+
+            // The address.len() also includes a `0x` prefix, which is not required.
             let trimmed_addr = address.trim_start_matches("0x");
-            if trimmed_addr.len() < 62 {
+            if trimmed_addr.len() != 64 {
                 bail!(Error::InvalidAddress(address.to_string()))
             }
 
@@ -220,34 +223,35 @@ mod tests {
             &address::AddressFormat::Starknet
         ));
 
-        // 0 prefix removed from string, but 0x is left in.
-        // This is an invalid 63char hex by itself, but a valid field element.
-        // The `FieldElement::from_str` function pads the string with `0`,
-        // in order to make it a valid 64 char hex.
-        // 63 chars.
-        let zero_removed = "0x282b4492e08d8b6bbec8dfe7412e42e897eef9c080c5b97be1537433e583bdc";
-        assert_ok!(address::validate_address(
-            zero_removed,
-            &address::AddressFormat::Starknet
-        ));
-
         // 0x prefix removed from string, but padded with 0
         // 64 chars
         let zero_x_removed = "0282b4492e08d8b6bbec8dfe7412e42e897eef9c080c5b97be1537433e583bdc";
-        assert_ok!(address::validate_address(
-            zero_x_removed,
-            &address::AddressFormat::Starknet
-        ));
+        assert_err_contains!(
+            address::validate_address(zero_x_removed, &address::AddressFormat::Starknet),
+            address::Error,
+            address::Error::InvalidAddress(..)
+        );
 
         // 0x0 prefix removed from string.
         // Commonly a `0` is prefixed to the field element, in order to make it a valid hex.
         // Originally the felt is 63 chars, which is an invalid hex by itself
         // 63 chars
         let zero_x_zero_removed = "282b4492e08d8b6bbec8dfe7412e42e897eef9c080c5b97be1537433e583bdc";
-        assert_ok!(address::validate_address(
-            zero_x_zero_removed,
-            &address::AddressFormat::Starknet
-        ));
+        assert_err_contains!(
+            address::validate_address(zero_x_zero_removed, &address::AddressFormat::Starknet),
+            address::Error,
+            address::Error::InvalidAddress(..)
+        );
+
+        // 0 prefix removed from string, but 0x is left in.
+        // This is an invalid 63char hex by itself, but a valid field element.
+        // 63 chars.
+        let zero_removed = "0x282b4492e08d8b6bbec8dfe7412e42e897eef9c080c5b97be1537433e583bdc";
+        assert_err_contains!(
+            address::validate_address(zero_removed, &address::AddressFormat::Starknet),
+            address::Error,
+            address::Error::InvalidAddress(..)
+        );
 
         // invalid hex (starts with `q`)
         let invalid_hex = "0xq282b4492e08d8b6bbec8dfe7412e42e897eef9c080c5b97be1537433e583bdc";
