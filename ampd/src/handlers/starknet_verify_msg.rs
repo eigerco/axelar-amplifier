@@ -2,7 +2,7 @@ use std::collections::HashMap;
 use std::convert::TryInto;
 
 use async_trait::async_trait;
-use axelar_wasm_std::msg_id::HexTxHashAndEventIndex;
+use axelar_wasm_std::msg_id::{FieldElementAndEventIndex, HexTxHashAndEventIndex};
 use axelar_wasm_std::voting::{PollId, Vote};
 use cosmrs::cosmwasm::MsgExecuteContract;
 use cosmrs::tx::Msg;
@@ -31,9 +31,7 @@ type Result<T> = error_stack::Result<T, Error>;
 
 #[derive(Deserialize, Debug)]
 pub struct Message {
-    pub tx_id: String,
-    pub event_index: u64,
-    pub message_id: HexTxHashAndEventIndex,
+    pub message_id: FieldElementAndEventIndex,
     pub destination_address: String,
     pub destination_chain: ChainName,
     pub source_address: FieldElement,
@@ -134,25 +132,25 @@ where
             .collect::<Vec<_>>();
 
         // key is the tx_hash of the tx holding the event
-        let events: HashMap<String, ContractCallEvent> =
-            try_join_all(unique_msgs.iter().map(|msg| {
-                let tx_hash = FieldElement::from_bytes_be(&msg.message_id.tx_hash).unwrap();
-                self.rpc_client.get_event_by_hash(tx_hash)
-            }))
-            .change_context(Error::TxReceipts)
-            .await?
-            .into_iter()
-            .flatten()
-            .collect();
+        let events: HashMap<FieldElement, ContractCallEvent> = try_join_all(
+            unique_msgs
+                .iter()
+                .map(|msg| self.rpc_client.get_event_by_hash(msg.message_id.tx_hash)),
+        )
+        .change_context(Error::TxReceipts)
+        .await?
+        .into_iter()
+        .flatten()
+        .collect();
 
         let mut votes = vec![];
         for msg in unique_msgs {
-            if !events.contains_key(&msg.tx_id) {
+            if !events.contains_key(&msg.message_id.tx_hash) {
                 votes.push(Vote::NotFound);
                 continue;
             }
             votes.push(verify_msg(
-                events.get(&msg.tx_id).unwrap(), // safe to unwrap, because of previous check
+                events.get(&msg.message_id.tx_hash).unwrap(), // safe to unwrap, because of previous check
                 msg,
                 &source_gateway_address,
             ));
@@ -195,7 +193,10 @@ mod tests {
         let mut rpc_client = MockStarknetClient::new();
         rpc_client.expect_get_event_by_hash().returning(|_| {
             Ok(Some((
-                String::from("0x035410be6f4bf3f67f7c1bb4a93119d9d410b2f981bfafbf5dbbf5d37ae7439e"),
+                FieldElement::from_str(
+                    "0x035410be6f4bf3f67f7c1bb4a93119d9d410b2f981bfafbf5dbbf5d37ae7439e",
+                )
+                .unwrap(),
                 ContractCallEvent {
                     from_contract_addr: String::from("source-gw-addr"),
                     destination_address: String::from("destination-address"),
@@ -240,9 +241,10 @@ mod tests {
             .unwrap()))
             .returning(|_| {
                 Ok(Some((
-                    String::from(
+                    FieldElement::from_str(
                         "0x045410be6f4bf3f67f7c1bb4a93119d9d410b2f981bfafbf5dbbf5d37ae7439f",
-                    ),
+                    )
+                    .unwrap(),
                     ContractCallEvent {
                         from_contract_addr: String::from("source-gw-addr"),
                         destination_address: String::from("destination-address"),

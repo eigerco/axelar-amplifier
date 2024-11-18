@@ -61,8 +61,10 @@ where
 pub trait StarknetClient {
     /// Attempts to fetch a ContractCall event, by a given `tx_hash`.
     /// Returns a tuple `(tx_hash, event)` or a `StarknetClientError`.
-    async fn get_event_by_hash(&self, tx_hash: &str)
-        -> Result<Option<(String, ContractCallEvent)>>;
+    async fn get_event_by_hash(
+        &self,
+        tx_hash: FieldElement,
+    ) -> Result<Option<(FieldElement, ContractCallEvent)>>;
 }
 
 #[async_trait]
@@ -72,11 +74,8 @@ where
 {
     async fn get_event_by_hash(
         &self,
-        tx_hash: &str,
-    ) -> Result<Option<(String, ContractCallEvent)>> {
-        let tx_hash_felt =
-            FieldElement::from_str(tx_hash).map_err(StarknetClientError::FeltFromString)?;
-
+        tx_hash: FieldElement,
+    ) -> Result<Option<(FieldElement, ContractCallEvent)>> {
         // TODO: Check ACCEPTED ON L1 times and decide if we should use it
         //
         // Finality status is always at least ACCEPTED_ON_L2 and this is what we're
@@ -85,7 +84,7 @@ where
         // Check https://github.com/eigerco/giza-axelar-starknet/issues/90
         let receipt_type = self
             .client
-            .get_transaction_receipt(tx_hash_felt)
+            .get_transaction_receipt(tx_hash)
             .await
             .map_err(StarknetClientError::FetchingReceipt)?;
 
@@ -93,7 +92,7 @@ where
             return Err(Report::new(StarknetClientError::UnsuccessfulTx));
         }
 
-        let event: Option<(String, ContractCallEvent)> = match receipt_type {
+        let event: Option<(FieldElement, ContractCallEvent)> = match receipt_type {
             // TODO: There is also a PendingReceipt type. Should we handle it?
             //
             // Check https://github.com/eigerco/giza-axelar-starknet/issues/90
@@ -106,7 +105,7 @@ where
                             // NOTE: Here we ignore the error, because the event might
                             // not be ContractCall and that by itself is not erroneous behavior
                             if let Ok(cce) = ContractCallEvent::try_from(e.clone()) {
-                                Some((format!("0x{:064x}", tx.transaction_hash).to_owned(), cce))
+                                Some((tx.transaction_hash, cce))
                             } else {
                                 None
                             }
@@ -144,19 +143,9 @@ mod test {
     use super::{Client, StarknetClient, StarknetClientError};
 
     #[tokio::test]
-    async fn invalid_tx_hash_stirng() {
-        let mock_client = Client::new_with_transport(ValidMockTransport).unwrap();
-        let contract_call_event = mock_client.get_event_by_hash("not a valid felt").await;
-
-        assert!(contract_call_event.is_err());
-    }
-
-    #[tokio::test]
     async fn deploy_account_tx_fetch() {
         let mock_client = Client::new_with_transport(DeployAccountMockTransport).unwrap();
-        let contract_call_event = mock_client
-            .get_event_by_hash(FieldElement::ONE.to_string().as_str())
-            .await;
+        let contract_call_event = mock_client.get_event_by_hash(FieldElement::ONE).await;
 
         assert!(contract_call_event.unwrap().is_none());
     }
@@ -164,9 +153,7 @@ mod test {
     #[tokio::test]
     async fn deploy_tx_fetch() {
         let mock_client = Client::new_with_transport(DeployMockTransport).unwrap();
-        let contract_call_event = mock_client
-            .get_event_by_hash(FieldElement::ONE.to_string().as_str())
-            .await;
+        let contract_call_event = mock_client.get_event_by_hash(FieldElement::ONE).await;
 
         assert!(contract_call_event.unwrap().is_none());
     }
@@ -174,9 +161,7 @@ mod test {
     #[tokio::test]
     async fn l1_handler_tx_fetch() {
         let mock_client = Client::new_with_transport(L1HandlerMockTransport).unwrap();
-        let contract_call_event = mock_client
-            .get_event_by_hash(FieldElement::ONE.to_string().as_str())
-            .await;
+        let contract_call_event = mock_client.get_event_by_hash(FieldElement::ONE).await;
 
         assert!(contract_call_event.unwrap().is_none());
     }
@@ -184,9 +169,7 @@ mod test {
     #[tokio::test]
     async fn declare_tx_fetch() {
         let mock_client = Client::new_with_transport(DeclareMockTransport).unwrap();
-        let contract_call_event = mock_client
-            .get_event_by_hash(FieldElement::ONE.to_string().as_str())
-            .await;
+        let contract_call_event = mock_client.get_event_by_hash(FieldElement::ONE).await;
 
         assert!(contract_call_event.unwrap().is_none());
     }
@@ -195,9 +178,7 @@ mod test {
     async fn invalid_contract_call_event_tx_fetch() {
         let mock_client =
             Client::new_with_transport(InvalidContractCallEventMockTransport).unwrap();
-        let contract_call_event = mock_client
-            .get_event_by_hash(FieldElement::ONE.to_string().as_str())
-            .await;
+        let contract_call_event = mock_client.get_event_by_hash(FieldElement::ONE).await;
 
         assert!(contract_call_event.unwrap().is_none());
     }
@@ -205,9 +186,7 @@ mod test {
     #[tokio::test]
     async fn no_events_tx_fetch() {
         let mock_client = Client::new_with_transport(NoEventsMockTransport).unwrap();
-        let contract_call_event = mock_client
-            .get_event_by_hash(FieldElement::ONE.to_string().as_str())
-            .await;
+        let contract_call_event = mock_client.get_event_by_hash(FieldElement::ONE).await;
 
         assert!(contract_call_event.unwrap().is_none());
     }
@@ -215,9 +194,7 @@ mod test {
     #[tokio::test]
     async fn reverted_tx_fetch() {
         let mock_client = Client::new_with_transport(RevertedMockTransport).unwrap();
-        let contract_call_event = mock_client
-            .get_event_by_hash(FieldElement::ONE.to_string().as_str())
-            .await;
+        let contract_call_event = mock_client.get_event_by_hash(FieldElement::ONE).await;
 
         assert!(contract_call_event
             .unwrap_err()
@@ -227,9 +204,7 @@ mod test {
     #[tokio::test]
     async fn failing_tx_fetch() {
         let mock_client = Client::new_with_transport(FailingMockTransport).unwrap();
-        let contract_call_event = mock_client
-            .get_event_by_hash(FieldElement::ONE.to_string().as_str())
-            .await;
+        let contract_call_event = mock_client.get_event_by_hash(FieldElement::ONE).await;
 
         assert!(contract_call_event.is_err());
     }
@@ -238,14 +213,17 @@ mod test {
     async fn successful_tx_fetch() {
         let mock_client = Client::new_with_transport(ValidMockTransport).unwrap();
         let contract_call_event = mock_client
-            .get_event_by_hash(FieldElement::ONE.to_string().as_str())
+            .get_event_by_hash(FieldElement::ONE)
             .await
             .unwrap() // unwrap the result
             .unwrap(); // unwrap the option
 
         assert_eq!(
             contract_call_event.0,
-            "0x0000000000000000000000000000000000000000000000000000000000000001"
+            FieldElement::from_str(
+                "0x0000000000000000000000000000000000000000000000000000000000000001"
+            )
+            .unwrap()
         );
         assert_eq!(
             contract_call_event.1,

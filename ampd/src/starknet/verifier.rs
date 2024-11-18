@@ -34,8 +34,10 @@ impl PartialEq<Message> for ContractCallEvent {
 mod tests {
     use std::str::FromStr;
 
+    use axelar_wasm_std::msg_id::FieldElementAndEventIndex;
     use axelar_wasm_std::voting::Vote;
     use ethers_core::types::H256;
+    use router_api::ChainName;
     use starknet_core::types::FieldElement;
     use starknet_types::events::contract_call::ContractCallEvent;
 
@@ -52,7 +54,7 @@ mod tests {
                 "0x035410be6f4bf3f67f7c1bb4a93119d9d410b2f981bfafbf5dbbf5d37ae7439e",
             ),
             destination_address: String::from("destination_address"),
-            destination_chain: String::from("destination_chain"),
+            destination_chain: String::from("ethereum"),
             source_address: FieldElement::from_str(
                 "0x00b3ff441a68610b30fd5e2abbf3a1548eb6ba6f3559f2862bf2dc757e5828ca",
             )
@@ -66,10 +68,15 @@ mod tests {
 
     fn mock_valid_message() -> Message {
         Message {
-            tx_id: "txid".to_owned(),
-            event_index: 0,
+            message_id: FieldElementAndEventIndex {
+                tx_hash: FieldElement::from_str(
+                    "0x0000000000000000000000000000000000000000000000000000000000000001",
+                )
+                .unwrap(),
+                event_index: 0,
+            },
             destination_address: String::from("destination_address"),
-            destination_chain: String::from("destination_chain"),
+            destination_chain: ChainName::from_str("ethereum").unwrap(),
             source_address: FieldElement::from_str(
                 "0x00b3ff441a68610b30fd5e2abbf3a1548eb6ba6f3559f2862bf2dc757e5828ca",
             )
@@ -131,7 +138,7 @@ mod tests {
         assert_eq!(verify_msg(&event, &msg, &source_gw_address), Vote::NotFound);
 
         let mut msg = { mock_valid_message() };
-        msg.destination_chain = String::from("different");
+        msg.destination_chain = ChainName::from_str("avalanche").unwrap();
         assert_eq!(verify_msg(&event, &msg, &source_gw_address), Vote::NotFound);
 
         let mut msg = { mock_valid_message() };
