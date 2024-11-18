@@ -1,8 +1,6 @@
 //! Verification implementation of Starknet JSON RPC client's verification of
 //! transaction existence
 
-use std::str::FromStr;
-
 use async_trait::async_trait;
 use error_stack::Report;
 use mockall::automock;
