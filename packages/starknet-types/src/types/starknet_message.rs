@@ -8,7 +8,7 @@ use starknet_core::types::FieldElement;
 
 use crate::error::Error;
 
-/// A message that is encoded in the prover and later send to Starknet gateway
+/// A message that is encoded in the prover and later sent to the Starknet gateway.
 #[derive(Clone, Debug, PartialEq)]
 pub struct StarknetMessage {
     source_chain: String,
@@ -70,7 +70,7 @@ impl Tokenizable for StarknetMessage {
                 let contract_address_felt: FieldElement =
                     FieldElement::from_bytes_be(&contract_address_bytes).map_err(|_| {
                         InvalidOutputType(
-                            "failed to convert contract_address bytes to felt".to_string(),
+                            "failed to convert contract_address bytes to field element (felt)".to_string(),
                         )
                     })?;
 
@@ -141,7 +141,7 @@ mod tests {
 
         // Tested like this, because InvalidOutputType doesn't implement PartialEq
         assert!(
-            matches!(result, Err(InvalidOutputType(msg)) if msg == "failed to convert contract_address bytes to felt")
+            matches!(result, Err(InvalidOutputType(msg)) if msg == "failed to convert contract_address bytes to field element (felt)")
         );
     }
 

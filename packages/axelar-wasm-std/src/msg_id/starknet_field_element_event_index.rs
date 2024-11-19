@@ -14,7 +14,7 @@ use crate::nonempty;
 
 #[derive(Debug, DeserializeFromStr, Clone)]
 pub struct FieldElementAndEventIndex {
-    pub tx_hash: FieldElement, // the tx hash
+    pub tx_hash: FieldElement,
     pub event_index: u64,
 }
 
