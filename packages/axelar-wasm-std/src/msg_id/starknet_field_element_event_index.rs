@@ -99,8 +99,7 @@ impl From<FieldElementAndEventIndex> for nonempty::String {
 mod tests {
 
     use crypto_bigint::rand_core::OsRng;
-    use crypto_bigint::{NonZero, Random, RandomMod, U256};
-    use rand::Rng;
+    use crypto_bigint::{NonZero, RandomMod, U256};
 
     use super::*;
 
@@ -122,12 +121,6 @@ mod tests {
             "0x0670d1dd42a19cb229bb4378b58b9c3e76aa43edaaea46845cd8c456c1224d89-0",
         );
         assert!(res.is_ok());
-        // assert_eq!(
-        //     res.unwrap().tx_hash_as_hex(),
-        //     "0x0670d1dd42a19cb229bb4378b58b9c3e76aa43edaaea46845cd8c456c1224d89"
-        //         .try_into()
-        //         .unwrap()
-        // );
 
         for _ in 0..1000 {
             let tx_hash = random_hash();
