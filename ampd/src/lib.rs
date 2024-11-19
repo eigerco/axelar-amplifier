@@ -76,6 +76,7 @@ async fn prepare_app(cfg: Config) -> Result<App<impl Broadcaster>, Error> {
     let tm_client = tendermint_rpc::HttpClient::new(tm_jsonrpc.to_string().as_str())
         .change_context(Error::Connection)
         .attach_printable(tm_jsonrpc.clone())?;
+    println!("service client address: {:?}", tm_grpc);
     let service_client = ServiceClient::connect(tm_grpc.to_string())
         .await
         .change_context(Error::Connection)
@@ -226,6 +227,7 @@ where
                     timeout,
                     base_url,
                     network,
+                    gateway_contract,
                 } => {
                     let rest_client = reqwest::ClientBuilder::new()
                         .connect_timeout(timeout.unwrap_or(DEFAULT_RPC_TIMEOUT))
@@ -243,6 +245,7 @@ where
                             cosmwasm_contract,
                             client,
                             self.block_height_monitor.latest_block_height(),
+                            gateway_contract,
                         ),
                         event_processor_config.clone(),
                     )

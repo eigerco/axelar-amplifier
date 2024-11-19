@@ -1,10 +1,13 @@
 use std::collections::HashMap;
 use std::str::FromStr;
 
-use aleo_types::{Address, Transaction, Transition};
+use aleo_types::address::Address;
+use aleo_types::transaction::Transaction;
+use aleo_types::transition::Transition;
 use async_trait::async_trait;
 use axelar_wasm_std::voting::{PollId, Vote};
 use cosmrs::cosmwasm::MsgExecuteContract;
+use cosmrs::tx::Msg;
 use events::Error::EventTypeMismatch;
 use events::Event;
 use events_derive::try_from;
@@ -15,7 +18,6 @@ use tokio::sync::watch::Receiver;
 use tracing::{info, info_span};
 use valuable::Valuable;
 use voting_verifier::msg::ExecuteMsg;
-use cosmrs::tx::Msg;
 
 use crate::aleo::http_client::{
     ClientTrait as AleoClientTrait, ClientWrapper as AleoClientWrapper,
@@ -53,6 +55,7 @@ pub struct Handler<C: AleoClientTrait> {
     http_client: C,
     latest_block_height: Receiver<u64>,
     chain: ChainName,
+    gateway_contract: String,
 }
 
 impl<C> Handler<C>
@@ -64,6 +67,7 @@ where
         voting_verifier_contract: TMAddress,
         aleo_client: C,
         latest_block_height: Receiver<u64>,
+        gateway_contract: String,
     ) -> Self {
         Self {
             verifier,
@@ -71,6 +75,7 @@ where
             http_client: aleo_client,
             latest_block_height,
             chain: ChainName::from_str("aleo").unwrap(),
+            gateway_contract,
         }
     }
 

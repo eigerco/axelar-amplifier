@@ -53,6 +53,10 @@ type = "MultisigSigner"
 type = 'AleoMsgVerifier'
 cosmwasm_contract = 'axelar19r4wxttfjtyenmqvm220nfjwckya0xaqzs7s3zwuk06vkry9vntql4cd4d'
 chain_name = 'aleo'
+chain_rpc_url = "https://api.avax-test.network/ext/bc/C/rpc"
+base_url = "http://127.0.0.1:3000"
+network = "testnet"
+gateway_contract = "gateway.aleo"
 
 # [[handlers]]
 # type = 'AleoVerifierSetVerifier'

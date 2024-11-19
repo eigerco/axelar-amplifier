@@ -29,6 +29,7 @@ pub enum Config {
         timeout: Option<Duration>,
         base_url: String,
         network: String,
+        gateway_contract: String,
     },
     AleoVerifierSetVerifier {},
     EvmMsgVerifier {

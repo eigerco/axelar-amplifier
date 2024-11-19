@@ -47,6 +47,7 @@ async fn main() -> ExitCode {
     let args: Args = Args::parse();
     set_up_logger(&args.output);
 
+    println!("-->{args:?}");
     let cfg = init_config(&args.config);
 
     let result = match args.cmd {
@@ -121,6 +122,7 @@ fn set_up_logger(output: &Output) {
 
 fn init_config(config_paths: &[PathBuf]) -> Config {
     let files = find_config_files(config_paths);
+    println!("-->{files:?}");
 
     parse_config(files)
         .change_context(Error::LoadConfig)
@@ -148,12 +150,15 @@ fn find_config_files(config: &[PathBuf]) -> Vec<File<FileSourceFile, FileFormat>
 fn parse_config(
     files: Vec<File<FileSourceFile, FileFormat>>,
 ) -> error_stack::Result<Config, ConfigError> {
-    cfg::builder()
+    let c = cfg::builder()
         .add_source(files)
         .add_source(Environment::with_prefix(clap::crate_name!()))
         .build()?
         .try_deserialize::<Config>()
-        .map_err(Report::from)
+        .map_err(Report::from);
+
+    println!("-->{c:?}");
+    c
 }
 
 fn expand_home_dir(path: impl AsRef<Path>) -> PathBuf {

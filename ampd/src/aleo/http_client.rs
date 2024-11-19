@@ -1,10 +1,13 @@
 use std::collections::HashMap;
 use std::str::FromStr;
 
-use aleo_types::{Address, Transaction, Transition};
+use aleo_types::address::Address;
+use aleo_types::transaction::Transaction;
+use aleo_types::transition::Transition;
 use async_trait::async_trait;
 use cosmwasm_std::ensure;
 use error_stack::{report, Report, Result, ResultExt};
+use futures::stream::{self, StreamExt};
 use mockall::automock;
 use router_api::ChainName;
 use serde::Deserialize;
@@ -37,6 +40,8 @@ pub enum Error {
     InvalidAleoTransactionId,
     #[error("Failed to create AleoID: {0}")]
     FailedToCreateAleoID(String),
+    #[error("HttpError")]
+    HttpError,
 }
 
 type Payload = String;
@@ -69,7 +74,7 @@ impl PartialEq<crate::handlers::aleo_verify_msg::Message> for TransitionReceipt 
             && self.transition == message.transition_id
             && self.destination_address == message.destination_address
             && self.destination_chain == message.destination_chain
-            && self.source_address.address() == message.source_address.address()
+            && self.source_address == message.source_address
             && payload_hash == message.payload_hash
     }
 }
@@ -272,7 +277,7 @@ where
 
         let transition = transaction
             .find_transition(
-                &AleoID::<Field<CurrentNetwork>, PREFIX>::from_str(transition_id.transition_id())
+                &AleoID::<Field<CurrentNetwork>, PREFIX>::from_str(transition_id.to_string().as_str())
                     .map_err(|e| Error::FailedToCreateAleoID(e.to_string()))?,
             )
             .ok_or(Error::TransitionNotFound(transaction.id().to_string()))?;
@@ -325,13 +330,18 @@ where
                     transaction_id,
                     transitions_id
                 );
-                // TODO: handle http GET errors
-                // for transition_id in transitions_id {
-                //     responces.insert(
-                //         transition_id.clone(),
-                //         Receipt::NotFound(transaction_id.clone(), transition_id, e.clone()),
-                //     );
-                // }
+
+                for transition_id in transitions_id {
+                    responces.insert(
+                        transition_id.clone(),
+                        Receipt::NotFound(
+                            transaction_id.clone(),
+                            transition_id,
+                            Report::new(Error::HttpError),
+                        ),
+                    );
+                }
+
                 return responces;
             }
         };
@@ -347,15 +357,21 @@ where
         // TODO: handle the option that is return by insert
         for transition_id in transitions_id {
             match self.transition_receipt(&transaction, &transition_id).await {
-                Ok(receipt) => {
-                    responces.insert(transition_id, Receipt::Found(receipt));
-                }
-                Err(e) => {
-                    responces.insert(
-                        transition_id.clone(),
-                        Receipt::NotFound(transaction_id.clone(), transition_id, e),
-                    );
-                }
+                Ok(receipt) => match responces.contains_key(&transition_id) {
+                    false => {
+                        responces.insert(transition_id, Receipt::Found(receipt));
+                    }
+                    true => todo!(),
+                },
+                Err(e) => match responces.contains_key(&transition_id) {
+                    false => {
+                        responces.insert(
+                            transition_id.clone(),
+                            Receipt::NotFound(transaction_id.clone(), transition_id, e),
+                        );
+                    }
+                    true => todo!(),
+                },
             }
         }
 
@@ -379,11 +395,23 @@ where
         [X] Check that only one of them is the call-contract call
         [ ] Check that the CallContract has the same data as the function call
         */
-        for (transaction_id, transitions_id) in transactions {
-            responces.extend(
+        // for (transaction_id, transitions_id) in transactions {
+        //     responces.extend(
+        //         self.transaction_receipt(transaction_id, transitions_id)
+        //             .await,
+        //     );
+        // }
+
+        let stream = stream::iter(transactions)
+            .map(|(transaction_id, transitions_id)| {
                 self.transaction_receipt(transaction_id, transitions_id)
-                    .await,
-            );
+            })
+            .buffer_unordered(10);
+
+        tokio::pin!(stream);
+
+        while let Some(value) = stream.next().await {
+            responces.extend(value);
         }
 
         responces
