@@ -13,6 +13,7 @@ rust-version = "1.78.0" # be sure there is an optimizer release supporting this 
 edition = "2021"
 
 [workspace.dependencies]
+aleo-types = { path = "packages/aleo-types" }
 alloy-primitives = { version = "0.7.6", default-features = false, features = ["std"] }
 alloy-sol-types = { version = "0.7.6", default-features = false, features = ["std"] }
 anyhow = "1.0.89"

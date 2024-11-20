@@ -106,6 +106,19 @@ dependencies = [
 ]
 
 [[package]]
+name = "aleo-types"
+version = "0.1.0"
+dependencies = [
+ "assert_ok",
+ "axelar-wasm-std",
+ "bech32 0.11.0",
+ "error-stack",
+ "serde",
+ "serde_json",
+ "thiserror",
+]
+
+[[package]]
 name = "aliasable"
 version = "0.1.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -834,6 +847,7 @@ dependencies = [
 name = "axelar-wasm-std"
 version = "1.0.0"
 dependencies = [
+ "aleo-types",
  "alloy-primitives",
  "assert_ok",
  "axelar-wasm-std-derive",
