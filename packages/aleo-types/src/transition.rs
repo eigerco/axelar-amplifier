@@ -13,11 +13,11 @@ pub struct Transition {
     transition_id: String,
 }
 
-impl Transition {
-    pub fn transition_id(&self) -> &str {
-        self.transition_id.as_str()
-    }
-}
+// impl Transition {
+//     pub fn transition_id(&self) -> &str {
+//         self.transition_id.as_str()
+//     }
+// }
 
 impl FromStr for Transition {
     type Err = Report<Error>;

@@ -1,7 +1,7 @@
 use std::str::FromStr;
 use std::vec::Vec;
 
-use aleo_types::Transition as AleoTransition;
+use aleo_types::transition::Transition as AleoTransition;
 use axelar_wasm_std::msg_id::{
     Base58SolanaTxSignatureAndEventIndex, Base58TxDigestAndEventIndex, Bech32mFormat, HexTxHash,
     HexTxHashAndEventIndex, MessageIdFormat,

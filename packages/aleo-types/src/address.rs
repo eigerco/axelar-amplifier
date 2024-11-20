@@ -9,16 +9,16 @@ use crate::Error;
 
 const ADDRESS_PREFIX: &str = "aleo";
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, PartialEq, Eq)]
 pub struct Address {
     address: String,
 }
 
-impl Address {
-    pub fn address(&self) -> &str {
-        self.address.as_str()
-    }
-}
+// impl Address {
+//     pub fn as_str(&self) -> &str {
+//         self.address.as_str()
+//     }
+// }
 
 impl FromStr for Address {
     type Err = Report<Error>;
