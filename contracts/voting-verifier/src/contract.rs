@@ -122,12 +122,12 @@ pub fn migrate(
     let config = Config {
         service_registry_contract: prev_config.service_registry_contract,
         service_name: prev_config.service_name,
-        source_chain: "Aleo".parse().unwrap(),
+        source_chain: "aleo".parse().unwrap(),
         rewards_contract: prev_config.rewards_contract,
         block_expiry: prev_config.block_expiry,
         confirmation_height: prev_config.confirmation_height,
         msg_id_format: axelar_wasm_std::msg_id::MessageIdFormat::Bech32m,
-        source_gateway_address: "gateway.aleo".parse().unwrap(),
+        source_gateway_address: "vzevxifdoj.aleo".parse().unwrap(),
         voting_threshold: prev_config.voting_threshold,
         address_format: address::AddressFormat::Aleo,
     };
