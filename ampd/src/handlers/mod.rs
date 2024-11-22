@@ -1,3 +1,4 @@
+pub mod aleo_verify_msg;
 pub mod config;
 mod errors;
 pub mod evm_verify_msg;

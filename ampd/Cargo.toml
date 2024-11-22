@@ -6,6 +6,7 @@ rust-version = { workspace = true }
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+aleo-types = { workspace = true }
 async-trait = "0.1.59"
 axelar-wasm-std = { workspace = true }
 axum = "0.7.5"
@@ -41,6 +42,8 @@ multisig = { workspace = true, features = ["library"] }
 multiversx-sdk = "0.6.1"
 num-traits = { workspace = true }
 openssl = { version = "0.10.35", features = ["vendored"] }  # Needed to make arm compilation work by forcing vendoring
+pest = { workspace = true }
+pest_derive = { workspace = true }
 prost = "0.11.9"
 prost-types = "0.11.9"
 report = { workspace = true }
@@ -52,6 +55,7 @@ serde_json = { workspace = true }
 serde_with = "3.2.0"
 service-registry-api = { workspace = true }
 sha3 = { workspace = true }
+snarkvm = "1.0.0"
 stellar = { workspace = true }
 stellar-rpc-client = "21.4.0"
 stellar-xdr = { workspace = true, features = ["serde_json"] }

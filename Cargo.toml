@@ -51,6 +51,8 @@ msgs-derive = { version = "^1.0.0", path = "packages/msgs-derive" }
 multisig = { version = "^1.1.1", path = "contracts/multisig" }
 multisig-prover = { version = "^1.1.1", path = "contracts/multisig-prover" }
 num-traits = { version = "0.2.14", default-features = false }
+pest = { version = "2.7.14" }
+pest_derive = { version = "2.7.14" }
 quote = "1.0.36"
 rand = "0.8.5"
 report = { version = "^1.0.0", path = "packages/report" }
