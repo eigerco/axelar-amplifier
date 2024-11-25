@@ -1,5 +1,5 @@
-//! Module responsible for handling verification of verifier set changes on Starknet.
-//! It processes events related to verifier set updates, verifies them against the Starknet chain,
+//! Module responsible for handling verification of verifier set changes.
+//! It processes events related to verifier set, verifies them against the Starknet chain,
 //! and manages the voting process for confirming these changes.
 
 use std::convert::TryInto;
