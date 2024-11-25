@@ -36,7 +36,7 @@ pub fn verify_verifier_set(
     tx_receipt: &TransactionReceipt,
     verifier_set: &VerifierSetConfirmation,
 ) -> Vote {
-    todo!()
+    Vote::SucceededOnChain // TODO: implement this
 }
 
 #[cfg(test)]
