@@ -49,8 +49,8 @@ where
 {
     verifier: TMAddress,
     voting_verifier_contract: TMAddress,
-    chain: ChainName,
-    finalizer_type: Finalization,
+    chain: ChainName,             // TODO: figure out if we need this
+    finalizer_type: Finalization, // TODO: figure out if we need this
     rpc_client: C,
     latest_block_height: Receiver<u64>,
 }
