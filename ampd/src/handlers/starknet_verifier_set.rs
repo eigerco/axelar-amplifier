@@ -49,8 +49,6 @@ where
 {
     verifier: TMAddress,
     voting_verifier_contract: TMAddress,
-    chain: ChainName,             // TODO: figure out if we need this
-    finalizer_type: Finalization, // TODO: figure out if we need this
     rpc_client: C,
     latest_block_height: Receiver<u64>,
 }
@@ -62,16 +60,12 @@ where
     pub fn new(
         verifier: TMAddress,
         voting_verifier_contract: TMAddress,
-        chain: ChainName,
-        finalizer_type: Finalization,
         rpc_client: C,
         latest_block_height: Receiver<u64>,
     ) -> Self {
         Self {
             verifier,
             voting_verifier_contract,
-            chain,
-            finalizer_type,
             rpc_client,
             latest_block_height,
         }
