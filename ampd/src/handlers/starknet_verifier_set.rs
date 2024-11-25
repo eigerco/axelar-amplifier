@@ -80,6 +80,39 @@ where
     type Err = Error;
 
     async fn handle(&self, event: &Event) -> Result<Vec<Any>, Self::Err> {
+        if !event.is_from_contract(self.voting_verifier_contract.as_ref()) {
+            return Ok(vec![]);
+        }
+
+        let PollStartedEvent {
+            poll_id,
+            source_gateway_address,
+            verifier_set,
+            expires_at,
+            participants,
+        } = match event.try_into() as error_stack::Result<_, _> {
+            Err(report) if matches!(report.current_context(), EventTypeMismatch(_)) => {
+                return Ok(vec![])
+            }
+            event => event.change_context(DeserializeEvent)?,
+        };
+
+        if !participants.contains(&self.verifier) {
+            return Ok(vec![]);
+        }
+
+        if *self.latest_block_height.borrow() >= expires_at {
+            info!(poll_id = poll_id.to_string(), "skipping expired poll");
+            return Ok(vec![]);
+        }
+
+        // FIXME: the rpc client default to CallContractEvent, it has to be extended
+        let tx_receipt = self
+            .rpc_client
+            .get_event_by_hash(verifier_set.tx_hash)
+            .await?;
+
+        // :D
         todo!()
     }
 }
