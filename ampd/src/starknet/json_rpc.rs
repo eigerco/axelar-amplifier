@@ -12,6 +12,13 @@ use thiserror::Error;
 
 type Result<T> = error_stack::Result<T, StarknetClientError>;
 
+// represents types of events supported by the client
+// perhaps we should move this to the `starknet_types` crate?
+pub enum EventType {
+    ContractCall(ContractCallEvent),
+    VerifierSet(String), // FIXME: this is a placeholder
+}
+
 #[derive(Debug, Error)]
 pub enum StarknetClientError {
     #[error(transparent)]
