@@ -49,6 +49,8 @@ where
 {
     verifier: TMAddress,
     voting_verifier_contract: TMAddress,
-    blockchain: C,
+    chain: ChainName,
+    finalizer_type: Finalization,
+    rpc_client: C,
     latest_block_height: Receiver<u64>,
 }
