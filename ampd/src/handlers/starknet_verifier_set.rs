@@ -85,7 +85,7 @@ where
 {
     type Err = Error;
 
-    async fn handle(&self, event: &Event) -> Result<Vec<Any>> {
+    async fn handle(&self, event: &Event) -> Result<Vec<Any>, Self::Err> {
         todo!()
     }
 }
