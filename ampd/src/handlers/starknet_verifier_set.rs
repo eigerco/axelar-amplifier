@@ -54,3 +54,26 @@ where
     rpc_client: C,
     latest_block_height: Receiver<u64>,
 }
+
+impl<C> Handler<C>
+where
+    C: StarknetClient + Send + Sync,
+{
+    pub fn new(
+        verifier: TMAddress,
+        voting_verifier_contract: TMAddress,
+        chain: ChainName,
+        finalizer_type: Finalization,
+        rpc_client: C,
+        latest_block_height: Receiver<u64>,
+    ) -> Self {
+        Self {
+            verifier,
+            voting_verifier_contract,
+            chain,
+            finalizer_type,
+            rpc_client,
+            latest_block_height,
+        }
+    }
+}
