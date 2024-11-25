@@ -112,7 +112,29 @@ where
             .get_event_by_hash(verifier_set.tx_hash)
             .await?;
 
-        // :D
-        todo!()
+        let vote = info_span!(
+            "verify a new verifier set",
+            poll_id = poll_id.to_string(),
+            id = verifier_set.message_id.to_string(),
+        )
+        .in_scope(|| {
+            info!("ready to verify verifier set in poll",);
+
+            let vote = transaction_response.map_or(Vote::NotFound, |tx_receipt| {
+                verify_verifier_set(&source_gateway_address, &tx_receipt, &verifier_set)
+            });
+
+            info!(
+                vote = vote.as_value(),
+                "ready to vote for a new verifier set in poll"
+            );
+
+            vote
+        });
+
+        Ok(vec![self
+            .vote_msg(poll_id, vec![vote])
+            .into_any()
+            .expect("vote msg should serialize")])
     }
 }
