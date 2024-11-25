@@ -133,7 +133,7 @@ where
         });
 
         Ok(vec![self
-            .vote_msg(poll_id, vec![vote])
+            .vote_msg(poll_id, vote) // TODO: check if this shouldn't be a vec
             .into_any()
             .expect("vote msg should serialize")])
     }
