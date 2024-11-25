@@ -107,7 +107,7 @@ where
         }
 
         // FIXME: the rpc client default to CallContractEvent, it has to be extended
-        let tx_receipt = self
+        let event_or_not_event_thats_the_question = self
             .rpc_client
             .get_event_by_hash(verifier_set.tx_hash)
             .await?;

@@ -30,6 +30,15 @@ impl PartialEq<Message> for ContractCallEvent {
     }
 }
 
+// TODO: Implement this
+pub fn verify_verifier_set(
+    source_gateway_address: &str,
+    tx_receipt: &TransactionReceipt,
+    verifier_set: &VerifierSetConfirmation,
+) -> Vote {
+    todo!()
+}
+
 #[cfg(test)]
 mod tests {
     use std::str::FromStr;
