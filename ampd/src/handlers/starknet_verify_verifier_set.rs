@@ -5,16 +5,18 @@
 use std::convert::TryInto;
 
 use async_trait::async_trait;
+use axelar_wasm_std::msg_id::HexTxHashAndEventIndex;
 use axelar_wasm_std::voting::{PollId, Vote};
 use cosmrs::cosmwasm::MsgExecuteContract;
 use cosmrs::tx::Msg;
 use cosmrs::Any;
 use error_stack::ResultExt;
 use events::Error::EventTypeMismatch;
+use events::Event;
 use events_derive::try_from;
 use multisig::verifier_set::VerifierSet;
 use serde::Deserialize;
-use starknet_core::types::FieldElement;
+use starknet_core::types::Felt;
 use tokio::sync::watch::Receiver;
 use tracing::{info, info_span};
 use valuable::Valuable;
@@ -24,12 +26,11 @@ use crate::event_processor::EventHandler;
 use crate::handlers::errors::Error;
 use crate::starknet::json_rpc::StarknetClient;
 use crate::starknet::verifier::verify_verifier_set;
-use crate::types::{Hash, TMAddress};
+use crate::types::TMAddress;
 
 #[derive(Deserialize, Debug)]
 pub struct VerifierSetConfirmation {
-    pub tx_hash: FieldElement,
-    pub event_index: u32,
+    pub message_id: Felt,
     pub verifier_set: VerifierSet,
 }
 
@@ -70,16 +71,29 @@ where
             latest_block_height,
         }
     }
+
+    fn vote_msg(&self, poll_id: PollId, vote: Vote) -> MsgExecuteContract {
+        MsgExecuteContract {
+            sender: self.verifier.as_ref().clone(),
+            contract: self.voting_verifier_contract.as_ref().clone(),
+            msg: serde_json::to_vec(&ExecuteMsg::Vote {
+                poll_id,
+                votes: vec![vote],
+            })
+            .expect("vote msg should serialize"), // FIXME: handle error?
+            funds: vec![],
+        }
+    }
 }
 
 #[async_trait]
-impl EventHandler for Handler<C>
+impl<C> EventHandler for Handler<C>
 where
-    C: StarknetClient + Send + Sync,
+    C: StarknetClient + Send + Sync + 'static,
 {
     type Err = Error;
 
-    async fn handle(&self, event: &Event) -> Result<Vec<Any>, Self::Err> {
+    async fn handle(&self, event: &Event) -> error_stack::Result<Vec<Any>, Self::Err> {
         if !event.is_from_contract(self.voting_verifier_contract.as_ref()) {
             return Ok(vec![]);
         }
@@ -94,7 +108,7 @@ where
             Err(report) if matches!(report.current_context(), EventTypeMismatch(_)) => {
                 return Ok(vec![])
             }
-            event => event.change_context(DeserializeEvent)?,
+            event => event.change_context(Error::DeserializeEvent)?,
         };
 
         if !participants.contains(&self.verifier) {
@@ -106,11 +120,12 @@ where
             return Ok(vec![]);
         }
 
-        // FIXME: the rpc client default to CallContractEvent, it has to be extended
-        let event_or_not_event_thats_the_question = self
+        // TODO: get transaction receipt // its dummy
+        let transaction_response = self
             .rpc_client
-            .get_event_by_hash(verifier_set.tx_hash)
-            .await?;
+            .get_event_by_hash(verifier_set.message_id.tx_hash)
+            .await
+            .unwrap(); // FIXME: handle error
 
         let vote = info_span!(
             "verify a new verifier set",
@@ -121,7 +136,7 @@ where
             info!("ready to verify verifier set in poll",);
 
             let vote = transaction_response.map_or(Vote::NotFound, |tx_receipt| {
-                verify_verifier_set(&source_gateway_address, &tx_receipt, &verifier_set)
+                verify_verifier_set(&tx_receipt.1, &verifier_set, &source_gateway_address)
             });
 
             info!(
@@ -133,10 +148,8 @@ where
         });
 
         Ok(vec![self
-            .vote_msg(poll_id, vote) // TODO: check if this shouldn't be a vec
+            .vote_msg(poll_id, vote) // TODO: check if vote shouldn't be a vec
             .into_any()
-            .expect("vote msg should serialize")])
+            .expect("vote msg should serialize")]) // FIXME: handle error?
     }
 }
-
-// TODO: add tests

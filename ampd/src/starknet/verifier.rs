@@ -2,6 +2,7 @@ use axelar_wasm_std::voting::Vote;
 use starknet_types::events::contract_call::ContractCallEvent;
 
 use crate::handlers::starknet_verify_msg::Message;
+use crate::handlers::starknet_verify_verifier_set::VerifierSetConfirmation;
 
 /// Attempts to fetch the tx provided in `axl_msg.tx_id`.
 /// If successful, extracts and parses the ContractCall event
@@ -30,11 +31,11 @@ impl PartialEq<Message> for ContractCallEvent {
     }
 }
 
-// TODO: Implement this
+// Verifies that the event data matches the verifier set confirmation data
 pub fn verify_verifier_set(
+    event: &ContractCallEvent, // TODO: change to SignersRotatedEvent
+    confirmation: &VerifierSetConfirmation,
     source_gateway_address: &str,
-    tx_receipt: &TransactionReceipt,
-    verifier_set: &VerifierSetConfirmation,
 ) -> Vote {
     Vote::SucceededOnChain // TODO: implement this
 }
