@@ -77,3 +77,15 @@ where
         }
     }
 }
+
+#[async_trait]
+impl EventHandler for Handler<C>
+where
+    C: StarknetClient + Send + Sync,
+{
+    type Err = Error;
+
+    async fn handle(&self, event: &Event) -> Result<Vec<Any>> {
+        todo!()
+    }
+}
