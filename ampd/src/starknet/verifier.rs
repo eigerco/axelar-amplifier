@@ -1,4 +1,5 @@
 use axelar_wasm_std::voting::Vote;
+use starknet_core::types::TransactionReceipt;
 use starknet_types::events::contract_call::ContractCallEvent;
 
 use crate::handlers::starknet_verify_msg::Message;
