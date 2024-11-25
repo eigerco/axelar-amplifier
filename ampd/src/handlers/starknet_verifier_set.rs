@@ -1,3 +1,7 @@
+//! Module responsible for handling verification of verifier set changes on Starknet.
+//! It processes events related to verifier set updates, verifies them against the Starknet chain,
+//! and manages the voting process for confirming these changes.
+
 use std::convert::TryInto;
 
 use async_trait::async_trait;
@@ -21,10 +25,6 @@ use crate::handlers::errors::Error;
 use crate::starknet::json_rpc::StarknetClient;
 use crate::starknet::verifier::verify_verifier_set;
 use crate::types::{Hash, TMAddress};
-
-/// Module responsible for handling verification of verifier set changes on Starknet.
-/// It processes events related to verifier set updates, verifies them against the Starknet chain,
-/// and manages the voting process for confirming these changes.
 
 #[derive(Deserialize, Debug)]
 pub struct VerifierSetConfirmation {
