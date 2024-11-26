@@ -11,13 +11,15 @@ struct AleoParser;
 #[derive(Error, Debug)]
 pub enum Error {
     #[error("Pest: {0}")]
-    Pest(#[from] pest::error::Error<Rule>),
+    Pest(#[from] Box<pest::error::Error<Rule>>),
+    #[allow(dead_code)]
     #[error("AleoParser: {0}")]
     AleoParser(String),
 }
 
+#[allow(dead_code)]
 #[derive(Debug, Serialize, Deserialize)]
-enum AleoValue<'a> {
+pub(crate) enum AleoValue<'a> {
     Object(Vec<(&'a str, AleoValue<'a>)>),
     Array(Vec<AleoValue<'a>>),
     String(&'a str),
@@ -44,12 +46,12 @@ impl CallContract {
     }
 }
 
-
 fn parse(input: &str) -> Result<Option<Pair<Rule>>, Error> {
-    Ok(AleoParser::parse(Rule::aleo, input)?.next())
+    Ok(AleoParser::parse(Rule::aleo, input).map_err(Box::new)?.next())
 }
 
-pub fn generic_parse(input: &str) -> Result<AleoValue, Error> {
+#[allow(dead_code)]
+pub(crate) fn generic_parse(input: &str) -> Result<AleoValue, Error> {
     let aleo = parse(input)?.ok_or(Error::AleoParser("Empty input".to_string()))?;
 
     fn parse_value(pair: Pair<Rule>) -> AleoValue {
