@@ -3,6 +3,7 @@ use std::str::FromStr;
 use alloy_primitives::Address;
 use cosmwasm_schema::cw_serde;
 use cosmwasm_std::{Addr, Api};
+use crypto_bigint::U256;
 use error_stack::{bail, Result, ResultExt};
 use starknet_types_core::felt::Felt;
 use stellar_xdr::curr::ScAddress;
@@ -54,29 +55,32 @@ pub fn validate_address(address: &str, format: &AddressFormat) -> Result<(), Err
                 bail!(Error::InvalidAddress("0x prefix is missing".to_string()))
             }
 
-            let felt = Felt::from_hex(address)
-                .change_context(Error::InvalidAddress(address.to_string()))?;
+            let trimmed_addr = address.trim_start_matches("0x");
+            if trimmed_addr.len() != 64 {
+                bail!(Error::InvalidAddress(format!(
+                    "hex string is not 64 chars: {}",
+                    address.to_string()
+                )))
+            }
 
-            // NOTE: I don't like this comparison, but the Felt struct, doesn't error if the value
-            // that get passed exceeds Felt::MAX. It just changes the value to a number close to
-            // Felt::MAX (0x07fffffffffffdf0ffffffffffffffffffffffffffffffffffffffffffffffe0).
-            //
-            // So we have no way to check if the passed adderss overflows Felt, other than checking
-            // that the passed value is different than the parsed felt.
-            if format!("0x{:064x}", felt) != address {
+            let valid_hex_felt = Felt::from_hex(address);
+            if valid_hex_felt.is_err() {
+                bail!(Error::InvalidAddress(format!(
+                    "not a valid hex field element: {}",
+                    address.to_string()
+                )))
+            }
+
+            // since the `Felt` type doesn't error on overflow, we have to implement that check
+            let felt_max_hex_str = format!("{:064x}", Felt::MAX);
+            if U256::from_be_hex(trimmed_addr) > U256::from_be_hex(&felt_max_hex_str) {
                 bail!(Error::InvalidAddress(
                     format!(
-                        "Field element most probably overflows MAX value of 2^251 + 17 * 2^192: {}",
+                        "field element overflows MAX value of 2^251 + 17 * 2^192: {}",
                         address
                     )
                     .to_string()
                 ))
-            }
-
-            // The address.len() also includes a `0x` prefix, which is not required.
-            let trimmed_addr = address.trim_start_matches("0x");
-            if trimmed_addr.len() != 64 {
-                bail!(Error::InvalidAddress(address.to_string()))
             }
         }
     }
@@ -289,6 +293,14 @@ mod tests {
         let less_than_63 = "0x123";
         assert_err_contains!(
             address::validate_address(less_than_63, &address::AddressFormat::Starknet),
+            address::Error,
+            address::Error::InvalidAddress(..)
+        );
+
+        let overflown_felt_with_one =
+            "0x080000006B9F1BED878FCC665F2CA1A6AFD545A6B864D8400000000000000001";
+        assert_err_contains!(
+            address::validate_address(overflown_felt_with_one, &address::AddressFormat::Starknet),
             address::Error,
             address::Error::InvalidAddress(..)
         );
