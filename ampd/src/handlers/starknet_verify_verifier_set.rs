@@ -148,7 +148,7 @@ where
         });
 
         Ok(vec![self
-            .vote_msg(poll_id, vote) // TODO: check if vote shouldn't be a vec
+            .vote_msg(poll_id, vec![vote]) // TODO: check if vote shouldn't be a vec
             .into_any()
             .expect("vote msg should serialize")]) // FIXME: handle error?
     }
