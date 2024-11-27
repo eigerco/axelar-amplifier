@@ -105,7 +105,7 @@ mod tests {
     use super::*;
 
     fn random_hash() -> String {
-        let field_element_max = "0800000000000011000000000000000000000000000000000000000000000000";
+        let field_element_max = "080000006B9F1BED878FCC665F2CA1A6AFD545A6B864D8400000000000000000";
         let modulus = NonZero::new(U256::from_be_hex(field_element_max)).unwrap();
         let n = U256::random_mod(&mut OsRng, &modulus);
 
