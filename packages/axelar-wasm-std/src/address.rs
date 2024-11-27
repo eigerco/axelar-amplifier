@@ -65,8 +65,11 @@ pub fn validate_address(address: &str, format: &AddressFormat) -> Result<(), Err
             // that the passed value is different than the parsed felt.
             if format!("0x{:064x}", felt) != address {
                 bail!(Error::InvalidAddress(
-                    "Field element most probably overflows MAX value of 2^251 + 17 * 2^192"
-                        .to_string()
+                    format!(
+                        "Field element most probably overflows MAX value of 2^251 + 17 * 2^192: {}",
+                        address
+                    )
+                    .to_string()
                 ))
             }
 

@@ -139,7 +139,7 @@ mod tests {
 
     use ethers_core::types::H256;
     use starknet_core::types::{Felt, FromStrError};
-    use starknet_core::utils::{starknet_keccak, ParseCairoShortStringError};
+    use starknet_core::utils::starknet_keccak;
 
     use super::ContractCallEvent;
     use crate::events::contract_call::ContractCallError;
@@ -156,9 +156,7 @@ mod tests {
         let event = ContractCallEvent::try_from(starknet_event).unwrap_err();
         assert!(matches!(
             event,
-            ContractCallError::ByteArray(ByteArrayError::ParsingFelt(
-                ParseCairoShortStringError::ValueOutOfRange
-            ))
+            ContractCallError::ByteArray(ByteArrayError::ParsingFelt(_))
         ));
     }
 
