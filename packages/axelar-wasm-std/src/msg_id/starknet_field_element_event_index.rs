@@ -7,14 +7,14 @@ use error_stack::Report;
 use lazy_static::lazy_static;
 use regex::Regex;
 use serde_with::DeserializeFromStr;
-use starknet_core::types::FieldElement;
+use starknet_types_core::felt::Felt;
 
 use super::Error;
 use crate::nonempty;
 
 #[derive(Debug, DeserializeFromStr, Clone)]
 pub struct FieldElementAndEventIndex {
-    pub tx_hash: FieldElement,
+    pub tx_hash: Felt,
     pub event_index: u64,
 }
 
@@ -33,7 +33,7 @@ impl FieldElementAndEventIndex {
             .expect("failed to convert tx hash to non-empty string")
     }
 
-    pub fn new<T: Into<FieldElement> + FromStr>(
+    pub fn new<T: Into<Felt> + FromStr>(
         tx_id: T,
         event_index: impl Into<u64>,
     ) -> Result<Self, Error> {
@@ -44,8 +44,9 @@ impl FieldElementAndEventIndex {
     }
 }
 
-// A valid field element is max 252 bits, meaning 62 or 63 hex characters after 0x.
-// We require the hex to be 64 characters, meaning that it should be padded with zeroes.
+// A valid field element is max 252 bits, meaning max 63 hex characters after 0x.
+// We require the hex to be 64 characters, meaning that it should be padded with zeroes in order
+// for us to consider it valid.
 const PATTERN: &str = "^(0x[0-9a-f]{64})-(0|[1-9][0-9]*)$";
 lazy_static! {
     static ref REGEX: Regex = Regex::new(PATTERN).expect("invalid regex");
@@ -67,7 +68,7 @@ impl FromStr for FieldElementAndEventIndex {
             })?
             .extract();
         let tx_id_chunk = &tx_id[2..];
-        let felt = FieldElement::from_hex_be(tx_id_chunk).map_err(|_| {
+        let felt = Felt::from_hex(tx_id_chunk).map_err(|_| {
             Error::InvalidFieldElement(format!("{}", tx_id_chunk.to_string()).to_string())
         })?;
         Ok(FieldElementAndEventIndex {
