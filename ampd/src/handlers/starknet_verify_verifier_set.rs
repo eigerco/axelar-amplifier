@@ -132,7 +132,7 @@ where
             "verify a new verifier set",
             poll_id = poll_id.to_string(),
             tx_hash = verifier_set.tx_hash.to_string(),
-            // event_index = verifier_set.event_index,
+            // event_index = verifier_set.event_index, // FIXME: should be or not?
         )
         .in_scope(|| {
             info!("ready to verify verifier set in poll",);
