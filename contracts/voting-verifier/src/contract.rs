@@ -126,7 +126,10 @@ pub fn migrate(
         rewards_contract: prev_config.rewards_contract,
         block_expiry: prev_config.block_expiry,
         confirmation_height: prev_config.confirmation_height,
-        msg_id_format: axelar_wasm_std::msg_id::MessageIdFormat::Bech32m,
+        msg_id_format: axelar_wasm_std::msg_id::MessageIdFormat::Bech32m {
+            prefix: "au".to_string().try_into().unwrap(),
+            length: 62,
+        },
         source_gateway_address: "vzevxifdoj.aleo".parse().unwrap(),
         voting_threshold: prev_config.voting_threshold,
         address_format: address::AddressFormat::Aleo,
