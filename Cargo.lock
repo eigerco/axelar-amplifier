@@ -857,6 +857,7 @@ dependencies = [
  "regex",
  "report",
  "schemars",
+ "semver 1.0.23",
  "serde",
  "serde_json",
  "serde_with 3.11.0",
@@ -5113,6 +5114,7 @@ dependencies = [
  "prost 0.12.6",
  "report",
  "router-api",
+ "semver 1.0.23",
  "serde_json",
  "service-registry",
  "service-registry-api",
@@ -6915,6 +6917,7 @@ dependencies = [
  "rand",
  "report",
  "router-api",
+ "semver 1.0.23",
  "serde_json",
  "thiserror",
 ]
