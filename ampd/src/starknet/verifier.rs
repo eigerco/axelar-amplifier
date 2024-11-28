@@ -1,6 +1,6 @@
 use axelar_wasm_std::voting::Vote;
 use prost_types::Field;
-use starknet_core::types::{FieldElement, TransactionReceipt};
+use starknet_core::types::{Felt, TransactionReceipt};
 use starknet_core::utils::CairoShortStringToFeltError;
 use starknet_types::events::contract_call::ContractCallEvent;
 

@@ -30,7 +30,8 @@ use crate::types::TMAddress;
 
 #[derive(Deserialize, Debug)]
 pub struct VerifierSetConfirmation {
-    pub message_id: Felt,
+    pub tx_hash: Felt,
+    pub event_index: u64,
     pub verifier_set: VerifierSet,
 }
 
@@ -123,14 +124,15 @@ where
         // TODO: get transaction receipt // its dummy
         let transaction_response = self
             .rpc_client
-            .get_event_by_hash(verifier_set.message_id.tx_hash)
+            .get_event_by_hash(verifier_set.tx_hash)
             .await
             .unwrap(); // FIXME: handle error
 
         let vote = info_span!(
             "verify a new verifier set",
             poll_id = poll_id.to_string(),
-            id = verifier_set.message_id.to_string(),
+            tx_hash = verifier_set.tx_hash.to_string(),
+            // event_index = verifier_set.event_index,
         )
         .in_scope(|| {
             info!("ready to verify verifier set in poll",);
