@@ -5,7 +5,7 @@
 use std::convert::TryInto;
 
 use async_trait::async_trait;
-// use axelar_wasm_std::msg_id::HexTxHashAndEventIndex;
+use axelar_wasm_std::msg_id::HexTxHashAndEventIndex;
 use axelar_wasm_std::voting::{PollId, Vote};
 use cosmrs::cosmwasm::MsgExecuteContract;
 use cosmrs::tx::Msg;
@@ -30,8 +30,7 @@ use crate::types::TMAddress;
 
 #[derive(Deserialize, Debug)]
 pub struct VerifierSetConfirmation {
-    pub tx_hash: Felt,
-    pub event_index: u64,
+    pub message_id: HexTxHashAndEventIndex, // FIXME: in the future replace by FieldElementAndEventIndex
     pub verifier_set: VerifierSet,
 }
 
@@ -124,15 +123,14 @@ where
         // TODO: get transaction receipt // its dummy
         let transaction_response = self
             .rpc_client
-            .get_event_by_hash(verifier_set.tx_hash)
+            .get_event_by_hash(Felt::from_bytes_be(&verifier_set.message_id.tx_hash))
             .await
             .unwrap(); // FIXME: handle error
 
         let vote = info_span!(
             "verify a new verifier set",
             poll_id = poll_id.to_string(),
-            tx_hash = verifier_set.tx_hash.to_string(),
-            // event_index = verifier_set.event_index, // FIXME: should be or not?
+            message_id = verifier_set.message_id.to_string(),
         )
         .in_scope(|| {
             info!("ready to verify verifier set in poll",);

@@ -16,7 +16,7 @@ type Result<T> = error_stack::Result<T, StarknetClientError>;
 // perhaps we should move this to the `starknet_types` crate?
 pub enum EventType {
     ContractCall(ContractCallEvent),
-    VerifierSet(String), // FIXME: this is a placeholder
+    SignersRotated(String), // FIXME: this is a placeholder
 }
 
 #[derive(Debug, Error)]
