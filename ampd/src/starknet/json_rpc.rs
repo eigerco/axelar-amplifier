@@ -65,6 +65,10 @@ pub trait StarknetClient {
     /// Attempts to fetch a ContractCall event, by a given `tx_hash`.
     /// Returns a tuple `(tx_hash, event)` or a `StarknetClientError`.
     async fn get_event_by_hash(&self, tx_hash: Felt) -> Result<Option<(Felt, ContractCallEvent)>>;
+
+    /// this one should replace the above
+    async fn get_event_by_hash_with_enum(&self, tx_hash: Felt)
+        -> Result<Option<(Felt, EventType)>>;
 }
 
 #[async_trait]
@@ -105,6 +109,43 @@ where
                     })
                     .next()
             }
+            TransactionReceipt::L1Handler(_) => None,
+            TransactionReceipt::Declare(_) => None,
+            TransactionReceipt::Deploy(_) => None,
+            TransactionReceipt::DeployAccount(_) => None,
+        };
+
+        Ok(event)
+    }
+
+    async fn get_event_by_hash_with_enum(
+        &self,
+        tx_hash: Felt,
+    ) -> Result<Option<(Felt, EventType)>> {
+        let receipt_with_block_info = self
+            .client
+            .get_transaction_receipt(tx_hash)
+            .await
+            .map_err(StarknetClientError::FetchingReceipt)?;
+
+        if *receipt_with_block_info.receipt.execution_result() != ExecutionResult::Succeeded {
+            return Err(Report::new(StarknetClientError::UnsuccessfulTx));
+        }
+
+        let event: Option<(Felt, EventType)> = match receipt_with_block_info.receipt {
+            TransactionReceipt::Invoke(tx) => tx
+                .events
+                .iter()
+                .filter_map(|e| {
+                    if let Ok(cce) = ContractCallEvent::try_from(e.clone()) {
+                        Some((tx.transaction_hash, EventType::ContractCall(cce)))
+                    } else if let Ok(sre) = SignersRotated::parse(e.clone(), tx.transaction_hash) {
+                        Some((tx.transaction_hash, EventType::SignersRotated(sre)))
+                    } else {
+                        None
+                    }
+                })
+                .next(),
             TransactionReceipt::L1Handler(_) => None,
             TransactionReceipt::Declare(_) => None,
             TransactionReceipt::Deploy(_) => None,
