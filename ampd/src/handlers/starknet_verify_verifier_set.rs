@@ -24,7 +24,7 @@ use voting_verifier::msg::ExecuteMsg;
 
 use crate::event_processor::EventHandler;
 use crate::handlers::errors::Error;
-use crate::starknet::json_rpc::StarknetClient;
+use crate::starknet::json_rpc::{EventType, StarknetClient};
 use crate::starknet::verifier::verify_verifier_set;
 use crate::types::TMAddress;
 
@@ -123,7 +123,7 @@ where
         // TODO: it should be enum handled here with two variants: ContractCallEvent or SignersRotatedEvent
         let transaction_response = self
             .rpc_client
-            .get_event_by_hash(Felt::from_bytes_be(&verifier_set.message_id.tx_hash))
+            .get_event_by_hash_with_enum(Felt::from_bytes_be(&verifier_set.message_id.tx_hash))
             .await
             .unwrap();
 

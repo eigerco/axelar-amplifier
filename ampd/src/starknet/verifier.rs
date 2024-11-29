@@ -3,7 +3,9 @@ use prost_types::Field;
 use starknet_core::types::{Felt, TransactionReceipt};
 use starknet_core::utils::CairoShortStringToFeltError;
 use starknet_types::events::contract_call::ContractCallEvent;
+use starknet_types::events::signers_rotated::SignersRotated;
 
+use super::json_rpc::EventType;
 use crate::handlers::starknet_verify_msg::Message;
 use crate::handlers::starknet_verify_verifier_set::VerifierSetConfirmation;
 
@@ -36,7 +38,7 @@ impl PartialEq<Message> for ContractCallEvent {
 
 // Verifies that the event data matches the verifier set confirmation data
 pub fn verify_verifier_set(
-    event: &ContractCallEvent, // TODO: change to SignersRotatedEvent
+    event: &EventType,
     confirmation: &VerifierSetConfirmation,
     source_gateway_address: &str,
 ) -> Vote {
