@@ -8,15 +8,15 @@ use starknet_core::types::{ExecutionResult, Felt, FromStrError, TransactionRecei
 use starknet_providers::jsonrpc::JsonRpcTransport;
 use starknet_providers::{JsonRpcClient, Provider, ProviderError};
 use starknet_types::events::contract_call::ContractCallEvent;
+use starknet_types::events::signers_rotated::SignersRotated;
 use thiserror::Error;
 
 type Result<T> = error_stack::Result<T, StarknetClientError>;
 
-// represents types of events supported by the client
-// perhaps we should move this to the `starknet_types` crate?
+#[derive(Debug)]
 pub enum EventType {
     ContractCall(ContractCallEvent),
-    SignersRotated(String), // FIXME: this is a placeholder
+    SignersRotated(SignersRotated),
 }
 
 #[derive(Debug, Error)]
