@@ -1,4 +1,5 @@
 use axelar_wasm_std::address::validate_contract_address;
+use axelar_wasm_std::msg_id::MessageId;
 use axelar_wasm_std::{address, permission_control, FnExt};
 #[cfg(not(feature = "library"))]
 use cosmwasm_std::entry_point;
@@ -46,7 +47,10 @@ pub fn instantiate(
         confirmation_height: msg.confirmation_height,
         source_chain: msg.source_chain,
         rewards_contract: address::validate_cosmwasm_address(deps.api, &msg.rewards_address)?,
-        msg_id_format: msg.msg_id_format,
+        msg_id_format: axelar_wasm_std::msg_id::MessageIdFormat::Bech32m {
+            prefix: "au".to_string().try_into().unwrap(),
+            length: 62,
+        },
         address_format: msg.address_format,
     };
     CONFIG.save(deps.storage, &config)?;
