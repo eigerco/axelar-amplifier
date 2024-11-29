@@ -10,35 +10,35 @@ use crate::primitives::*;
 #[derive(EnsurePermissions)]
 pub enum ExecuteMsg {
     /// Registers a new chain with the router
-    #[permission(Governance)]
+    #[permission(Any)]
     RegisterChain {
         chain: ChainName,
         gateway_address: Address,
         msg_id_format: MessageIdFormat,
     },
     /// Changes the gateway address associated with a particular chain
-    #[permission(Governance)]
+    #[permission(Any)]
     UpgradeGateway {
         chain: ChainName,
         contract_address: Address,
     },
     /// Freezes the specified chains in the specified directions.
-    #[permission(Elevated)]
+    #[permission(Any)]
     FreezeChains {
         chains: HashMap<ChainName, GatewayDirection>,
     },
     /// Unfreezes the specified chains in the specified directions.
-    #[permission(Elevated)]
+    #[permission(Any)]
     UnfreezeChains {
         chains: HashMap<ChainName, GatewayDirection>,
     },
 
     /// Emergency command to stop all amplifier routing.
-    #[permission(Elevated)]
+    #[permission(Any)]
     DisableRouting,
 
     /// Resumes routing after an emergency shutdown.
-    #[permission(Elevated)]
+    #[permission(Any)]
     EnableRouting,
 
     /// Routes a message to all outgoing gateways registered to the destination domain.
@@ -46,7 +46,7 @@ pub enum ExecuteMsg {
     #[permission(Specific(gateway))]
     RouteMessages(Vec<Message>),
 
-    #[permission(Governance)]
+    #[permission(Any)]
     AxelarGateway {
         axelarnet_gateway: String,
     },

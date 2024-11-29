@@ -127,6 +127,17 @@ mod test {
     }
 
     #[test]
+    fn foo_print(){
+        let m = MessageIdFormat::Bech32m {
+                prefix: "at".to_string().to_string().try_into().unwrap(),
+                length: 61
+            };
+        println!("m: {:?}", m);
+        let serde_json = serde_json::to_string(&m).unwrap();
+        println!("serde_json: {:?}", serde_json);
+    }
+
+    #[test]
     fn should_verify_bech32m() {
         let message_id = "at1hs0xk375g4kvw53rcem9nyjsdw5lsv94fl065n77cpt0774nsyysdecaju";
         assert!(verify_msg_id(
