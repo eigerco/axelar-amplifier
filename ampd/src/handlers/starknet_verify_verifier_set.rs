@@ -120,7 +120,7 @@ where
             return Ok(vec![]);
         }
 
-        // TODO: get transaction receipt // its dummy
+        // TODO: it should be enum handled here with two variants: ContractCallEvent or SignersRotatedEvent
         let transaction_response = self
             .rpc_client
             .get_event_by_hash(Felt::from_bytes_be(&verifier_set.message_id.tx_hash))
