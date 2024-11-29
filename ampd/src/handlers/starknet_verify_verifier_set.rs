@@ -125,7 +125,7 @@ where
             .rpc_client
             .get_event_by_hash(Felt::from_bytes_be(&verifier_set.message_id.tx_hash))
             .await
-            .unwrap(); // FIXME: handle error
+            .unwrap();
 
         let vote = info_span!(
             "verify a new verifier set",
