@@ -30,16 +30,16 @@ pub enum Parse {
 
     /// Error returned when a required signers hash is missing from a
     /// transaction.
-    #[error("missing signers hash for transaction: {0}")]
-    MissingSignersHash(String),
+    #[error("missing signers hash for transaction")]
+    MissingSignersHash,
 
     /// Error returned when payload data cannot be parsed correctly.
-    #[error("failed to parse payload data for transaction: {0}, error: {1}")]
-    FailedToParsePayloadData(String, String),
+    #[error("failed to parse payload data, error: {0}")]
+    FailedToParsePayloadData(String),
 
     /// Error returned when the payload data is missing.
-    #[error("missing payload data for transaction: {0}")]
-    MissingPayloadData(String),
+    #[error("missing payload data for transaction")]
+    MissingPayloadData,
 
     /// Error returned when there are no events available for processing.
     #[error("no events to process")]
@@ -52,21 +52,21 @@ pub enum Parse {
 
     /// Error returned when the epoch number in a transaction is invalid or
     /// unexpected.
-    #[error("incorrect epoch for transaction: {0}")]
-    IncorrectEpoch(String),
+    #[error("incorrect epoch for transaction")]
+    IncorrectEpoch,
 
     /// Error returned when the threshold in a transaction is invalid or
     /// unexpected.
-    #[error("incorrect threshold for transaction: {0}")]
-    IncorrectThreshold(String),
+    #[error("incorrect threshold for transaction")]
+    IncorrectThreshold,
 
     /// Error returned when the nonce in a transaction is missing.
-    #[error("missing nonce for transaction: {0}")]
-    MissingNonce(String),
+    #[error("missing nonce for transaction")]
+    MissingNonce,
 
     /// Error returned when the keys in a transaction are missing.
-    #[error("missing keys for transaction: {0}")]
-    MissingKeys(String),
+    #[error("missing keys for transaction")]
+    MissingKeys,
 }
 
 /// Represents an Ethereum address as a fixed-length byte array
@@ -101,10 +101,7 @@ impl TryFrom<&[u8]> for Address {
 
     fn try_from(bytes: &[u8]) -> Result<Self, Self::Error> {
         let bytes: [u8; Self::ETH_ADDRESS_LEN] = bytes.try_into().map_err(|_| {
-            Parse::FailedToParsePayloadData(
-                "failed to parse signer address".to_string(),
-                "failed to parse signer address".to_string(),
-            )
+            Parse::FailedToParsePayloadData("failed to parse signer address".to_string())
         })?;
         Ok(Self(bytes))
     }
@@ -145,8 +142,8 @@ pub struct WeightedSigners {
 /// Represents a Starknet SignersRotated event.
 #[derive(Debug, Clone)]
 pub struct SignersRotated {
-    /// The transaction hash
-    pub tx_signature: Felt,
+    // /// The transaction hash
+    // pub tx_signature: Felt,
     /// The epoch number when this rotation occurred
     pub epoch: u64,
     /// The hash of the new signers
@@ -155,21 +152,26 @@ pub struct SignersRotated {
     pub signers: WeightedSigners,
 }
 
+impl TryFrom<starknet_core::types::Event> for SignersRotated {
+    type Error = Parse;
+
+    fn try_from(event: Event) -> Result<Self, Self::Error> {
+        Self::parse(event)
+    }
+}
+
 impl SignersRotated {
     /// Parses a Starknet SignersRotated event from a given event.
     ///
     /// This function extracts the relevant information from the event and constructs
     /// a `SignersRotated` struct.
-    pub fn parse(event: Event, tx_hash: Felt) -> Result<Self, Parse> {
+    pub fn parse(event: Event) -> Result<Self, Parse> {
         if event.data.is_empty() {
-            return Err(Parse::MissingPayloadData(tx_hash.to_string()));
+            return Err(Parse::MissingPayloadData);
         }
         if event.keys.is_empty() {
-            return Err(Parse::MissingKeys(tx_hash.to_string()));
+            return Err(Parse::MissingKeys);
         }
-
-        // To avoid multiple convertions
-        let tx_hash_str = tx_hash.to_string();
 
         // it starts at 2 because 0 is the selector and 1 is the from_address
         let epoch_index = 2;
@@ -177,10 +179,10 @@ impl SignersRotated {
         let epoch = event
             .keys
             .get(epoch_index)
-            .ok_or(Parse::IncorrectEpoch(tx_hash_str.clone()))?
+            .ok_or(Parse::IncorrectEpoch)?
             .to_string()
             .parse::<u64>()
-            .map_err(|_| Parse::IncorrectEpoch(tx_hash_str.clone()))?;
+            .map_err(|_| Parse::IncorrectEpoch)?;
 
         // Construct signers hash
         let mut signers_hash = [0_u8; 32];
@@ -188,12 +190,12 @@ impl SignersRotated {
             .keys
             .get(epoch_index + 1)
             .map(Felt::to_bytes_be)
-            .ok_or_else(|| Parse::MissingSignersHash(tx_hash_str.clone()))?;
+            .ok_or_else(|| Parse::MissingSignersHash)?;
         let msb = event
             .keys
             .get(epoch_index + 2)
             .map(Felt::to_bytes_be)
-            .ok_or_else(|| Parse::MissingSignersHash(tx_hash_str.clone()))?;
+            .ok_or_else(|| Parse::MissingSignersHash)?;
         signers_hash[..16].copy_from_slice(&msb[16..]);
         signers_hash[16..].copy_from_slice(&lsb[16..]);
 
@@ -205,10 +207,7 @@ impl SignersRotated {
             .to_string()
             .parse::<usize>()
             .map_err(|_| {
-                Parse::FailedToParsePayloadData(
-                    tx_hash_str.clone(),
-                    "failed to parse signers length".to_string(),
-                )
+                Parse::FailedToParsePayloadData("failed to parse signers length".to_string())
             })?;
         let signers_end_index = signers_index + signers_len * 2;
 
@@ -222,10 +221,7 @@ impl SignersRotated {
 
             // Create Address from bytes, skipping first 12 bytes since Address is 20 bytes
             let signer = Address::try_from(&signer_bytes[12..]).map_err(|_| {
-                Parse::FailedToParsePayloadData(
-                    tx_hash_str.clone(),
-                    "failed to parse signer address".to_string(),
-                )
+                Parse::FailedToParsePayloadData("failed to parse signer address".to_string())
             })?;
 
             // Parse weight
@@ -233,10 +229,7 @@ impl SignersRotated {
                 .to_string()
                 .parse::<u128>()
                 .map_err(|_| {
-                    Parse::FailedToParsePayloadData(
-                        tx_hash_str.clone(),
-                        "failed to parse signer weight".to_string(),
-                    )
+                    Parse::FailedToParsePayloadData("failed to parse signer weight".to_string())
                 })?;
 
             buff_signers.push(Signer { signer, weight });
@@ -246,10 +239,10 @@ impl SignersRotated {
         let threshold = event
             .data
             .get(signers_end_index)
-            .ok_or_else(|| Parse::IncorrectThreshold(tx_hash_str.clone()))?
+            .ok_or_else(|| Parse::IncorrectThreshold)?
             .to_string()
             .parse::<u128>()
-            .map_err(|_| Parse::IncorrectThreshold(tx_hash_str.clone()))?;
+            .map_err(|_| Parse::IncorrectThreshold)?;
 
         // Parse nonce
         let mut nonce = [0_u8; 32];
@@ -257,17 +250,16 @@ impl SignersRotated {
             .keys
             .get(signers_end_index + 1)
             .map(Felt::to_bytes_be)
-            .ok_or_else(|| Parse::MissingNonce(tx_hash_str.clone()))?;
+            .ok_or_else(|| Parse::MissingNonce)?;
         let msb = event
             .keys
             .get(signers_end_index + 2)
             .map(Felt::to_bytes_be)
-            .ok_or_else(|| Parse::MissingNonce(tx_hash_str.clone()))?;
+            .ok_or_else(|| Parse::MissingNonce)?;
         nonce[..16].copy_from_slice(&msb[16..]);
         nonce[16..].copy_from_slice(&lsb[16..]);
 
         Ok(SignersRotated {
-            tx_signature: tx_hash,
             epoch,
             signers_hash,
             signers: WeightedSigners {

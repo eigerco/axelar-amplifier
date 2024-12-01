@@ -25,7 +25,7 @@ use voting_verifier::msg::ExecuteMsg;
 use crate::event_processor::EventHandler;
 use crate::handlers::errors::Error;
 use crate::starknet::json_rpc::{EventType, StarknetClient};
-use crate::starknet::verifier::verify_verifier_set;
+use crate::starknet::verifier::{verify_event, verify_verifier_set};
 use crate::types::TMAddress;
 
 #[derive(Deserialize, Debug)]
@@ -135,9 +135,8 @@ where
         .in_scope(|| {
             info!("ready to verify verifier set in poll",);
 
-            let vote = transaction_response.map_or(Vote::NotFound, |tx_receipt| {
-                verify_verifier_set(&tx_receipt.1, &verifier_set, &source_gateway_address)
-            });
+            let vote = transaction_response
+                .map_or(Vote::NotFound, |tx_receipt| verify_event(&tx_receipt.1));
 
             info!(
                 vote = vote.as_value(),
