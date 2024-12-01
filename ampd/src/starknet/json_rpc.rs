@@ -13,7 +13,14 @@ use thiserror::Error;
 
 type Result<T> = error_stack::Result<T, StarknetClientError>;
 
+/// Represents different types of events that can be emitted by Starknet contracts
+///
+/// # Variants
+///
+/// * `ContractCall` - Contains a contract call event with details about the call
+/// * `SignersRotated` - Contains information about signers being rotated/updated
 #[derive(Debug)]
+
 pub enum EventType {
     ContractCall(ContractCallEvent),
     SignersRotated(SignersRotated),
