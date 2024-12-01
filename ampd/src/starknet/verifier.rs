@@ -35,6 +35,12 @@ impl PartialEq<Message> for ContractCallEvent {
     }
 }
 
+impl PartialEq<VerifierSetConfirmation> for SignersRotatedEvent {
+    fn eq(&self, confirmation: &VerifierSetConfirmation) -> bool {
+        true // TODO: implement this
+    }
+}
+
 // Verifies that the event data matches the verifier set confirmation data
 pub fn verify_verifier_set(
     event: &SignersRotatedEvent,
