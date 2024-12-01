@@ -37,17 +37,41 @@ impl PartialEq<Message> for ContractCallEvent {
 
 impl PartialEq<VerifierSetConfirmation> for SignersRotatedEvent {
     fn eq(&self, confirmation: &VerifierSetConfirmation) -> bool {
-        true // TODO: implement this
+        let expected = &confirmation.verifier_set;
+
+        // Convert and sort expected signers
+        let mut expected_signers = expected
+            .signers
+            .values()
+            .map(|signer| (signer.pub_key.clone(), signer.weight.u128()))
+            .collect::<Vec<_>>();
+        expected_signers.sort();
+
+        // Convert and sort actual signers from the event
+        let mut actual_signers = self
+            .signers
+            .iter()
+            .map(|(key, weight)| (key.clone(), *weight as u128))
+            .collect::<Vec<_>>();
+        actual_signers.sort();
+
+        // Compare signers, threshold, and created_at timestamp
+        actual_signers == expected_signers
+            && self.threshold as u128 == expected.threshold.u128()
+            && self.nonce == expected.created_at
     }
 }
 
-// Verifies that the event data matches the verifier set confirmation data
 pub fn verify_verifier_set(
     event: &SignersRotatedEvent,
     confirmation: &VerifierSetConfirmation,
     source_gateway_address: &str,
 ) -> Vote {
-    Vote::SucceededOnChain // TODO: implement this
+    if event == confirmation && event.from_address == source_gateway_address {
+        Vote::SucceededOnChain
+    } else {
+        Vote::NotFound
+    }
 }
 
 #[cfg(test)]
