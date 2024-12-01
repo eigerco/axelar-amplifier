@@ -80,7 +80,7 @@ where
                 poll_id,
                 votes: vec![vote],
             })
-            .expect("vote msg should serialize"), // FIXME: handle error?
+            .expect("vote msg should serialize"),
             funds: vec![],
         }
     }
