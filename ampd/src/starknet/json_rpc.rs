@@ -115,6 +115,23 @@ where
         Ok(event)
     }
 
+    /// Fetches a transaction receipt by hash and extracts a SignersRotatedEvent if present
+    ///
+    /// # Arguments
+    ///
+    /// * `tx_hash` - The hash of the transaction to fetch
+    ///
+    /// # Returns
+    ///
+    /// * `Ok(Some((tx_hash, SignersRotatedEvent)))` - If the transaction exists and contains a valid SignersRotatedEvent
+    /// * `Ok(None)` - If the transaction exists but contains no SignersRotatedEvent
+    /// * `Err(StarknetClientError)` - If there was an error fetching the receipt or the transaction failed
+    ///
+    /// # Errors
+    ///
+    /// Returns a `StarknetClientError` if:
+    /// * Failed to fetch the transaction receipt from the node
+    /// * The transaction execution was not successful
     async fn get_event_by_hash_signers_rotated(
         &self,
         tx_hash: Felt,
@@ -130,19 +147,17 @@ where
         }
 
         let event: Option<(Felt, SignersRotatedEvent)> = match receipt_with_block_info.receipt {
-            TransactionReceipt::Invoke(tx) => {
-                // NOTE: There should be only one ContractCall event per gateway tx
-                tx.events
-                    .iter()
-                    .filter_map(|e| {
-                        if let Ok(sre) = SignersRotatedEvent::try_from(e.clone()) {
-                            Some((tx.transaction_hash, sre))
-                        } else {
-                            None
-                        }
-                    })
-                    .next()
-            }
+            TransactionReceipt::Invoke(tx) => tx
+                .events
+                .iter()
+                .filter_map(|e| {
+                    if let Ok(sre) = SignersRotatedEvent::try_from(e.clone()) {
+                        Some((tx.transaction_hash, sre))
+                    } else {
+                        None
+                    }
+                })
+                .next(),
             TransactionReceipt::L1Handler(_) => None,
             TransactionReceipt::Declare(_) => None,
             TransactionReceipt::Deploy(_) => None,
