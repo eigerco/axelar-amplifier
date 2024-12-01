@@ -139,8 +139,7 @@ where
                 .filter_map(|e| {
                     if let Ok(cce) = ContractCallEvent::try_from(e.clone()) {
                         Some((tx.transaction_hash, EventType::ContractCall(cce)))
-                    } else if let Ok(sre) = SignersRotated::parse(e.clone(), tx.transaction_hash) {
-                        // FIXME: this is not a try_from
+                    } else if let Ok(sre) = SignersRotated::try_from(e.clone()) {
                         Some((tx.transaction_hash, EventType::SignersRotated(sre)))
                     } else {
                         None
