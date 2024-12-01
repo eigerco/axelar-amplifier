@@ -8,23 +8,10 @@ use starknet_core::types::{ExecutionResult, Felt, FromStrError, TransactionRecei
 use starknet_providers::jsonrpc::JsonRpcTransport;
 use starknet_providers::{JsonRpcClient, Provider, ProviderError};
 use starknet_types::events::contract_call::ContractCallEvent;
-use starknet_types::events::signers_rotated::SignersRotated;
+use starknet_types::events::signers_rotated::SignersRotatedEvent;
 use thiserror::Error;
 
 type Result<T> = error_stack::Result<T, StarknetClientError>;
-
-/// Represents different types of events that can be emitted by Starknet contracts
-///
-/// # Variants
-///
-/// * `ContractCall` - Contains a contract call event with details about the call
-/// * `SignersRotated` - Contains information about signers being rotated/updated
-#[derive(Debug)]
-
-pub enum EventType {
-    ContractCall(ContractCallEvent),
-    SignersRotated(SignersRotated),
-}
 
 #[derive(Debug, Error)]
 pub enum StarknetClientError {
@@ -73,9 +60,12 @@ pub trait StarknetClient {
     /// Returns a tuple `(tx_hash, event)` or a `StarknetClientError`.
     async fn get_event_by_hash(&self, tx_hash: Felt) -> Result<Option<(Felt, ContractCallEvent)>>;
 
-    /// this one should replace the above
-    async fn get_event_by_hash_with_enum(&self, tx_hash: Felt)
-        -> Result<Option<(Felt, EventType)>>;
+    /// Attempts to fetch a SignersRotated event, by a given `tx_hash`.
+    /// Returns a tuple `(tx_hash, event)` or a `StarknetClientError`.
+    async fn get_event_by_hash_signers_rotated(
+        &self,
+        tx_hash: Felt,
+    ) -> Result<Option<(Felt, SignersRotatedEvent)>>;
 }
 
 #[async_trait]
@@ -125,10 +115,10 @@ where
         Ok(event)
     }
 
-    async fn get_event_by_hash_with_enum(
+    async fn get_event_by_hash_signers_rotated(
         &self,
         tx_hash: Felt,
-    ) -> Result<Option<(Felt, EventType)>> {
+    ) -> Result<Option<(Felt, SignersRotatedEvent)>> {
         let receipt_with_block_info = self
             .client
             .get_transaction_receipt(tx_hash)
@@ -139,20 +129,20 @@ where
             return Err(Report::new(StarknetClientError::UnsuccessfulTx));
         }
 
-        let event: Option<(Felt, EventType)> = match receipt_with_block_info.receipt {
-            TransactionReceipt::Invoke(tx) => tx
-                .events
-                .iter()
-                .filter_map(|e| {
-                    if let Ok(cce) = ContractCallEvent::try_from(e.clone()) {
-                        Some((tx.transaction_hash, EventType::ContractCall(cce)))
-                    } else if let Ok(sre) = SignersRotated::try_from(e.clone()) {
-                        Some((tx.transaction_hash, EventType::SignersRotated(sre)))
-                    } else {
-                        None
-                    }
-                })
-                .next(),
+        let event: Option<(Felt, SignersRotatedEvent)> = match receipt_with_block_info.receipt {
+            TransactionReceipt::Invoke(tx) => {
+                // NOTE: There should be only one ContractCall event per gateway tx
+                tx.events
+                    .iter()
+                    .filter_map(|e| {
+                        if let Ok(sre) = SignersRotatedEvent::try_from(e.clone()) {
+                            Some((tx.transaction_hash, sre))
+                        } else {
+                            None
+                        }
+                    })
+                    .next()
+            }
             TransactionReceipt::L1Handler(_) => None,
             TransactionReceipt::Declare(_) => None,
             TransactionReceipt::Deploy(_) => None,

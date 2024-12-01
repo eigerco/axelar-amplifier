@@ -24,8 +24,8 @@ use voting_verifier::msg::ExecuteMsg;
 
 use crate::event_processor::EventHandler;
 use crate::handlers::errors::Error;
-use crate::starknet::json_rpc::{EventType, StarknetClient};
-use crate::starknet::verifier::{verify_event, verify_verifier_set};
+use crate::starknet::json_rpc::StarknetClient;
+use crate::starknet::verifier::verify_verifier_set;
 use crate::types::TMAddress;
 
 #[derive(Deserialize, Debug)]
@@ -123,7 +123,9 @@ where
         // TODO: it should be enum handled here with two variants: ContractCallEvent or SignersRotatedEvent
         let transaction_response = self
             .rpc_client
-            .get_event_by_hash_with_enum(Felt::from_bytes_be(&verifier_set.message_id.tx_hash))
+            .get_event_by_hash_signers_rotated(Felt::from_bytes_be(
+                &verifier_set.message_id.tx_hash,
+            ))
             .await
             .unwrap();
 
@@ -135,8 +137,9 @@ where
         .in_scope(|| {
             info!("ready to verify verifier set in poll",);
 
-            let vote = transaction_response
-                .map_or(Vote::NotFound, |tx_receipt| verify_event(&tx_receipt.1));
+            let vote = transaction_response.map_or(Vote::NotFound, |tx_receipt| {
+                verify_verifier_set(&tx_receipt.1, &verifier_set, &source_gateway_address)
+            });
 
             info!(
                 vote = vote.as_value(),

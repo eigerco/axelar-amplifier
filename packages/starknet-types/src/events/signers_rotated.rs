@@ -102,7 +102,7 @@ pub struct WeightedSigners {
 
 /// Represents a Starknet SignersRotated event
 #[derive(Debug, Clone)]
-pub struct SignersRotated {
+pub struct SignersRotatedEvent {
     /// The epoch number when this rotation occurred
     pub epoch: u64,
     /// The hash of the new signers
@@ -111,7 +111,7 @@ pub struct SignersRotated {
     pub signers: WeightedSigners,
 }
 
-impl TryFrom<starknet_core::types::Event> for SignersRotated {
+impl TryFrom<starknet_core::types::Event> for SignersRotatedEvent {
     type Error = SignersRotatedErrors;
 
     /// Attempts to convert a Starknet event to a SignersRotated event
@@ -240,7 +240,7 @@ impl TryFrom<starknet_core::types::Event> for SignersRotated {
         nonce[..16].copy_from_slice(&msb[16..]);
         nonce[16..].copy_from_slice(&lsb[16..]);
 
-        Ok(SignersRotated {
+        Ok(SignersRotatedEvent {
             epoch,
             signers_hash,
             signers: WeightedSigners {
