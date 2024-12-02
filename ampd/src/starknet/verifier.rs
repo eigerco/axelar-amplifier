@@ -84,15 +84,19 @@ impl PartialEq<VerifierSetConfirmation> for SignersRotatedEvent {
 mod tests {
     use std::str::FromStr;
 
-    use axelar_wasm_std::msg_id::FieldElementAndEventIndex;
+    use axelar_wasm_std::msg_id::{FieldElementAndEventIndex, HexTxHashAndEventIndex};
     use axelar_wasm_std::voting::Vote;
     use ethers_core::types::H256;
+    use multisig::verifier_set::VerifierSet;
     use router_api::ChainName;
     use starknet_core::types::Felt;
     use starknet_types::events::contract_call::ContractCallEvent;
+    use starknet_types::events::signers_rotated::{SignersRotatedEvent, WeightedSigners};
 
     use super::verify_msg;
     use crate::handlers::starknet_verify_msg::Message;
+    use crate::handlers::starknet_verify_verifier_set::VerifierSetConfirmation;
+    use crate::starknet::verifier::verify_verifier_set;
 
     // "hello" as payload
     // "hello" as destination address
@@ -211,6 +215,52 @@ mod tests {
                 &mock_valid_event(),
                 &mock_valid_message(),
                 &String::from("0x035410be6f4bf3f67f7c1bb4a93119d9d410b2f981bfafbf5dbbf5d37ae7439e"),
+            ),
+            Vote::SucceededOnChain
+        )
+    }
+
+    /// Verifier set confirmation
+
+    fn mock_valid_confirmation_signers_rotated() -> VerifierSetConfirmation {
+        VerifierSetConfirmation {
+            verifier_set: mock_valid_verifier_set_signers_rotated(),
+            message_id: HexTxHashAndEventIndex {
+                tx_hash: [0u8; 32],
+                event_index: 0,
+            },
+        }
+    }
+
+    fn mock_valid_verifier_set_signers_rotated() -> VerifierSet {
+        VerifierSet::new(vec![], 1_u128.into(), 1)
+    }
+
+    fn mock_valid_event_signers_rotated() -> SignersRotatedEvent {
+        SignersRotatedEvent {
+            from_address: String::from(
+                "0x035410be6f4bf3f67f7c1bb4a93119d9d410b2f981bfafbf5dbbf5d37ae7439e",
+            ),
+            epoch: 1,
+            signers_hash: [0u8; 32],
+            signers: WeightedSigners {
+                signers: vec![],
+                threshold: 1_u128.into(),
+                nonce: [0u8; 32],
+            },
+        }
+    }
+
+    #[test]
+    fn shoud_verify_verifier_set() {
+        let source_gw_address =
+            String::from("0x035410be6f4bf3f67f7c1bb4a93119d9d410b2f981bfafbf5dbbf5d37ae7439e");
+
+        assert_eq!(
+            verify_verifier_set(
+                &mock_valid_event_signers_rotated(),
+                &mock_valid_confirmation_signers_rotated(),
+                &source_gw_address
             ),
             Vote::SucceededOnChain
         )
