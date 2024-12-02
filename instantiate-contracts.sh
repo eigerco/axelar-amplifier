@@ -67,7 +67,7 @@ axelard tx wasm instantiate $ROUTER_CODE_ID \
 
 export ROUTER_ADDRESS=$(sed -n '2p' instantiate-logs/instantiate-router.log | jq -r '.logs[0].events[0].attributes[] | select(.key == "_contract_address") | .value')
 
-export NEXUS_ADDRESS=$FAKE_ADDRESS
+export NEXUS_ADDRESS=axelar17h8uk4ct0mdv9mgkuxszt4gp2htpfr08mge20r
 # TODO set gxelarnet gateway address
 axelard tx wasm instantiate $AXELARNET_GATEWAY_CODE_ID \
   '{
@@ -231,4 +231,43 @@ axelard tx wasm execute $ROUTER_ADDRESS \
   --chain-id axelar-testnet-local \
   --broadcast-mode block \
   --yes
+
+axelard tx wasm execute $ROUTER_ADDRESS \
+  '{
+      "register_chain": {
+        "chain":"aleo",
+        "gateway_address":"axelar1gurgpv8savnfw66lckwzn4zk7fp394lpe667dhu7aw48u40lj6jsvkdlwp",
+        "msg_id_format":{"bech32m":{"prefix":"at","length":62}}
+      }
+  }' \
+  --keyring-backend test \
+  --from validator \
+  --gas auto \
+  --gas-adjustment 1.5 \
+  --chain-id axelar-testnet-local \
+  --broadcast-mode block \
+  --yes
+
+
+#   axelard tx wasm execute $GATEWAY_ADDRESS '{
+#   "verify_messages": [
+#     {
+#       "cc_id": {
+#         "source_chain": "aleo",
+#         "message_id": "au1knlxwe55dx6cnm2j5sgtsl2z2z590jprme2t4cc49h85uv0emgrsuzvutv",
+#       },
+#       "source_address": "aleo1kevhe97umnpdf4y08qdz2wg249jzmv486vydtxpfus4l8hwk9c9qfguzgz",
+#       "destination_chain": "ethereum",
+#       "destination_address": "0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef",
+#       "payload_hash": "0x7B666F6F3A20347536342C206261723A20337533327D",
+#     }
+#   ]
+# }' \
+#     --keyring-backend test \
+#     --from validator \
+#     --gas auto \
+#     --gas-adjustment 1.5 \
+#     --chain-id axelar-testnet-local \
+#     --broadcast-mode block \
+#     --yes
 
