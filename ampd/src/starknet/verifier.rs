@@ -1,6 +1,5 @@
 use axelar_wasm_std::voting::Vote;
 use cosmwasm_std::HexBinary;
-use multisig::key::PublicKey;
 use starknet_types::events::contract_call::ContractCallEvent;
 use starknet_types::events::signers_rotated::SignersRotatedEvent;
 
@@ -39,19 +38,10 @@ pub fn verify_verifier_set(
     confirmation: &VerifierSetConfirmation,
     source_gateway_address: &str,
 ) -> Vote {
-    // nonce should never be 0
-    // early return to avoid unnecessary comparisons
-    if event.signers.nonce == [0_u8; 32] {
-        return Vote::NotFound;
-    }
-
-    // if event == confirmation && event.from_address == source_gateway_address {
-    //     Vote::SucceededOnChain
-    // } else {
-    //     Vote::NotFound
-    // }
-
-    if event == confirmation {
+    if event.signers.nonce != [0_u8; 32]
+        && event == confirmation
+        && event.from_address == source_gateway_address
+    {
         Vote::SucceededOnChain
     } else {
         Vote::NotFound
@@ -300,6 +290,27 @@ mod tests {
         }
     }
 
+    fn mock_second_valid_event_signers_rotated() -> SignersRotatedEvent {
+        SignersRotatedEvent {
+            // should be the same as the source gw address
+            from_address: String::from(
+                "0x035410be6f4bf3f67f7c1bb4a93119d9d410b2f981bfafbf5dbbf5d37ae7439e",
+            ),
+            epoch: 1,
+            signers_hash: [8_u8; 32],
+            signers: WeightedSigners {
+                signers: vec![StarknetSigner {
+                    signer: String::from(
+                        "028584592624e742ba154c02df4c0b06e4e8a957ba081083ea9fe5309492aa6c7b",
+                    ),
+                    weight: Uint128::from(10u128).into(),
+                }],
+                threshold: Uint128::one().into(),
+                nonce: [7_u8; 32],
+            },
+        }
+    }
+
     #[test]
     fn should_verify_verifier_set() {
         let source_gw_address =
@@ -334,10 +345,8 @@ mod tests {
     fn shoud_not_verify_verifier_set_if_signers_mismatch() {
         let source_gw_address =
             String::from("0x035410be6f4bf3f67f7c1bb4a93119d9d410b2f981bfafbf5dbbf5d37ae7439e");
-        let mut event = mock_valid_event_signers_rotated();
+        let event = mock_second_valid_event_signers_rotated();
         let confirmation = mock_valid_confirmation_signers_rotated();
-        event.signers.signers[0].signer =
-            String::from("0x0000000000000000000000000000000000000000000000000000000000000005");
 
         assert_eq!(
             verify_verifier_set(&event, &confirmation, &source_gw_address),
