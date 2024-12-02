@@ -63,6 +63,7 @@ impl PartialEq<VerifierSetConfirmation> for SignersRotatedEvent {
         // Compare signers, threshold, and created_at timestamp
         actual_signers == expected_signers
             && self.signers.threshold == expected.threshold.u128()
+            // The nonce is 32 bytes but created_at is 8 bytes (u64), so we only compare the first 8 bytes
             && self.signers.nonce[..8] == expected.created_at.to_be_bytes()
     }
 }
