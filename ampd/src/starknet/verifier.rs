@@ -86,6 +86,7 @@ impl PartialEq<VerifierSetConfirmation> for SignersRotatedEvent {
 
 #[cfg(test)]
 mod tests {
+    use std::collections::BTreeMap;
     use std::ops::Add;
     use std::str::FromStr;
 
@@ -257,22 +258,16 @@ mod tests {
             ),
         }];
 
-        VerifierSet::new(
-            signers
-                .into_iter()
-                .map(|s| {
-                    (
-                        Participant {
-                            address: s.address,
-                            weight: axelar_wasm_std::nonempty::Uint128::try_from(s.weight).unwrap(),
-                        },
-                        s.pub_key,
-                    )
-                })
-                .collect(),
-            Uint128::one(),
-            1,
-        )
+        let mut btree_signers = BTreeMap::new();
+        for signer in signers {
+            btree_signers.insert(signer.address.clone().to_string(), signer);
+        }
+
+        VerifierSet {
+            signers: btree_signers,
+            threshold: Uint128::one(),
+            created_at: 1,
+        }
     }
 
     fn mock_valid_event_signers_rotated() -> SignersRotatedEvent {
