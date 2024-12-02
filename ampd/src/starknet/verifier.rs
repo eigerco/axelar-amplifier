@@ -86,15 +86,15 @@ impl PartialEq<VerifierSetConfirmation> for SignersRotatedEvent {
 
 #[cfg(test)]
 mod tests {
+    use std::ops::Add;
     use std::str::FromStr;
 
     use axelar_wasm_std::msg_id::{FieldElementAndEventIndex, HexTxHashAndEventIndex};
     use axelar_wasm_std::voting::Vote;
-    use cosmrs::crypto::PublicKey;
     use cosmwasm_std::{Addr, HexBinary, Uint128};
     use ecdsa::SigningKey;
     use ethers_core::types::H256;
-    use multisig::key::KeyType;
+    use multisig::key::{KeyType, PublicKey};
     use multisig::msg::Signer;
     use multisig::verifier_set::VerifierSet;
     use rand::rngs::OsRng;
@@ -233,11 +233,9 @@ mod tests {
     }
 
     /// Verifier set confirmation ///
-
-    // FIXME: this is not a valid confirmation
     fn mock_valid_confirmation_signers_rotated() -> VerifierSetConfirmation {
         VerifierSetConfirmation {
-            verifier_set: mock_valid_verifier_set_signers_rotated(),
+            verifier_set: mock_valid_verifier_set_signers_rotated(), // #1
             message_id: HexTxHashAndEventIndex {
                 tx_hash: [0_u8; 32],
                 event_index: 0,
@@ -245,12 +243,46 @@ mod tests {
         }
     }
 
-    // FIXME: this is not a valid verifier set
+    // #1
     fn mock_valid_verifier_set_signers_rotated() -> VerifierSet {
-        VerifierSet::new(vec![], Uint128::one(), 1)
+        let signers = vec![
+            Signer {
+                // unchecked suffices for testing
+                address: Addr::unchecked(
+                    "0x0000000000000000000000000000000000000000000000000000000000000002",
+                ),
+                pub_key: PublicKey::Ecdsa(HexBinary::from(&[
+                    176, 65, 44, 84, 105, 23, 191, 39, 176, 40, 181, 140, 37, 177, 213, 13, 25, 1,
+                    161, 234, 214, 208, 130, 48, 154, 61, 107, 30, 70, 155, 180, 117,
+                ])),
+                weight: Uint128::one(),
+            },
+            Signer {
+                address: Addr::unchecked(
+                    "0x0000000000000000000000000000000000000000000000000000000000000003",
+                ),
+                pub_key: PublicKey::Ecdsa(HexBinary::from(&[
+                    176, 65, 44, 84, 105, 23, 191, 39, 176, 40, 181, 140, 37, 177, 213, 13, 25, 1,
+                    161, 234, 214, 208, 130, 48, 154, 61, 107, 30, 70, 155, 180, 118,
+                ])),
+                weight: Uint128::one(),
+            },
+            Signer {
+                address: Addr::unchecked(
+                    "0x0000000000000000000000000000000000000000000000000000000000000004"
+                        .to_string(),
+                ),
+                pub_key: PublicKey::Ecdsa(HexBinary::from(&[
+                    176, 65, 44, 84, 105, 23, 191, 39, 176, 40, 181, 140, 37, 177, 213, 13, 25, 1,
+                    161, 234, 214, 208, 130, 48, 154, 61, 107, 30, 70, 155, 180, 119,
+                ])),
+                weight: Uint128::one(),
+            },
+        ];
+
+        VerifierSet::new(signers, Uint128::one(), 1)
     }
 
-    // FIXME: this is not a valid event
     fn mock_valid_event_signers_rotated() -> SignersRotatedEvent {
         SignersRotatedEvent {
             from_address: String::from(
