@@ -218,35 +218,36 @@ axelard tx wasm instantiate $INTERCHAIN_TOKEN_SERVICE_CODE_ID \
   --yes 2>&1 | tee instantiate-logs/instantiate-interchain-token.log
 export INTERCHAIN_TOKEN_SERVICE_ADDRESS=$(sed -n '2p' instantiate-logs/instantiate-interchain-token.log | jq -r '.logs[0].events[0].attributes[] | select(.key == "_contract_address") | .value')
 
-axelard tx wasm execute $ROUTER_ADDRESS \
-  '{
-      "axelar_gateway": {
-          "axelarnet_gateway": "'"$AXELARNET_GATEWAY_ADDRESS"'"
-      }
-  }' \
-  --keyring-backend test \
-  --from validator \
-  --gas auto \
-  --gas-adjustment 1.5 \
-  --chain-id axelar-testnet-local \
-  --broadcast-mode block \
-  --yes
+# Do this steps manually
+# axelard tx wasm execute $ROUTER_ADDRESS \
+#   '{
+#       "axelar_gateway": {
+#           "axelarnet_gateway": "'"$AXELARNET_GATEWAY_ADDRESS"'"
+#       }
+#   }' \
+#   --keyring-backend test \
+#   --from validator \
+#   --gas auto \
+#   --gas-adjustment 1.5 \
+#   --chain-id axelar-testnet-local \
+#   --broadcast-mode block \
+#   --yes
 
-axelard tx wasm execute $ROUTER_ADDRESS \
-  '{
-      "register_chain": {
-        "chain":"aleo",
-        "gateway_address":"axelar1gurgpv8savnfw66lckwzn4zk7fp394lpe667dhu7aw48u40lj6jsvkdlwp",
-        "msg_id_format":{"bech32m":{"prefix":"at","length":62}}
-      }
-  }' \
-  --keyring-backend test \
-  --from validator \
-  --gas auto \
-  --gas-adjustment 1.5 \
-  --chain-id axelar-testnet-local \
-  --broadcast-mode block \
-  --yes
+# axelard tx wasm execute $ROUTER_ADDRESS \
+#   '{
+#       "register_chain": {
+#         "chain":"aleo",
+#         "gateway_address":"axelar1gurgpv8savnfw66lckwzn4zk7fp394lpe667dhu7aw48u40lj6jsvkdlwp",
+#         "msg_id_format":{"bech32m":{"prefix":"at","length":62}}
+#       }
+#   }' \
+#   --keyring-backend test \
+#   --from validator \
+#   --gas auto \
+#   --gas-adjustment 1.5 \
+#   --chain-id axelar-testnet-local \
+#   --broadcast-mode block \
+#   --yes
 
 
 #   axelard tx wasm execute $GATEWAY_ADDRESS '{
