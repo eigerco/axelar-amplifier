@@ -34,6 +34,18 @@ impl PartialEq<Message> for ContractCallEvent {
     }
 }
 
+pub fn verify_verifier_set(
+    event: &SignersRotatedEvent,
+    confirmation: &VerifierSetConfirmation,
+    source_gateway_address: &str,
+) -> Vote {
+    if event == confirmation && event.from_address == source_gateway_address {
+        Vote::SucceededOnChain
+    } else {
+        Vote::NotFound
+    }
+}
+
 impl PartialEq<VerifierSetConfirmation> for SignersRotatedEvent {
     fn eq(&self, confirmation: &VerifierSetConfirmation) -> bool {
         let expected = &confirmation.verifier_set;
@@ -65,18 +77,6 @@ impl PartialEq<VerifierSetConfirmation> for SignersRotatedEvent {
             && self.signers.threshold == expected.threshold.u128()
             // The nonce is 32 bytes but created_at is 8 bytes (u64), so we only compare the first 8 bytes
             && self.signers.nonce[..8] == expected.created_at.to_be_bytes()
-    }
-}
-
-pub fn verify_verifier_set(
-    event: &SignersRotatedEvent,
-    confirmation: &VerifierSetConfirmation,
-    source_gateway_address: &str,
-) -> Vote {
-    if event == confirmation && event.from_address == source_gateway_address {
-        Vote::SucceededOnChain
-    } else {
-        Vote::NotFound
     }
 }
 
