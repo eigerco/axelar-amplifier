@@ -103,6 +103,8 @@ pub struct WeightedSigners {
 /// Represents a Starknet SignersRotated event
 #[derive(Debug, Clone)]
 pub struct SignersRotatedEvent {
+    /// The address of the sender
+    pub from_address: Address,
     /// The epoch number when this rotation occurred
     pub epoch: u64,
     /// The hash of the new signers
@@ -147,6 +149,13 @@ impl TryFrom<starknet_core::types::Event> for SignersRotatedEvent {
         if event.keys.is_empty() {
             return Err(SignersRotatedErrors::MissingKeys);
         }
+
+        let from_address = Address::try_from(event.from_address.to_hex_string().as_bytes())
+            .map_err(|_| {
+                SignersRotatedErrors::FailedToParsePayloadData(
+                    "failed to parse from address".to_string(),
+                )
+            })?;
 
         // it starts at 2 because 0 is the selector and 1 is the from_address
         let epoch_index = 2;
@@ -241,6 +250,7 @@ impl TryFrom<starknet_core::types::Event> for SignersRotatedEvent {
         nonce[16..].copy_from_slice(&lsb[16..]);
 
         Ok(SignersRotatedEvent {
+            from_address,
             epoch,
             signers_hash,
             signers: WeightedSigners {
