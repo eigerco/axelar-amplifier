@@ -310,19 +310,19 @@ mod tests {
                 signers: vec![
                     StarknetSigner {
                         signer: String::from(
-                            "0x0000000000000000000000000000000000000000000000000000000000000002",
+                            "0xb0412c54691bbf27b028b58c25b1d50d1901a1ead6d0823a3d6b1e469bb475",
                         ),
                         weight: Uint128::one().into(),
                     },
                     StarknetSigner {
                         signer: String::from(
-                            "0x0000000000000000000000000000000000000000000000000000000000000003",
+                            "0xb0412c54691bbf27b028b58c25b1d50d1901a1ead6d0823a3d6b1e469bb476",
                         ),
                         weight: Uint128::one().into(),
                     },
                     StarknetSigner {
                         signer: String::from(
-                            "0x0000000000000000000000000000000000000000000000000000000000000004",
+                            "0xb0412c54691bbf27b028b58c25b1d50d1901a1ead6d0823a3d6b1e469bb477",
                         ),
                         weight: Uint128::one().into(),
                     },
