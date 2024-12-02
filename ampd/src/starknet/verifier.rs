@@ -39,17 +39,19 @@ pub fn verify_verifier_set(
     confirmation: &VerifierSetConfirmation,
     source_gateway_address: &str,
 ) -> Vote {
-    // // nonce should never be 0
-    // if event.signers.nonce == [0_u8; 32] {
-    //     return Vote::NotFound;
-    // }
+    // nonce should never be 0
+    // early return to avoid unnecessary comparisons
+    if event.signers.nonce == [0_u8; 32] {
+        return Vote::NotFound;
+    }
+
     // if event == confirmation && event.from_address == source_gateway_address {
     //     Vote::SucceededOnChain
     // } else {
     //     Vote::NotFound
     // }
 
-    if event.from_address == source_gateway_address {
+    if event == confirmation {
         Vote::SucceededOnChain
     } else {
         Vote::NotFound
@@ -64,7 +66,14 @@ impl PartialEq<VerifierSetConfirmation> for SignersRotatedEvent {
         let mut expected_signers = expected
             .signers
             .values()
-            .map(|signer| (signer.pub_key.clone(), signer.weight.u128()))
+            .map(|signer| {
+                if let multisig::key::PublicKey::Ecdsa(pubkey) = &signer.pub_key {
+                    (pubkey.clone(), signer.weight.u128())
+                } else {
+                    // Skip non-ECDSA keys
+                    return (HexBinary::from_hex("").unwrap(), 0);
+                }
+            })
             .collect::<Vec<_>>();
         expected_signers.sort();
 
@@ -75,7 +84,7 @@ impl PartialEq<VerifierSetConfirmation> for SignersRotatedEvent {
             .iter()
             .map(|signer| {
                 (
-                    PublicKey::Ecdsa(HexBinary::from(signer.signer.as_bytes())),
+                    HexBinary::from_hex(&signer.signer).unwrap(),
                     signer.weight as u128,
                 )
             })
@@ -85,8 +94,7 @@ impl PartialEq<VerifierSetConfirmation> for SignersRotatedEvent {
         // Compare signers, threshold, and created_at timestamp
         actual_signers == expected_signers
             && self.signers.threshold == expected.threshold.u128()
-            // The nonce is 32 bytes but created_at is 8 bytes (u64), so we only compare the first 8 bytes
-            && self.signers.nonce[..8] == expected.created_at.to_be_bytes()
+            && self.epoch == expected.created_at
     }
 }
 
