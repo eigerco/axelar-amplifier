@@ -39,11 +39,17 @@ pub fn verify_verifier_set(
     confirmation: &VerifierSetConfirmation,
     source_gateway_address: &str,
 ) -> Vote {
-    // nonce should never be 0
-    if event.signers.nonce == [0_u8; 32] {
-        return Vote::NotFound;
-    }
-    if event == confirmation && event.from_address == source_gateway_address {
+    // // nonce should never be 0
+    // if event.signers.nonce == [0_u8; 32] {
+    //     return Vote::NotFound;
+    // }
+    // if event == confirmation && event.from_address == source_gateway_address {
+    //     Vote::SucceededOnChain
+    // } else {
+    //     Vote::NotFound
+    // }
+
+    if event.from_address == source_gateway_address {
         Vote::SucceededOnChain
     } else {
         Vote::NotFound
@@ -267,8 +273,9 @@ mod tests {
 
     fn mock_valid_event_signers_rotated() -> SignersRotatedEvent {
         SignersRotatedEvent {
+            // should be the same as the source gw address
             from_address: String::from(
-                "0x0000000000000000000000000000000000000000000000000000000000000001",
+                "0x035410be6f4bf3f67f7c1bb4a93119d9d410b2f981bfafbf5dbbf5d37ae7439e",
             ),
             epoch: 1,
             signers_hash: [8_u8; 32],
