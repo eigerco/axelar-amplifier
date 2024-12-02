@@ -39,6 +39,10 @@ pub fn verify_verifier_set(
     confirmation: &VerifierSetConfirmation,
     source_gateway_address: &str,
 ) -> Vote {
+    // nonce should never be 0
+    if event.signers.nonce == [0_u8; 32] {
+        return Vote::NotFound;
+    }
     if event == confirmation && event.from_address == source_gateway_address {
         Vote::SucceededOnChain
     } else {
@@ -301,6 +305,20 @@ mod tests {
             weight: Uint128::one(),
             pub_key,
         }
+    }
+
+    #[test]
+    fn should_not_verify_verifier_set_if_nonce_mismatch() {
+        let mut event = mock_valid_event_signers_rotated();
+        event.signers.nonce = [0_u8; 32]; // nonce should never be 0
+        let gateway_address =
+            String::from("0x035410be6f4bf3f67f7c1bb4a93119d9d410b2f981bfafbf5dbbf5d37ae7439e");
+        let confirmation = mock_valid_confirmation_signers_rotated();
+
+        assert_eq!(
+            verify_verifier_set(&event, &confirmation, &gateway_address),
+            Vote::NotFound
+        );
     }
 
     #[test]
