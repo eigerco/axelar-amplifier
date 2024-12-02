@@ -91,6 +91,7 @@ mod tests {
 
     use axelar_wasm_std::msg_id::{FieldElementAndEventIndex, HexTxHashAndEventIndex};
     use axelar_wasm_std::voting::Vote;
+    use axelar_wasm_std::Participant;
     use cosmwasm_std::{Addr, HexBinary, Uint128};
     use ecdsa::SigningKey;
     use ethers_core::types::H256;
@@ -280,7 +281,22 @@ mod tests {
             },
         ];
 
-        VerifierSet::new(signers, Uint128::one(), 1)
+        VerifierSet::new(
+            signers
+                .into_iter()
+                .map(|s| {
+                    (
+                        Participant {
+                            address: s.address,
+                            weight: axelar_wasm_std::nonempty::Uint128::try_from(s.weight).unwrap(),
+                        },
+                        s.pub_key,
+                    )
+                })
+                .collect(),
+            Uint128::one(),
+            1,
+        )
     }
 
     fn mock_valid_event_signers_rotated() -> SignersRotatedEvent {
