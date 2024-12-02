@@ -87,19 +87,14 @@ impl PartialEq<VerifierSetConfirmation> for SignersRotatedEvent {
 #[cfg(test)]
 mod tests {
     use std::collections::BTreeMap;
-    use std::ops::Add;
     use std::str::FromStr;
 
     use axelar_wasm_std::msg_id::{FieldElementAndEventIndex, HexTxHashAndEventIndex};
     use axelar_wasm_std::voting::Vote;
-    use axelar_wasm_std::Participant;
     use cosmwasm_std::{Addr, HexBinary, Uint128};
-    use ecdsa::SigningKey;
     use ethers_core::types::H256;
-    use multisig::key::{KeyType, PublicKey};
     use multisig::msg::Signer;
     use multisig::verifier_set::VerifierSet;
-    use rand::rngs::OsRng;
     use router_api::ChainName;
     use starknet_core::types::Felt;
     use starknet_types::events::contract_call::ContractCallEvent;
