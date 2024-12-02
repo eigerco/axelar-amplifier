@@ -1,7 +1,6 @@
 use axelar_wasm_std::voting::Vote;
-use prost_types::Field;
-use starknet_core::types::{Felt, TransactionReceipt};
-use starknet_core::utils::CairoShortStringToFeltError;
+use cosmwasm_std::HexBinary;
+use multisig::key::PublicKey;
 use starknet_types::events::contract_call::ContractCallEvent;
 use starknet_types::events::signers_rotated::SignersRotatedEvent;
 
@@ -50,15 +49,21 @@ impl PartialEq<VerifierSetConfirmation> for SignersRotatedEvent {
         // Convert and sort actual signers from the event
         let mut actual_signers = self
             .signers
+            .signers
             .iter()
-            .map(|(key, weight)| (key.clone(), *weight as u128))
+            .map(|signer| {
+                (
+                    PublicKey::Ecdsa(HexBinary::from(signer.signer.as_bytes())),
+                    signer.weight as u128,
+                )
+            })
             .collect::<Vec<_>>();
         actual_signers.sort();
 
         // Compare signers, threshold, and created_at timestamp
         actual_signers == expected_signers
-            && self.threshold as u128 == expected.threshold.u128()
-            && self.nonce == expected.created_at
+            && self.signers.threshold == expected.threshold.u128()
+            && self.signers.nonce[..8] == expected.created_at.to_be_bytes()
     }
 }
 

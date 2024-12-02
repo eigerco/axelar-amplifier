@@ -37,57 +37,11 @@ pub enum SignersRotatedErrors {
     MissingKeys,
 }
 
-/// Represents an Ethereum address as a fixed-length byte array
-///
-/// An Ethereum address is a 20-byte (40 hex character) identifier that
-/// represents an account or contract on the Ethereum blockchain. This struct
-/// provides a type-safe way to handle Ethereum addresses with validation and
-/// conversion methods.
-#[derive(Clone, PartialEq, Debug, PartialOrd, Copy, Eq)]
-pub struct Address([u8; Self::ETH_ADDRESS_LEN]);
-
-impl Address {
-    /// The length of an Ethereum address in bytes (20 bytes = 40 hex
-    /// characters)
-    pub const ETH_ADDRESS_LEN: usize = 20;
-}
-
-impl AsRef<[u8]> for Address {
-    fn as_ref(&self) -> &[u8] {
-        &self.0
-    }
-}
-
-impl PartialEq<[u8]> for Address {
-    fn eq(&self, other: &[u8]) -> bool {
-        self.0 == other
-    }
-}
-
-impl TryFrom<&[u8]> for Address {
-    type Error = SignersRotatedErrors;
-
-    fn try_from(bytes: &[u8]) -> Result<Self, Self::Error> {
-        let bytes: [u8; Self::ETH_ADDRESS_LEN] = bytes.try_into().map_err(|_| {
-            SignersRotatedErrors::FailedToParsePayloadData(
-                "failed to parse signer address".to_string(),
-            )
-        })?;
-        Ok(Self(bytes))
-    }
-}
-
-impl From<[u8; Self::ETH_ADDRESS_LEN]> for Address {
-    fn from(value: [u8; Self::ETH_ADDRESS_LEN]) -> Self {
-        Self(value)
-    }
-}
-
 /// Represents a weighted signer
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct Signer {
     /// The address of the signer
-    pub signer: Address,
+    pub signer: String,
     /// The weight (voting power) of this signer
     pub weight: u128,
 }
@@ -104,7 +58,7 @@ pub struct WeightedSigners {
 #[derive(Debug, Clone)]
 pub struct SignersRotatedEvent {
     /// The address of the sender
-    pub from_address: Address,
+    pub from_address: String,
     /// The epoch number when this rotation occurred
     pub epoch: u64,
     /// The hash of the new signers
@@ -150,12 +104,7 @@ impl TryFrom<starknet_core::types::Event> for SignersRotatedEvent {
             return Err(SignersRotatedErrors::MissingKeys);
         }
 
-        let from_address = Address::try_from(event.from_address.to_hex_string().as_bytes())
-            .map_err(|_| {
-                SignersRotatedErrors::FailedToParsePayloadData(
-                    "failed to parse from address".to_string(),
-                )
-            })?;
+        let from_address = event.from_address.to_hex_string();
 
         // it starts at 2 because 0 is the selector and 1 is the from_address
         let epoch_index = 2;
@@ -203,14 +152,7 @@ impl TryFrom<starknet_core::types::Event> for SignersRotatedEvent {
             let weight_index = signer_index + 1;
 
             // Get signer address as bytes
-            let signer_bytes = event.data[signer_index].to_bytes_be();
-
-            // Create Address from bytes, skipping first 12 bytes since Address is 20 bytes
-            let signer = Address::try_from(&signer_bytes[12..]).map_err(|_| {
-                SignersRotatedErrors::FailedToParsePayloadData(
-                    "failed to parse signer address".to_string(),
-                )
-            })?;
+            let signer = event.data[signer_index].to_hex_string();
 
             // Parse weight
             let weight = event.data[weight_index]
