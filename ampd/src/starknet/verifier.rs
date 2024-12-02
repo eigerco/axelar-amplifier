@@ -329,9 +329,9 @@ mod tests {
     }
 
     #[test]
-    fn should_not_verify_verifier_set_if_nonce_mismatch() {
+    fn should_not_verify_verifier_set_if_nonce_zero() {
         let mut event = mock_valid_event_signers_rotated();
-        event.signers.nonce = [0_u8; 32]; // nonce should never be 0
+        event.signers.nonce = [0_u8; 32];
         let gateway_address =
             String::from("0x035410be6f4bf3f67f7c1bb4a93119d9d410b2f981bfafbf5dbbf5d37ae7439e");
         let confirmation = mock_valid_confirmation_signers_rotated();
