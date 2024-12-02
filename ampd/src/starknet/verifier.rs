@@ -86,12 +86,20 @@ mod tests {
 
     use axelar_wasm_std::msg_id::{FieldElementAndEventIndex, HexTxHashAndEventIndex};
     use axelar_wasm_std::voting::Vote;
+    use cosmrs::crypto::PublicKey;
+    use cosmwasm_std::{Addr, HexBinary, Uint128};
+    use ecdsa::SigningKey;
     use ethers_core::types::H256;
+    use multisig::key::KeyType;
+    use multisig::msg::Signer;
     use multisig::verifier_set::VerifierSet;
+    use rand::rngs::OsRng;
     use router_api::ChainName;
     use starknet_core::types::Felt;
     use starknet_types::events::contract_call::ContractCallEvent;
-    use starknet_types::events::signers_rotated::{SignersRotatedEvent, WeightedSigners};
+    use starknet_types::events::signers_rotated::{
+        Signer as StarknetSigner, SignersRotatedEvent, WeightedSigners,
+    };
 
     use super::verify_msg;
     use crate::handlers::starknet_verify_msg::Message;
@@ -235,22 +243,63 @@ mod tests {
 
     // FIXME: this is not a valid verifier set
     fn mock_valid_verifier_set_signers_rotated() -> VerifierSet {
-        VerifierSet::new(vec![], 1_u128.into(), 1)
+        VerifierSet::new(vec![], Uint128::one(), 1)
     }
 
     // FIXME: this is not a valid event
     fn mock_valid_event_signers_rotated() -> SignersRotatedEvent {
         SignersRotatedEvent {
             from_address: String::from(
-                "0x035410be6f4bf3f67f7c1bb4a93119d9d410b2f981bfafbf5dbbf5d37ae7439e",
+                "0x0000000000000000000000000000000000000000000000000000000000000001",
             ),
             epoch: 1,
-            signers_hash: [0_u8; 32],
+            signers_hash: [8_u8; 32],
             signers: WeightedSigners {
-                signers: vec![],
-                threshold: 1_u128.into(),
-                nonce: [0_u8; 32],
+                signers: vec![
+                    StarknetSigner {
+                        signer: String::from(
+                            "0x0000000000000000000000000000000000000000000000000000000000000002",
+                        ),
+                        weight: Uint128::one().into(),
+                    },
+                    StarknetSigner {
+                        signer: String::from(
+                            "0x0000000000000000000000000000000000000000000000000000000000000003",
+                        ),
+                        weight: Uint128::one().into(),
+                    },
+                    StarknetSigner {
+                        signer: String::from(
+                            "0x0000000000000000000000000000000000000000000000000000000000000004",
+                        ),
+                        weight: Uint128::one().into(),
+                    },
+                ],
+                threshold: Uint128::one().into(),
+                nonce: [7_u8; 32],
             },
+        }
+    }
+
+    /// Creates a random signer with a randomly generated ECDSA key pair and weight of 1.
+    /// Used for testing purposes.
+    /// Returns a Signer struct containing the address, public key and weight.
+    ///
+    /// # Returns
+    /// * `Signer` - A signer with random ECDSA key pair and weight of 1
+    ///
+    fn random_signer_cosmos() -> Signer {
+        let priv_key = SigningKey::random(&mut OsRng);
+        let pub_key: PublicKey = priv_key.verifying_key().into();
+        let address = Addr::unchecked(pub_key.account_id("axelar").unwrap());
+        let pub_key = (KeyType::Ecdsa, HexBinary::from(pub_key.to_bytes()))
+            .try_into()
+            .unwrap();
+
+        Signer {
+            address,
+            weight: Uint128::one(),
+            pub_key,
         }
     }
 
