@@ -246,40 +246,16 @@ mod tests {
 
     // #1
     fn mock_valid_verifier_set_signers_rotated() -> VerifierSet {
-        let signers = vec![
-            Signer {
-                // unchecked suffices for testing
-                address: Addr::unchecked(
-                    "0x0000000000000000000000000000000000000000000000000000000000000002",
-                ),
-                pub_key: PublicKey::Ecdsa(HexBinary::from(&[
-                    176, 65, 44, 84, 105, 23, 191, 39, 176, 40, 181, 140, 37, 177, 213, 13, 25, 1,
-                    161, 234, 214, 208, 130, 48, 154, 61, 107, 30, 70, 155, 180, 117,
-                ])),
-                weight: Uint128::one(),
-            },
-            Signer {
-                address: Addr::unchecked(
-                    "0x0000000000000000000000000000000000000000000000000000000000000003",
-                ),
-                pub_key: PublicKey::Ecdsa(HexBinary::from(&[
-                    176, 65, 44, 84, 105, 23, 191, 39, 176, 40, 181, 140, 37, 177, 213, 13, 25, 1,
-                    161, 234, 214, 208, 130, 48, 154, 61, 107, 30, 70, 155, 180, 118,
-                ])),
-                weight: Uint128::one(),
-            },
-            Signer {
-                address: Addr::unchecked(
-                    "0x0000000000000000000000000000000000000000000000000000000000000004"
-                        .to_string(),
-                ),
-                pub_key: PublicKey::Ecdsa(HexBinary::from(&[
-                    176, 65, 44, 84, 105, 23, 191, 39, 176, 40, 181, 140, 37, 177, 213, 13, 25, 1,
-                    161, 234, 214, 208, 130, 48, 154, 61, 107, 30, 70, 155, 180, 119,
-                ])),
-                weight: Uint128::one(),
-            },
-        ];
+        let signers = vec![Signer {
+            address: Addr::unchecked("axelarvaloper1x86a8prx97ekkqej2x636utrdu23y8wupp9gk5"),
+            weight: Uint128::from(10u128),
+            pub_key: multisig::key::PublicKey::Ecdsa(
+                HexBinary::from_hex(
+                    "03d123ce370b163acd576be0e32e436bb7e63262769881d35fa3573943bf6c6f81",
+                )
+                .unwrap(),
+            ),
+        }];
 
         VerifierSet::new(
             signers
@@ -307,30 +283,33 @@ mod tests {
             epoch: 1,
             signers_hash: [8_u8; 32],
             signers: WeightedSigners {
-                signers: vec![
-                    StarknetSigner {
-                        signer: String::from(
-                            "0xb0412c54691bbf27b028b58c25b1d50d1901a1ead6d0823a3d6b1e469bb475",
-                        ),
-                        weight: Uint128::one().into(),
-                    },
-                    StarknetSigner {
-                        signer: String::from(
-                            "0xb0412c54691bbf27b028b58c25b1d50d1901a1ead6d0823a3d6b1e469bb476",
-                        ),
-                        weight: Uint128::one().into(),
-                    },
-                    StarknetSigner {
-                        signer: String::from(
-                            "0xb0412c54691bbf27b028b58c25b1d50d1901a1ead6d0823a3d6b1e469bb477",
-                        ),
-                        weight: Uint128::one().into(),
-                    },
-                ],
+                signers: vec![StarknetSigner {
+                    signer: String::from(
+                        "03d123ce370b163acd576be0e32e436bb7e63262769881d35fa3573943bf6c6f81",
+                    ),
+                    weight: Uint128::from(10u128).into(),
+                }],
                 threshold: Uint128::one().into(),
                 nonce: [7_u8; 32],
             },
         }
+    }
+
+    #[test]
+    fn should_verify_verifier_set() {
+        let source_gw_address =
+            String::from("0x035410be6f4bf3f67f7c1bb4a93119d9d410b2f981bfafbf5dbbf5d37ae7439e");
+        let confirmation = mock_valid_confirmation_signers_rotated();
+        let event = mock_valid_event_signers_rotated();
+
+        println!("confirmation: {:?}", confirmation);
+        println!("event: {:?}", event);
+        println!("source_gw_address: {:?}", source_gw_address);
+        //
+        assert_eq!(
+            verify_verifier_set(&event, &confirmation, &source_gw_address),
+            Vote::SucceededOnChain
+        );
     }
 
     #[test]
