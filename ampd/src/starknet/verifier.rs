@@ -285,28 +285,6 @@ mod tests {
         }
     }
 
-    /// Creates a random signer with a randomly generated ECDSA key pair and weight of 1.
-    /// Used for testing purposes.
-    /// Returns a Signer struct containing the address, public key and weight.
-    ///
-    /// # Returns
-    /// * `Signer` - A signer with random ECDSA key pair and weight of 1
-    ///
-    fn random_signer_cosmos() -> Signer {
-        let priv_key = SigningKey::random(&mut OsRng);
-        let pub_key: PublicKey = priv_key.verifying_key().into();
-        let address = Addr::unchecked(pub_key.account_id("axelar").unwrap());
-        let pub_key = (KeyType::Ecdsa, HexBinary::from(pub_key.to_bytes()))
-            .try_into()
-            .unwrap();
-
-        Signer {
-            address,
-            weight: Uint128::one(),
-            pub_key,
-        }
-    }
-
     #[test]
     fn should_not_verify_verifier_set_if_nonce_mismatch() {
         let mut event = mock_valid_event_signers_rotated();
