@@ -320,19 +320,18 @@ mod tests {
             Vote::NotFound
         );
     }
-
     #[test]
-    fn shoud_verify_verifier_set() {
+    fn shoud_not_verify_verifier_set_if_signers_mismatch() {
         let source_gw_address =
             String::from("0x035410be6f4bf3f67f7c1bb4a93119d9d410b2f981bfafbf5dbbf5d37ae7439e");
+        let mut event = mock_valid_event_signers_rotated();
+        let confirmation = mock_valid_confirmation_signers_rotated();
+        event.signers.signers[0].signer =
+            String::from("0x0000000000000000000000000000000000000000000000000000000000000005");
 
         assert_eq!(
-            verify_verifier_set(
-                &mock_valid_event_signers_rotated(),
-                &mock_valid_confirmation_signers_rotated(),
-                &source_gw_address
-            ),
-            Vote::SucceededOnChain
-        )
+            verify_verifier_set(&event, &confirmation, &source_gw_address),
+            Vote::NotFound
+        );
     }
 }
