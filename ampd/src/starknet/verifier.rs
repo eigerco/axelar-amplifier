@@ -220,22 +220,25 @@ mod tests {
         )
     }
 
-    /// Verifier set confirmation
+    /// Verifier set confirmation ///
 
+    // FIXME: this is not a valid confirmation
     fn mock_valid_confirmation_signers_rotated() -> VerifierSetConfirmation {
         VerifierSetConfirmation {
             verifier_set: mock_valid_verifier_set_signers_rotated(),
             message_id: HexTxHashAndEventIndex {
-                tx_hash: [0u8; 32],
+                tx_hash: [0_u8; 32],
                 event_index: 0,
             },
         }
     }
 
+    // FIXME: this is not a valid verifier set
     fn mock_valid_verifier_set_signers_rotated() -> VerifierSet {
         VerifierSet::new(vec![], 1_u128.into(), 1)
     }
 
+    // FIXME: this is not a valid event
     fn mock_valid_event_signers_rotated() -> SignersRotatedEvent {
         SignersRotatedEvent {
             from_address: String::from(
