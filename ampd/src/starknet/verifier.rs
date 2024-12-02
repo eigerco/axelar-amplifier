@@ -242,11 +242,11 @@ mod tests {
                 "0x035410be6f4bf3f67f7c1bb4a93119d9d410b2f981bfafbf5dbbf5d37ae7439e",
             ),
             epoch: 1,
-            signers_hash: [0u8; 32],
+            signers_hash: [0_u8; 32],
             signers: WeightedSigners {
                 signers: vec![],
                 threshold: 1_u128.into(),
-                nonce: [0u8; 32],
+                nonce: [0_u8; 32],
             },
         }
     }
