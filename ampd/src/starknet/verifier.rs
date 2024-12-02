@@ -233,10 +233,11 @@ mod tests {
         )
     }
 
-    /// Verifier set confirmation ///
+    /// Verifier set - signers rotated
+
     fn mock_valid_confirmation_signers_rotated() -> VerifierSetConfirmation {
         VerifierSetConfirmation {
-            verifier_set: mock_valid_verifier_set_signers_rotated(), // #1
+            verifier_set: mock_valid_verifier_set_signers_rotated(),
             message_id: HexTxHashAndEventIndex {
                 tx_hash: [0_u8; 32],
                 event_index: 0,
@@ -244,7 +245,6 @@ mod tests {
         }
     }
 
-    // #1
     fn mock_valid_verifier_set_signers_rotated() -> VerifierSet {
         let signers = vec![Signer {
             address: Addr::unchecked("axelarvaloper1x86a8prx97ekkqej2x636utrdu23y8wupp9gk5"),
@@ -292,7 +292,6 @@ mod tests {
 
     fn mock_second_valid_event_signers_rotated() -> SignersRotatedEvent {
         SignersRotatedEvent {
-            // should be the same as the source gw address
             from_address: String::from(
                 "0x035410be6f4bf3f67f7c1bb4a93119d9d410b2f981bfafbf5dbbf5d37ae7439e",
             ),
