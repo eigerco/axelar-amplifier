@@ -1,5 +1,6 @@
 use axelar_wasm_std::address::validate_contract_address;
-use axelar_wasm_std::{address, permission_control, FnExt};
+use axelar_wasm_std::nonempty::Uint64;
+use axelar_wasm_std::{address, permission_control, FnExt, MajorityThreshold, Threshold};
 #[cfg(not(feature = "library"))]
 use cosmwasm_std::entry_point;
 use cosmwasm_std::{
@@ -111,27 +112,45 @@ pub fn migrate(
     _env: Env,
     _msg: Empty,
 ) -> Result<Response, axelar_wasm_std::error::ContractError> {
-    cw2::assert_contract_version(deps.storage, CONTRACT_NAME, BASE_VERSION)?;
-
+    // TODO: THIS FUNCTION SHOULD BE REVERTED, AND THE CODE ADDED BELOW SHOULD BE DELETED
+    // cw2::assert_contract_version(deps.storage, CONTRACT_NAME, BASE_VERSION)?;
+    //
     cw2::set_contract_version(deps.storage, CONTRACT_NAME, CONTRACT_VERSION)?;
 
-    // TODO: THIS SHOULD BE REVERTED, AND THE CODE ADDED BELOW SHOULD BE DELETED
-    let prev_config = CONFIG.load(deps.storage)?;
-    CONFIG.remove(deps.storage);
+    /*
+    {
+      "service_registry_contract": "axelar1c9fkszt5lq34vvvlat3fxj6yv7ejtqapz04e97vtc9m5z9cwnamq8zjlhz",
+      "service_name": "validators",
+      "source_gateway_address": "vzevxifdoj.aleo",
+      "voting_threshold": ["1", "1"],
+      "block_expiry": "10",
+      "confirmation_height": 1,
+      "source_chain": "aleo",
+      "rewards_contract": "axelar1vaj9sfzc3z0gpel90wu4ljutncutv0wuhvvwfsh30rqxq422z89qnd989l",
+      "msg_id_format": "bech32m",
+      "address_format": "aleo"
+    }
+        */
 
     let config = Config {
-        service_registry_contract: prev_config.service_registry_contract,
-        service_name: prev_config.service_name,
+        service_name: "validators".parse().unwrap(),
+        service_registry_contract: cosmwasm_std::Addr::unchecked(
+            "axelar1c9fkszt5lq34vvvlat3fxj6yv7ejtqapz04e97vtc9m5z9cwnamq8zjlhz",
+        ),
+        source_gateway_address: "vzevxifdoj.aleo".parse().unwrap(),
+        voting_threshold: MajorityThreshold::try_from(
+            Threshold::try_from((1, 1)).unwrap(),
+        ).unwrap(),
+        block_expiry: Uint64::try_from(10u64).unwrap(),
+        confirmation_height: 1,
         source_chain: "aleo".parse().unwrap(),
-        rewards_contract: prev_config.rewards_contract,
-        block_expiry: prev_config.block_expiry,
-        confirmation_height: prev_config.confirmation_height,
+        rewards_contract: cosmwasm_std::Addr::unchecked(
+            "axelar1vaj9sfzc3z0gpel90wu4ljutncutv0wuhvvwfsh30rqxq422z89qnd989l",
+        ),
         msg_id_format: axelar_wasm_std::msg_id::MessageIdFormat::Bech32m {
             prefix: "au".to_string().try_into().unwrap(),
             length: 61,
         },
-        source_gateway_address: "vzevxifdoj.aleo".parse().unwrap(),
-        voting_threshold: prev_config.voting_threshold,
         address_format: address::AddressFormat::Aleo,
     };
 
