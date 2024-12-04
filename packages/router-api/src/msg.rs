@@ -45,11 +45,6 @@ pub enum ExecuteMsg {
     /// Called by an incoming gateway
     #[permission(Specific(gateway))]
     RouteMessages(Vec<Message>),
-
-    #[permission(Governance)]
-    AxelarGateway {
-        axelarnet_gateway: String,
-    },
 }
 
 #[cw_serde]

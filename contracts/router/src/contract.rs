@@ -112,17 +112,6 @@ pub fn execute(
         }
         ExecuteMsg::DisableRouting => execute::disable_routing(deps.storage),
         ExecuteMsg::EnableRouting => execute::enable_routing(deps.storage),
-        ExecuteMsg::AxelarGateway { axelarnet_gateway } => {
-            let axelarnet_gateway =
-                address::validate_cosmwasm_address(deps.api, &axelarnet_gateway)?;
-
-            let config = Config {
-                axelarnet_gateway: axelarnet_gateway.clone(),
-            };
-            state::save_config(deps.storage, &config)?;
-
-            Ok(Response::new())
-        }
     }?
     .then(Ok)
 }
