@@ -161,13 +161,4 @@ mod test {
         )
         .is_err());
     }
-
-    #[test]
-    fn print_bech32m() {
-        let format = MessageIdFormat::Bech32m {
-            prefix: "at".to_string().to_string().try_into().unwrap(),
-            length: 61,
-        };
-        println!("format: {:?}", format);
-    }
 }
