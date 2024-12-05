@@ -1,7 +1,7 @@
 use std::str::FromStr;
 
 use error_stack::{Report, ResultExt};
-use ethers_core::abi::{InvalidOutputType, Token, Tokenizable};
+use ethers_core::abi::{AbiDecode, AbiError, InvalidOutputType, Token, Tokenizable};
 use ethers_core::types::U256;
 use router_api::Message as RouterMessage;
 use starknet_core::types::Felt;
