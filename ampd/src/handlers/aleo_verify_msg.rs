@@ -1,7 +1,8 @@
 use std::collections::{HashMap, HashSet};
 use std::str::FromStr;
 
-use aleo_types::address::Address;
+use aleo_types::address::Address as AleoAddress;
+use aleo_types::program::Program;
 use aleo_types::transition::Transition;
 use async_trait::async_trait;
 use axelar_wasm_std::voting::{PollId, Vote};
@@ -32,7 +33,7 @@ pub struct Message {
     pub transition_id: Transition,
     pub destination_address: String,
     pub destination_chain: ChainName,
-    pub source_address: Address,
+    pub source_address: AleoAddress,
     pub payload_hash: Hash,
 }
 
@@ -41,11 +42,10 @@ pub struct Message {
 struct PollStartedEvent {
     poll_id: PollId,
     source_chain: ChainName,
-    #[allow(dead_code)]
-    source_gateway_address: Address,
+    source_gateway_address: Program,
     expires_at: u64,
-    messages: Vec<Message>,
     participants: Vec<TMAddress>,
+    messages: Vec<Message>,
 }
 
 #[derive(Clone)]
@@ -93,13 +93,11 @@ where
 #[async_trait]
 impl<C> EventHandler for Handler<C>
 where
-    C: AleoClientTrait + Send + Sync + Clone + 'static,
+    C: AleoClientTrait + Send + Sync + 'static,
 {
     type Err = Error;
 
     async fn handle(&self, event: &Event) -> error_stack::Result<Vec<Any>, Self::Err> {
-        let http_client = AleoClientWrapper::new(self.http_client.clone());
-
         if !event.is_from_contract(self.voting_verifier_contract.as_ref()) {
             return Ok(vec![]);
         }
@@ -107,10 +105,10 @@ where
         let PollStartedEvent {
             poll_id,
             source_chain,
-            source_gateway_address: _,
-            messages,
+            source_gateway_address,
             expires_at,
             participants,
+            messages,
         } = match event.try_into() as error_stack::Result<_, _> {
             Err(report) if matches!(report.current_context(), EventTypeMismatch(_)) => {
                 return Ok(vec![])
@@ -134,6 +132,7 @@ where
         let transitions: HashSet<Transition> =
             messages.iter().map(|m| m.transition_id.clone()).collect();
 
+        let http_client = AleoClientWrapper::new(&self.http_client);
         let transition_receipts: HashMap<_, _> = stream::iter(transitions)
             .map(|id| async {
                 match http_client
@@ -190,44 +189,108 @@ where
 
 #[cfg(test)]
 mod tests {
-    use std::str::FromStr;
+    use std::{convert::identity, str::FromStr};
 
-    use axelar_wasm_std::nonempty::String;
+    use cosmrs::AccountId;
     use router_api::Address;
     use voting_verifier::events::{PollMetadata, PollStarted, TxEventConfirmation};
 
+    use super::*;
     use crate::types::TMAddress;
 
-    #[allow(dead_code)]
-    fn poll_started_event(participants: Vec<TMAddress>, expires_at: u64) -> PollStarted {
-        let message_id = "at18c83pwjlvvjpdk95pudngzxqydvq92np206njcyppgndjalujsrshjn48j";
+    fn poll_started_event() -> Event {
+        let expires_at: u64 = 10;
+        let participants: Vec<TMAddress> = vec![AccountId::from_str(
+            "axelar1a9d3a3hcykzfa8rn3y7d47ns55x3wdlykchydd8x3f95dtz9qh0q3vnrg0",
+        )
+        .unwrap()
+        .into()];
+        let messages: Vec<Message> = vec![Message {
+            transition_id: Transition::from_str(
+                "au1g37nzpnjrj9aeref8ywmne69nqs976q0rt2svp454yh2cnkresrssrgjec",
+            )
+            .unwrap(),
+            destination_address:
+                "0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef".to_string(),
+            destination_chain: ChainName::from_str("ethereum").unwrap(),
+            source_address: AleoAddress::from_str(
+                "aleo10fmsqwh059uqm74x6t6zgj93wfxtep0avevcxz0n4w9uawymkv9s7whsau",
+            )
+            .unwrap(),
+            payload_hash: Hash::from_str(
+                "c5d2460186f7233c927e7db2dcc703c0e500b653ca82273b7bfad8045d85a470",
+            )
+            .unwrap(),
+        }];
 
-        PollStarted::Messages {
-            metadata: PollMetadata {
-                poll_id: "100".parse().unwrap(),
-                source_chain: "aleo".parse().unwrap(),
-                source_gateway_address: "vzevxifdoj.aleo"
-                    .parse()
-                    .unwrap(),
-                confirmation_height: 15,
-                expires_at,
-                participants: participants
-                    .into_iter()
-                    .map(|addr| cosmwasm_std::Addr::unchecked(addr.to_string()))
-                    .collect(),
-            },
-            #[allow(deprecated)] // TODO: The below events use the deprecated tx_id and event_index fields. Remove this attribute when those fields are removed
-            messages: vec![
-                TxEventConfirmation {
-                    tx_id: String::from_str("deprecated").unwrap(),
-                    event_index: 5u32,
-                    message_id: message_id.to_string().try_into().unwrap(),
-                    source_address: Address::from_str("vzevxifdoj.aleo").unwrap(),
-                    destination_chain: "ethereum".parse().unwrap(),
-                    destination_address: Address::from_str("0x1D1479C185d32EB90533a08b36B3CFa5F84A0E6B").unwrap(),
-                    payload_hash: [0u8; 32],
-                },
-            ],
+        let v: Vec<(String, serde_json::Value)> = vec![
+            (
+                "poll_id".to_string(),
+                serde_json::to_value(PollId::from(100)).unwrap(),
+            ),
+            (
+                "_contract_address".to_string(),
+                serde_json::to_value(
+                    "axelar1a9d3a3hcykzfa8rn3y7d47ns55x3wdlykchydd8x3f95dtz9qh0q3vnrg0",
+                )
+                .unwrap(),
+            ),
+            (
+                "source_chain".to_string(),
+                serde_json::to_value("aleo").unwrap(),
+            ),
+            (
+                "source_gateway_address".to_string(),
+                serde_json::to_value(Program::from_str("vzevxifdoj.aleo").unwrap()).unwrap(),
+            ),
+            (
+                "expires_at".to_string(),
+                serde_json::to_value(expires_at).unwrap(),
+            ),
+            (
+                "participants".to_string(),
+                serde_json::to_value(participants).unwrap(),
+            ),
+            (
+                "messages".to_string(),
+                serde_json::to_value(messages).unwrap(),
+            ),
+        ];
+
+        let json_map: serde_json::Map<String, serde_json::Value> = v.into_iter().collect();
+
+        Event::Abci {
+            event_type: "wasm-messages_poll_started".to_string(),
+            attributes: json_map,
         }
+    }
+
+    // use crate::aleo::http_client::ClientTrait as AleoClientTrait;
+
+    #[tokio::test]
+    async fn my_foo() {
+        let mock_client = crate::aleo::http_client::tests::mock_client();
+        let event = poll_started_event();
+
+        let handler = Handler::new(
+            TMAddress::from(
+                AccountId::from_str(
+                    "axelar1a9d3a3hcykzfa8rn3y7d47ns55x3wdlykchydd8x3f95dtz9qh0q3vnrg0",
+                )
+                .unwrap(),
+            ),
+            TMAddress::from(
+                AccountId::from_str(
+                    "axelar1a9d3a3hcykzfa8rn3y7d47ns55x3wdlykchydd8x3f95dtz9qh0q3vnrg0",
+                )
+                .unwrap(),
+            ),
+            mock_client,
+            tokio::sync::watch::channel(0).1,
+            "vzevxifdoj.aleo".to_string(),
+        );
+
+        let foo = handler.handle(&event).await;
+        println!("{:?}", foo);
     }
 }

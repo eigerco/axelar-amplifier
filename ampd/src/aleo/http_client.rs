@@ -155,15 +155,15 @@ impl ClientTrait for Client {
     }
 }
 
-pub struct ClientWrapper<C: ClientTrait> {
-    client: C,
+pub struct ClientWrapper<'a, C: ClientTrait> {
+    client: &'a C,
 }
 
-impl<C> ClientWrapper<C>
+impl<'a, C> ClientWrapper<'a, C>
 where
     C: ClientTrait + Send + Sync + 'static,
 {
-    pub fn new(client: C) -> Self {
+    pub fn new(client: &'a C) -> Self {
         Self { client }
     }
 
@@ -284,13 +284,13 @@ where
 }
 
 #[cfg(test)]
-mod tests {
+pub mod tests {
     use std::collections::HashMap;
     use std::str::FromStr;
 
     use super::*;
 
-    fn mock_client() -> MockClientTrait {
+    pub fn mock_client() -> MockClientTrait {
         let mut mock_client = MockClientTrait::new();
 
         let transaction_id = "at18c83pwjlvvjpdk95pudngzxqydvq92np206njcyppgndjalujsrshjn48j";
@@ -323,7 +323,7 @@ mod tests {
         let client = mock_client();
         let transision_id = "au1knlxwe55dx6cnm2j5sgtsl2z2z590jprme2t4cc49h85uv0emgrsuzvutv";
         let transition = Transition::from_str(transision_id).unwrap();
-        let client = ClientWrapper::new(client);
+        let client = ClientWrapper::new(&client);
         let gateway_contract = "vzevxifdoj.aleo";
 
         let res = client

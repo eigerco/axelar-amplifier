@@ -10,6 +10,14 @@ pub struct Program {
     name: String,
 }
 
+impl TryFrom<String> for Program {
+    type Error = Report<Error>;
+
+    fn try_from(name: String) -> Result<Self, Error> {
+        Program::from_str(&name)
+    }
+}
+
 impl FromStr for Program {
     type Err = Report<Error>;
 

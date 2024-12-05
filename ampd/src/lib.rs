@@ -61,6 +61,7 @@ pub async fn run(cfg: Config) -> Result<(), Error> {
 }
 
 async fn prepare_app(cfg: Config) -> Result<App<impl Broadcaster>, Error> {
+    info!(config = ?cfg, "ampd config");
     let Config {
         tm_jsonrpc,
         tm_grpc,
