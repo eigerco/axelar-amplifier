@@ -10,7 +10,7 @@ use router_api::ChainName;
 use snarkvm::ledger::{Output, Transaction as SnarkvmTransaction};
 use snarkvm::prelude::{AleoID, Field, TestnetV0};
 use thiserror::Error;
-use tracing::warn;
+use tracing::{debug, info, instrument, warn};
 
 use super::parser::CallContract;
 use crate::types::Hash;
@@ -113,6 +113,7 @@ impl Client {
 
 #[async_trait]
 impl ClientTrait for Client {
+    #[tracing::instrument(skip(self))]
     async fn get_transaction(
         &self,
         transaction_id: &Transaction,
@@ -123,6 +124,7 @@ impl ClientTrait for Client {
             self.base_url, self.network, &transaction_id
         );
 
+        tracing::debug!(%url);
         let response = self
             .client
             .get(&url)
@@ -137,12 +139,14 @@ impl ClientTrait for Client {
         Ok(transaction)
     }
 
+    #[tracing::instrument(skip(self))]
     async fn find_transaction(&self, transition_id: &Transition) -> Result<String, Error> {
         const ENDPOINT: &str = "find/transactionID";
         let url = format!(
             "{}/{}/{ENDPOINT}/{}",
             self.base_url, self.network, &transition_id
         );
+        tracing::debug!(%url);
 
         let response = self
             .client
@@ -208,6 +212,7 @@ where
         Ok(parsed_output)
     }
 
+    #[tracing::instrument(skip(self))]
     pub async fn transition_receipt(
         &self,
         transition_id: &Transition,
@@ -217,9 +222,12 @@ where
         const TRANSITION_BYTES_PREFIX: u16 =
             u16::from_le_bytes([TRANSITION_PREFIX[0], TRANSITION_PREFIX[1]]);
 
+        let transaction = self.client.find_transaction(transition_id).await?;
+        let transaction = transaction.trim_matches('"');
+
         // Find transaction
         let transaction_id =
-            Transaction::from_str(self.client.find_transaction(transition_id).await?.as_str())
+            Transaction::from_str(transaction)
                 .change_context(Error::TransitionNotFound)?;
 
         let transaction = self.client.get_transaction(&transaction_id).await?;

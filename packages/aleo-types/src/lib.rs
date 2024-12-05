@@ -7,13 +7,13 @@ use thiserror::Error;
 
 #[derive(Error, Debug)]
 pub enum Error {
-    #[error("Invalid aleo address: {0}")]
+    #[error("Invalid aleo address: '{0}'")]
     InvalidAleoAddress(String),
-    #[error("Invalid aleo transition id: {0}")]
+    #[error("Invalid aleo transition id: '{0}'")]
     InvalidAleoTransition(String),
-    #[error("Invalid aleo transaction id: {0}")]
+    #[error("Invalid aleo transaction id: '{0}'")]
     InvalidAleoTransaction(String),
-    #[error("Invalid aleo program name: {0}")]
+    #[error("Invalid aleo program name: '{0}'")]
     InvalidProgramName(String),
     #[error("Bech32m verification failed")]
     Bech32m(#[from] bech32::primitives::decode::CheckedHrpstringError),
