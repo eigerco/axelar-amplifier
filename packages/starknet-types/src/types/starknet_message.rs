@@ -41,10 +41,10 @@ impl TryFrom<&RouterMessage> for StarknetMessage {
 impl AbiType for StarknetMessage {
     fn param_type() -> ParamType {
         ParamType::Tuple(vec![
-            <String as AbiType>::param_type(),
-            <String as AbiType>::param_type(),
-            <String as AbiType>::param_type(),
-            <FixedBytes as AbiType>::param_type(),
+            ethers_core::abi::ParamType::String,
+            ethers_core::abi::ParamType::String,
+            ethers_core::abi::ParamType::String,
+            ethers_core::abi::ParamType::FixedBytes(32usize),
             <U256 as AbiType>::param_type(),
         ])
     }
