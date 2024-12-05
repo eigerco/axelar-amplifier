@@ -35,6 +35,13 @@ impl TryFrom<&RouterMessage> for StarknetMessage {
     }
 }
 
+impl AbiDecode for MyStruct {
+    fn decode(bytes: impl AsRef<[u8]>) -> Result<Self, AbiError> {
+        let tokens = ethers::abi::decode(&[<MyStruct as Tokenizable>::abi_type()], bytes.as_ref())?;
+        Self::from_token(tokens.into_iter().next().unwrap()).map_err(|_| AbiError::InvalidData)
+    }
+}
+
 impl Tokenizable for StarknetMessage {
     fn from_token(token: Token) -> Result<Self, InvalidOutputType>
     where
