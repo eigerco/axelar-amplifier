@@ -64,7 +64,7 @@ impl PartialEq<crate::handlers::aleo_verify_msg::Message> for TransitionReceipt 
         let result = hasher.finalize();
         let payload_hash = Hash::from_slice(result.as_slice());
 
-        self.transition == message.transition_id
+        self.transition == message.tx_id
             && self.destination_address == message.destination_address
             && self.destination_chain == message.destination_chain
             && self.source_address == message.source_address

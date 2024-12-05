@@ -7,9 +7,7 @@ use serde::{Deserialize, Serialize};
 use crate::{verify_becnh32, Error};
 
 #[derive(Serialize, Deserialize, Debug, PartialEq, Eq, Hash, Clone)]
-pub struct Transition {
-    transition_id: String,
-}
+pub struct Transition(String);
 
 impl FromStr for Transition {
     type Err = Report<Error>;
@@ -23,15 +21,13 @@ impl FromStr for Transition {
         verify_becnh32(transition_id, PREFIX)
             .change_context(Error::InvalidAleoTransition(transition_id.to_string()))?;
 
-        Ok(Self {
-            transition_id: transition_id.to_string(),
-        })
+        Ok(Self(transition_id.to_string()))
     }
 }
 
 impl Display for Transition {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}", self.transition_id)
+        write!(f, "{}", self.0)
     }
 }
 

@@ -30,7 +30,7 @@ use crate::types::{Hash, TMAddress};
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct Message {
-    pub transition_id: Transition,
+    pub tx_id: Transition,
     pub destination_address: String,
     pub destination_chain: ChainName,
     pub source_address: AleoAddress,
@@ -98,10 +98,15 @@ where
     type Err = Error;
 
     async fn handle(&self, event: &Event) -> error_stack::Result<Vec<Any>, Self::Err> {
+        if let Event::Abci { event_type, .. } = event {
+            if event_type == "wasm-messages_poll_started" {
+                info!("---->EVENT: {:?}", event);
+            }
+        }
         if !event.is_from_contract(self.voting_verifier_contract.as_ref()) {
             return Ok(vec![]);
         }
-
+        info!("step 1");
         let PollStartedEvent {
             poll_id,
             source_chain,
@@ -115,22 +120,24 @@ where
             }
             event => event.change_context(DeserializeEvent)?,
         };
-
+        info!("step 2");
         if self.chain != source_chain {
             return Ok(vec![]);
         }
-
+        info!("step 3");
         if !participants.contains(&self.verifier) {
             return Ok(vec![]);
         }
-
+        info!("step 4");
         if *self.latest_block_height.borrow() >= expires_at {
             info!(poll_id = poll_id.to_string(), "skipping expired poll");
             return Ok(vec![]);
         }
 
+        info!("-------->GOT MESSAGE<-------");
+
         let transitions: HashSet<Transition> =
-            messages.iter().map(|m| m.transition_id.clone()).collect();
+            messages.iter().map(|m| m.tx_id.clone()).collect();
 
         let http_client = AleoClientWrapper::new(&self.http_client);
         let transition_receipts: HashMap<_, _> = stream::iter(transitions)
@@ -155,7 +162,7 @@ where
             source_chain = source_chain_str,
             message_ids = messages
                 .iter()
-                .map(|msg| { format!("{}", msg.transition_id) })
+                .map(|msg| { format!("{}", msg.tx_id) })
                 .collect::<Vec<String>>()
                 .as_value(),
         )
@@ -166,7 +173,7 @@ where
                 .iter()
                 .map(|msg| {
                     transition_receipts
-                        .get(&msg.transition_id)
+                        .get(&msg.tx_id)
                         .map_or(Vote::NotFound, |tx_receipt| {
                             crate::aleo::verifier::verify_message(tx_receipt, msg)
                         })
@@ -189,7 +196,8 @@ where
 
 #[cfg(test)]
 mod tests {
-    use std::{convert::identity, str::FromStr};
+    use std::convert::identity;
+    use std::str::FromStr;
 
     use cosmrs::AccountId;
     use router_api::Address;
@@ -206,7 +214,7 @@ mod tests {
         .unwrap()
         .into()];
         let messages: Vec<Message> = vec![Message {
-            transition_id: Transition::from_str(
+            tx_id: Transition::from_str(
                 "au1g37nzpnjrj9aeref8ywmne69nqs976q0rt2svp454yh2cnkresrssrgjec",
             )
             .unwrap(),
@@ -290,6 +298,7 @@ mod tests {
             "vzevxifdoj.aleo".to_string(),
         );
 
+        println!("{:?}", event);
         let foo = handler.handle(&event).await;
         println!("{:?}", foo);
     }

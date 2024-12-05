@@ -6,9 +6,7 @@ use serde::{Deserialize, Serialize};
 use crate::{verify_becnh32, Error};
 
 #[derive(Serialize, Deserialize, Debug, PartialEq, Eq)]
-pub struct Address {
-    address: String,
-}
+pub struct Address(String);
 
 impl FromStr for Address {
     type Err = Report<Error>;
@@ -27,9 +25,7 @@ impl FromStr for Address {
 
         verify_becnh32(address, PREFIX).map_err(|e| Error::InvalidAleoAddress(e.to_string()))?;
 
-        Ok(Self {
-            address: address.to_string(),
-        })
+        Ok(Self(address.to_string()))
     }
 }
 
