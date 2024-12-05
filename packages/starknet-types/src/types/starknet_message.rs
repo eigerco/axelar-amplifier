@@ -14,11 +14,11 @@ use crate::error::Error;
 /// A message that is encoded in the prover and later sent to the Starknet gateway.
 #[derive(Clone, Debug, PartialEq)]
 pub struct StarknetMessage {
-    source_chain: String,
-    message_id: String,
-    source_address: String,
-    contract_address: Felt,
-    payload_hash: U256,
+    pub source_chain: String,
+    pub message_id: String,
+    pub source_address: String,
+    pub contract_address: Felt,
+    pub payload_hash: U256,
 }
 
 impl TryFrom<&RouterMessage> for StarknetMessage {
