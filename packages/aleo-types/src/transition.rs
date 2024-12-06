@@ -3,10 +3,11 @@ use std::str::FromStr;
 
 use error_stack::{Report, ResultExt};
 use serde::{Deserialize, Serialize};
+use valuable::Valuable;
 
 use crate::{verify_becnh32, Error};
 
-#[derive(Serialize, Deserialize, Debug, PartialEq, Eq, Hash, Clone)]
+#[derive(Serialize, Deserialize, Debug, PartialEq, Eq, Hash, Clone, Valuable)]
 pub struct Transition(String);
 
 impl FromStr for Transition {
@@ -28,6 +29,12 @@ impl FromStr for Transition {
 impl Display for Transition {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{}", self.0)
+    }
+}
+
+impl AsRef<str> for Transition {
+    fn as_ref(&self) -> &str {
+        &self.0
     }
 }
 

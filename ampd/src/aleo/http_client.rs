@@ -227,8 +227,7 @@ where
 
         // Find transaction
         let transaction_id =
-            Transaction::from_str(transaction)
-                .change_context(Error::TransitionNotFound)?;
+            Transaction::from_str(transaction).change_context(Error::TransitionNotFound)?;
 
         let transaction = self.client.get_transaction(&transaction_id).await?;
 
@@ -279,9 +278,15 @@ where
             Error::UserCallnotFound
         );
 
+        let t = format!("{:02x?}", &call_contract.destination_address);
+        let cleaned: String = t
+            .chars()
+            .filter(|c| !['[', ']', ',', ' '].contains(c))
+            .collect();
+
         Ok(Receipt::Found(TransitionReceipt {
             transition: transition_id.clone(),
-            destination_address: format!("{:02X?}", &call_contract.destination_address),
+            destination_address: cleaned,
             destination_chain: ChainName::try_from(call_contract.destination_chain())
                 .change_context(Error::InvalidChainName)?,
             source_address: Address::from_str(call_contract.sender.to_string().as_ref())
