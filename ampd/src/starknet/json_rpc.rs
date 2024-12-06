@@ -8,6 +8,7 @@ use starknet_core::types::{ExecutionResult, Felt, FromStrError, TransactionRecei
 use starknet_providers::jsonrpc::JsonRpcTransport;
 use starknet_providers::{JsonRpcClient, Provider, ProviderError};
 use starknet_types::events::contract_call::ContractCallEvent;
+use starknet_types::events::signers_rotated::SignersRotatedEvent;
 use thiserror::Error;
 
 type Result<T> = error_stack::Result<T, StarknetClientError>;
@@ -58,6 +59,13 @@ pub trait StarknetClient {
     /// Attempts to fetch a ContractCall event, by a given `tx_hash`.
     /// Returns a tuple `(tx_hash, event)` or a `StarknetClientError`.
     async fn get_event_by_hash(&self, tx_hash: Felt) -> Result<Option<(Felt, ContractCallEvent)>>;
+
+    /// Attempts to fetch a SignersRotated event, by a given `tx_hash`.
+    /// Returns a tuple `(tx_hash, event)` or a `StarknetClientError`.
+    async fn get_event_by_hash_signers_rotated(
+        &self,
+        tx_hash: Felt,
+    ) -> Result<Option<(Felt, SignersRotatedEvent)>>;
 }
 
 #[async_trait]
@@ -98,6 +106,58 @@ where
                     })
                     .next()
             }
+            TransactionReceipt::L1Handler(_) => None,
+            TransactionReceipt::Declare(_) => None,
+            TransactionReceipt::Deploy(_) => None,
+            TransactionReceipt::DeployAccount(_) => None,
+        };
+
+        Ok(event)
+    }
+
+    /// Fetches a transaction receipt by hash and extracts a SignersRotatedEvent if present
+    ///
+    /// # Arguments
+    ///
+    /// * `tx_hash` - The hash of the transaction to fetch
+    ///
+    /// # Returns
+    ///
+    /// * `Ok(Some((tx_hash, SignersRotatedEvent)))` - If the transaction exists and contains a valid SignersRotatedEvent
+    /// * `Ok(None)` - If the transaction exists but contains no SignersRotatedEvent
+    /// * `Err(StarknetClientError)` - If there was an error fetching the receipt or the transaction failed
+    ///
+    /// # Errors
+    ///
+    /// Returns a `StarknetClientError` if:
+    /// * Failed to fetch the transaction receipt from the node
+    /// * The transaction execution was not successful
+    async fn get_event_by_hash_signers_rotated(
+        &self,
+        tx_hash: Felt,
+    ) -> Result<Option<(Felt, SignersRotatedEvent)>> {
+        let receipt_with_block_info = self
+            .client
+            .get_transaction_receipt(tx_hash)
+            .await
+            .map_err(StarknetClientError::FetchingReceipt)?;
+
+        if *receipt_with_block_info.receipt.execution_result() != ExecutionResult::Succeeded {
+            return Err(Report::new(StarknetClientError::UnsuccessfulTx));
+        }
+
+        let event: Option<(Felt, SignersRotatedEvent)> = match receipt_with_block_info.receipt {
+            TransactionReceipt::Invoke(tx) => tx
+                .events
+                .iter()
+                .filter_map(|e| {
+                    if let Ok(sre) = SignersRotatedEvent::try_from(e.clone()) {
+                        Some((tx.transaction_hash, sre))
+                    } else {
+                        None
+                    }
+                })
+                .next(),
             TransactionReceipt::L1Handler(_) => None,
             TransactionReceipt::Declare(_) => None,
             TransactionReceipt::Deploy(_) => None,
