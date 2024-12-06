@@ -76,6 +76,7 @@ impl Multisig for MultisigClient {
                 KeygenResponse::PubKey(pub_key) => match algorithm {
                     Algorithm::Ecdsa => TMPublicKey::from_raw_secp256k1(&pub_key),
                     Algorithm::Ed25519 => TMPublicKey::from_raw_ed25519(&pub_key),
+                    Algorithm::AleoSchnorr => todo!(),
                 }
                 .ok_or_else(|| Report::new(Error::ParsingFailed))
                 .attach_printable(format!("{{ invalid_value = {:?} }}", pub_key))
@@ -121,6 +122,7 @@ impl Multisig for MultisigClient {
                     Algorithm::Ed25519 => ed25519::Signature::from_slice(&signature)
                         .map(|sig| sig.to_vec())
                         .change_context(Error::ParsingFailed),
+                    Algorithm::AleoSchnorr => todo!(),
                 },
 
                 SignResponse::Error(error_msg) => {

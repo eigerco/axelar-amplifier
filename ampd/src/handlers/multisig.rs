@@ -60,6 +60,7 @@ where
                         .into();
                 Ok((address, pk.into()))
             }
+            multisig::key::PublicKey::AleoSchnorr(hex_binary) => todo!(),
         })
         .collect()
 }

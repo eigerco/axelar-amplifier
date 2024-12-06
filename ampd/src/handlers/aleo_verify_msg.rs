@@ -16,7 +16,7 @@ use prost_types::Any;
 use router_api::ChainName;
 use serde::{Deserialize, Serialize};
 use tokio::sync::watch::Receiver;
-use tracing::{info, info_span};
+use tracing::{debug, info, info_span};
 use valuable::Valuable;
 use voting_verifier::msg::ExecuteMsg;
 
@@ -97,20 +97,16 @@ where
 {
     type Err = Error;
 
+    #[tracing::instrument(skip(self))]
     async fn handle(&self, event: &Event) -> error_stack::Result<Vec<Any>, Self::Err> {
-        if let Event::Abci { event_type, .. } = event {
-            if event_type == "wasm-messages_poll_started" {
-                info!("---->EVENT: {:?}", event);
-            }
-        }
         if !event.is_from_contract(self.voting_verifier_contract.as_ref()) {
             return Ok(vec![]);
         }
-        info!("step 1");
+
         let PollStartedEvent {
             poll_id,
             source_chain,
-            source_gateway_address,
+            source_gateway_address: _,
             expires_at,
             participants,
             messages,
@@ -120,21 +116,19 @@ where
             }
             event => event.change_context(DeserializeEvent)?,
         };
-        info!("step 2");
+
         if self.chain != source_chain {
             return Ok(vec![]);
         }
-        info!("step 3");
+
         if !participants.contains(&self.verifier) {
             return Ok(vec![]);
         }
-        info!("step 4");
+
         if *self.latest_block_height.borrow() >= expires_at {
             info!(poll_id = poll_id.to_string(), "skipping expired poll");
             return Ok(vec![]);
         }
-
-        info!("-------->GOT MESSAGE<-------");
 
         let transitions: HashSet<Transition> =
             messages.iter().map(|m| m.tx_id.clone()).collect();
@@ -162,12 +156,12 @@ where
             source_chain = source_chain_str,
             message_ids = messages
                 .iter()
-                .map(|msg| { format!("{}", msg.tx_id) })
-                .collect::<Vec<String>>()
+                .map(|msg| msg.tx_id.as_ref())
+                .collect::<Vec<&str>>()
                 .as_value(),
         )
         .in_scope(|| {
-            info!("ready to verify messages in poll",);
+            info!("ready to verify messages in poll");
 
             let votes: Vec<_> = messages
                 .iter()
@@ -196,7 +190,6 @@ where
 
 #[cfg(test)]
 mod tests {
-    use std::convert::identity;
     use std::str::FromStr;
 
     use cosmrs::AccountId;

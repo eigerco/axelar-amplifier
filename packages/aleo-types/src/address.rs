@@ -1,5 +1,6 @@
 use std::str::FromStr;
 
+use cosmwasm_std::HexBinary;
 use error_stack::{ensure, Report, Result};
 use serde::{Deserialize, Serialize};
 
@@ -7,6 +8,12 @@ use crate::{verify_becnh32, Error};
 
 #[derive(Serialize, Deserialize, Debug, PartialEq, Eq)]
 pub struct Address(String);
+
+impl Address {
+    pub fn to_bytes(&self) -> Vec<u8> {
+        self.0.as_bytes().to_vec()
+    }
+}
 
 impl FromStr for Address {
     type Err = Report<Error>;
@@ -26,6 +33,16 @@ impl FromStr for Address {
         verify_becnh32(address, PREFIX).map_err(|e| Error::InvalidAleoAddress(e.to_string()))?;
 
         Ok(Self(address.to_string()))
+    }
+}
+
+impl TryFrom<&HexBinary> for Address {
+    type Error = Report<Error>;
+
+    fn try_from(hex: &HexBinary) -> Result<Self, Error> {
+        let address = hex.as_slice();
+        let hex_address = hex::encode(address);
+        Address::from_str(hex_address.as_str())
     }
 }
 

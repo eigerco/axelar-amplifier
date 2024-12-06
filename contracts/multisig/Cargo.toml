@@ -39,6 +39,7 @@ optimize = """docker run --rm -v "$(pwd)":/code \
 """
 
 [dependencies]
+aleo-types = { workspace = true }
 axelar-wasm-std = { workspace = true, features = ["derive"] }
 client = { workspace = true }
 cosmwasm-crypto = "1.2.7"
