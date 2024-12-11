@@ -58,6 +58,11 @@ impl<C> Handler<C>
 where
     C: StarknetClient + Send + Sync,
 {
+    /// Handler for verifying verifier set updates from Starknet
+    ///
+    /// # Type Parameters
+    /// * `C` - A Starknet client type that implements the [`StarknetClient`] trait
+    #[allow(dead_code)]
     pub fn new(
         verifier: TMAddress,
         voting_verifier_contract: TMAddress,
