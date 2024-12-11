@@ -104,6 +104,7 @@ async fn prepare_app(cfg: Config) -> Result<App<impl Broadcaster>, Error> {
         .await
         .change_context(Error::Tofnd)?;
 
+    let pub_key = todo!();
     let broadcaster = broadcaster::UnvalidatedBasicBroadcaster::builder()
         .auth_query_client(auth_query_client)
         .bank_query_client(bank_query_client)

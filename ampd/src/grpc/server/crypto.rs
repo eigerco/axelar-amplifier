@@ -57,7 +57,7 @@ where
 
         let algorithm = proto::Algorithm::from_i32(req.algorithm)
             .ok_or(Status::invalid_argument("invalid algorithm"))?;
-        let key = self.key(&req.key_id, algorithm).await?;
+        let key = todo!(); // self.key(&req.key_id, algorithm).await?;
         let signature = self
             .multisig_client
             .sign(&req.key_id, sign_digest.into(), &key, algorithm.into())

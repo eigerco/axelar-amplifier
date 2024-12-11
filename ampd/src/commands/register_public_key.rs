@@ -71,6 +71,7 @@ pub async fn run(config: Config, args: Args) -> Result<Option<String>, Error> {
         .try_into()
         .expect("wrong length");
 
+    let multisig_key = todo!();
     let signed_sender_address = multisig_client
         .sign(
             &multisig_address.to_string(),
@@ -82,8 +83,9 @@ pub async fn run(config: Config, args: Args) -> Result<Option<String>, Error> {
         .change_context(Error::Tofnd)?
         .into();
 
+    let bytes = todo!(); // multisig_key.to_bytes().into();
     let msg = serde_json::to_vec(&ExecuteMsg::RegisterPublicKey {
-        public_key: PublicKey::try_from((args.key_type.into(), multisig_key.to_bytes().into()))
+        public_key: PublicKey::try_from((args.key_type.into(), bytes))
             .change_context(Error::Tofnd)?,
         signed_sender_address,
     })

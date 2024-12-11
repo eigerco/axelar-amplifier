@@ -22,7 +22,8 @@ type Result<T> = error_stack::Result<T, Error>;
 #[automock]
 #[async_trait]
 pub trait Multisig {
-    async fn keygen(&self, key_uid: &str, algorithm: Algorithm) -> Result<multisig::key::PublicKey>;
+    async fn keygen(&self, key_uid: &str, algorithm: Algorithm)
+        -> Result<PublicKey>;
     async fn sign(
         &self,
         key_uid: &str,
@@ -53,7 +54,7 @@ impl MultisigClient {
 
 #[async_trait]
 impl Multisig for MultisigClient {
-    async fn keygen(&self, key_uid: &str, algorithm: Algorithm) -> Result<multisig::key::PublicKey> {
+    async fn keygen(&self, key_uid: &str, algorithm: Algorithm) -> Result<PublicKey> {
         let request = KeygenRequest {
             key_uid: key_uid.to_string(),
             party_uid: self.party_uid.to_string(),
@@ -74,9 +75,9 @@ impl Multisig for MultisigClient {
             .change_context(Error::Grpc)
             .and_then(|response| match response {
                 KeygenResponse::PubKey(pub_key) => match algorithm {
-                    Algorithm::Ecdsa => todo!(), // TMPublicKey::from_raw_secp256k1(&pub_key),
-                    Algorithm::Ed25519 => todo!(), // TMPublicKey::from_raw_ed25519(&pub_key),
-                    Algorithm::AleoSchnorr => Some(multisig::key::PublicKey::AleoSchnorr(cosmwasm_std::HexBinary::from_hex("foo").unwrap())),
+                    Algorithm::Ecdsa => TMPublicKey::from_raw_secp256k1(&pub_key),
+                    Algorithm::Ed25519 => TMPublicKey::from_raw_ed25519(&pub_key),
+                    Algorithm::AleoSchnorr => todo!(), //Some(multisig::key::PublicKey::AleoSchnorr(cosmwasm_std::HexBinary::from_hex("foo").unwrap())),
                 }
                 .ok_or_else(|| Report::new(Error::ParsingFailed))
                 .attach_printable(format!("{{ invalid_value = {:?} }}", pub_key))

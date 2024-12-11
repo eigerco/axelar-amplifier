@@ -235,11 +235,11 @@ where
                     .to_vec()
                     .try_into()
                     .expect("hash size must be 32");
-
+                let pub_key = todo!();
                 self.signer.sign(
                     self.pub_key.0.as_str(),
                     sign_digest.into(),
-                    &self.pub_key.1,
+                    pub_key, // &self.pub_key.1,
                     tofnd::Algorithm::Ecdsa,
                 )
             })
