@@ -187,6 +187,17 @@ mod test {
     use super::{Client, StarknetClient, StarknetClientError};
 
     #[tokio::test]
+    async fn invalid_signers_rotated_event_tx_fetch() {
+        let mock_client =
+            Client::new_with_transport(InvalidSignersRotatedEventMockTransport).unwrap();
+        let contract_call_event = mock_client
+            .get_event_by_hash_signers_rotated(Felt::ONE)
+            .await;
+
+        assert!(contract_call_event.unwrap().is_none());
+    }
+
+    #[tokio::test]
     async fn deploy_account_tx_fetch() {
         let mock_client = Client::new_with_transport(DeployAccountMockTransport).unwrap();
         let contract_call_event = mock_client.get_event_by_hash(Felt::ONE).await;
@@ -672,6 +683,90 @@ mod test {
         }
     }
 
+    struct InvalidSignersRotatedEventMockTransport;
+
+    #[async_trait]
+    impl JsonRpcTransport for InvalidSignersRotatedEventMockTransport {
+        type Error = HttpTransportError;
+
+        async fn send_requests<R>(
+            &self,
+            _requests: R,
+        ) -> Result<Vec<JsonRpcResponse<serde_json::Value>>, Self::Error>
+        where
+            R: AsRef<[ProviderRequestData]> + Send + Sync,
+        {
+            unimplemented!();
+        }
+
+        async fn send_request<P, R>(
+            &self,
+            _method: JsonRpcMethod,
+            _params: P,
+        ) -> Result<JsonRpcResponse<R>, Self::Error>
+        where
+            P: Serialize + Send + Sync,
+            R: DeserializeOwned,
+        {
+            // 1 byte for the pending_word, instead of 5
+            let response_mock = "{
+  \"jsonrpc\": \"2.0\",
+  \"result\": {
+    \"type\": \"INVOKE\",
+    \"transaction_hash\": \"0x000000000000000000000000000000000000000000000000000000000000001\",
+    \"actual_fee\": {
+      \"amount\": \"0x3062e4c46d4\",
+      \"unit\": \"WEI\"
+    },
+    \"execution_status\": \"SUCCEEDED\",
+    \"finality_status\": \"ACCEPTED_ON_L2\",
+    \"block_hash\": \"0x5820e3a0aaceebdbda0b308fdf666eff64f263f6ed8ee74d6f78683b65a997b\",
+    \"block_number\": 637493,
+    \"messages_sent\": [],
+    \"events\": [
+      {
+        \"from_address\": \"0x000000000000000000000000000000000000000000000000000000000000002\",
+        \"keys\": [
+          \"0x01815547484542c49542242a23bc0a1b762af99232f38c0417050825aea8fc93\",
+          \"0x0268929df65ee595bb8592323f981351efdc467d564effc6d2e54d2e666e43ca\",
+          \"0x01\",
+          \"0xd4203fe143363253c89a27a26a6cb81f\",
+          \"0xe23e7704d24f646e5e362c61407a69d2\"
+        ],
+        \"data\": [
+            \"0xb3ff441a68610b30fd5e2abbf3a1548eb6ba6f3559f2862bf2dc757e5828ca\",
+            \"0x0000000000000000000000000000000000000000000000000000000000000000\",
+            \"0x00000000000000000000000000000000000000000000000000000068656c6c6f\",
+            \"0x0000000000000000000000000000000000000000000000000000000000000001\",
+            \"0x0000000000000000000000000000000056d9517b9c948127319a09a7a36deac8\",
+            \"0x000000000000000000000000000000001c8aff950685c2ed4bc3174f3472287b\",
+            \"0x0000000000000000000000000000000000000000000000000000000000000005\",
+            \"0x0000000000000000000000000000000000000000000000000000000000000068\",
+            \"0x0000000000000000000000000000000000000000000000000000000000000065\",
+            \"0x000000000000000000000000000000000000000000000000000000000000006c\",
+            \"0x000000000000000000000000000000000000000000000000000000000000006c\",
+            \"0x000000000000000000000000000000000000000000000000000000000000006f\"
+        ]
+      }
+    ],
+    \"execution_resources\": {
+      \"data_availability\": {
+        \"l1_data_gas\": 0,
+        \"l1_gas\": 0
+      },
+      \"memory_holes\": 1176,
+      \"pedersen_builtin_applications\": 34,
+      \"range_check_builtin_applications\": 1279,
+      \"steps\": 17574
+    }
+  },
+  \"id\": 0
+}";
+            let parsed_response = serde_json::from_str(response_mock).map_err(Self::Error::Json)?;
+
+            Ok(parsed_response)
+        }
+    }
     struct InvalidContractCallEventMockTransport;
 
     #[async_trait]
