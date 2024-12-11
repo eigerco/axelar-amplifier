@@ -203,3 +203,161 @@ impl TryFrom<starknet_core::types::Event> for SignersRotatedEvent {
         })
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use futures::stream::{FuturesUnordered, StreamExt};
+    use starknet_core::types::{EmittedEvent, Felt};
+
+    use super::*;
+
+    async fn get_valid_event() -> (Vec<Felt>, Vec<Felt>, Felt, Felt) {
+        let keys_data: Vec<Felt> = vec![
+            Felt::from_hex_unchecked(
+                "0x01815547484542c49542242a23bc0a1b762af99232f38c0417050825aea8fc93",
+            ),
+            Felt::from_hex_unchecked(
+                "0x0268929df65ee595bb8592323f981351efdc467d564effc6d2e54d2e666e43ca",
+            ),
+            Felt::from_hex_unchecked("0x01"),
+            Felt::from_hex_unchecked("0xd4203fe143363253c89a27a26a6cb81f"),
+            Felt::from_hex_unchecked("0xe23e7704d24f646e5e362c61407a69d2"),
+        ];
+
+        let event_data: Vec<Felt> = vec![
+            Felt::from_hex_unchecked("0x01"),
+            Felt::from_hex_unchecked("0x3ec7d572a0fe479768ac46355651f22a982b99cc"),
+            Felt::from_hex_unchecked("0x01"),
+            Felt::from_hex_unchecked("0x01"),
+            Felt::from_hex_unchecked("0x2fe49d"),
+            Felt::from_hex_unchecked("0x00"),
+        ];
+        (
+            keys_data,
+            event_data,
+            // sender_address
+            Felt::from_hex_unchecked(
+                "0x0282b4492e08d8b6bbec8dfe7412e42e897eef9c080c5b97be1537433e583bdc",
+            ),
+            // tx_hash
+            Felt::from_hex_unchecked(
+                "0x04663231715b17dd58cd08e63d6b31d2c86b158d4730da9a1b75ca2452c9910c",
+            ),
+        )
+    }
+
+    /// Generate a set of data with random modifications
+    async fn get_malformed_event() -> (Vec<Felt>, Vec<Felt>, Felt, Felt) {
+        let (mut keys_data, mut event_data, sender_address, tx_hash) = get_valid_event().await;
+        // Randomly remove an element from either vector
+        match rand::random::<bool>() {
+            true if !keys_data.is_empty() => {
+                let random_index = rand::random::<usize>() % keys_data.len();
+                keys_data.remove(random_index);
+            }
+            false if !event_data.is_empty() => {
+                let random_index = rand::random::<usize>() % event_data.len();
+                event_data.remove(random_index);
+            }
+            _ => {}
+        }
+
+        // Randomly corrupt data values
+        if rand::random::<bool>() {
+            if let Some(elem) = keys_data.first_mut() {
+                *elem = Felt::from_hex_unchecked("0xdeadbeef");
+            }
+        }
+        if rand::random::<bool>() {
+            if let Some(elem) = event_data.first_mut() {
+                *elem = Felt::from_hex_unchecked("0xcafebabe");
+            }
+        }
+
+        (keys_data, event_data, sender_address, tx_hash)
+    }
+
+    #[tokio::test]
+    async fn test_try_from_event_happy_scenario() {
+        let (keys_data, event_data, sender_address, tx_hash) = get_valid_event().await;
+
+        assert!(SignersRotatedEvent::try_from(Event {
+            from_address: sender_address,
+            keys: keys_data,
+            data: event_data,
+        })
+        .is_ok());
+    }
+
+    #[tokio::test]
+    async fn test_try_from_empty_event() {
+        let (_, _, sender_address, tx_hash) = get_valid_event().await;
+        let result = SignersRotatedEvent::try_from(Event {
+            data: vec![],
+            from_address: sender_address,
+            keys: vec![],
+        });
+
+        assert!(result.is_err());
+    }
+
+    #[tokio::test]
+    async fn test_try_from_event_missing_data() {
+        let (keys_data, _, sender_address, tx_hash) = get_valid_event().await;
+
+        assert!(SignersRotatedEvent::try_from(Event {
+            data: vec![],
+            from_address: sender_address,
+            keys: keys_data,
+        })
+        .is_err());
+
+        // TODO: add error type check
+    }
+
+    #[tokio::test]
+    async fn test_try_from_event_missing_keys() {
+        let (_, event_data, sender_address, tx_hash) = get_valid_event().await;
+
+        assert!(SignersRotatedEvent::try_from(Event {
+            data: event_data,
+            from_address: sender_address,
+            keys: vec![],
+        })
+        .is_err());
+
+        // TODO: add error type check
+    }
+
+    #[tokio::test]
+    async fn test_try_from_event_randomly_malformed_data_x1000() {
+        let mut futures = FuturesUnordered::new();
+
+        for _ in 0..1000 {
+            futures.push(async {
+                let (_, event_data, sender_address, tx_hash) = get_malformed_event().await;
+                let event = EmittedEvent {
+                    data: event_data,
+                    from_address: sender_address,
+                    keys: vec![],
+                    transaction_hash: tx_hash,
+                    block_hash: None,
+                    block_number: None,
+                };
+                SignersRotatedEvent::try_from(Event {
+                    data: event.data,
+                    from_address: event.from_address,
+                    keys: event.keys,
+                })
+                .is_err()
+            });
+        }
+
+        // if any conversion succeeded then it should have failed
+        while let Some(result) = futures.next().await {
+            if !result {
+                panic!("expected conversion to fail for malformed event");
+            }
+        }
+    }
+}
