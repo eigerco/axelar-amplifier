@@ -21,49 +21,51 @@ use crate::event_processor::EventHandler;
 use crate::handlers::errors::Error::{self, DeserializeEvent};
 use crate::tofnd::grpc::Multisig;
 use crate::tofnd::{self, MessageDigest};
-use crate::types::{PublicKey, TMAddress};
+use crate::types::TMAddress;
+
+use multisig::key::PublicKey;
 
 #[derive(Debug, Deserialize)]
 #[try_from("wasm-signing_started")]
 struct SigningStartedEvent {
     session_id: u64,
-    #[serde(deserialize_with = "deserialize_public_keys")]
+    // #[serde(deserialize_with = "deserialize_public_keys")]
     pub_keys: HashMap<TMAddress, PublicKey>,
     #[serde(with = "hex")]
     msg: MessageDigest,
     expires_at: u64,
 }
 
-fn deserialize_public_keys<'de, D>(
-    deserializer: D,
-) -> Result<HashMap<TMAddress, PublicKey>, D::Error>
-where
-    D: Deserializer<'de>,
-{
-    let keys_by_address: HashMap<TMAddress, multisig::key::PublicKey> =
-        HashMap::deserialize(deserializer)?;
-
-    keys_by_address
-        .into_iter()
-        .map(|(address, pk)| match pk {
-            multisig::key::PublicKey::Ecdsa(hex) => Ok((
-                address,
-                VerifyingKey::from_sec1_bytes(hex.as_ref())
-                    .map_err(D::Error::custom)?
-                    .into(),
-            )),
-
-            multisig::key::PublicKey::Ed25519(hex) => {
-                let pk: cosmrs::tendermint::PublicKey =
-                    cosmrs::tendermint::crypto::ed25519::VerificationKey::try_from(hex.as_ref())
-                        .map_err(D::Error::custom)?
-                        .into();
-                Ok((address, pk.into()))
-            }
-            multisig::key::PublicKey::AleoSchnorr(hex_binary) => todo!(),
-        })
-        .collect()
-}
+// fn deserialize_public_keys<'de, D>(
+//     deserializer: D,
+// ) -> Result<HashMap<TMAddress, PublicKey>, D::Error>
+// where
+//     D: Deserializer<'de>,
+// {
+//     let keys_by_address: HashMap<TMAddress, multisig::key::PublicKey> =
+//         HashMap::deserialize(deserializer)?;
+//
+//     keys_by_address
+//         .into_iter()
+//         .map(|(address, pk)| match pk {
+//             multisig::key::PublicKey::Ecdsa(hex) => Ok((
+//                 address,
+//                 VerifyingKey::from_sec1_bytes(hex.as_ref())
+//                     .map_err(D::Error::custom)?
+//                     .into(),
+//             )),
+//
+//             multisig::key::PublicKey::Ed25519(hex) => {
+//                 let pk: cosmrs::tendermint::PublicKey =
+//                     cosmrs::tendermint::crypto::ed25519::VerificationKey::try_from(hex.as_ref())
+//                         .map_err(D::Error::custom)?
+//                         .into();
+//                 Ok((address, pk.into()))
+//             }
+//             multisig::key::PublicKey::AleoSchnorr(hex_binary) => todo!(),
+//         })
+//         .collect()
+// }
 
 pub struct Handler<S> {
     verifier: TMAddress,
@@ -154,10 +156,18 @@ where
 
         match pub_keys.get(&self.verifier) {
             Some(pub_key) => {
-                let key_type = match pub_key.type_url() {
-                    PublicKey::ED25519_TYPE_URL => tofnd::Algorithm::Ed25519,
-                    PublicKey::SECP256K1_TYPE_URL => tofnd::Algorithm::Ecdsa,
-                    unspported => return Err(Report::from(Error::KeyType(unspported.to_string()))),
+                // let key_type = match pub_key.type_url() {
+                //     PublicKey::ED25519_TYPE_URL => tofnd::Algorithm::Ed25519,
+                //     PublicKey::SECP256K1_TYPE_URL => tofnd::Algorithm::Ecdsa,
+                //     unspported => return Err(Report::from(Error::KeyType(unspported.to_string()))),
+                // };
+                let key_type = match pub_key {
+                    PublicKey::Ecdsa(_) => tofnd::Algorithm::Ecdsa,
+                    PublicKey::Ed25519(_) => tofnd::Algorithm::Ed25519,
+                    PublicKey::AleoSchnorr(_) => {
+                        tofnd::Algorithm::AleoSchnorr
+                        // return Err(Report::from(Error::KeyType("AleoSchnorr".to_string())))
+                    }
                 };
 
                 let signature = self
