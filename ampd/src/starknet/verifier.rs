@@ -317,10 +317,6 @@ mod tests {
         let confirmation = mock_valid_confirmation_signers_rotated();
         let event = mock_valid_event_signers_rotated();
 
-        println!("confirmation: {:?}", confirmation);
-        println!("event: {:?}", event);
-        println!("source_gw_address: {:?}", source_gw_address);
-        //
         assert_eq!(
             verify_verifier_set(&event, &confirmation, &source_gw_address),
             Vote::SucceededOnChain
