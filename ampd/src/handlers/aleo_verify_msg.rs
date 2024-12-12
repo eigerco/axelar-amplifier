@@ -97,8 +97,9 @@ where
 {
     type Err = Error;
 
-    #[tracing::instrument(skip(self))]
+    #[tracing::instrument(skip(self, event))]
     async fn handle(&self, event: &Event) -> error_stack::Result<Vec<Any>, Self::Err> {
+        debug!("event: {event:?}");
         if !event.is_from_contract(self.voting_verifier_contract.as_ref()) {
             return Ok(vec![]);
         }
@@ -130,8 +131,7 @@ where
             return Ok(vec![]);
         }
 
-        let transitions: HashSet<Transition> =
-            messages.iter().map(|m| m.tx_id.clone()).collect();
+        let transitions: HashSet<Transition> = messages.iter().map(|m| m.tx_id.clone()).collect();
 
         let http_client = AleoClientWrapper::new(&self.http_client);
         let transition_receipts: HashMap<_, _> = stream::iter(transitions)

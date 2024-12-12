@@ -40,6 +40,7 @@ mockall = "0.11.3"
 move-core-types = { git = "https://github.com/mystenlabs/sui", tag = "mainnet-v1.26.2" }
 multisig = { workspace = true, features = ["library"] }
 multiversx-sdk = "0.6.1"
+nom = "7.1.3"
 num-traits = { workspace = true }
 openssl = { version = "0.10.35", features = ["vendored"] }  # Needed to make arm compilation work by forcing vendoring
 pest = { workspace = true }
@@ -56,6 +57,7 @@ serde_with = "3.2.0"
 service-registry-api = { workspace = true }
 sha3 = { workspace = true }
 snarkvm = "1.0.0"
+solabi = "0.2.0"
 stellar = { workspace = true }
 stellar-rpc-client = "21.4.0"
 stellar-xdr = { workspace = true, features = ["serde_json"] }

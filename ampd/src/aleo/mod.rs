@@ -1,3 +1,4 @@
 pub(crate) mod http_client;
-pub(crate) mod verifier;
+mod json_like;
 mod parser;
+pub(crate) mod verifier;

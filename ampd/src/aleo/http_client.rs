@@ -9,9 +9,11 @@ use mockall::automock;
 use router_api::ChainName;
 use snarkvm::ledger::{Output, Transaction as SnarkvmTransaction};
 use snarkvm::prelude::{AleoID, Field, TestnetV0};
+use solabi;
 use thiserror::Error;
 use tracing::{debug, info, instrument, warn};
 
+use super::json_like;
 use super::parser::CallContract;
 use crate::types::Hash;
 
@@ -39,7 +41,7 @@ pub enum Error {
     FailedToCreateAleoID(String),
 }
 
-type Payload = String;
+type Payload = Vec<u8>;
 
 #[derive(Debug)]
 pub enum Receipt {
@@ -63,6 +65,37 @@ impl PartialEq<crate::handlers::aleo_verify_msg::Message> for TransitionReceipt 
         hasher.update(self.payload.clone());
         let result = hasher.finalize();
         let payload_hash = Hash::from_slice(result.as_slice());
+
+        debug!(
+            "transition_id: chain.{} == msg.{} ({})",
+            self.transition,
+            message.tx_id,
+            self.transition == message.tx_id
+        );
+        debug!(
+            "destination_address: chain.{} == msg.{} ({})",
+            self.destination_address,
+            message.destination_address,
+            self.destination_address == message.destination_address
+        );
+        debug!(
+            "destination_chain: chain.{} == msg.{} ({})",
+            self.destination_chain,
+            message.destination_chain,
+            self.destination_chain == message.destination_chain
+        );
+        debug!(
+            "source_address: chain.{:?} == msg.{:?} ({})",
+            self.source_address,
+            message.source_address,
+            self.source_address == message.source_address
+        );
+        debug!(
+            "payload_hash: chain.{} == msg.{} ({})",
+            payload_hash,
+            message.payload_hash,
+            payload_hash == message.payload_hash
+        );
 
         self.transition == message.tx_id
             && self.destination_address == message.destination_address
@@ -92,7 +125,7 @@ pub struct Client {
 
 #[derive(Default, Debug)]
 struct ParsedOutput {
-    payload: String,
+    payload: Vec<u8>,
     call_contract: CallContract,
 }
 
@@ -204,7 +237,13 @@ where
                 if let Some(call_contract) = parsed {
                     parsed_output.call_contract = call_contract;
                 } else {
-                    parsed_output.payload = plaintext.to_string();
+                    let payload = &plaintext.to_string();
+                    let payload = json_like::into_json(payload).unwrap();
+                    let payload: Vec<u8> = serde_json::from_str(&payload).unwrap();
+                    // right now we only support string memo messages
+                    let payload = std::str::from_utf8(&payload).unwrap();
+                    let payload = solabi::encode(&payload);
+                    parsed_output.payload = payload;
                 }
             }
         }
