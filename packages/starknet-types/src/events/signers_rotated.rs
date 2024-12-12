@@ -306,29 +306,30 @@ mod tests {
     #[tokio::test]
     async fn test_try_from_event_missing_data() {
         let (keys_data, _, sender_address, tx_hash) = get_valid_event().await;
-
-        assert!(SignersRotatedEvent::try_from(Event {
+        let event = SignersRotatedEvent::try_from(Event {
             data: vec![],
             from_address: sender_address,
             keys: keys_data,
-        })
-        .is_err());
+        });
 
-        // TODO: add error type check
+        assert!(event.is_err());
+        assert!(matches!(
+            event,
+            Err(SignersRotatedErrors::MissingPayloadData)
+        ));
     }
 
     #[tokio::test]
     async fn test_try_from_event_missing_keys() {
         let (_, event_data, sender_address, tx_hash) = get_valid_event().await;
-
-        assert!(SignersRotatedEvent::try_from(Event {
+        let event = SignersRotatedEvent::try_from(Event {
             data: event_data,
             from_address: sender_address,
             keys: vec![],
-        })
-        .is_err());
+        });
 
-        // TODO: add error type check
+        assert!(event.is_err());
+        assert!(matches!(event, Err(SignersRotatedErrors::MissingKeys)));
     }
 
     #[tokio::test]

@@ -1,5 +1,6 @@
 use std::str::FromStr;
 
+use axelar_wasm_std::utils::does_felt_overflow_from_slice;
 use error_stack::{Report, ResultExt};
 use ethers_core::abi::{InvalidOutputType, Token, Tokenizable};
 use ethers_core::types::U256;
@@ -60,14 +61,15 @@ impl Tokenizable for StarknetMessage {
                 tokens[3].clone(),
                 tokens[4].clone(),
             ) {
-                let contract_address_bytes: [u8; 32] =
-                    contract_address.try_into().map_err(|_| {
-                        InvalidOutputType(
-                            "failed to convert contract_address to bytes32".to_string(),
-                        )
-                    })?;
+                if does_felt_overflow_from_slice(contract_address.as_slice()) {
+                    return Err(InvalidOutputType(
+                        "failed to convert contract_address bytes to field element (felt)"
+                            .to_string(),
+                    ));
+                }
 
-                let contract_address_felt: Felt = Felt::from_bytes_be(&contract_address_bytes);
+                let contract_address_felt: Felt =
+                    Felt::from_bytes_be_slice(&contract_address.as_slice());
 
                 return Ok(StarknetMessage {
                     source_chain,
@@ -158,7 +160,7 @@ mod tests {
 
         // Tested like this, because InvalidOutputType doesn't implement PartialEq
         assert!(
-            matches!(result, Err(InvalidOutputType(msg)) if msg == "failed to convert contract_address to bytes32")
+            matches!(result, Err(InvalidOutputType(msg)) if msg == "failed to convert contract_address bytes to field element (felt)")
         );
     }
 
