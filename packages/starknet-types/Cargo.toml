@@ -14,6 +14,9 @@ error-stack = { workspace = true }
 thiserror = { workspace = true }
 itertools = { workspace = true }
 hex = { workspace = true }
+tokio = { version = "1", features = ["rt", "signal", "rt-multi-thread", "macros"] }
+rand = { workspace = true }
+futures = { workspace = true }
 
 [lints]
 workspace = true
