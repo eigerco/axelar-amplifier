@@ -41,10 +41,13 @@ pub enum Error {
 
 #[cfg_attr(not(feature = "library"), entry_point)]
 pub fn migrate(
-    _deps: DepsMut,
+    deps: DepsMut,
     _env: Env,
     _msg: Empty,
 ) -> Result<Response, axelar_wasm_std::error::ContractError> {
+    cw2::assert_contract_version(deps.storage, CONTRACT_NAME, BASE_VERSION)?;
+    cw2::set_contract_version(deps.storage, CONTRACT_NAME, CONTRACT_VERSION)?;
+
     Ok(Response::default())
 }
 

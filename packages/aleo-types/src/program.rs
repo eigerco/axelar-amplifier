@@ -5,16 +5,14 @@ use serde::{Deserialize, Serialize};
 
 use crate::Error;
 
-const PROGRAM_SUFFIX: &str = ".aleo";
-
 #[derive(Serialize, Deserialize, Debug)]
-pub struct Program {
-    name: String,
-}
+pub struct Program (String);
 
-impl Program {
-    pub fn name(&self) -> &str {
-        self.name.as_str()
+impl TryFrom<String> for Program {
+    type Error = Report<Error>;
+
+    fn try_from(name: String) -> Result<Self, Error> {
+        Program::from_str(&name)
     }
 }
 
@@ -22,21 +20,15 @@ impl FromStr for Program {
     type Err = Report<Error>;
 
     fn from_str(name: &str) -> Result<Self, Error> {
+        const SUFFIX: &str = ".aleo";
+
         ensure!(
-            name.len() > PROGRAM_SUFFIX.len(),
+            name.len() > SUFFIX.len(),
             Error::InvalidProgramName(name.to_string())
         );
 
         ensure!(
-            name.ends_with(PROGRAM_SUFFIX),
-            Error::InvalidProgramName(name.to_string())
-        );
-
-        ensure!(
-            name.chars()
-                .next()
-                .ok_or(Error::InvalidProgramName(name.to_string()))?
-                .is_ascii_lowercase(),
+            name.ends_with(SUFFIX),
             Error::InvalidProgramName(name.to_string())
         );
 
@@ -53,15 +45,13 @@ impl FromStr for Program {
                 .skip(1)
                 .take(
                     name.len()
-                        .saturating_sub(PROGRAM_SUFFIX.len().saturating_add(1)),
+                        .saturating_sub(SUFFIX.len().saturating_add(1)),
                 )
                 .all(|c| c.is_ascii_alphanumeric() || c == '_'),
             Error::InvalidProgramName(name.to_string())
         );
 
-        Ok(Self {
-            name: name.to_string(),
-        })
+        Ok(Self (name.to_string()))
     }
 }
 

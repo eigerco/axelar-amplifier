@@ -1,46 +1,30 @@
 use std::fmt::Display;
 use std::str::FromStr;
 
-use bech32::primitives::decode::CheckedHrpstring;
-use bech32::Bech32m;
-use error_stack::{bail, Report, ResultExt};
+use error_stack::{Report, ResultExt};
 use serde::{Deserialize, Serialize};
 
-use crate::Error;
+use crate::{verify_becnh32, Error};
 
 #[derive(Serialize, Deserialize, Debug, PartialEq, Eq, Hash, Clone)]
 pub struct Transaction {
     transition_id: String,
 }
 
-// impl Transaction {
-//     pub fn transition_id(&self) -> &str {
-//         self.transition_id.as_str()
-//     }
-// }
-
 impl FromStr for Transaction {
     type Err = Report<Error>;
 
-    fn from_str(message_id: &str) -> Result<Self, Self::Err>
+    fn from_str(transaction_id: &str) -> Result<Self, Self::Err>
     where
         Self: Sized,
     {
         const PREFIX: &str = "at";
 
-        let checked = CheckedHrpstring::new::<Bech32m>(message_id)
-            .change_context(Error::InvalidAleoTransaction(message_id.to_owned()))?;
-
-        if checked.hrp().as_str() != PREFIX {
-            bail!(Error::InvalidAleoTransaction(message_id.to_owned()));
-        }
-
-        if checked.data_part_ascii_no_checksum().is_empty() {
-            bail!(Error::InvalidAleoTransaction(message_id.to_owned()));
-        }
+        verify_becnh32(transaction_id, PREFIX)
+            .change_context(Error::InvalidAleoTransaction(transaction_id.to_string()))?;
 
         Ok(Self {
-            transition_id: message_id.to_string(),
+            transition_id: transaction_id.to_string(),
         })
     }
 }

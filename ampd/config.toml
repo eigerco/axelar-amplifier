@@ -49,14 +49,19 @@ type = "MultisigSigner"
 # chain_name = 'avalanche'
 # chain_rpc_url = "https://api.avax-test.network/ext/bc/C/rpc"
 
+# voting-verifier
+# cosmwasm_contract = 'axelar19r4wxttfjtyenmqvm220nfjwckya0xaqzs7s3zwuk06vkry9vntql4cd4d'
+# gateway contract
+# cosmwasm_contract = 'axelar1a9d3a3hcykzfa8rn3y7d47ns55x3wdlykchydd8x3f95dtz9qh0q3vnrg0'
+
 [[handlers]]
 type = 'AleoMsgVerifier'
-cosmwasm_contract = 'axelar19r4wxttfjtyenmqvm220nfjwckya0xaqzs7s3zwuk06vkry9vntql4cd4d'
+cosmwasm_contract = "axelar19r4wxttfjtyenmqvm220nfjwckya0xaqzs7s3zwuk06vkry9vntql4cd4d"
 chain_name = 'aleo'
-chain_rpc_url = "https://api.avax-test.network/ext/bc/C/rpc"
-base_url = "http://127.0.0.1:3000"
+chain_rpc_url = "http://localhost:3030"
+base_url = "http://localhost:3030"
 network = "testnet"
-gateway_contract = "gateway.aleo"
+gateway_contract = "vzevxifdoj.aleo"
 
 # [[handlers]]
 # type = 'AleoVerifierSetVerifier'

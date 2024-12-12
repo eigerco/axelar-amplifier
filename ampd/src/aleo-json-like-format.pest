@@ -1,0 +1,43 @@
+aleo = _{ SOI ~ object ~ EOI }
+
+object = {
+    "{" ~ "}" |
+    "{" ~ pair ~ ("," ~ pair)* ~ ","? ~ "}"
+}
+
+pair = { key ~ ":" ~ value }
+
+key = @{
+    ASCII_ALPHA+ ~ ("_" ~ ASCII_ALPHA+)*
+}
+
+value = _{
+    object
+    | array
+    | number
+    | boolean
+    | null
+    | aleo_address
+}
+
+aleo_address = @{
+    "aleo1" ~ (ASCII_ALPHANUMERIC){58}
+}
+
+array = {
+    "[" ~ "]" |
+    "[" ~ value ~ ("," ~ value)* ~ ","? ~ "]"
+}
+
+number = @{
+    "-"?
+    ~ ("0" | ASCII_NONZERO_DIGIT ~ ASCII_DIGIT*)
+    ~ ("." ~ ASCII_DIGIT*)?
+    ~ (^"e" ~ ("+" | "-")? ~ ASCII_DIGIT+)?
+    ~ "u8"
+}
+
+boolean = { "true" | "false" }
+null = { "null" }
+
+WHITESPACE = _{ " " | "\t" | "\r" | "\n" }

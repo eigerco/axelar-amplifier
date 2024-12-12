@@ -1,6 +1,6 @@
 use axelar_wasm_std::address::validate_contract_address;
-use axelar_wasm_std::msg_id::{MessageId, MessageIdFormat};
-use axelar_wasm_std::{address, permission_control, FnExt};
+use axelar_wasm_std::nonempty::Uint64;
+use axelar_wasm_std::{address, permission_control, FnExt, MajorityThreshold, Threshold};
 #[cfg(not(feature = "library"))]
 use cosmwasm_std::entry_point;
 use cosmwasm_std::{
@@ -18,6 +18,7 @@ mod query;
 
 const CONTRACT_NAME: &str = env!("CARGO_PKG_NAME");
 const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
+const BASE_VERSION: &str = "1.0.0";
 
 #[cfg_attr(not(feature = "library"), entry_point)]
 pub fn instantiate(
@@ -111,21 +112,45 @@ pub fn migrate(
     _env: Env,
     _msg: Empty,
 ) -> Result<Response, axelar_wasm_std::error::ContractError> {
-    // v0_5_0::migrate(deps.storage)?; // TODO: THIS SHOULD BE REVERTED, AND THE CODE ADDED BELOW SHOULD
-    // BE DELETED
-    let prev_config = CONFIG.load(deps.storage)?;
-    CONFIG.remove(deps.storage);
+    // TODO: THIS FUNCTION SHOULD BE REVERTED, AND THE CODE ADDED BELOW SHOULD BE DELETED
+    // cw2::assert_contract_version(deps.storage, CONTRACT_NAME, BASE_VERSION)?;
+    //
+    cw2::set_contract_version(deps.storage, CONTRACT_NAME, CONTRACT_VERSION)?;
+
+    /*
+    {
+      "service_registry_contract": "axelar1c9fkszt5lq34vvvlat3fxj6yv7ejtqapz04e97vtc9m5z9cwnamq8zjlhz",
+      "service_name": "validators",
+      "source_gateway_address": "vzevxifdoj.aleo",
+      "voting_threshold": ["1", "1"],
+      "block_expiry": "10",
+      "confirmation_height": 1,
+      "source_chain": "aleo",
+      "rewards_contract": "axelar1vaj9sfzc3z0gpel90wu4ljutncutv0wuhvvwfsh30rqxq422z89qnd989l",
+      "msg_id_format": "bech32m",
+      "address_format": "aleo"
+    }
+        */
 
     let config = Config {
-        service_registry_contract: prev_config.service_registry_contract,
-        service_name: prev_config.service_name,
-        source_chain: "Aleo".parse().unwrap(),
-        rewards_contract: prev_config.rewards_contract,
-        block_expiry: prev_config.block_expiry,
-        confirmation_height: prev_config.confirmation_height,
-        msg_id_format: MessageIdFormat::Bech32m,
-        source_gateway_address: "gateway.aleo".parse().unwrap(),
-        voting_threshold: prev_config.voting_threshold,
+        service_name: "validators".parse().unwrap(),
+        service_registry_contract: cosmwasm_std::Addr::unchecked(
+            "axelar1c9fkszt5lq34vvvlat3fxj6yv7ejtqapz04e97vtc9m5z9cwnamq8zjlhz",
+        ),
+        source_gateway_address: "vzevxifdoj.aleo".parse().unwrap(),
+        voting_threshold: MajorityThreshold::try_from(
+            Threshold::try_from((1, 1)).unwrap(),
+        ).unwrap(),
+        block_expiry: Uint64::try_from(10u64).unwrap(),
+        confirmation_height: 1,
+        source_chain: "aleo".parse().unwrap(),
+        rewards_contract: cosmwasm_std::Addr::unchecked(
+            "axelar1vaj9sfzc3z0gpel90wu4ljutncutv0wuhvvwfsh30rqxq422z89qnd989l",
+        ),
+        msg_id_format: axelar_wasm_std::msg_id::MessageIdFormat::Bech32m {
+            prefix: "au".to_string().try_into().unwrap(),
+            length: 61,
+        },
         address_format: address::AddressFormat::Aleo,
     };
 
@@ -330,9 +355,11 @@ mod test {
             .to_string()
             .parse()
             .unwrap(),
-            MessageIdFormat::Bech32m => {
+            MessageIdFormat::Bech32m {
+                prefix,
+                length: _length,
+            } => {
                 let data = format!("{id}-{index}");
-                let prefix = "bech32m";
                 let hrp = Hrp::parse(prefix).expect("valid hrp");
                 bech32::encode::<Bech32m>(hrp, data.as_bytes())
                     .unwrap()
@@ -475,6 +502,93 @@ mod test {
                 assert_ok!(result);
             }
         }
+    }
+
+    fn setup_aleo(
+        verifiers: Vec<Verifier>,
+        msg_id_format: &MessageIdFormat,
+    ) -> OwnedDeps<MockStorage, MockApi, MockQuerier, Empty> {
+        // TODO: THIS IS WIP. JUST FOR SANITY TESTING
+        let mut deps = mock_dependencies();
+
+        instantiate(
+            deps.as_mut(),
+            mock_env(),
+            mock_info("admin", &[]),
+            InstantiateMsg {
+                governance_address: GOVERNANCE.parse().unwrap(),
+                service_registry_address: SERVICE_REGISTRY_ADDRESS.parse().unwrap(),
+                service_name: SERVICE_NAME.parse().unwrap(),
+                source_gateway_address: "gateway.aleo".parse().unwrap(),
+                voting_threshold: initial_voting_threshold(),
+                block_expiry: POLL_BLOCK_EXPIRY.try_into().unwrap(),
+                confirmation_height: 100,
+                source_chain: source_chain(),
+                rewards_address: REWARDS_ADDRESS.parse().unwrap(),
+                msg_id_format: msg_id_format.clone(),
+                address_format: AddressFormat::Aleo,
+            },
+        )
+        .unwrap();
+
+        deps.querier.update_wasm(move |wq| match wq {
+            WasmQuery::Smart { contract_addr, .. } if contract_addr == SERVICE_REGISTRY_ADDRESS => {
+                Ok(to_json_binary(
+                    &verifiers
+                        .clone()
+                        .into_iter()
+                        .map(|v| WeightedVerifier {
+                            verifier_info: v,
+                            weight: VERIFIER_WEIGHT,
+                        })
+                        .collect::<Vec<WeightedVerifier>>(),
+                )
+                .into())
+                .into()
+            }
+            _ => panic!("no mock for this query"),
+        });
+
+        deps
+    }
+
+    #[test]
+    fn test_drive() {
+        // TODO: THIS IS WIP. JUST FOR SANITY TESTING
+        let msg_id_format = MessageIdFormat::HexTxHashAndEventIndex;
+        let verifiers = verifiers(2);
+        let mut deps = setup_aleo(verifiers.clone(), &msg_id_format);
+
+        let msg = ExecuteMsg::VerifyMessages(vec![
+            Message {
+                cc_id: CrossChainId::new(source_chain(), message_id("id", 1, &msg_id_format))
+                    .unwrap(),
+                source_address: "aleo1thg4clvgc2d0vpl6jzgnzw7zvdulq7r4xuluw66lq2wg7sw4hszs00d8dd"
+                    .to_owned()
+                    .parse()
+                    .unwrap(),
+                destination_chain: "destination-chain1".parse().unwrap(),
+                destination_address: "destination-address1".parse().unwrap(),
+                payload_hash: [0; 32],
+            },
+            Message {
+                cc_id: CrossChainId::new(source_chain(), message_id("id", 2, &msg_id_format))
+                    .unwrap(),
+                source_address: "aleo1thg4clvgc2d0vpl6jzgnzw7zvdulq7r4xuluw66lq2wg7sw4hszs00d8dd"
+                    .to_owned()
+                    .parse()
+                    .unwrap(),
+                destination_chain: "destination-chain2".parse().unwrap(),
+                destination_address: "destination-address2".parse().unwrap(),
+                payload_hash: [0; 32],
+            },
+        ]);
+        assert_ok!(execute(
+            deps.as_mut(),
+            mock_env(),
+            mock_info(SENDER, &[]),
+            msg
+        ));
     }
 
     #[test]

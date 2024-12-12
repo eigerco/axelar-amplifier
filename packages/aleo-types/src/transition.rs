@@ -1,53 +1,40 @@
 use std::fmt::Display;
 use std::str::FromStr;
 
-use bech32::primitives::decode::CheckedHrpstring;
-use bech32::Bech32m;
-use error_stack::{bail, Report, ResultExt};
+use error_stack::{Report, ResultExt};
 use serde::{Deserialize, Serialize};
+use valuable::Valuable;
 
-use crate::Error;
+use crate::{verify_becnh32, Error};
 
-#[derive(Serialize, Deserialize, Debug, PartialEq, Eq, Hash, Clone)]
-pub struct Transition {
-    transition_id: String,
-}
-
-// impl Transition {
-//     pub fn transition_id(&self) -> &str {
-//         self.transition_id.as_str()
-//     }
-// }
+#[derive(Serialize, Deserialize, Debug, PartialEq, Eq, Hash, Clone, Valuable)]
+pub struct Transition(String);
 
 impl FromStr for Transition {
     type Err = Report<Error>;
 
-    fn from_str(message_id: &str) -> Result<Self, Self::Err>
+    fn from_str(transition_id: &str) -> Result<Self, Self::Err>
     where
         Self: Sized,
     {
         const PREFIX: &str = "au";
 
-        let checked = CheckedHrpstring::new::<Bech32m>(message_id)
-            .change_context(Error::InvalidAleoTransition(message_id.to_owned()))?;
+        verify_becnh32(transition_id, PREFIX)
+            .change_context(Error::InvalidAleoTransition(transition_id.to_string()))?;
 
-        if checked.hrp().as_str() != PREFIX {
-            bail!(Error::InvalidAleoTransition(message_id.to_owned()));
-        }
-
-        if checked.data_part_ascii_no_checksum().is_empty() {
-            bail!(Error::InvalidAleoTransition(message_id.to_owned()));
-        }
-
-        Ok(Self {
-            transition_id: message_id.to_string(),
-        })
+        Ok(Self(transition_id.to_string()))
     }
 }
 
 impl Display for Transition {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}", self.transition_id)
+        write!(f, "{}", self.0)
+    }
+}
+
+impl AsRef<str> for Transition {
+    fn as_ref(&self) -> &str {
+        &self.0
     }
 }
 

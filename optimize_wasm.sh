@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+set -e
+set -x
 
 TARGET=$1
 TARGET="${TARGET/-/_}"

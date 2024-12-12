@@ -1,40 +1,31 @@
 use std::str::FromStr;
 
-use bech32::primitives::decode::CheckedHrpstring;
-use bech32::Bech32m;
-use error_stack::{ensure, Report, Result, ResultExt};
+use error_stack::{ensure, Report, Result};
 use serde::{Deserialize, Serialize};
 
-use crate::Error;
-
-const ADDRESS_PREFIX: &str = "aleo";
+use crate::{verify_becnh32, Error};
 
 #[derive(Serialize, Deserialize, Debug, PartialEq, Eq)]
-pub struct Address {
-    address: String,
-}
-
-// impl Address {
-//     pub fn as_str(&self) -> &str {
-//         self.address.as_str()
-//     }
-// }
+pub struct Address(String);
 
 impl FromStr for Address {
     type Err = Report<Error>;
 
     fn from_str(address: &str) -> Result<Self, Error> {
-        let checked = CheckedHrpstring::new::<Bech32m>(address)
-            .change_context(Error::InvalidAddress(address.to_string()))?;
+        const PREFIX: &str = "aleo";
 
         ensure!(
-            checked.hrp().as_str() == ADDRESS_PREFIX,
-            Error::InvalidAddress(format!("'aleo' address prefix is not matching: {address}"))
+            address.len() == 63,
+            Error::InvalidAleoAddress(format!(
+                "Expected address len is 63. Address '{}' is of len {}",
+                address,
+                address.len()
+            ))
         );
 
-        Ok(Self {
-            address: address.to_string(),
-        })
+        verify_becnh32(address, PREFIX).map_err(|e| Error::InvalidAleoAddress(e.to_string()))?;
+
+        Ok(Self(address.to_string()))
     }
 }
 
@@ -54,17 +45,19 @@ mod tests {
     #[test]
     fn validate_aleo_address_errors() {
         let addr = "aleo1pqgvl3prke38qwyywqhgd0qu44msp3wks4cqpk3d8m8vxu30wvfql7nmv";
+        let r = Address::from_str(addr);
+        println!("-->{r:?}");
         assert_err_contains!(
             Address::from_str(addr),
             crate::Error,
-            crate::Error::InvalidAddress(..)
+            crate::Error::InvalidAleoAddress(..)
         );
 
         let addr = "aleo2pqgvl3prke38qwyywqhgd0qu44msp3wks4cqpk3d8m8vxu30wvfql7nmvs";
         assert_err_contains!(
             Address::from_str(addr),
             crate::Error,
-            crate::Error::InvalidAddress(..)
+            crate::Error::InvalidAleoAddress(..)
         );
     }
 }

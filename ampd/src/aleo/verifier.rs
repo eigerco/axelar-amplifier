@@ -11,11 +11,8 @@ fn verify(
 ) -> Vote {
     let res = match receipt {
         Receipt::Found(transition_receipt) => transition_receipt == msg,
-        Receipt::NotFound(transaction, transition, e) => {
-            warn!(
-                "AleoMessageId: {:?}-{:?} is not verified: {:?}",
-                transaction, transition, e
-            );
+        Receipt::NotFound(transition, e) => {
+            warn!("AleoMessageId: {:?} is not verified: {:?}", transition, e);
 
             false
         }

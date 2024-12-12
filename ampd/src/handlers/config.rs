@@ -67,11 +67,11 @@ pub enum Config {
     },
     StellarMsgVerifier {
         cosmwasm_contract: TMAddress,
-        http_url: Url,
+        rpc_url: Url,
     },
     StellarVerifierSetVerifier {
         cosmwasm_contract: TMAddress,
-        http_url: Url,
+        rpc_url: Url,
     },
 }
 
@@ -291,11 +291,11 @@ mod tests {
         let configs = vec![
             Config::StellarMsgVerifier {
                 cosmwasm_contract: TMAddress::random(PREFIX),
-                http_url: "http://localhost:8080/".parse().unwrap(),
+                rpc_url: "http://localhost:7545/".parse().unwrap(),
             },
             Config::StellarMsgVerifier {
                 cosmwasm_contract: TMAddress::random(PREFIX),
-                http_url: "http://localhost:8080/".parse().unwrap(),
+                rpc_url: "http://localhost:7545/".parse().unwrap(),
             },
         ];
 
@@ -308,11 +308,11 @@ mod tests {
         let configs = vec![
             Config::StellarVerifierSetVerifier {
                 cosmwasm_contract: TMAddress::random(PREFIX),
-                http_url: "http://localhost:8080/".parse().unwrap(),
+                rpc_url: "http://localhost:7545/".parse().unwrap(),
             },
             Config::StellarVerifierSetVerifier {
                 cosmwasm_contract: TMAddress::random(PREFIX),
-                http_url: "http://localhost:8080/".parse().unwrap(),
+                rpc_url: "http://localhost:7545/".parse().unwrap(),
             },
         ];
 
