@@ -69,15 +69,14 @@ impl FromStr for FieldElementAndEventIndex {
             })?
             .extract();
         let tx_id_chunk = &tx_id[2..];
-        let felt = Felt::from_hex(tx_id_chunk).map_err(|_| {
-            Error::InvalidFieldElement(format!("{}", tx_id_chunk.to_string()).to_string())
-        })?;
+        let felt = Felt::from_hex(tx_id_chunk)
+            .map_err(|_| Error::InvalidFieldElement(tx_id_chunk.to_string()))?;
 
         if check_for_felt_overflow(tx_id_chunk) {
             Err(Error::InvalidFieldElement(
                 format!(
                     "field element overflows MAX value of 2^251 + 17 * 2^192: {}",
-                    tx_id_chunk.to_string()
+                    tx_id_chunk
                 )
                 .to_string(),
             ))?

@@ -61,7 +61,7 @@ impl PartialEq<VerifierSetConfirmation> for SignersRotatedEvent {
                     (pubkey.clone(), signer.weight.u128())
                 } else {
                     // Skip non-ECDSA keys
-                    return (HexBinary::from_hex("").unwrap(), 0);
+                    (HexBinary::from_hex("").unwrap(), 0)
                 }
             })
             .collect::<Vec<_>>();
@@ -72,12 +72,7 @@ impl PartialEq<VerifierSetConfirmation> for SignersRotatedEvent {
             .signers
             .signers
             .iter()
-            .map(|signer| {
-                (
-                    HexBinary::from_hex(&signer.signer).unwrap(),
-                    signer.weight as u128,
-                )
-            })
+            .map(|signer| (HexBinary::from_hex(&signer.signer).unwrap(), signer.weight))
             .collect::<Vec<_>>();
         actual_signers.sort();
 

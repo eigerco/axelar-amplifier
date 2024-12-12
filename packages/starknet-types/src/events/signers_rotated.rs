@@ -123,12 +123,12 @@ impl TryFrom<starknet_core::types::Event> for SignersRotatedEvent {
             .keys
             .get(epoch_index + 1)
             .map(Felt::to_bytes_be)
-            .ok_or_else(|| SignersRotatedErrors::MissingSignersHash)?;
+            .ok_or(SignersRotatedErrors::MissingSignersHash)?;
         let msb = event
             .keys
             .get(epoch_index + 2)
             .map(Felt::to_bytes_be)
-            .ok_or_else(|| SignersRotatedErrors::MissingSignersHash)?;
+            .ok_or(SignersRotatedErrors::MissingSignersHash)?;
         signers_hash[..16].copy_from_slice(&msb[16..]);
         signers_hash[16..].copy_from_slice(&lsb[16..]);
 
@@ -144,12 +144,14 @@ impl TryFrom<starknet_core::types::Event> for SignersRotatedEvent {
                     "failed to parse signers length".to_string(),
                 )
             })?;
-        let signers_end_index = signers_index + signers_len * 2;
+        let signers_end_index = signers_index.saturating_add(signers_len.saturating_mul(2));
 
         // Parse signers and weights
         for i in 0..signers_len {
-            let signer_index = signers_index + 1 + (i * 2);
-            let weight_index = signer_index + 1;
+            let signer_index = signers_index
+                .saturating_add(1)
+                .saturating_add(i.saturating_mul(2));
+            let weight_index = signer_index.saturating_add(1);
 
             // Get signer address as bytes
             let signer = event.data[signer_index].to_hex_string();
@@ -171,7 +173,7 @@ impl TryFrom<starknet_core::types::Event> for SignersRotatedEvent {
         let threshold = event
             .data
             .get(signers_end_index)
-            .ok_or_else(|| SignersRotatedErrors::IncorrectThreshold)?
+            .ok_or(SignersRotatedErrors::IncorrectThreshold)?
             .to_string()
             .parse::<u128>()
             .map_err(|_| SignersRotatedErrors::IncorrectThreshold)?;
@@ -180,17 +182,16 @@ impl TryFrom<starknet_core::types::Event> for SignersRotatedEvent {
         let mut nonce = [0_u8; 32];
         let lsb = event
             .data
-            .get(event.data.len() - 2)
+            .get(event.data.len().saturating_sub(2))
             .map(Felt::to_bytes_be)
-            .ok_or_else(|| SignersRotatedErrors::MissingNonce)?;
+            .ok_or(SignersRotatedErrors::MissingNonce)?;
         let msb = event
             .data
-            .get(event.data.len() - 1)
+            .get(event.data.len().saturating_sub(1))
             .map(Felt::to_bytes_be)
-            .ok_or_else(|| SignersRotatedErrors::MissingNonce)?;
+            .ok_or(SignersRotatedErrors::MissingNonce)?;
         nonce[16..].copy_from_slice(&lsb[16..]);
         nonce[..16].copy_from_slice(&msb[16..]);
-        println!("KOOOOOOOOOOOOOOOOOOOOOOOOOR {:?}", nonce);
 
         Ok(SignersRotatedEvent {
             from_address,

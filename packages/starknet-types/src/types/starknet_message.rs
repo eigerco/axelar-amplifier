@@ -74,14 +74,14 @@ impl Tokenizable for StarknetMessage {
                     message_id,
                     source_address,
                     contract_address: contract_address_felt,
-                    payload_hash: U256::from(payload_hash),
+                    payload_hash,
                 });
             }
         }
 
-        return Err(InvalidOutputType(
+        Err(InvalidOutputType(
             "failed to convert tokens to StarknetMessage".to_string(),
-        ));
+        ))
     }
 
     fn into_token(self) -> Token {
