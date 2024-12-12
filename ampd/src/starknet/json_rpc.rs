@@ -280,15 +280,13 @@ mod test {
                 .unwrap()
         );
 
-        dbg!(signers_rotated_event.1.clone());
-        let kor: SignersRotatedEvent = signers_rotated_event.1;
-        let kor2: SignersRotatedEvent = SignersRotatedEvent {
-            from_address: "0x0000000000000000000000000000000000000000000000000000000000000002"
-                .to_string(),
+        let actual: SignersRotatedEvent = signers_rotated_event.1;
+        let expected: SignersRotatedEvent = SignersRotatedEvent {
+            from_address: "0x2".to_string(),
             epoch: 1,
             signers_hash: [
-                0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 62, 199, 213, 114, 160, 254, 71, 151, 104, 172,
-                70, 53, 86, 81, 242, 42, 152, 43, 153, 204,
+                226, 62, 119, 4, 210, 79, 100, 110, 94, 54, 44, 97, 64, 122, 105, 210, 212, 32, 63,
+                225, 67, 54, 50, 83, 200, 154, 39, 162, 106, 108, 184, 31,
             ],
             signers: starknet_types::events::signers_rotated::WeightedSigners {
                 signers: vec![starknet_types::events::signers_rotated::Signer {
@@ -303,7 +301,7 @@ mod test {
             },
         };
 
-        assert!(kor == kor2);
+        assert_eq!(actual, expected);
     }
 
     #[tokio::test]

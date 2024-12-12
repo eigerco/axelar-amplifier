@@ -47,7 +47,7 @@ pub struct Signer {
 }
 
 /// Represents a set of signers
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct WeightedSigners {
     pub signers: Vec<Signer>,
     pub threshold: u128,
@@ -55,7 +55,7 @@ pub struct WeightedSigners {
 }
 
 /// Represents a Starknet SignersRotated event
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct SignersRotatedEvent {
     /// The address of the sender
     pub from_address: String,
@@ -179,17 +179,18 @@ impl TryFrom<starknet_core::types::Event> for SignersRotatedEvent {
         // Parse nonce
         let mut nonce = [0_u8; 32];
         let lsb = event
-            .keys
-            .get(signers_end_index + 1)
+            .data
+            .get(event.data.len() - 2)
             .map(Felt::to_bytes_be)
             .ok_or_else(|| SignersRotatedErrors::MissingNonce)?;
         let msb = event
-            .keys
-            .get(signers_end_index + 2)
+            .data
+            .get(event.data.len() - 1)
             .map(Felt::to_bytes_be)
             .ok_or_else(|| SignersRotatedErrors::MissingNonce)?;
-        nonce[..16].copy_from_slice(&msb[16..]);
         nonce[16..].copy_from_slice(&lsb[16..]);
+        nonce[..16].copy_from_slice(&msb[16..]);
+        println!("KOOOOOOOOOOOOOOOOOOOOOOOOOR {:?}", nonce);
 
         Ok(SignersRotatedEvent {
             from_address,
