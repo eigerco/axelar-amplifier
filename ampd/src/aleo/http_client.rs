@@ -239,9 +239,6 @@ where
                 } else {
                     let payload = &plaintext.to_string();
                     let payload = json_like::into_json(payload).unwrap();
-                    let payload: Vec<u8> = serde_json::from_str(&payload).unwrap();
-                    // right now we only support string memo messages
-                    let payload = std::str::from_utf8(&payload).unwrap();
                     let payload = solabi::encode(&payload);
                     parsed_output.payload = payload;
                 }
