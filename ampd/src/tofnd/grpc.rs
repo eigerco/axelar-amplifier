@@ -32,6 +32,18 @@ pub trait Multisig {
     ) -> Result<Signature>;
 }
 
+#[automock]
+#[async_trait]
+pub trait MultisigTofnd {
+    async fn sign(
+        &self,
+        key_uid: &str,
+        data: MessageDigest,
+        pub_key: &multisig::key::PublicKey,
+        algorithm: Algorithm,
+    ) -> Result<Signature>;
+}
+
 #[derive(Clone)]
 pub struct MultisigClient {
     party_uid: String,
@@ -98,6 +110,58 @@ impl Multisig for MultisigClient {
             msg_to_sign: data.into(),
             party_uid: self.party_uid.to_string(),
             pub_key: pub_key.to_bytes(),
+            algorithm: algorithm.into(),
+        };
+
+        self.client
+            .lock()
+            .await
+            .sign(request)
+            .await
+            .and_then(|response| {
+                response
+                    .into_inner()
+                    .sign_response
+                    .ok_or_else(|| Status::internal("sign response is empty"))
+            })
+            .change_context(Error::Grpc)
+            .and_then(|response| match response {
+                SignResponse::Signature(signature) => match algorithm {
+                    Algorithm::Ecdsa => ecdsa::Signature::<Secp256k1>::from_der(&signature)
+                        .map(|sig| sig.to_vec())
+                        .change_context(Error::ParsingFailed),
+                    Algorithm::Ed25519 => ed25519::Signature::from_slice(&signature)
+                        .map(|sig| sig.to_vec())
+                        .change_context(Error::ParsingFailed),
+                },
+
+                SignResponse::Error(error_msg) => {
+                    Err(TofndError::ExecutionFailed(error_msg)).change_context(Error::SignFailed)
+                }
+            })
+    }
+}
+
+#[async_trait]
+impl MultisigTofnd for MultisigClient {
+    async fn sign(
+        &self,
+        key_uid: &str,
+        data: MessageDigest,
+        pub_key: &multisig::key::PublicKey,
+        algorithm: Algorithm,
+    ) -> Result<Signature> {
+        let raw_public_key = match pub_key {
+            multisig::key::PublicKey::Ecdsa(raw) | multisig::key::PublicKey::Ed25519(raw) => {
+                raw.to_vec()
+            }
+        };
+
+        let request = SignRequest {
+            key_uid: key_uid.to_string(),
+            msg_to_sign: data.into(),
+            party_uid: self.party_uid.to_string(),
+            pub_key: raw_public_key,
             algorithm: algorithm.into(),
         };
 
