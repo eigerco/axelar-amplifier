@@ -156,7 +156,7 @@ fn quote(i: &str) -> IResult<&str, String> {
 mod test {
     use serde::Deserialize;
 
-    use crate::json_like::{
+    use super::{
         array_expression, boolean_literal, explicit_address_literal, identifier, into_json,
         is_ascii_lowercase_or_ascii_digit, numeric_literal, record,
     };
