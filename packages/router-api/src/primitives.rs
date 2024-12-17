@@ -188,7 +188,7 @@ impl Display for CrossChainId {
 #[cw_serde]
 #[serde(try_from = "String")]
 #[derive(Eq, Hash, Valuable)]
-pub struct ChainName(String);
+pub struct ChainName(String); // TODO: can this be empty?
 
 impl FromStr for ChainName {
     type Err = Error;

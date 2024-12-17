@@ -32,13 +32,15 @@ pub trait Multisig {
     ) -> Result<Signature>;
 }
 
+use crate::tofnd::MessageDigestTofnd;
+
 #[automock]
 #[async_trait]
 pub trait MultisigTofnd {
     async fn sign(
         &self,
         key_uid: &str,
-        data: MessageDigest,
+        data: MessageDigestTofnd,
         pub_key: &multisig::key::PublicKey,
         algorithm: Algorithm,
     ) -> Result<Signature>;
@@ -149,7 +151,7 @@ impl MultisigTofnd for MultisigClient {
     async fn sign(
         &self,
         key_uid: &str,
-        data: MessageDigest,
+        data: MessageDigestTofnd,
         pub_key: &multisig::key::PublicKey,
         algorithm: Algorithm,
     ) -> Result<Signature> {
@@ -161,7 +163,7 @@ impl MultisigTofnd for MultisigClient {
 
         let request = SignRequest {
             key_uid: key_uid.to_string(),
-            msg_to_sign: data.into(),
+            msg_to_sign: data.0,
             party_uid: self.party_uid.to_string(),
             pub_key: raw_public_key,
             algorithm: algorithm.into(),

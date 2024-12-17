@@ -1,11 +1,14 @@
 use std::collections::{BTreeMap, HashSet};
+use std::str::FromStr;
 
 use axelar_wasm_std::permission_control::Permission;
 use axelar_wasm_std::snapshot::{Participant, Snapshot};
 use axelar_wasm_std::{
     address, nonempty, permission_control, FnExt, MajorityThreshold, VerificationStatus,
 };
+use cosmwasm_schema::serde::Serialize;
 use cosmwasm_std::{wasm_execute, Addr, DepsMut, Env, QuerierWrapper, Response, Storage, SubMsg};
+use cosmwasm_std::{HexBinary, Uint128};
 use error_stack::{report, Result, ResultExt};
 use itertools::Itertools;
 use multisig::msg::Signer;
@@ -63,9 +66,18 @@ pub fn construct_proof(
         .map_err(ContractError::from)?
         .ok_or(ContractError::NoVerifierSet)?;
 
-    let digest = config
-        .encoder
-        .digest(&config.domain_separator, &verifier_set, &payload)?;
+    let digest: Vec<u8> = match config.encoder {
+        crate::encoding::Encoder::Aleo => {
+            let domain_separator_bytes: Vec<u8> = config.domain_separator.to_vec();
+            let verifier_set_bytes: Vec<u8> = serde_json::to_vec(&verifier_set).unwrap();
+            let payload_bytes: Vec<u8> = serde_json::to_vec(&payload).unwrap();
+
+            [domain_separator_bytes, verifier_set_bytes, payload_bytes].concat()
+        }
+        encoder => encoder
+            .digest(&config.domain_separator, &verifier_set, &payload)?
+            .into(),
+    };
 
     let start_sig_msg = multisig::msg::ExecuteMsg::StartSigningSession {
         verifier_set_id: verifier_set.id(),
@@ -74,10 +86,40 @@ pub fn construct_proof(
         sig_verifier: None,
     };
 
+    // TODO:
+    // run this in unit-test
+    // send the message to ampd
+    // ampd -> tofnd
+    // get the ampd result
+    // translate to Aleo
+    // give it to aleo
+
     let wasm_msg =
         wasm_execute(config.multisig, &start_sig_msg, vec![]).map_err(ContractError::from)?;
 
     Ok(Response::new().add_submessage(SubMsg::reply_on_success(wasm_msg, START_MULTISIG_REPLY_ID)))
+}
+
+fn noop_digest() -> multisig::msg::ExecuteMsg {
+    let participants = vec![
+        (
+            Participant{
+                address: Addr::unchecked("0x1"),
+                weight: axelar_wasm_std::nonempty::Uint128::try_from(1u128).unwrap(),
+            },
+            multisig::key::PublicKey::AleoSchnorr(HexBinary::from(vec![0u8; 32])),
+        ),
+    ];
+    let verifier_set = VerifierSet::new(participants, Uint128::try_from(5u128).unwrap(), 1);
+
+    let start_sig_msg = multisig::msg::ExecuteMsg::StartSigningSession {
+        verifier_set_id: verifier_set.id(),
+        msg: "{a: 49u8}".as_bytes().to_vec().into(),
+        chain_name: ChainName::from_str("aleo-2").unwrap(),
+        sig_verifier: None,
+    };
+
+    start_sig_msg
 }
 
 fn messages(

@@ -11,7 +11,7 @@ use sha3::{Digest, Keccak256};
 use snarkvm::ledger::{Output, Transaction as SnarkvmTransaction};
 use snarkvm::prelude::{AleoID, Field, TestnetV0};
 use thiserror::Error;
-use tracing::{info, warn};
+use tracing::{info, debug, warn};
 
 use super::json_like;
 use super::parser::CallContract;

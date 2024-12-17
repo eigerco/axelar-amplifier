@@ -18,7 +18,7 @@ use tracing::info;
 use crate::event_processor::EventHandler;
 use crate::handlers::errors::Error::{self, DeserializeEvent};
 use crate::tofnd::grpc::MultisigTofnd;
-use crate::tofnd::{self, MessageDigest};
+use crate::tofnd::{self, MessageDigest, MessageDigestTofnd};
 use crate::types::TMAddress;
 
 #[derive(Debug, Deserialize)]
@@ -27,7 +27,7 @@ struct SigningStartedEvent {
     session_id: u64,
     pub_keys: HashMap<TMAddress, multisig::key::PublicKey>,
     #[serde(with = "hex")]
-    msg: MessageDigest,
+    msg: MessageDigestTofnd,
     expires_at: u64,
 }
 
@@ -105,7 +105,7 @@ where
 
         info!(
             session_id = session_id,
-            msg = encode(&msg),
+            msg = encode(&msg.0),
             "get signing request",
         );
 

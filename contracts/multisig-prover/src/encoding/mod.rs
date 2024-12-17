@@ -1,4 +1,5 @@
 mod abi;
+mod aleo;
 mod bcs;
 mod stellar_xdr;
 
@@ -18,6 +19,7 @@ pub enum Encoder {
     Abi,
     Bcs,
     StellarXdr,
+    Aleo,
 }
 
 impl Encoder {
@@ -33,6 +35,7 @@ impl Encoder {
             Encoder::StellarXdr => {
                 stellar_xdr::payload_digest(domain_separator, verifier_set, payload)
             }
+            Encoder::Aleo => todo!(),
         }
     }
 
@@ -47,6 +50,10 @@ impl Encoder {
             Encoder::Abi => abi::encode_execute_data(domain_separator, verifier_set, sigs, payload),
             Encoder::Bcs => bcs::encode_execute_data(domain_separator, verifier_set, sigs, payload),
             Encoder::StellarXdr => stellar_xdr::encode_execute_data(verifier_set, sigs, payload),
+            Encoder::Aleo => {
+                todo!()
+                // aleo::encode_execute_data(domain_separator, verifier_set, sigs, payload)
+            }
         }
     }
 }

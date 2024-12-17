@@ -5,7 +5,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::Error;
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct Program (String);
 
 impl TryFrom<String> for Program {
