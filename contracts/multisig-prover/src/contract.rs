@@ -1,10 +1,13 @@
-use axelar_wasm_std::{address, permission_control};
+use std::str::FromStr;
+
+use axelar_wasm_std::{address, permission_control, MajorityThreshold, Threshold};
 #[cfg(not(feature = "library"))]
 use cosmwasm_std::entry_point;
 use cosmwasm_std::{
     to_json_binary, Binary, Deps, DepsMut, Empty, Env, MessageInfo, Reply, Response,
 };
 use error_stack::ResultExt;
+use router_api::ChainName;
 use semver::{Version, VersionReq};
 
 use crate::error::ContractError;
@@ -128,6 +131,14 @@ pub fn migrate(
     assert!(version_requirement.matches(&old_version));
 
     cw2::set_contract_version(deps.storage, CONTRACT_NAME, CONTRACT_VERSION)?;
+
+    let old_config = CONFIG.load(deps.storage)?;
+    let new_config = Config {
+        chain_name: ChainName::from_str("aleo-2").unwrap(),
+        ..old_config
+    };
+
+    CONFIG.save(deps.storage, &new_config)?;
 
     Ok(Response::default())
 }

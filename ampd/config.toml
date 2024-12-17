@@ -4,6 +4,7 @@ tm_grpc="tcp://devnet-amplifier.axelar.dev:9090"
 event_buffer_cap=10000
 
 [service_registry]
+# this is the Service registry contract address, deployed and maintained by Axelar
 cosmwasm_contract="axelar1c9fkszt5lq34vvvlat3fxj6yv7ejtqapz04e97vtc9m5z9cwnamq8zjlhz"
 
 [broadcast]
@@ -56,10 +57,11 @@ type = "MultisigSigner"
 
 [[handlers]]
 type = 'AleoMsgVerifier'
-cosmwasm_contract = "axelar19r4wxttfjtyenmqvm220nfjwckya0xaqzs7s3zwuk06vkry9vntql4cd4d"
+# voting-verifier contract
+cosmwasm_contract = "axelar1gneuvdsf733h77hj6hn24kukgljvr5xnlladxnnc9gqqwwvu3uvsnxl2hc"
 chain_name = 'aleo'
-chain_rpc_url = "http://localhost:3030"
-base_url = "http://localhost:3030"
+chain_rpc_url = "https://api.explorer.provable.com/v1"
+base_url = "https://api.explorer.provable.com/v1"
 network = "testnet"
 gateway_contract = "vzevxifdoj.aleo"
 
@@ -67,4 +69,3 @@ gateway_contract = "vzevxifdoj.aleo"
 # type = 'AleoVerifierSetVerifier'
 # cosmwasm_contract = 'axelar19r4wxttfjtyenmqvm220nfjwckya0xaqzs7s3zwuk06vkry9vntql4cd4d'
 # chain_name = 'aleo'
-

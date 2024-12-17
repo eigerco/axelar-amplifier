@@ -7,11 +7,11 @@ use async_trait::async_trait;
 use error_stack::{ensure, report, Report, Result, ResultExt};
 use mockall::automock;
 use router_api::ChainName;
+use sha3::{Digest, Keccak256};
 use snarkvm::ledger::{Output, Transaction as SnarkvmTransaction};
 use snarkvm::prelude::{AleoID, Field, TestnetV0};
-use solabi;
 use thiserror::Error;
-use tracing::{debug, info, instrument, warn};
+use tracing::{info, warn};
 
 use super::json_like;
 use super::parser::CallContract;
@@ -41,8 +41,6 @@ pub enum Error {
     FailedToCreateAleoID(String),
 }
 
-type Payload = Vec<u8>;
-
 #[derive(Debug)]
 pub enum Receipt {
     Found(TransitionReceipt),
@@ -55,43 +53,41 @@ pub struct TransitionReceipt {
     pub destination_address: String,
     pub destination_chain: ChainName,
     pub source_address: Address,
-    pub payload: Payload,
+    pub payload: Vec<u8>,
 }
 
 impl PartialEq<crate::handlers::aleo_verify_msg::Message> for TransitionReceipt {
     fn eq(&self, message: &crate::handlers::aleo_verify_msg::Message) -> bool {
-        use sha3::Digest;
-        let mut hasher = sha3::Keccak256::new();
-        hasher.update(self.payload.clone());
-        let result = hasher.finalize();
-        let payload_hash = Hash::from_slice(result.as_slice());
-
-        debug!(
+        info!(
             "transition_id: chain.{} == msg.{} ({})",
             self.transition,
             message.tx_id,
             self.transition == message.tx_id
         );
-        debug!(
+        info!(
             "destination_address: chain.{} == msg.{} ({})",
             self.destination_address,
             message.destination_address,
             self.destination_address == message.destination_address
         );
-        debug!(
+        info!(
             "destination_chain: chain.{} == msg.{} ({})",
             self.destination_chain,
             message.destination_chain,
             self.destination_chain == message.destination_chain
         );
-        debug!(
+        info!(
             "source_address: chain.{:?} == msg.{:?} ({})",
             self.source_address,
             message.source_address,
             self.source_address == message.source_address
         );
-        debug!(
-            "payload_hash: chain.{} == msg.{} ({})",
+
+        let payload_hash = keccack256(&self.payload).to_vec();
+        let payload_hash = Hash::from_slice(&payload_hash);
+
+        info!(
+            "payload_hash: chain.{:?} == msg.{:?} ({})",
             payload_hash,
             message.payload_hash,
             payload_hash == message.payload_hash
@@ -239,6 +235,8 @@ where
                 } else {
                     let payload = &plaintext.to_string();
                     let payload = json_like::into_json(payload).unwrap();
+                    let payload: Vec<u8> = serde_json::from_str(&payload).unwrap();
+                    let payload = std::str::from_utf8(&payload).unwrap();
                     let payload = solabi::encode(&payload);
                     parsed_output.payload = payload;
                 }
@@ -330,6 +328,12 @@ where
             payload: parsed_output.payload,
         }))
     }
+}
+
+fn keccack256(payload: impl AsRef<[u8]>) -> [u8; 32] {
+    let mut hasher = Keccak256::new();
+    hasher.update(payload);
+    hasher.finalize().into()
 }
 
 #[cfg(test)]

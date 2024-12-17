@@ -138,12 +138,11 @@ pub fn migrate(
             "axelar1c9fkszt5lq34vvvlat3fxj6yv7ejtqapz04e97vtc9m5z9cwnamq8zjlhz",
         ),
         source_gateway_address: "vzevxifdoj.aleo".parse().unwrap(),
-        voting_threshold: MajorityThreshold::try_from(
-            Threshold::try_from((1, 1)).unwrap(),
-        ).unwrap(),
+        voting_threshold: MajorityThreshold::try_from(Threshold::try_from((1, 1)).unwrap())
+            .unwrap(),
         block_expiry: Uint64::try_from(10u64).unwrap(),
         confirmation_height: 1,
-        source_chain: "aleo".parse().unwrap(),
+        source_chain: "aleo-2".parse().unwrap(),
         rewards_contract: cosmwasm_std::Addr::unchecked(
             "axelar1vaj9sfzc3z0gpel90wu4ljutncutv0wuhvvwfsh30rqxq422z89qnd989l",
         ),

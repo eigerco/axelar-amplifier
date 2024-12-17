@@ -74,7 +74,7 @@ where
             voting_verifier_contract,
             http_client: aleo_client,
             latest_block_height,
-            chain: ChainName::from_str("aleo").unwrap(),
+            chain: ChainName::from_str("aleo-2").unwrap(),
             gateway_contract,
         }
     }
