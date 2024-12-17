@@ -23,36 +23,20 @@ impl Tokenizable for WeightedSignersAbiRep {
         Self: Sized,
     {
         if let Token::Tuple(tokens) = token {
-            if tokens.len() != 5 {
-                return Err(InvalidOutputType("failed to read tokens".to_string()));
+            if tokens.len() != 3 {
+                return Err(InvalidOutputType(
+                    "failed to read tokens; not enough tokens provided; should be 3".to_string(),
+                ));
             }
 
-            if let (
-                Token::String(source_chain),
-                Token::String(message_id),
-                Token::String(source_address),
-                Token::FixedBytes(contract_address),
-                Token::Uint(payload_hash),
-            ) = (
-                tokens[0].clone(),
-                tokens[1].clone(),
-                tokens[2].clone(),
-                tokens[3].clone(),
-                tokens[4].clone(),
-            ) {
-                let contract_address_bytes: [u8; 32] =
-                    contract_address.try_into().map_err(|_| {
-                        InvalidOutputType(
-                            "failed to convert contract_address to bytes32".to_string(),
-                        )
-                    })?;
-
-                let contract_address_felt: Felt = Felt::from_bytes_be(&contract_address_bytes);
-
+            if let (Token::Array(signers), Token::Uint(threshold), Token::FixedBytes(nonce)) =
+                (tokens[0].clone(), tokens[1].clone(), tokens[2].clone())
+            {
                 return Ok(WeightedSignersAbiRep {
-                    signers,
-                    threshold,
-                    nonce,
+                    // FIXME: fix this
+                    signers: signers.into_iter().map(|s| [0_u8; 20]).collect(),
+                    threshold: threshold.as_u128(),
+                    nonce: nonce.try_into().unwrap(),
                 });
             }
         }
@@ -60,6 +44,10 @@ impl Tokenizable for WeightedSignersAbiRep {
         return Err(InvalidOutputType(
             "failed to convert tokens to StarknetMessage".to_string(),
         ));
+    }
+
+    fn into_token(self) -> Token {
+        Token::Tuple(vec![])
     }
 }
 
