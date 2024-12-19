@@ -83,8 +83,20 @@ impl PartialEq<crate::handlers::aleo_verify_msg::Message> for TransitionReceipt 
             self.source_address == message.source_address
         );
 
-        let payload_hash = keccack256(&self.payload).to_vec();
-        let payload_hash = Hash::from_slice(&payload_hash);
+        // let payload_hash = keccack256(&self.payload).to_vec();
+        // let payload_hash = Hash::from_slice(&payload_hash);
+        let payload = std::str::from_utf8(&self.payload).unwrap();
+        let payload_hash = if self.destination_chain.as_ref().starts_with("eth") {
+            let payload = json_like::into_json(payload).unwrap();
+            let payload: Vec<u8> = serde_json::from_str(&payload).unwrap();
+            let payload = std::str::from_utf8(&payload).unwrap();
+            let payload = solabi::encode(&payload);
+            let payload_hash = keccack256(&payload).to_vec();
+            Hash::from_slice(&payload_hash)
+        } else {
+            let payload_hash = keccack256(&payload).to_vec();
+            Hash::from_slice(&payload_hash)
+        };
 
         info!(
             "payload_hash: chain.{:?} == msg.{:?} ({})",
@@ -233,12 +245,7 @@ where
                 if let Some(call_contract) = parsed {
                     parsed_output.call_contract = call_contract;
                 } else {
-                    let payload = &plaintext.to_string();
-                    let payload = json_like::into_json(payload).unwrap();
-                    let payload: Vec<u8> = serde_json::from_str(&payload).unwrap();
-                    let payload = std::str::from_utf8(&payload).unwrap();
-                    let payload = solabi::encode(&payload);
-                    parsed_output.payload = payload;
+                    parsed_output.payload = plaintext.to_string().as_bytes().to_vec();
                 }
             }
         }
