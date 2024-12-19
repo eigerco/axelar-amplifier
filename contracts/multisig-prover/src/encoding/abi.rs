@@ -2,7 +2,7 @@ use axelar_wasm_std::hash::Hash;
 use cosmwasm_std::HexBinary;
 use error_stack::{Result, ResultExt};
 use ethers_contract::contract::EthCall;
-use ethers_core::abi::{encode as abi_encode, Token, Tokenize};
+use ethers_core::abi::{encode as abi_encode, AbiDecode, Token, Tokenize};
 use evm_gateway::{
     ApproveMessagesCall, CommandType, Message, Proof, RotateSignersCall, WeightedSigners,
 };
@@ -75,6 +75,7 @@ pub fn encode_payload(payload: &Payload) -> Result<Vec<u8>, ContractError> {
     }
 }
 
+// TODO: HERE
 pub fn encode_execute_data(
     domain_separator: &Hash,
     verifier_set: &VerifierSet,
