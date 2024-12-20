@@ -7,7 +7,7 @@ use serde::{Deserialize, Serialize};
 use crate::{verify_becnh32, Error};
 
 #[derive(Serialize, Deserialize, Debug, PartialEq, Eq)]
-pub struct Address(String);
+pub struct Address(pub String);
 
 impl Address {
     pub fn to_bytes(&self) -> Vec<u8> {

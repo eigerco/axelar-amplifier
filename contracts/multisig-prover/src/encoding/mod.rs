@@ -35,7 +35,7 @@ impl Encoder {
             Encoder::StellarXdr => {
                 stellar_xdr::payload_digest(domain_separator, verifier_set, payload)
             }
-            Encoder::Aleo => todo!(),
+            Encoder::Aleo => aleo::payload_digest(domain_separator, verifier_set, payload),
         }
     }
 

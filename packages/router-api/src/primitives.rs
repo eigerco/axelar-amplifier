@@ -341,6 +341,13 @@ impl From<ChainNameRaw> for String {
     }
 }
 
+impl<'a> From<&'a ChainNameRaw> for &'a str {
+    fn from(d: &'a ChainNameRaw) -> Self {
+        d.0.as_str()
+    }
+}
+
+
 impl TryFrom<String> for ChainNameRaw {
     type Error = Error;
 
