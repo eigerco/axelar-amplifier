@@ -5,6 +5,7 @@ use aleo_types::transaction::Transaction;
 use aleo_types::transition::Transition;
 use async_trait::async_trait;
 use error_stack::{ensure, report, Report, Result, ResultExt};
+use ethers_core::abi::Tokenize;
 use mockall::automock;
 use router_api::ChainName;
 use sha3::{Digest, Keccak256};
@@ -245,7 +246,12 @@ where
                 if let Some(call_contract) = parsed {
                     parsed_output.call_contract = call_contract;
                 } else {
-                    parsed_output.payload = plaintext.to_string().as_bytes().to_vec();
+                    let payload = &plaintext.to_string();
+                    let payload = json_like::into_json(payload).unwrap();
+                    let payload: Vec<u8> = serde_json::from_str(&payload).unwrap();
+                    let payload = std::str::from_utf8(&payload).unwrap().to_string();
+                    let payload = ethers_core::abi::encode(&payload.into_tokens());
+                    parsed_output.payload = payload;
                 }
             }
         }
