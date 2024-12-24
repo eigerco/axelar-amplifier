@@ -1,5 +1,5 @@
 use axelar_wasm_std::{nonempty, IntoContractError};
-use cosmwasm_std::StdError;
+use cosmwasm_std::{Addr, StdError};
 use cw_utils::ParseReplyError;
 use router_api::ChainName;
 use thiserror::Error;
@@ -82,8 +82,11 @@ pub enum ContractError {
     #[error("failed to serialize data for the external gateway")]
     SerializeData,
 
-    #[error("failed to get outgoing messages from gateway")]
-    FailedToGetMessages,
+    #[error("failed to get outgoing messages from gateway: '{0}', '{1}'")]
+    FailedToGetMessages(Addr, ChainName),
+
+    #[error("Aleo error: {0}")]
+    AleoError(String),
 
     #[error("failed to build verifier set")]
     FailedToBuildVerifierSet,

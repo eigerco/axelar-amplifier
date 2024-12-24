@@ -35,7 +35,9 @@ pub fn payload_digest(
 
     let payload_digest = PayloadDigest::new(domain_separator, &signers_hash, &data_hash);
 
-    Ok(payload_digest.hash())
+    Ok(payload_digest
+        .hash()
+        .map_err(|e| ContractError::AleoError(e.to_string()))?)
 }
 
 /// The relayer will use this data to submit the payload to the contract.
@@ -52,7 +54,8 @@ pub fn encode_execute_data(
             .collect::<Result<Vec<_>, _>>()
             .change_context(ContractError::InvalidMessage)?
             .then(Messages::from)
-            .then(|m| m.to_aleo_string()),
+            .then(|m| m.to_aleo_string())
+            .unwrap(),
         Payload::VerifierSet(verifier_set) => WeightedSigners::try_from(verifier_set)
             .change_context(ContractError::InvalidVerifierSet)?
             .then(|v| v.to_aleo_string()),

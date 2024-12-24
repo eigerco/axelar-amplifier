@@ -6,7 +6,6 @@ use axelar_wasm_std::snapshot::{Participant, Snapshot};
 use axelar_wasm_std::{
     address, nonempty, permission_control, FnExt, MajorityThreshold, VerificationStatus,
 };
-use cosmwasm_schema::serde::Serialize;
 use cosmwasm_std::{wasm_execute, Addr, DepsMut, Env, QuerierWrapper, Response, Storage, SubMsg};
 use cosmwasm_std::{HexBinary, Uint128};
 use error_stack::{report, Result, ResultExt};
@@ -75,7 +74,7 @@ pub fn construct_proof(
         verifier_set_id: verifier_set.id(),
         msg: digest.into(),
         chain_name: config.chain_name,
-        sig_verifier: None,
+        sig_verifier: Some("axelar1rv940hhxe3288j42zazt7c7fmql4udsgy9cjzmeq646gt7gl02hq54seyr".to_string()),
     };
 
     // TODO:
@@ -115,16 +114,16 @@ fn noop_digest() -> multisig::msg::ExecuteMsg {
 fn messages(
     querier: QuerierWrapper,
     message_ids: Vec<CrossChainId>,
-    gateway: Addr,
+    gateway_addr: Addr,
     chain_name: ChainName,
 ) -> Result<Vec<Message>, ContractError> {
     let length = message_ids.len();
 
-    let gateway: gateway_api::Client = client::ContractClient::new(querier, &gateway).into();
+    let gateway: gateway_api::Client = client::ContractClient::new(querier, &gateway_addr).into();
 
     let messages = gateway
         .outgoing_messages(message_ids)
-        .change_context(ContractError::FailedToGetMessages)?;
+        .change_context(ContractError::FailedToGetMessages(gateway_addr, chain_name.clone()))?;
 
     assert_eq!(
         messages.len(),
