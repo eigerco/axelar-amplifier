@@ -1,16 +1,20 @@
 use std::str::FromStr as _;
 
-use aleo_gateway::{Message, Messages, Proof, WeightedSigners};
+use aleo_gateway::{Error, Message, Messages, Proof};
 use axelar_wasm_std::hash::Hash;
 use axelar_wasm_std::FnExt;
 use cosmwasm_std::HexBinary;
-use error_stack::{Result, ResultExt};
+use error_stack::{Report, Result, ResultExt};
 use multisig::msg::SignerWithSig;
 use multisig::verifier_set::VerifierSet;
 use sha3::{Digest, Keccak256};
+use snarkvm_wasm::program::ToBits;
 
 use crate::error::ContractError;
 use crate::payload::Payload;
+
+// use snarkvm_wasm::snarkvm_console_network::network::Network;
+use snarkvm_wasm::network::Network;
 
 pub fn payload_digest(
     domain_separator: &Hash,
@@ -24,7 +28,7 @@ pub fn payload_digest(
             .collect::<Result<Vec<_>, _>>()
             .change_context(ContractError::InvalidMessage)?
             .then(Messages::from)
-            .messages_approval_hash(),
+            .hash(),
         Payload::VerifierSet(verifier_set) => todo!(),
         /*
         WeightedSigners::try_from(verifier_set)
@@ -33,20 +37,40 @@ pub fn payload_digest(
         */
     }
     .change_context(ContractError::SerializeData)?;
-    todo!()
-    // let signers_hash = WeightedSigners::try_from(verifier_set)
-    //     .change_context(ContractError::InvalidVerifierSet)?
-    //     .hash()
-    //     .change_context(ContractError::SerializeData)?;
-    //
+
+    let (address, signer) = verifier_set.signers.iter().next().unwrap();
+    let signer = match &signer.pub_key {
+        multisig::key::PublicKey::AleoSchnorr(key) => {
+            let key = key.to_string();
+            let key = snarkvm_wasm::types::address::Address::from_str(&key).unwrap();
+            Ok(key)
+        }
+        multisig::key::PublicKey::Ed25519(_) => Err(Report::new(Error::UnsupportedPublicKey)),
+        multisig::key::PublicKey::Ecdsa(_) => Err(Report::new(Error::UnsupportedPublicKey)),
+    };
+    let signer: snarkvm_wasm::types::Address<snarkvm_wasm::network::TestnetV0> = signer.unwrap();
+
+    let msg = "some message";
+
+    let aleo_value =
+        snarkvm_wasm::program::Value::<snarkvm_wasm::network::TestnetV0>::from_str(msg).unwrap();
+    let aleo_value = aleo_value.to_bits_le();
+
+    let aleo_group = snarkvm_wasm::network::TestnetV0::hash_to_group_bhp256(&aleo_value).unwrap();
+
+    let signer_aleo_string = format!("signer: {}", signer.to_string());
+
+    let threshold = verifier_set.threshold;
+    let nonce = [0, 0, 0, verifier_set.created_at];
+
     // let unsigned = [
     //     domain_separator,
     //     signers_hash.as_slice(),
     //     data_hash.as_slice(),
     // ]
     // .concat();
-    //
-    // Ok(Keccak256::digest(unsigned).into())
+
+    todo!()
 }
 
 // fn encode_payload(payload: )

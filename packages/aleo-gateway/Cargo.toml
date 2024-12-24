@@ -13,6 +13,7 @@ bitvec = { workspace = true }
 cosmwasm-std = { workspace = true }
 hex.workspace = true
 multisig = { workspace = true, features = ["library"] }
+snarkvm-wasm = { path = "/home/angelos/Documents/eiger/aleo/snarkVM/wasm", default-features = false, features = ["account"] }
 
 [lints]
 workspace = true

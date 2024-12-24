@@ -9,6 +9,12 @@ use crate::{verify_becnh32, Error};
 #[derive(Serialize, Deserialize, Debug, PartialEq, Eq)]
 pub struct Address(pub String);
 
+impl Default for Address {
+    fn default() -> Self {
+        Self("aleo1cpwac324ulhwk55wpljtq5kserrzj8dj6qw35fje7ypt2sqpv5ysj8p76w".to_string())
+    }
+}
+
 impl Address {
     pub fn to_bytes(&self) -> Vec<u8> {
         self.0.as_bytes().to_vec()

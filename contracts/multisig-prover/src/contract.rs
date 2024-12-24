@@ -13,6 +13,7 @@ use semver::{Version, VersionReq};
 use crate::error::ContractError;
 use crate::msg::{ExecuteMsg, InstantiateMsg, QueryMsg};
 use crate::state::{Config, CONFIG};
+use crate::Encoder;
 
 mod execute;
 mod migrations;
@@ -135,6 +136,8 @@ pub fn migrate(
     let old_config = CONFIG.load(deps.storage)?;
     let new_config = Config {
         chain_name: ChainName::from_str("aleo-2").unwrap(),
+        encoder: Encoder::Aleo,
+        key_type: multisig::key::KeyType::AleoSchnorr,
         ..old_config
     };
 

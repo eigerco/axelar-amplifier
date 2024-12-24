@@ -66,18 +66,10 @@ pub fn construct_proof(
         .map_err(ContractError::from)?
         .ok_or(ContractError::NoVerifierSet)?;
 
-    let digest: Vec<u8> = match config.encoder {
-        crate::encoding::Encoder::Aleo => {
-            let domain_separator_bytes: Vec<u8> = config.domain_separator.to_vec();
-            let verifier_set_bytes: Vec<u8> = serde_json::to_vec(&verifier_set).unwrap();
-            let payload_bytes: Vec<u8> = serde_json::to_vec(&payload).unwrap();
-
-            [domain_separator_bytes, verifier_set_bytes, payload_bytes].concat()
-        }
-        encoder => encoder
-            .digest(&config.domain_separator, &verifier_set, &payload)?
-            .into(),
-    };
+    let digest: Vec<u8> = config
+        .encoder
+        .digest(&config.domain_separator, &verifier_set, &payload)?
+        .into();
 
     let start_sig_msg = multisig::msg::ExecuteMsg::StartSigningSession {
         verifier_set_id: verifier_set.id(),
@@ -101,15 +93,13 @@ pub fn construct_proof(
 }
 
 fn noop_digest() -> multisig::msg::ExecuteMsg {
-    let participants = vec![
-        (
-            Participant{
-                address: Addr::unchecked("0x1"),
-                weight: axelar_wasm_std::nonempty::Uint128::try_from(1u128).unwrap(),
-            },
-            multisig::key::PublicKey::AleoSchnorr(HexBinary::from(vec![0u8; 32])),
-        ),
-    ];
+    let participants = vec![(
+        Participant {
+            address: Addr::unchecked("0x1"),
+            weight: axelar_wasm_std::nonempty::Uint128::try_from(1u128).unwrap(),
+        },
+        multisig::key::PublicKey::AleoSchnorr(HexBinary::from(vec![0u8; 32])),
+    )];
     let verifier_set = VerifierSet::new(participants, Uint128::try_from(5u128).unwrap(), 1);
 
     let start_sig_msg = multisig::msg::ExecuteMsg::StartSigningSession {
@@ -319,7 +309,7 @@ pub fn update_verifier_set(
                         cur_verifier_set.id(),
                         digest.into(),
                         config.chain_name,
-                        None,
+                        None, // TODO: sig_verifier
                     ),
                     START_MULTISIG_REPLY_ID,
                 ))
