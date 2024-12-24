@@ -1,9 +1,8 @@
-use std::{fmt::Display, str::FromStr as _};
+use std::str::FromStr as _;
 
-use aleo_types::{address::Address, program::Program};
-use bitvec::prelude::*;
-use cosmwasm_std::{Addr, HexBinary, Uint128};
-use error_stack::{bail, Report, ResultExt};
+use aleo_types::address::Address;
+use cosmwasm_std::Uint128;
+use error_stack::Report;
 use multisig::key::PublicKey;
 use multisig::verifier_set::VerifierSet;
 use thiserror::Error;
@@ -37,6 +36,71 @@ pub struct WeightedSigners {
     signers: Vec<WeightedSigner>, // TODO: [WeightedSigner; 32],
     threshold: Uint128,
     nonce: [u64; 4],
+}
+
+pub struct PayloadDigest<'a> {
+    domain_separator: &'a [u8; 32],
+    signers_hash: &'a [u8; 32],
+    data_hash: &'a [u8; 32],
+}
+
+impl<'a> PayloadDigest<'a> {
+    pub fn new(
+        domain_separator: &'a [u8; 32],
+        signers_hash: &'a [u8; 32],
+        data_hash: &'a [u8; 32],
+    ) -> PayloadDigest<'a> {
+        PayloadDigest {
+            domain_separator,
+            signers_hash,
+            data_hash,
+        }
+    }
+
+    pub fn to_aleo_string(&self) -> String {
+        format!(
+            r#"{{ domain_separator: [ {} ], signers_hash: [ {} ], data_hash: [ {} ] }}"#,
+            self.domain_separator
+                .iter()
+                .map(|b| format!("{}u8", b))
+                .collect::<Vec<_>>()
+                .join(", "),
+            self.signers_hash
+                .iter()
+                .map(|b| format!("{}u8", b))
+                .collect::<Vec<_>>()
+                .join(", "),
+            self.data_hash
+                .iter()
+                .map(|b| format!("{}u8", b))
+                .collect::<Vec<_>>()
+                .join(", ")
+        )
+    }
+
+    pub fn hash(&self) -> [u8; 32] {
+        let aleo_value =
+            snarkvm_wasm::program::Plaintext::<snarkvm_wasm::network::TestnetV0>::from_str(
+                self.to_aleo_string().as_str(),
+            );
+        let aleo_value = aleo_value.unwrap();
+        let aleo_value = aleo_value.to_bits_le();
+
+        let bits = snarkvm_wasm::network::TestnetV0::hash_keccak256(&aleo_value).unwrap();
+
+        let mut hash = [0u8; 32];
+        for (i, b) in bits.chunks(8).enumerate() {
+            let mut byte = 0u8;
+            for (i, bit) in b.iter().enumerate() {
+                if *bit {
+                    byte |= 1 << i;
+                }
+            }
+            hash[i] = byte;
+        }
+
+        hash
+    }
 }
 
 impl TryFrom<&VerifierSet> for WeightedSigners {
@@ -93,7 +157,6 @@ impl WeightedSigners {
             snarkvm_wasm::program::Plaintext::<snarkvm_wasm::network::TestnetV0>::from_str(
                 self.to_aleo_string().as_str(),
             );
-        println!("-->{:?}", aleo_value);
         let aleo_value = aleo_value.unwrap();
         let aleo_value = aleo_value.to_bits_le();
 
@@ -127,7 +190,6 @@ impl WeightedSigner {
             snarkvm_wasm::program::Plaintext::<snarkvm_wasm::network::TestnetV0>::from_str(
                 self.to_aleo_string().as_str(),
             );
-        println!("-->{:?}", aleo_value);
         let aleo_value = aleo_value.unwrap();
         let aleo_value = aleo_value.to_bits_le();
 
@@ -147,68 +209,6 @@ impl WeightedSigner {
         Ok(hash)
     }
 }
-
-// pub struct Proof {
-//     signer: WeightedSigner,
-//     signatures: Vec<u8>,
-// }
-
-// impl TryFrom<&VerifierSet> for WeightedSigners {
-//     type Error = Report<Error>;
-//
-//     fn try_from(value: &VerifierSet) -> Result<Self, Self::Error> {
-//         let signers = value
-//             .signers
-//             .values()
-//             .map(|signer| match &signer.pub_key {
-//                 PublicKey::AleoSchnorr(key) => Ok(WeightedSigner {
-//                     signer: Address::from_str(&key.to_string()).unwrap(),
-//                     weight: signer.weight.into(),
-//                 }),
-//                 PublicKey::Ecdsa(_) => Err(Report::new(Error::UnsupportedPublicKey)),
-//                 PublicKey::Ed25519(_) => Err(Report::new(Error::UnsupportedPublicKey)),
-//             })
-//             .collect::<Result<Vec<_>, _>>()?;
-//
-//         let threshold = value.threshold;
-//         let nonce = [0, 0, 0, value.created_at];
-//
-//         Ok(WeightedSigners {
-//             signers,
-//             threshold,
-//             nonce,
-//         })
-//     }
-// }
-
-// impl Display for WeightedSigners {
-//     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-//         let signers = self
-//             .signers
-//             .iter()
-//             .map(|signer| format!("{{signer: {}, weight: {}}}", signer.signer.0, signer.weight))
-//             .collect::<Vec<_>>()
-//             .join(", ");
-//         write!(
-//             f,
-//             r#"{{signers: [{}], threshold: {}u128, nonce: [{}u64, {}u64], {}u64, {}u64}}"#,
-//             signers, self.threshold, self.nonce[0], self.nonce[1], self.nonce[2], self.nonce[3]
-//         )
-//     }
-// }
-
-// impl Display for Proof {
-//     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-//         let signers = self.signers.to_string();
-//         let signatures = self
-//             .signatures
-//             .iter()
-//             .map(|b| format!("{}u8", b))
-//             .collect::<Vec<_>>()
-//             .join(", ");
-//         write!(f, r#"{{signers: {}, signatures: [{}]}}"#, signers, signatures)
-//     }
-// }
 
 impl Message {
     pub fn aleo_string(&self) -> String {
@@ -315,7 +315,7 @@ impl Messages {
 
     pub fn hash(&self) -> Result<[u8; 32], Error> {
         let aleo_value =
-            snarkvm_wasm::program::Value::<snarkvm_wasm::network::TestnetV0>::from_str(
+            snarkvm_wasm::program::Plaintext::<snarkvm_wasm::network::TestnetV0>::from_str(
                 self.to_aleo_string().as_str(),
             )
             .unwrap();
@@ -341,11 +341,10 @@ impl Messages {
 #[cfg(test)]
 mod test {
     use std::collections::BTreeMap;
-    use std::collections::HashMap;
 
+    use cosmwasm_std::Addr;
     use cosmwasm_std::HexBinary;
     use multisig::msg::Signer;
-    use multisig::verifier_set;
     use router_api::CrossChainId;
     use router_api::Message as RouterMessage;
 
@@ -384,13 +383,6 @@ mod test {
 
     #[test]
     fn verifier_set_to_wighted_signers() {
-        let s: Signer = Signer {
-            address: Addr::unchecked(
-                "aleo1xpc0kpexvqc29eskjfkuyrervtqr8a8tptnmp7rhdg964xlw55psq5dnk4",
-            ),
-            weight: 1u8.into(),
-            pub_key: PublicKey::AleoSchnorr(HexBinary::default()),
-        };
         let verifier_set = VerifierSet {
             signers: BTreeMap::from_iter(vec![
                 (
@@ -419,9 +411,6 @@ mod test {
         };
 
         let weighted_signers = WeightedSigners::try_from(&verifier_set).unwrap();
-        // let weighted_signer = weighted_signers.signers.first().unwrap();
-        // println!("weighted_signer: {:?}", weighted_signer.to_aleo_string());
-        // println!("hash: {:?}", weighted_signer.hash().unwrap());
 
         println!("weighted_signers: {:?}", weighted_signers.to_aleo_string());
         println!("hash: {:?}", weighted_signers.hash().unwrap());
