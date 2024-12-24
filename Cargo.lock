@@ -336,8 +336,6 @@ dependencies = [
  "der 0.7.9",
  "deref-derive",
  "dirs 5.0.1",
- "ecdsa",
- "ed25519 2.2.3",
  "ed25519-dalek",
  "elliptic-curve",
  "enum-display-derive",
@@ -987,9 +985,12 @@ name = "axelar-wasm-std-derive"
 version = "1.0.0"
 dependencies = [
  "axelar-wasm-std",
+ "cosmwasm-std",
  "error-stack",
  "quote 1.0.37",
  "report",
+ "serde",
+ "serde_json",
  "syn 2.0.91",
  "thiserror 1.0.69",
 ]
