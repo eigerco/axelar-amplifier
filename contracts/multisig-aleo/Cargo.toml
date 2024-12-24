@@ -1,0 +1,50 @@
+[package]
+name = "multisig-aleo"
+version = "1.1.1"
+rust-version = { workspace = true }
+edition = { workspace = true }
+description = "Multisig-aleo contract"
+
+exclude = [
+    "contract.wasm",
+    "hash.txt"
+]
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[[bin]]
+name = "multisig-aleo-schema"
+path = "src/bin/schema.rs"
+
+[features]
+# use library feature to disable all instantiate/execute/query exports
+library = []
+# use this feature to enable test utils
+test = []
+
+[package.metadata.scripts]
+optimize = """docker run --rm -v "$(pwd)":/code \
+  --mount type=volume,source="$(basename "$(pwd)")_cache",target=/code/target \
+  --mount type=volume,source=registry_cache,target=/usr/local/cargo/registry \
+  cosmwasm/optimizer:0.16.0
+"""
+
+[dependencies]
+axelar-wasm-std = { workspace = true, features = ["derive"] }
+cosmwasm-schema = { workspace = true }
+cosmwasm-std = { workspace = true }
+cw-utils = { workspace = true }
+enum-display-derive = "0.1.1"
+error-stack = { workspace = true }
+getrandom = { version = "0.2", default-features = false, features = ["custom"] }
+msgs-derive = { workspace = true }
+report = { workspace = true }
+serde = { version = "1.0.145", default-features = false, features = ["derive"] }
+serde_json = "1.0.89"
+thiserror = { workspace = true }
+snarkvm-wasm = { git = "https://github.com/eigerco/snarkVM", branch = "cosmwasm", default-features = false, features = ["account"] }
+
+[lints]
+workspace = true

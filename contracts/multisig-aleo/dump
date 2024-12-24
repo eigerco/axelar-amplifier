@@ -1,0 +1,761 @@
+multisig-aleo v1.1.1 (/home/angelos/Documents/eiger/axelar-aleo/axelar/aleo-remote/contracts/multisig-aleo)
+├── axelar-wasm-std v1.0.0 (/home/angelos/Documents/eiger/axelar-aleo/axelar/aleo-remote/packages/axelar-wasm-std)
+│   ├── alloy-primitives v0.7.7
+│   │   ├── bytes v1.9.0
+│   │   ├── cfg-if v1.0.0
+│   │   ├── const-hex v1.14.0
+│   │   │   └── cfg-if v1.0.0
+│   │   ├── derive_more v0.99.18 (proc-macro)
+│   │   │   ├── convert_case v0.4.0
+│   │   │   ├── proc-macro2 v1.0.92
+│   │   │   │   └── unicode-ident v1.0.14
+│   │   │   ├── quote v1.0.37
+│   │   │   │   └── proc-macro2 v1.0.92 (*)
+│   │   │   └── syn v2.0.90
+│   │   │       ├── proc-macro2 v1.0.92 (*)
+│   │   │       ├── quote v1.0.37 (*)
+│   │   │       └── unicode-ident v1.0.14
+│   │   │   [build-dependencies]
+│   │   │   └── rustc_version v0.4.1
+│   │   │       └── semver v1.0.24
+│   │   ├── hex-literal v0.4.1
+│   │   ├── itoa v1.0.14
+│   │   ├── ruint v1.12.3
+│   │   │   └── ruint-macro v1.2.1 (proc-macro)
+│   │   └── tiny-keccak v2.0.2
+│   │       └── crunchy v0.2.2
+│   ├── axelar-wasm-std-derive v1.0.0 (proc-macro) (/home/angelos/Documents/eiger/axelar-aleo/axelar/aleo-remote/packages/axelar-wasm-std-derive)
+│   │   ├── error-stack v0.4.1
+│   │   │   └── eyre v0.6.12
+│   │   │       ├── indenter v0.3.3
+│   │   │       └── once_cell v1.20.2
+│   │   │   [build-dependencies]
+│   │   │   └── rustc_version v0.4.1 (*)
+│   │   ├── quote v1.0.37 (*)
+│   │   ├── report v1.0.0 (/home/angelos/Documents/eiger/axelar-aleo/axelar/aleo-remote/packages/report)
+│   │   │   ├── error-stack v0.4.1 (*)
+│   │   │   ├── eyre v0.6.12 (*)
+│   │   │   ├── itertools v0.11.0
+│   │   │   │   └── either v1.13.0
+│   │   │   ├── thiserror v1.0.69
+│   │   │   │   └── thiserror-impl v1.0.69 (proc-macro)
+│   │   │   │       ├── proc-macro2 v1.0.92 (*)
+│   │   │   │       ├── quote v1.0.37 (*)
+│   │   │   │       └── syn v2.0.90 (*)
+│   │   │   └── valuable v0.1.0
+│   │   │       └── valuable-derive v0.1.0 (proc-macro)
+│   │   │           ├── proc-macro2 v1.0.92 (*)
+│   │   │           ├── quote v1.0.37 (*)
+│   │   │           └── syn v1.0.109
+│   │   │               ├── proc-macro2 v1.0.92 (*)
+│   │   │               ├── quote v1.0.37 (*)
+│   │   │               └── unicode-ident v1.0.14
+│   │   ├── syn v2.0.90 (*)
+│   │   └── thiserror v1.0.69 (*)
+│   ├── bech32 v0.11.0
+│   ├── bs58 v0.5.1
+│   ├── cosmwasm-schema v2.1.5
+│   │   ├── cosmwasm-schema-derive v2.1.5 (proc-macro)
+│   │   │   ├── proc-macro2 v1.0.92 (*)
+│   │   │   ├── quote v1.0.37 (*)
+│   │   │   └── syn v2.0.90 (*)
+│   │   ├── schemars v0.8.21
+│   │   │   ├── dyn-clone v1.0.17
+│   │   │   ├── schemars_derive v0.8.21 (proc-macro)
+│   │   │   │   ├── proc-macro2 v1.0.92 (*)
+│   │   │   │   ├── quote v1.0.37 (*)
+│   │   │   │   ├── serde_derive_internals v0.29.1
+│   │   │   │   │   ├── proc-macro2 v1.0.92 (*)
+│   │   │   │   │   ├── quote v1.0.37 (*)
+│   │   │   │   │   └── syn v2.0.90 (*)
+│   │   │   │   └── syn v2.0.90 (*)
+│   │   │   ├── serde v1.0.216
+│   │   │   │   └── serde_derive v1.0.216 (proc-macro)
+│   │   │   │       ├── proc-macro2 v1.0.92 (*)
+│   │   │   │       ├── quote v1.0.37 (*)
+│   │   │   │       └── syn v2.0.90 (*)
+│   │   │   └── serde_json v1.0.133
+│   │   │       ├── indexmap v2.7.0
+│   │   │       │   ├── equivalent v1.0.1
+│   │   │       │   └── hashbrown v0.15.2
+│   │   │       ├── itoa v1.0.14
+│   │   │       ├── memchr v2.7.4
+│   │   │       ├── ryu v1.0.18
+│   │   │       └── serde v1.0.216 (*)
+│   │   ├── serde v1.0.216 (*)
+│   │   ├── serde_json v1.0.133 (*)
+│   │   └── thiserror v1.0.69
+│   │       └── thiserror-impl v1.0.69 (proc-macro) (*)
+│   ├── cosmwasm-std v2.1.5
+│   │   ├── base64 v0.22.1
+│   │   ├── bnum v0.11.0
+│   │   ├── cosmwasm-core v2.1.5
+│   │   ├── cosmwasm-derive v2.1.5 (proc-macro)
+│   │   │   ├── proc-macro2 v1.0.92 (*)
+│   │   │   ├── quote v1.0.37 (*)
+│   │   │   └── syn v2.0.90 (*)
+│   │   ├── derive_more v1.0.0
+│   │   │   └── derive_more-impl v1.0.0 (proc-macro)
+│   │   │       ├── proc-macro2 v1.0.92 (*)
+│   │   │       ├── quote v1.0.37 (*)
+│   │   │       ├── syn v2.0.90 (*)
+│   │   │       └── unicode-xid v0.2.6
+│   │   ├── hex v0.4.3
+│   │   ├── schemars v0.8.21 (*)
+│   │   ├── serde v1.0.216 (*)
+│   │   ├── serde-json-wasm v1.0.1
+│   │   │   └── serde v1.0.216 (*)
+│   │   ├── sha2 v0.10.8
+│   │   │   ├── cfg-if v1.0.0
+│   │   │   └── digest v0.10.7
+│   │   │       ├── block-buffer v0.10.4
+│   │   │       │   └── generic-array v0.14.7
+│   │   │       │       └── typenum v1.17.0
+│   │   │       │       [build-dependencies]
+│   │   │       │       └── version_check v0.9.5
+│   │   │       ├── crypto-common v0.1.6
+│   │   │       │   ├── generic-array v0.14.7 (*)
+│   │   │       │   └── typenum v1.17.0
+│   │   │       └── subtle v2.6.1
+│   │   ├── static_assertions v1.1.0
+│   │   └── thiserror v1.0.69 (*)
+│   ├── cw-storage-plus v2.0.0
+│   │   ├── cosmwasm-std v2.1.5 (*)
+│   │   ├── cw-storage-macro v2.0.0 (proc-macro)
+│   │   │   └── syn v2.0.90 (*)
+│   │   ├── schemars v0.8.21 (*)
+│   │   └── serde v1.0.216 (*)
+│   ├── cw2 v2.0.0
+│   │   ├── cosmwasm-schema v2.1.5 (*)
+│   │   ├── cosmwasm-std v2.1.5 (*)
+│   │   ├── cw-storage-plus v2.0.0 (*)
+│   │   ├── schemars v0.8.21 (*)
+│   │   ├── semver v1.0.24
+│   │   ├── serde v1.0.216 (*)
+│   │   └── thiserror v1.0.69 (*)
+│   ├── error-stack v0.4.1
+│   │   └── eyre v0.6.12
+│   │       ├── indenter v0.3.3
+│   │       └── once_cell v1.20.2
+│   │   [build-dependencies]
+│   │   └── rustc_version v0.4.1 (*)
+│   ├── flagset v0.4.6
+│   │   └── serde v1.0.216 (*)
+│   ├── into-inner-derive v1.0.0 (proc-macro) (/home/angelos/Documents/eiger/axelar-aleo/axelar/aleo-remote/packages/into-inner-derive)
+│   │   ├── error-stack v0.4.1 (*)
+│   │   ├── quote v1.0.37 (*)
+│   │   ├── report v1.0.0 (/home/angelos/Documents/eiger/axelar-aleo/axelar/aleo-remote/packages/report) (*)
+│   │   ├── syn v2.0.90 (*)
+│   │   └── thiserror v1.0.69 (*)
+│   ├── itertools v0.11.0
+│   │   └── either v1.13.0
+│   ├── lazy_static v1.5.0
+│   ├── num-traits v0.2.19
+│   │   [build-dependencies]
+│   │   └── autocfg v1.4.0
+│   ├── regex v1.11.1
+│   │   ├── aho-corasick v1.1.3
+│   │   │   └── memchr v2.7.4
+│   │   ├── memchr v2.7.4
+│   │   ├── regex-automata v0.4.9
+│   │   │   ├── aho-corasick v1.1.3 (*)
+│   │   │   ├── memchr v2.7.4
+│   │   │   └── regex-syntax v0.8.5
+│   │   └── regex-syntax v0.8.5
+│   ├── report v1.0.0 (/home/angelos/Documents/eiger/axelar-aleo/axelar/aleo-remote/packages/report)
+│   │   ├── error-stack v0.4.1 (*)
+│   │   ├── eyre v0.6.12 (*)
+│   │   ├── itertools v0.11.0 (*)
+│   │   ├── thiserror v1.0.69 (*)
+│   │   └── valuable v0.1.0
+│   │       └── valuable-derive v0.1.0 (proc-macro) (*)
+│   ├── schemars v0.8.21 (*)
+│   ├── semver v1.0.24
+│   ├── serde v1.0.216 (*)
+│   ├── serde_json v1.0.133 (*)
+│   ├── serde_with v3.11.0
+│   │   ├── serde v1.0.216 (*)
+│   │   ├── serde_derive v1.0.216 (proc-macro) (*)
+│   │   └── serde_with_macros v3.11.0 (proc-macro)
+│   │       ├── darling v0.20.10
+│   │       │   ├── darling_core v0.20.10
+│   │       │   │   ├── fnv v1.0.7
+│   │       │   │   ├── ident_case v1.0.1
+│   │       │   │   ├── proc-macro2 v1.0.92 (*)
+│   │       │   │   ├── quote v1.0.37 (*)
+│   │       │   │   ├── strsim v0.11.1
+│   │       │   │   └── syn v2.0.90 (*)
+│   │       │   └── darling_macro v0.20.10 (proc-macro)
+│   │       │       ├── darling_core v0.20.10 (*)
+│   │       │       ├── quote v1.0.37 (*)
+│   │       │       └── syn v2.0.90 (*)
+│   │       ├── proc-macro2 v1.0.92 (*)
+│   │       ├── quote v1.0.37 (*)
+│   │       └── syn v2.0.90 (*)
+│   ├── sha3 v0.10.8
+│   │   ├── digest v0.10.7 (*)
+│   │   └── keccak v0.1.5
+│   ├── stellar-xdr v21.2.0
+│   │   ├── escape-bytes v0.1.1
+│   │   ├── hex v0.4.3
+│   │   └── stellar-strkey v0.0.8
+│   │       ├── base32 v0.4.0
+│   │       └── thiserror v1.0.69 (*)
+│   │       [build-dependencies]
+│   │       └── crate-git-revision v0.0.6
+│   │           ├── serde v1.0.216
+│   │           │   └── serde_derive v1.0.216 (proc-macro) (*)
+│   │           ├── serde_derive v1.0.216 (proc-macro) (*)
+│   │           └── serde_json v1.0.133
+│   │               ├── itoa v1.0.14
+│   │               ├── memchr v2.7.4
+│   │               ├── ryu v1.0.18
+│   │               └── serde v1.0.216 (*)
+│   │   [build-dependencies]
+│   │   └── crate-git-revision v0.0.6 (*)
+│   ├── strum v0.25.0
+│   │   └── strum_macros v0.25.3 (proc-macro)
+│   │       ├── heck v0.4.1
+│   │       ├── proc-macro2 v1.0.92 (*)
+│   │       ├── quote v1.0.37 (*)
+│   │       ├── rustversion v1.0.18 (proc-macro)
+│   │       └── syn v2.0.90 (*)
+│   ├── sui-types v1.0.0 (/home/angelos/Documents/eiger/axelar-aleo/axelar/aleo-remote/packages/sui-types)
+│   │   ├── error-stack v0.4.1 (*)
+│   │   ├── hex v0.4.3
+│   │   ├── serde v1.0.216 (*)
+│   │   └── thiserror v1.0.69 (*)
+│   ├── thiserror v1.0.69 (*)
+│   └── valuable v0.1.0 (*)
+├── cosmwasm-schema v2.1.5 (*)
+├── cosmwasm-std v2.1.5 (*)
+├── cw-utils v2.0.0
+│   ├── cosmwasm-schema v2.1.5 (*)
+│   ├── cosmwasm-std v2.1.5 (*)
+│   ├── schemars v0.8.21 (*)
+│   ├── serde v1.0.216 (*)
+│   └── thiserror v1.0.69 (*)
+├── enum-display-derive v0.1.1 (proc-macro)
+│   ├── proc-macro2 v1.0.92 (*)
+│   ├── quote v1.0.37 (*)
+│   └── syn v1.0.109 (*)
+├── error-stack v0.4.1 (*)
+├── getrandom v0.2.15
+│   └── cfg-if v1.0.0
+├── msgs-derive v1.0.0 (proc-macro) (/home/angelos/Documents/eiger/axelar-aleo/axelar/aleo-remote/packages/msgs-derive)
+│   ├── axelar-wasm-std v1.0.0 (/home/angelos/Documents/eiger/axelar-aleo/axelar/aleo-remote/packages/axelar-wasm-std)
+│   │   ├── alloy-primitives v0.7.7
+│   │   │   ├── bytes v1.9.0
+│   │   │   ├── cfg-if v1.0.0
+│   │   │   ├── const-hex v1.14.0
+│   │   │   │   ├── cfg-if v1.0.0
+│   │   │   │   └── cpufeatures v0.2.16
+│   │   │   ├── derive_more v0.99.18 (proc-macro) (*)
+│   │   │   ├── hex-literal v0.4.1
+│   │   │   ├── itoa v1.0.14
+│   │   │   ├── ruint v1.12.3
+│   │   │   │   └── ruint-macro v1.2.1 (proc-macro)
+│   │   │   └── tiny-keccak v2.0.2
+│   │   │       └── crunchy v0.2.2
+│   │   ├── bech32 v0.11.0
+│   │   ├── bs58 v0.5.1
+│   │   ├── cosmwasm-schema v2.1.5
+│   │   │   ├── cosmwasm-schema-derive v2.1.5 (proc-macro) (*)
+│   │   │   ├── schemars v0.8.21
+│   │   │   │   ├── dyn-clone v1.0.17
+│   │   │   │   ├── schemars_derive v0.8.21 (proc-macro) (*)
+│   │   │   │   ├── serde v1.0.216 (*)
+│   │   │   │   └── serde_json v1.0.133 (*)
+│   │   │   ├── serde v1.0.216 (*)
+│   │   │   ├── serde_json v1.0.133 (*)
+│   │   │   └── thiserror v1.0.69 (*)
+│   │   ├── cosmwasm-std v2.1.5
+│   │   │   ├── base64 v0.22.1
+│   │   │   ├── bech32 v0.11.0
+│   │   │   ├── bnum v0.11.0
+│   │   │   ├── cosmwasm-core v2.1.5
+│   │   │   ├── cosmwasm-crypto v2.1.5
+│   │   │   │   ├── ark-bls12-381 v0.4.0
+│   │   │   │   │   ├── ark-ec v0.4.2
+│   │   │   │   │   │   ├── ark-ff v0.4.2
+│   │   │   │   │   │   │   ├── ark-ff-asm v0.4.2 (proc-macro)
+│   │   │   │   │   │   │   │   ├── quote v1.0.37 (*)
+│   │   │   │   │   │   │   │   └── syn v1.0.109 (*)
+│   │   │   │   │   │   │   ├── ark-ff-macros v0.4.2 (proc-macro)
+│   │   │   │   │   │   │   │   ├── num-bigint v0.4.6
+│   │   │   │   │   │   │   │   │   ├── num-integer v0.1.46
+│   │   │   │   │   │   │   │   │   │   └── num-traits v0.2.19
+│   │   │   │   │   │   │   │   │   │       [build-dependencies]
+│   │   │   │   │   │   │   │   │   │       └── autocfg v1.4.0
+│   │   │   │   │   │   │   │   │   └── num-traits v0.2.19 (*)
+│   │   │   │   │   │   │   │   ├── num-traits v0.2.19 (*)
+│   │   │   │   │   │   │   │   ├── proc-macro2 v1.0.92 (*)
+│   │   │   │   │   │   │   │   ├── quote v1.0.37 (*)
+│   │   │   │   │   │   │   │   └── syn v1.0.109 (*)
+│   │   │   │   │   │   │   ├── ark-serialize v0.4.2
+│   │   │   │   │   │   │   │   ├── ark-serialize-derive v0.4.2 (proc-macro)
+│   │   │   │   │   │   │   │   │   ├── proc-macro2 v1.0.92 (*)
+│   │   │   │   │   │   │   │   │   ├── quote v1.0.37 (*)
+│   │   │   │   │   │   │   │   │   └── syn v1.0.109 (*)
+│   │   │   │   │   │   │   │   ├── ark-std v0.4.0
+│   │   │   │   │   │   │   │   │   ├── num-traits v0.2.19 (*)
+│   │   │   │   │   │   │   │   │   ├── rand v0.8.5
+│   │   │   │   │   │   │   │   │   │   ├── rand_chacha v0.3.1
+│   │   │   │   │   │   │   │   │   │   │   ├── ppv-lite86 v0.2.20
+│   │   │   │   │   │   │   │   │   │   │   │   └── zerocopy v0.7.35
+│   │   │   │   │   │   │   │   │   │   │   │       ├── byteorder v1.5.0
+│   │   │   │   │   │   │   │   │   │   │   │       └── zerocopy-derive v0.7.35 (proc-macro)
+│   │   │   │   │   │   │   │   │   │   │   │           ├── proc-macro2 v1.0.92 (*)
+│   │   │   │   │   │   │   │   │   │   │   │           ├── quote v1.0.37 (*)
+│   │   │   │   │   │   │   │   │   │   │   │           └── syn v2.0.90 (*)
+│   │   │   │   │   │   │   │   │   │   │   └── rand_core v0.6.4
+│   │   │   │   │   │   │   │   │   │   │       └── getrandom v0.2.15
+│   │   │   │   │   │   │   │   │   │   │           ├── cfg-if v1.0.0
+│   │   │   │   │   │   │   │   │   │   │           └── libc v0.2.168
+│   │   │   │   │   │   │   │   │   │   └── rand_core v0.6.4 (*)
+│   │   │   │   │   │   │   │   │   └── rayon v1.10.0
+│   │   │   │   │   │   │   │   │       ├── either v1.13.0
+│   │   │   │   │   │   │   │   │       └── rayon-core v1.12.1
+│   │   │   │   │   │   │   │   │           ├── crossbeam-deque v0.8.5
+│   │   │   │   │   │   │   │   │           │   ├── crossbeam-epoch v0.9.18
+│   │   │   │   │   │   │   │   │           │   │   └── crossbeam-utils v0.8.20
+│   │   │   │   │   │   │   │   │           │   └── crossbeam-utils v0.8.20
+│   │   │   │   │   │   │   │   │           └── crossbeam-utils v0.8.20
+│   │   │   │   │   │   │   │   ├── digest v0.10.7
+│   │   │   │   │   │   │   │   │   ├── block-buffer v0.10.4
+│   │   │   │   │   │   │   │   │   │   └── generic-array v0.14.7
+│   │   │   │   │   │   │   │   │   │       ├── typenum v1.17.0
+│   │   │   │   │   │   │   │   │   │       └── zeroize v1.8.1
+│   │   │   │   │   │   │   │   │   │           └── zeroize_derive v1.4.2 (proc-macro)
+│   │   │   │   │   │   │   │   │   │               ├── proc-macro2 v1.0.92 (*)
+│   │   │   │   │   │   │   │   │   │               ├── quote v1.0.37 (*)
+│   │   │   │   │   │   │   │   │   │               └── syn v2.0.90 (*)
+│   │   │   │   │   │   │   │   │   │       [build-dependencies]
+│   │   │   │   │   │   │   │   │   │       └── version_check v0.9.5
+│   │   │   │   │   │   │   │   │   ├── const-oid v0.9.6
+│   │   │   │   │   │   │   │   │   ├── crypto-common v0.1.6
+│   │   │   │   │   │   │   │   │   │   ├── generic-array v0.14.7 (*)
+│   │   │   │   │   │   │   │   │   │   └── typenum v1.17.0
+│   │   │   │   │   │   │   │   │   └── subtle v2.6.1
+│   │   │   │   │   │   │   │   └── num-bigint v0.4.6 (*)
+│   │   │   │   │   │   │   ├── ark-std v0.4.0 (*)
+│   │   │   │   │   │   │   ├── derivative v2.2.0 (proc-macro)
+│   │   │   │   │   │   │   │   ├── proc-macro2 v1.0.92 (*)
+│   │   │   │   │   │   │   │   ├── quote v1.0.37 (*)
+│   │   │   │   │   │   │   │   └── syn v1.0.109 (*)
+│   │   │   │   │   │   │   ├── digest v0.10.7 (*)
+│   │   │   │   │   │   │   ├── itertools v0.10.5
+│   │   │   │   │   │   │   │   └── either v1.13.0
+│   │   │   │   │   │   │   ├── num-bigint v0.4.6 (*)
+│   │   │   │   │   │   │   ├── num-traits v0.2.19 (*)
+│   │   │   │   │   │   │   ├── paste v1.0.15 (proc-macro)
+│   │   │   │   │   │   │   ├── rayon v1.10.0 (*)
+│   │   │   │   │   │   │   └── zeroize v1.8.1 (*)
+│   │   │   │   │   │   │   [build-dependencies]
+│   │   │   │   │   │   │   └── rustc_version v0.4.1 (*)
+│   │   │   │   │   │   ├── ark-poly v0.4.2
+│   │   │   │   │   │   │   ├── ark-ff v0.4.2 (*)
+│   │   │   │   │   │   │   ├── ark-serialize v0.4.2 (*)
+│   │   │   │   │   │   │   ├── ark-std v0.4.0 (*)
+│   │   │   │   │   │   │   ├── derivative v2.2.0 (proc-macro) (*)
+│   │   │   │   │   │   │   └── hashbrown v0.13.2
+│   │   │   │   │   │   │       └── ahash v0.8.11
+│   │   │   │   │   │   │           ├── cfg-if v1.0.0
+│   │   │   │   │   │   │           ├── once_cell v1.20.2
+│   │   │   │   │   │   │           └── zerocopy v0.7.35 (*)
+│   │   │   │   │   │   │           [build-dependencies]
+│   │   │   │   │   │   │           └── version_check v0.9.5
+│   │   │   │   │   │   ├── ark-serialize v0.4.2 (*)
+│   │   │   │   │   │   ├── ark-std v0.4.0 (*)
+│   │   │   │   │   │   ├── derivative v2.2.0 (proc-macro) (*)
+│   │   │   │   │   │   ├── hashbrown v0.13.2 (*)
+│   │   │   │   │   │   ├── itertools v0.10.5 (*)
+│   │   │   │   │   │   ├── num-traits v0.2.19 (*)
+│   │   │   │   │   │   ├── rayon v1.10.0 (*)
+│   │   │   │   │   │   └── zeroize v1.8.1 (*)
+│   │   │   │   │   ├── ark-ff v0.4.2 (*)
+│   │   │   │   │   ├── ark-serialize v0.4.2 (*)
+│   │   │   │   │   └── ark-std v0.4.0 (*)
+│   │   │   │   ├── ark-ec v0.4.2 (*)
+│   │   │   │   ├── ark-ff v0.4.2 (*)
+│   │   │   │   ├── ark-serialize v0.4.2 (*)
+│   │   │   │   ├── cosmwasm-core v2.1.5
+│   │   │   │   ├── digest v0.10.7 (*)
+│   │   │   │   ├── ecdsa v0.16.9
+│   │   │   │   │   ├── der v0.7.9
+│   │   │   │   │   │   ├── const-oid v0.9.6
+│   │   │   │   │   │   └── zeroize v1.8.1 (*)
+│   │   │   │   │   ├── digest v0.10.7 (*)
+│   │   │   │   │   ├── elliptic-curve v0.13.8
+│   │   │   │   │   │   ├── base16ct v0.2.0
+│   │   │   │   │   │   ├── crypto-bigint v0.5.5
+│   │   │   │   │   │   │   ├── generic-array v0.14.7 (*)
+│   │   │   │   │   │   │   ├── rand_core v0.6.4 (*)
+│   │   │   │   │   │   │   ├── subtle v2.6.1
+│   │   │   │   │   │   │   └── zeroize v1.8.1 (*)
+│   │   │   │   │   │   ├── digest v0.10.7 (*)
+│   │   │   │   │   │   ├── ff v0.13.0
+│   │   │   │   │   │   │   ├── rand_core v0.6.4 (*)
+│   │   │   │   │   │   │   └── subtle v2.6.1
+│   │   │   │   │   │   ├── generic-array v0.14.7 (*)
+│   │   │   │   │   │   ├── group v0.13.0
+│   │   │   │   │   │   │   ├── ff v0.13.0 (*)
+│   │   │   │   │   │   │   ├── rand_core v0.6.4 (*)
+│   │   │   │   │   │   │   └── subtle v2.6.1
+│   │   │   │   │   │   ├── rand_core v0.6.4 (*)
+│   │   │   │   │   │   ├── sec1 v0.7.3
+│   │   │   │   │   │   │   ├── base16ct v0.2.0
+│   │   │   │   │   │   │   ├── der v0.7.9 (*)
+│   │   │   │   │   │   │   ├── generic-array v0.14.7 (*)
+│   │   │   │   │   │   │   ├── subtle v2.6.1
+│   │   │   │   │   │   │   └── zeroize v1.8.1 (*)
+│   │   │   │   │   │   ├── subtle v2.6.1
+│   │   │   │   │   │   └── zeroize v1.8.1 (*)
+│   │   │   │   │   ├── rfc6979 v0.4.0
+│   │   │   │   │   │   ├── hmac v0.12.1
+│   │   │   │   │   │   │   └── digest v0.10.7 (*)
+│   │   │   │   │   │   └── subtle v2.6.1
+│   │   │   │   │   └── signature v2.2.0
+│   │   │   │   │       ├── digest v0.10.7 (*)
+│   │   │   │   │       └── rand_core v0.6.4 (*)
+│   │   │   │   ├── ed25519-zebra v4.0.3
+│   │   │   │   │   ├── curve25519-dalek v4.1.3
+│   │   │   │   │   │   ├── cfg-if v1.0.0
+│   │   │   │   │   │   ├── cpufeatures v0.2.16
+│   │   │   │   │   │   ├── curve25519-dalek-derive v0.1.1 (proc-macro)
+│   │   │   │   │   │   │   ├── proc-macro2 v1.0.92 (*)
+│   │   │   │   │   │   │   ├── quote v1.0.37 (*)
+│   │   │   │   │   │   │   └── syn v2.0.90 (*)
+│   │   │   │   │   │   ├── digest v0.10.7 (*)
+│   │   │   │   │   │   ├── subtle v2.6.1
+│   │   │   │   │   │   └── zeroize v1.8.1 (*)
+│   │   │   │   │   │   [build-dependencies]
+│   │   │   │   │   │   └── rustc_version v0.4.1 (*)
+│   │   │   │   │   ├── ed25519 v2.2.3
+│   │   │   │   │   │   └── signature v2.2.0 (*)
+│   │   │   │   │   ├── hashbrown v0.14.5
+│   │   │   │   │   │   ├── ahash v0.8.11 (*)
+│   │   │   │   │   │   └── allocator-api2 v0.2.21
+│   │   │   │   │   ├── hex v0.4.3
+│   │   │   │   │   ├── rand_core v0.6.4 (*)
+│   │   │   │   │   ├── sha2 v0.10.8
+│   │   │   │   │   │   ├── cfg-if v1.0.0
+│   │   │   │   │   │   ├── cpufeatures v0.2.16
+│   │   │   │   │   │   └── digest v0.10.7 (*)
+│   │   │   │   │   └── zeroize v1.8.1 (*)
+│   │   │   │   ├── k256 v0.13.4
+│   │   │   │   │   ├── cfg-if v1.0.0
+│   │   │   │   │   ├── ecdsa v0.16.9 (*)
+│   │   │   │   │   ├── elliptic-curve v0.13.8 (*)
+│   │   │   │   │   └── sha2 v0.10.8 (*)
+│   │   │   │   ├── num-traits v0.2.19 (*)
+│   │   │   │   ├── p256 v0.13.2
+│   │   │   │   │   ├── ecdsa v0.16.9 (*)
+│   │   │   │   │   ├── elliptic-curve v0.13.8 (*)
+│   │   │   │   │   ├── primeorder v0.13.6
+│   │   │   │   │   │   └── elliptic-curve v0.13.8 (*)
+│   │   │   │   │   └── sha2 v0.10.8 (*)
+│   │   │   │   ├── rand_core v0.6.4 (*)
+│   │   │   │   ├── rayon v1.10.0 (*)
+│   │   │   │   ├── sha2 v0.10.8 (*)
+│   │   │   │   └── thiserror v1.0.69 (*)
+│   │   │   ├── cosmwasm-derive v2.1.5 (proc-macro) (*)
+│   │   │   ├── derive_more v1.0.0
+│   │   │   │   └── derive_more-impl v1.0.0 (proc-macro) (*)
+│   │   │   ├── hex v0.4.3
+│   │   │   ├── rand_core v0.6.4 (*)
+│   │   │   ├── schemars v0.8.21 (*)
+│   │   │   ├── serde v1.0.216 (*)
+│   │   │   ├── serde-json-wasm v1.0.1
+│   │   │   │   └── serde v1.0.216 (*)
+│   │   │   ├── sha2 v0.10.8 (*)
+│   │   │   ├── static_assertions v1.1.0
+│   │   │   └── thiserror v1.0.69 (*)
+│   │   ├── cw-storage-plus v2.0.0
+│   │   │   ├── cosmwasm-std v2.1.5 (*)
+│   │   │   ├── cw-storage-macro v2.0.0 (proc-macro) (*)
+│   │   │   ├── schemars v0.8.21 (*)
+│   │   │   └── serde v1.0.216 (*)
+│   │   ├── cw2 v2.0.0
+│   │   │   ├── cosmwasm-schema v2.1.5 (*)
+│   │   │   ├── cosmwasm-std v2.1.5 (*)
+│   │   │   ├── cw-storage-plus v2.0.0 (*)
+│   │   │   ├── schemars v0.8.21 (*)
+│   │   │   ├── semver v1.0.24
+│   │   │   ├── serde v1.0.216 (*)
+│   │   │   └── thiserror v1.0.69 (*)
+│   │   ├── error-stack v0.4.1 (*)
+│   │   ├── flagset v0.4.6
+│   │   │   └── serde v1.0.216 (*)
+│   │   ├── into-inner-derive v1.0.0 (proc-macro) (/home/angelos/Documents/eiger/axelar-aleo/axelar/aleo-remote/packages/into-inner-derive) (*)
+│   │   ├── itertools v0.11.0 (*)
+│   │   ├── lazy_static v1.5.0
+│   │   ├── num-traits v0.2.19 (*)
+│   │   ├── regex v1.11.1
+│   │   │   ├── aho-corasick v1.1.3
+│   │   │   │   └── memchr v2.7.4
+│   │   │   ├── memchr v2.7.4
+│   │   │   ├── regex-automata v0.4.9
+│   │   │   │   ├── aho-corasick v1.1.3 (*)
+│   │   │   │   ├── memchr v2.7.4
+│   │   │   │   └── regex-syntax v0.8.5
+│   │   │   └── regex-syntax v0.8.5
+│   │   ├── report v1.0.0 (/home/angelos/Documents/eiger/axelar-aleo/axelar/aleo-remote/packages/report) (*)
+│   │   ├── schemars v0.8.21 (*)
+│   │   ├── semver v1.0.24
+│   │   ├── serde v1.0.216 (*)
+│   │   ├── serde_json v1.0.133 (*)
+│   │   ├── serde_with v3.11.0
+│   │   │   ├── serde v1.0.216 (*)
+│   │   │   ├── serde_derive v1.0.216 (proc-macro) (*)
+│   │   │   └── serde_with_macros v3.11.0 (proc-macro) (*)
+│   │   ├── sha3 v0.10.8
+│   │   │   ├── digest v0.10.7 (*)
+│   │   │   └── keccak v0.1.5
+│   │   ├── stellar-xdr v21.2.0
+│   │   │   ├── escape-bytes v0.1.1
+│   │   │   ├── hex v0.4.3
+│   │   │   └── stellar-strkey v0.0.8
+│   │   │       ├── base32 v0.4.0
+│   │   │       └── thiserror v1.0.69 (*)
+│   │   │       [build-dependencies]
+│   │   │       └── crate-git-revision v0.0.6 (*)
+│   │   │   [build-dependencies]
+│   │   │   └── crate-git-revision v0.0.6 (*)
+│   │   ├── strum v0.25.0
+│   │   │   └── strum_macros v0.25.3 (proc-macro) (*)
+│   │   ├── sui-types v1.0.0 (/home/angelos/Documents/eiger/axelar-aleo/axelar/aleo-remote/packages/sui-types)
+│   │   │   ├── error-stack v0.4.1 (*)
+│   │   │   ├── hex v0.4.3
+│   │   │   ├── serde v1.0.216 (*)
+│   │   │   └── thiserror v1.0.69 (*)
+│   │   ├── thiserror v1.0.69 (*)
+│   │   └── valuable v0.1.0 (*)
+│   ├── cosmwasm-std v2.1.5 (*)
+│   ├── error-stack v0.4.1 (*)
+│   ├── itertools v0.11.0 (*)
+│   ├── proc-macro2 v1.0.92 (*)
+│   ├── quote v1.0.37 (*)
+│   └── syn v2.0.90 (*)
+├── report v1.0.0 (/home/angelos/Documents/eiger/axelar-aleo/axelar/aleo-remote/packages/report) (*)
+├── serde v1.0.216 (*)
+├── serde_json v1.0.133 (*)
+├── snarkvm-wasm v1.1.0 (/home/angelos/Documents/eiger/aleo/snarkVM/wasm)
+│   ├── getrandom v0.2.15 (*)
+│   ├── snarkvm-console-account v1.1.0 (/home/angelos/Documents/eiger/aleo/snarkVM/console/account)
+│   │   ├── bs58 v0.5.1
+│   │   ├── snarkvm-console-network v1.1.0 (/home/angelos/Documents/eiger/aleo/snarkVM/console/network)
+│   │   │   ├── anyhow v1.0.94
+│   │   │   ├── indexmap v2.7.0 (*)
+│   │   │   ├── itertools v0.11.0 (*)
+│   │   │   ├── lazy_static v1.5.0
+│   │   │   ├── once_cell v1.20.2
+│   │   │   ├── paste v1.0.15 (proc-macro)
+│   │   │   ├── serde v1.0.216 (*)
+│   │   │   ├── snarkvm-algorithms v1.1.0 (/home/angelos/Documents/eiger/aleo/snarkVM/algorithms)
+│   │   │   │   ├── aleo-std v0.1.24
+│   │   │   │   │   ├── aleo-std-cpu v0.1.4
+│   │   │   │   │   ├── aleo-std-profiler v0.1.15
+│   │   │   │   │   ├── aleo-std-storage v0.1.7
+│   │   │   │   │   │   └── dirs v4.0.0
+│   │   │   │   │   │       └── dirs-sys v0.3.7
+│   │   │   │   │   ├── aleo-std-time v0.1.2 (proc-macro)
+│   │   │   │   │   │   ├── proc-macro2 v1.0.92 (*)
+│   │   │   │   │   │   ├── quote v1.0.37 (*)
+│   │   │   │   │   │   └── syn v1.0.109 (*)
+│   │   │   │   │   ├── aleo-std-timed v0.1.2 (proc-macro)
+│   │   │   │   │   │   ├── proc-macro2 v1.0.92 (*)
+│   │   │   │   │   │   ├── quote v1.0.37 (*)
+│   │   │   │   │   │   └── syn v1.0.109 (*)
+│   │   │   │   │   └── aleo-std-timer v0.1.2
+│   │   │   │   ├── anyhow v1.0.94
+│   │   │   │   ├── blake2 v0.10.6
+│   │   │   │   │   └── digest v0.10.7 (*)
+│   │   │   │   ├── cfg-if v1.0.0
+│   │   │   │   ├── fxhash v0.2.1
+│   │   │   │   │   └── byteorder v1.5.0
+│   │   │   │   ├── hashbrown v0.14.5
+│   │   │   │   │   ├── ahash v0.8.11
+│   │   │   │   │   │   ├── cfg-if v1.0.0
+│   │   │   │   │   │   ├── once_cell v1.20.2
+│   │   │   │   │   │   └── zerocopy v0.7.35
+│   │   │   │   │   │       ├── byteorder v1.5.0
+│   │   │   │   │   │       └── zerocopy-derive v0.7.35 (proc-macro) (*)
+│   │   │   │   │   │   [build-dependencies]
+│   │   │   │   │   │   └── version_check v0.9.5
+│   │   │   │   │   └── allocator-api2 v0.2.21
+│   │   │   │   ├── hex v0.4.3
+│   │   │   │   ├── indexmap v2.7.0 (*)
+│   │   │   │   ├── itertools v0.11.0 (*)
+│   │   │   │   ├── num-traits v0.2.19 (*)
+│   │   │   │   ├── parking_lot v0.12.3
+│   │   │   │   │   ├── lock_api v0.4.12
+│   │   │   │   │   │   └── scopeguard v1.2.0
+│   │   │   │   │   │   [build-dependencies]
+│   │   │   │   │   │   └── autocfg v1.4.0
+│   │   │   │   │   └── parking_lot_core v0.9.10
+│   │   │   │   │       ├── cfg-if v1.0.0
+│   │   │   │   │       └── smallvec v1.13.2
+│   │   │   │   ├── rand v0.8.5
+│   │   │   │   │   ├── rand_chacha v0.3.1
+│   │   │   │   │   │   ├── ppv-lite86 v0.2.20
+│   │   │   │   │   │   │   └── zerocopy v0.7.35 (*)
+│   │   │   │   │   │   └── rand_core v0.6.4
+│   │   │   │   │   │       └── getrandom v0.2.15 (*)
+│   │   │   │   │   └── rand_core v0.6.4 (*)
+│   │   │   │   ├── rand_chacha v0.3.1 (*)
+│   │   │   │   ├── rand_core v0.6.4 (*)
+│   │   │   │   ├── rayon v1.10.0
+│   │   │   │   │   ├── either v1.13.0
+│   │   │   │   │   └── rayon-core v1.12.1
+│   │   │   │   │       ├── crossbeam-deque v0.8.5
+│   │   │   │   │       │   ├── crossbeam-epoch v0.9.18
+│   │   │   │   │       │   │   └── crossbeam-utils v0.8.20
+│   │   │   │   │       │   └── crossbeam-utils v0.8.20
+│   │   │   │   │       └── crossbeam-utils v0.8.20
+│   │   │   │   ├── serde v1.0.216 (*)
+│   │   │   │   ├── sha2 v0.10.8 (*)
+│   │   │   │   ├── smallvec v1.13.2
+│   │   │   │   ├── snarkvm-curves v1.1.0 (/home/angelos/Documents/eiger/aleo/snarkVM/curves)
+│   │   │   │   │   ├── rand v0.8.5 (*)
+│   │   │   │   │   ├── rayon v1.10.0 (*)
+│   │   │   │   │   ├── serde v1.0.216 (*)
+│   │   │   │   │   ├── snarkvm-fields v1.1.0 (/home/angelos/Documents/eiger/aleo/snarkVM/fields)
+│   │   │   │   │   │   ├── aleo-std v0.1.24 (*)
+│   │   │   │   │   │   ├── anyhow v1.0.94
+│   │   │   │   │   │   ├── itertools v0.11.0 (*)
+│   │   │   │   │   │   ├── num-traits v0.2.19 (*)
+│   │   │   │   │   │   ├── rand v0.8.5 (*)
+│   │   │   │   │   │   ├── rayon v1.10.0 (*)
+│   │   │   │   │   │   ├── serde v1.0.216 (*)
+│   │   │   │   │   │   ├── snarkvm-utilities v1.1.0 (/home/angelos/Documents/eiger/aleo/snarkVM/utilities)
+│   │   │   │   │   │   │   ├── aleo-std v0.1.24 (*)
+│   │   │   │   │   │   │   ├── anyhow v1.0.94
+│   │   │   │   │   │   │   ├── bincode v1.3.3
+│   │   │   │   │   │   │   │   └── serde v1.0.216 (*)
+│   │   │   │   │   │   │   ├── num-bigint v0.4.6
+│   │   │   │   │   │   │   │   ├── num-integer v0.1.46
+│   │   │   │   │   │   │   │   │   └── num-traits v0.2.19 (*)
+│   │   │   │   │   │   │   │   └── num-traits v0.2.19 (*)
+│   │   │   │   │   │   │   ├── num_cpus v1.16.0
+│   │   │   │   │   │   │   │   └── libc v0.2.168
+│   │   │   │   │   │   │   ├── rand v0.8.5 (*)
+│   │   │   │   │   │   │   ├── rand_xorshift v0.3.0
+│   │   │   │   │   │   │   │   └── rand_core v0.6.4 (*)
+│   │   │   │   │   │   │   ├── rayon v1.10.0 (*)
+│   │   │   │   │   │   │   ├── serde v1.0.216 (*)
+│   │   │   │   │   │   │   ├── serde_json v1.0.133 (*)
+│   │   │   │   │   │   │   ├── smol_str v0.2.2
+│   │   │   │   │   │   │   ├── snarkvm-utilities-derives v1.1.0 (proc-macro) (/home/angelos/Documents/eiger/aleo/snarkVM/utilities/derives)
+│   │   │   │   │   │   │   │   ├── proc-macro2 v1.0.92 (*)
+│   │   │   │   │   │   │   │   ├── quote v1.0.37 (*)
+│   │   │   │   │   │   │   │   └── syn v2.0.90 (*)
+│   │   │   │   │   │   │   ├── thiserror v1.0.69 (*)
+│   │   │   │   │   │   │   └── zeroize v1.8.1
+│   │   │   │   │   │   │       └── zeroize_derive v1.4.2 (proc-macro) (*)
+│   │   │   │   │   │   ├── thiserror v1.0.69 (*)
+│   │   │   │   │   │   └── zeroize v1.8.1 (*)
+│   │   │   │   │   ├── snarkvm-utilities v1.1.0 (/home/angelos/Documents/eiger/aleo/snarkVM/utilities) (*)
+│   │   │   │   │   └── thiserror v1.0.69 (*)
+│   │   │   │   │   [build-dependencies]
+│   │   │   │   │   └── rustc_version v0.4.1 (*)
+│   │   │   │   ├── snarkvm-fields v1.1.0 (/home/angelos/Documents/eiger/aleo/snarkVM/fields) (*)
+│   │   │   │   ├── snarkvm-parameters v1.1.0 (/home/angelos/Documents/eiger/aleo/snarkVM/parameters)
+│   │   │   │   │   ├── aleo-std v0.1.24 (*)
+│   │   │   │   │   ├── anyhow v1.0.94
+│   │   │   │   │   ├── bincode v1.3.3 (*)
+│   │   │   │   │   ├── cfg-if v1.0.0
+│   │   │   │   │   ├── colored v2.1.0
+│   │   │   │   │   │   └── lazy_static v1.5.0
+│   │   │   │   │   ├── encoding v0.2.33
+│   │   │   │   │   │   ├── encoding-index-japanese v1.20141219.5
+│   │   │   │   │   │   │   └── encoding_index_tests v0.1.4
+│   │   │   │   │   │   ├── encoding-index-korean v1.20141219.5
+│   │   │   │   │   │   │   └── encoding_index_tests v0.1.4
+│   │   │   │   │   │   ├── encoding-index-simpchinese v1.20141219.5
+│   │   │   │   │   │   │   └── encoding_index_tests v0.1.4
+│   │   │   │   │   │   ├── encoding-index-singlebyte v1.20141219.5
+│   │   │   │   │   │   │   └── encoding_index_tests v0.1.4
+│   │   │   │   │   │   └── encoding-index-tradchinese v1.20141219.5
+│   │   │   │   │   │       └── encoding_index_tests v0.1.4
+│   │   │   │   │   ├── getrandom v0.2.15 (*)
+│   │   │   │   │   ├── hex v0.4.3
+│   │   │   │   │   ├── indexmap v2.7.0 (*)
+│   │   │   │   │   ├── itertools v0.11.0 (*)
+│   │   │   │   │   ├── lazy_static v1.5.0
+│   │   │   │   │   ├── parking_lot v0.12.3 (*)
+│   │   │   │   │   ├── paste v1.0.15 (proc-macro)
+│   │   │   │   │   ├── rand v0.8.5 (*)
+│   │   │   │   │   ├── serde_json v1.0.133 (*)
+│   │   │   │   │   ├── sha2 v0.10.8 (*)
+│   │   │   │   │   ├── snarkvm-curves v1.1.0 (/home/angelos/Documents/eiger/aleo/snarkVM/curves) (*)
+│   │   │   │   │   ├── snarkvm-utilities v1.1.0 (/home/angelos/Documents/eiger/aleo/snarkVM/utilities) (*)
+│   │   │   │   │   └── thiserror v1.0.69 (*)
+│   │   │   │   ├── snarkvm-utilities v1.1.0 (/home/angelos/Documents/eiger/aleo/snarkVM/utilities) (*)
+│   │   │   │   └── thiserror v1.0.69 (*)
+│   │   │   ├── snarkvm-console-algorithms v1.1.0 (/home/angelos/Documents/eiger/aleo/snarkVM/console/algorithms)
+│   │   │   │   ├── blake2s_simd v1.0.2
+│   │   │   │   │   ├── arrayref v0.3.9
+│   │   │   │   │   ├── arrayvec v0.7.6
+│   │   │   │   │   └── constant_time_eq v0.3.1
+│   │   │   │   ├── smallvec v1.13.2
+│   │   │   │   ├── snarkvm-console-types v1.1.0 (/home/angelos/Documents/eiger/aleo/snarkVM/console/types)
+│   │   │   │   │   ├── snarkvm-console-network-environment v1.1.0 (/home/angelos/Documents/eiger/aleo/snarkVM/console/network/environment)
+│   │   │   │   │   │   ├── anyhow v1.0.94
+│   │   │   │   │   │   ├── bech32 v0.9.1
+│   │   │   │   │   │   ├── itertools v0.11.0 (*)
+│   │   │   │   │   │   ├── nom v7.1.3
+│   │   │   │   │   │   │   ├── memchr v2.7.4
+│   │   │   │   │   │   │   └── minimal-lexical v0.2.1
+│   │   │   │   │   │   ├── num-traits v0.2.19 (*)
+│   │   │   │   │   │   ├── rand v0.8.5 (*)
+│   │   │   │   │   │   ├── serde v1.0.216 (*)
+│   │   │   │   │   │   ├── snarkvm-curves v1.1.0 (/home/angelos/Documents/eiger/aleo/snarkVM/curves) (*)
+│   │   │   │   │   │   ├── snarkvm-fields v1.1.0 (/home/angelos/Documents/eiger/aleo/snarkVM/fields) (*)
+│   │   │   │   │   │   ├── snarkvm-utilities v1.1.0 (/home/angelos/Documents/eiger/aleo/snarkVM/utilities) (*)
+│   │   │   │   │   │   └── zeroize v1.8.1 (*)
+│   │   │   │   │   ├── snarkvm-console-types-address v1.1.0 (/home/angelos/Documents/eiger/aleo/snarkVM/console/types/address)
+│   │   │   │   │   │   ├── snarkvm-console-network-environment v1.1.0 (/home/angelos/Documents/eiger/aleo/snarkVM/console/network/environment) (*)
+│   │   │   │   │   │   ├── snarkvm-console-types-boolean v1.1.0 (/home/angelos/Documents/eiger/aleo/snarkVM/console/types/boolean)
+│   │   │   │   │   │   │   └── snarkvm-console-network-environment v1.1.0 (/home/angelos/Documents/eiger/aleo/snarkVM/console/network/environment) (*)
+│   │   │   │   │   │   ├── snarkvm-console-types-field v1.1.0 (/home/angelos/Documents/eiger/aleo/snarkVM/console/types/field)
+│   │   │   │   │   │   │   ├── snarkvm-console-network-environment v1.1.0 (/home/angelos/Documents/eiger/aleo/snarkVM/console/network/environment) (*)
+│   │   │   │   │   │   │   ├── snarkvm-console-types-boolean v1.1.0 (/home/angelos/Documents/eiger/aleo/snarkVM/console/types/boolean) (*)
+│   │   │   │   │   │   │   └── zeroize v1.8.1 (*)
+│   │   │   │   │   │   └── snarkvm-console-types-group v1.1.0 (/home/angelos/Documents/eiger/aleo/snarkVM/console/types/group)
+│   │   │   │   │   │       ├── snarkvm-console-network-environment v1.1.0 (/home/angelos/Documents/eiger/aleo/snarkVM/console/network/environment) (*)
+│   │   │   │   │   │       ├── snarkvm-console-types-boolean v1.1.0 (/home/angelos/Documents/eiger/aleo/snarkVM/console/types/boolean) (*)
+│   │   │   │   │   │       ├── snarkvm-console-types-field v1.1.0 (/home/angelos/Documents/eiger/aleo/snarkVM/console/types/field) (*)
+│   │   │   │   │   │       └── snarkvm-console-types-scalar v1.1.0 (/home/angelos/Documents/eiger/aleo/snarkVM/console/types/scalar)
+│   │   │   │   │   │           ├── snarkvm-console-network-environment v1.1.0 (/home/angelos/Documents/eiger/aleo/snarkVM/console/network/environment) (*)
+│   │   │   │   │   │           ├── snarkvm-console-types-boolean v1.1.0 (/home/angelos/Documents/eiger/aleo/snarkVM/console/types/boolean) (*)
+│   │   │   │   │   │           ├── snarkvm-console-types-field v1.1.0 (/home/angelos/Documents/eiger/aleo/snarkVM/console/types/field) (*)
+│   │   │   │   │   │           └── zeroize v1.8.1 (*)
+│   │   │   │   │   ├── snarkvm-console-types-boolean v1.1.0 (/home/angelos/Documents/eiger/aleo/snarkVM/console/types/boolean) (*)
+│   │   │   │   │   ├── snarkvm-console-types-field v1.1.0 (/home/angelos/Documents/eiger/aleo/snarkVM/console/types/field) (*)
+│   │   │   │   │   ├── snarkvm-console-types-group v1.1.0 (/home/angelos/Documents/eiger/aleo/snarkVM/console/types/group) (*)
+│   │   │   │   │   ├── snarkvm-console-types-integers v1.1.0 (/home/angelos/Documents/eiger/aleo/snarkVM/console/types/integers)
+│   │   │   │   │   │   ├── snarkvm-console-network-environment v1.1.0 (/home/angelos/Documents/eiger/aleo/snarkVM/console/network/environment) (*)
+│   │   │   │   │   │   ├── snarkvm-console-types-boolean v1.1.0 (/home/angelos/Documents/eiger/aleo/snarkVM/console/types/boolean) (*)
+│   │   │   │   │   │   ├── snarkvm-console-types-field v1.1.0 (/home/angelos/Documents/eiger/aleo/snarkVM/console/types/field) (*)
+│   │   │   │   │   │   └── snarkvm-console-types-scalar v1.1.0 (/home/angelos/Documents/eiger/aleo/snarkVM/console/types/scalar) (*)
+│   │   │   │   │   └── snarkvm-console-types-scalar v1.1.0 (/home/angelos/Documents/eiger/aleo/snarkVM/console/types/scalar) (*)
+│   │   │   │   ├── snarkvm-fields v1.1.0 (/home/angelos/Documents/eiger/aleo/snarkVM/fields) (*)
+│   │   │   │   ├── snarkvm-utilities v1.1.0 (/home/angelos/Documents/eiger/aleo/snarkVM/utilities) (*)
+│   │   │   │   └── tiny-keccak v2.0.2 (*)
+│   │   │   ├── snarkvm-console-collections v1.1.0 (/home/angelos/Documents/eiger/aleo/snarkVM/console/collections)
+│   │   │   │   ├── aleo-std v0.1.24 (*)
+│   │   │   │   ├── rayon v1.10.0 (*)
+│   │   │   │   ├── snarkvm-console-algorithms v1.1.0 (/home/angelos/Documents/eiger/aleo/snarkVM/console/algorithms) (*)
+│   │   │   │   └── snarkvm-console-types v1.1.0 (/home/angelos/Documents/eiger/aleo/snarkVM/console/types) (*)
+│   │   │   ├── snarkvm-console-network-environment v1.1.0 (/home/angelos/Documents/eiger/aleo/snarkVM/console/network/environment) (*)
+│   │   │   ├── snarkvm-console-types v1.1.0 (/home/angelos/Documents/eiger/aleo/snarkVM/console/types) (*)
+│   │   │   ├── snarkvm-curves v1.1.0 (/home/angelos/Documents/eiger/aleo/snarkVM/curves) (*)
+│   │   │   ├── snarkvm-fields v1.1.0 (/home/angelos/Documents/eiger/aleo/snarkVM/fields) (*)
+│   │   │   ├── snarkvm-parameters v1.1.0 (/home/angelos/Documents/eiger/aleo/snarkVM/parameters) (*)
+│   │   │   └── snarkvm-utilities v1.1.0 (/home/angelos/Documents/eiger/aleo/snarkVM/utilities) (*)
+│   │   ├── snarkvm-console-types v1.1.0 (/home/angelos/Documents/eiger/aleo/snarkVM/console/types) (*)
+│   │   └── zeroize v1.8.1 (*)
+│   ├── snarkvm-console-network v1.1.0 (/home/angelos/Documents/eiger/aleo/snarkVM/console/network) (*)
+│   └── snarkvm-console-types v1.1.0 (/home/angelos/Documents/eiger/aleo/snarkVM/console/types) (*)
+└── thiserror v1.0.69 (*)
