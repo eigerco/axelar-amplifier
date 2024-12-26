@@ -297,8 +297,10 @@ impl From<Vec<Message>> for Messages {
     }
 }
 
-use snarkvm_wasm::network::Network;
+use snarkvm_wasm::{network::Network};
 use snarkvm_wasm::program::ToBits;
+// use snarkvm_wasm::types::ToBits;
+// use snarkvm_wasm::program::ToBits;
 
 impl Messages {
     pub fn to_aleo_string(&self) -> Result<String, Error> {

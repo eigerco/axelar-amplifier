@@ -63,7 +63,7 @@ sui-gateway = { workspace = true }
 thiserror = { workspace = true }
 voting-verifier = { workspace = true, features = ["library"] }
 aleo-gateway = { workspace = true }
-snarkvm-wasm = { path = "/home/angelos/Documents/eiger/aleo/snarkVM/wasm", default-features = false, features = ["account"] }
+snarkvm-wasm = { workspace = true }
 
 [dev-dependencies]
 anyhow = "1.0"
