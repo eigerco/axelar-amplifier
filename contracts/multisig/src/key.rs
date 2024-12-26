@@ -299,6 +299,7 @@ impl TryFrom<(KeyType, HexBinary)> for Signature {
             (KeyType::Ecdsa, Recoverable::LEN) => Ok(Signature::EcdsaRecoverable(Recoverable(sig))),
             (KeyType::Ecdsa, NonRecoverable::LEN) => Ok(Signature::Ecdsa(NonRecoverable(sig))),
             (KeyType::Ed25519, ED25519_SIGNATURE_LEN) => Ok(Signature::Ed25519(sig)),
+            (KeyType::AleoSchnorr, _) => Ok(Signature::AleoSchnorr(sig)),
             (_, _) => Err(ContractError::InvalidSignatureFormat {
                 reason: format!(
                     "could not find a match for key type {} and signature length {}",

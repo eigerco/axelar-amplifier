@@ -78,6 +78,7 @@ pub fn execute(
     match msg.ensure_permissions(deps.storage, &info.sender)? {
         ExecuteMsg::ConstructProof(message_ids) => Ok(execute::construct_proof(deps, message_ids)?),
         ExecuteMsg::UpdateVerifierSet {} => Ok(execute::update_verifier_set(deps, env)?),
+        ExecuteMsg::CleanVerifierSet {} => Ok(execute::clean_verifier_set(deps)?),
         ExecuteMsg::ConfirmVerifierSet {} => Ok(execute::confirm_verifier_set(deps, info.sender)?),
         ExecuteMsg::UpdateSigningThreshold {
             new_signing_threshold,
@@ -138,6 +139,10 @@ pub fn migrate(
         chain_name: ChainName::from_str("aleo-2").unwrap(),
         encoder: Encoder::Aleo,
         key_type: multisig::key::KeyType::AleoSchnorr,
+        multisig: address::validate_cosmwasm_address(
+            deps.api,
+            "axelar19gzem44q7kl9zwdt3r0vnmaafgj6j63ke80ca0x38crzchj593wsty08es",
+        )?,
         ..old_config
     };
 

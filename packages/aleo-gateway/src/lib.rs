@@ -97,8 +97,8 @@ impl TryFrom<&VerifierSet> for WeightedSigners {
             .signers
             .values()
             .map(|signer| match &signer.pub_key {
-                PublicKey::AleoSchnorr(_) => Ok(WeightedSigner {
-                    signer: Address::from_str(&signer.address.to_string()).map_err(|e| {
+                PublicKey::AleoSchnorr(key) => Ok(WeightedSigner {
+                    signer: Address::try_from(key).map_err(|e| {
                         Report::new(Error::AleoGateway(format!(
                             "Failed to parse address: {}",
                             e

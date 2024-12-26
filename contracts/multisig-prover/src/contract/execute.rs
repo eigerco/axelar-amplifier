@@ -91,26 +91,6 @@ pub fn construct_proof(
     Ok(Response::new().add_submessage(SubMsg::reply_on_success(wasm_msg, START_MULTISIG_REPLY_ID)))
 }
 
-fn noop_digest() -> multisig::msg::ExecuteMsg {
-    let participants = vec![(
-        Participant {
-            address: Addr::unchecked("0x1"),
-            weight: axelar_wasm_std::nonempty::Uint128::try_from(1u128).unwrap(),
-        },
-        multisig::key::PublicKey::AleoSchnorr(HexBinary::from(vec![0u8; 32])),
-    )];
-    let verifier_set = VerifierSet::new(participants, Uint128::try_from(5u128).unwrap(), 1);
-
-    let start_sig_msg = multisig::msg::ExecuteMsg::StartSigningSession {
-        verifier_set_id: verifier_set.id(),
-        msg: "{a: 49u8}".as_bytes().to_vec().into(),
-        chain_name: ChainName::from_str("aleo-2").unwrap(),
-        sig_verifier: None,
-    };
-
-    start_sig_msg
-}
-
 fn messages(
     querier: QuerierWrapper,
     message_ids: Vec<CrossChainId>,
@@ -317,6 +297,14 @@ pub fn update_verifier_set(
                 )))
         }
     }
+}
+
+pub fn clean_verifier_set(
+    deps: DepsMut,
+) -> error_stack::Result<Response, ContractError> {
+    CURRENT_VERIFIER_SET.remove(deps.storage);
+
+    Ok(Response::new())
 }
 
 fn ensure_verifier_set_verification(

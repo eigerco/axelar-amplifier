@@ -24,7 +24,10 @@ url="http://127.0.0.1:50051"
 
 [[handlers]]
 # this is the Multisig contract address, deployed and maintained by Axelar
-cosmwasm_contract = "axelar19jxy26z0qnnspa45y5nru0l5rmy9d637z5km2ndjxthfxf5qaswst9290r"
+# cosmwasm_contract = "axelar19jxy26z0qnnspa45y5nru0l5rmy9d637z5km2ndjxthfxf5qaswst9290r"
+# this is Aleo Multisig needed to add the schnorr signature
+cosmwasm_contract = "axelar19gzem44q7kl9zwdt3r0vnmaafgj6j63ke80ca0x38crzchj593wsty08es"
+
 type = "MultisigSigner"
 
 # [[handlers]]

@@ -1,4 +1,4 @@
-use std::str::FromStr;
+use std::{fmt::Display, str::FromStr};
 
 use cosmwasm_std::HexBinary;
 use error_stack::{ensure, Report, Result};
@@ -6,12 +6,20 @@ use serde::{Deserialize, Serialize};
 
 use crate::{verify_becnh32, Error};
 
+pub const ALEO_ADDRESS_LEN: usize = 63;
+
 #[derive(Serialize, Deserialize, Debug, PartialEq, Eq)]
 pub struct Address(pub String);
 
 impl Default for Address {
     fn default() -> Self {
         Self("aleo1cpwac324ulhwk55wpljtq5kserrzj8dj6qw35fje7ypt2sqpv5ysj8p76w".to_string())
+    }
+}
+
+impl Display for Address {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self.0)
     }
 }
 
@@ -28,9 +36,10 @@ impl FromStr for Address {
         const PREFIX: &str = "aleo";
 
         ensure!(
-            address.len() == 63,
+            address.len() == ALEO_ADDRESS_LEN,
             Error::InvalidAleoAddress(format!(
-                "Expected address len is 63. Address '{}' is of len {}",
+                "Expected address len is {}. Address '{}' is of len {}",
+                ALEO_ADDRESS_LEN,
                 address,
                 address.len()
             ))
@@ -46,9 +55,9 @@ impl TryFrom<&HexBinary> for Address {
     type Error = Report<Error>;
 
     fn try_from(hex: &HexBinary) -> Result<Self, Error> {
-        let address = hex.as_slice();
-        let hex_address = hex::encode(address);
-        Address::from_str(hex_address.as_str())
+        let address =
+            std::str::from_utf8(&hex).map_err(|e| Error::InvalidAleoAddress(e.to_string()))?;
+        Address::from_str(address)
     }
 }
 

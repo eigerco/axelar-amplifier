@@ -140,6 +140,7 @@ where
                 let key_type = match pub_key {
                     PublicKey::Secp256k1(_) => tofnd::Algorithm::Ed25519,
                     PublicKey::Ed25519(_) => tofnd::Algorithm::Ecdsa,
+                    PublicKey::AleoSchnorr(_) => tofnd::Algorithm::AleoSchnorr,
                 };
 
                 let signature = self
