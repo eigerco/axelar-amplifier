@@ -15,6 +15,8 @@ pub enum Error {
     UnsupportedConversionForCosmosKey(PublicKey),
     #[error("invalid raw bytes")]
     InvalidRawBytes,
+    #[error("unsupported public key type: '{0:?}'")]
+    UnsupportedPublicKey(multisig::key::PublicKey),
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Copy)]
@@ -73,6 +75,7 @@ impl TryFrom<&multisig::key::PublicKey> for PublicKey {
         match key {
             multisig::key::PublicKey::Ecdsa(key) => Self::new_secp256k1(key),
             multisig::key::PublicKey::Ed25519(key) => Self::new_ed25519(key),
+            _ => Err(Report::new(Error::UnsupportedPublicKey(key.clone()))),
         }
     }
 }
