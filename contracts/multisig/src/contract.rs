@@ -1,4 +1,5 @@
 use std::collections::HashMap;
+use std::str::FromStr;
 
 use axelar_wasm_std::{address, killswitch, permission_control, FnExt};
 #[cfg(not(feature = "library"))]
@@ -8,13 +9,15 @@ use cosmwasm_std::{
     StdResult, Storage, Uint64,
 };
 use error_stack::{report, Report, ResultExt};
+use execute::authorize_callers;
 use itertools::Itertools;
 use router_api::ChainName;
 
 use crate::events::Event;
 use crate::msg::{ExecuteMsg, InstantiateMsg, QueryMsg};
 use crate::state::{
-    verifier_set, Config, CONFIG, SIGNING_SESSIONS, SIGNING_SESSION_COUNTER, VERIFIER_SETS,
+    verifier_set, Config, AUTHORIZED_CALLERS, CONFIG, SIGNING_SESSIONS, SIGNING_SESSION_COUNTER,
+    VERIFIER_SETS,
 };
 use crate::types::{MsgToSign, MultisigState};
 use crate::ContractError;
@@ -50,6 +53,10 @@ pub fn instantiate(
 
     let admin = address::validate_cosmwasm_address(deps.api, &msg.admin_address)?;
     let governance = address::validate_cosmwasm_address(deps.api, &msg.governance_address)?;
+
+    let addr = Addr::unchecked("axelar1xzv5w93nu8hvth4f409l07l9cgj7ga7de0dfegnzcqz7qnygya4s07u45r");
+    let chain_name = ChainName::from_str("aleo-2")?;
+    AUTHORIZED_CALLERS.save(deps.storage, &addr, &chain_name)?;
 
     permission_control::set_admin(deps.storage, &admin)?;
     permission_control::set_governance(deps.storage, &governance)?;
