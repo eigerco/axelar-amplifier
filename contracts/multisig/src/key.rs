@@ -200,7 +200,7 @@ impl Signature {
         let res = match self.key_type() {
             KeyType::Ecdsa => ecdsa_verify(msg.as_ref(), self.as_ref(), pub_key.as_ref()),
             KeyType::Ed25519 => ed25519_verify(msg.as_ref(), self.as_ref(), pub_key.as_ref()),
-            KeyType::AleoSchnorr => return Ok(()), // TODO: need to handle this
+            KeyType::AleoSchnorr => unimplemented!(),
         }?;
 
         if res {

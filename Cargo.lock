@@ -5664,6 +5664,7 @@ dependencies = [
  "serde_json",
  "sha3",
  "signature-verifier-api",
+ "snarkvm-wasm",
  "thiserror 1.0.69",
 ]
 

@@ -141,12 +141,14 @@ pub fn migrate(
         key_type: multisig::key::KeyType::AleoSchnorr,
         multisig: address::validate_cosmwasm_address(
             deps.api,
-            "export MULTISIG_ADDRESS=axelar1g5vu3hs8g5hq3wy7q2p4c6q0aar08f3n2z73nrxgf56rg7yrzkds5kh89l"
+            "axelar1g5vu3hs8g5hq3wy7q2p4c6q0aar08f3n2z73nrxgf56rg7yrzkds5kh89l"
         )?,
         ..old_config
     };
 
     CONFIG.save(deps.storage, &new_config)?;
+
+    crate::state::CURRENT_VERIFIER_SET.remove(deps.storage);
 
     Ok(Response::default())
 }

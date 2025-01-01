@@ -98,12 +98,15 @@ impl TryFrom<&VerifierSet> for WeightedSigners {
             .values()
             .map(|signer| match &signer.pub_key {
                 PublicKey::AleoSchnorr(key) => Ok(WeightedSigner {
-                    signer: Address::try_from(key).map_err(|e| {
+                    signer: Address::default(),
+                    /*
+                    Address::try_from(key).map_err(|e| {
                         Report::new(Error::AleoGateway(format!(
                             "Failed to parse address: {}",
                             e
                         )))
                     })?,
+*/
                     weight: signer.weight.into(),
                 }),
                 PublicKey::Ecdsa(_) => Err(Report::new(Error::UnsupportedPublicKey(
@@ -299,8 +302,6 @@ impl From<Vec<Message>> for Messages {
 
 use snarkvm_wasm::{network::Network};
 use snarkvm_wasm::program::ToBits;
-// use snarkvm_wasm::types::ToBits;
-// use snarkvm_wasm::program::ToBits;
 
 impl Messages {
     pub fn to_aleo_string(&self) -> Result<String, Error> {
