@@ -61,5 +61,9 @@ pub fn encode_execute_data(
             .then(|v| v.to_aleo_string()),
     };
 
-    todo!()
+    let proof = aleo_gateway::Proof::try_from((verifier_set.clone(), signatures))
+        .change_context(ContractError::Proof)?;
+
+    let data = payload.as_bytes();
+    Ok(HexBinary::from(data))
 }

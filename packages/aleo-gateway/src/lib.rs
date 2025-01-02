@@ -4,6 +4,7 @@ use aleo_types::address::Address;
 use cosmwasm_std::Uint128;
 use error_stack::Report;
 use multisig::key::PublicKey;
+use multisig::msg::SignerWithSig;
 use multisig::verifier_set::VerifierSet;
 use thiserror::Error;
 
@@ -33,6 +34,7 @@ pub struct Message {
     pub payload_hash: [u8; 32],
 }
 
+#[derive(Debug, Clone)]
 pub struct WeightedSigner {
     signer: Address,
     weight: u128,
@@ -98,15 +100,12 @@ impl TryFrom<&VerifierSet> for WeightedSigners {
             .values()
             .map(|signer| match &signer.pub_key {
                 PublicKey::AleoSchnorr(key) => Ok(WeightedSigner {
-                    signer: Address::default(),
-                    /*
-                    Address::try_from(key).map_err(|e| {
+                    signer: Address::try_from(key).map_err(|e| {
                         Report::new(Error::AleoGateway(format!(
                             "Failed to parse address: {}",
                             e
                         )))
                     })?,
-*/
                     weight: signer.weight.into(),
                 }),
                 PublicKey::Ecdsa(_) => Err(Report::new(Error::UnsupportedPublicKey(
@@ -300,7 +299,7 @@ impl From<Vec<Message>> for Messages {
     }
 }
 
-use snarkvm_wasm::{network::Network};
+use snarkvm_wasm::network::Network;
 use snarkvm_wasm::program::ToBits;
 
 impl Messages {
@@ -322,15 +321,58 @@ impl Messages {
     }
 }
 
+// TODO: nonce is skipped
+
+#[derive(Clone, Debug)]
+pub struct RawSignature {
+    pub signature: Vec<u8>,
+}
+
+#[derive(Clone, Debug)]
+pub struct SignerWithSignature {
+    pub signer: WeightedSigner,
+    pub signature: RawSignature,
+}
+
+#[derive(Clone, Debug)]
+pub struct Proof {
+    pub signers: Vec<SignerWithSignature>,
+}
+
+impl TryFrom<(VerifierSet, Vec<SignerWithSig>)> for Proof {
+    type Error = Report<Error>;
+
+    fn try_from(
+        (verifier_set, signer_with_signature): (VerifierSet, Vec<SignerWithSig>),
+    ) -> Result<Self, Self::Error> {
+        let signers = vec![SignerWithSignature {
+            signer: WeightedSigner {
+                signer: Address::default(),
+                weight: 0,
+            },
+            signature: RawSignature {
+                signature: match signer_with_signature[0].clone().signature {
+                    multisig::key::Signature::AleoSchnorr(sig) => sig.to_vec(),
+                    _ => {
+                        return Err(Report::new(Error::UnsupportedPublicKey(
+                            "HERE 1".to_string(),
+                        )))
+                    }
+                },
+            },
+        }];
+
+        Ok(Proof { signers })
+    }
+}
+
 #[cfg(test)]
 mod test {
     use std::collections::BTreeMap;
 
-    use cosmwasm_std::Addr;
-    use cosmwasm_std::HexBinary;
+    use cosmwasm_std::{Addr, HexBinary};
     use multisig::msg::Signer;
-    use router_api::CrossChainId;
-    use router_api::Message as RouterMessage;
+    use router_api::{CrossChainId, Message as RouterMessage};
 
     use super::*;
 

@@ -8,7 +8,7 @@ use crate::{verify_becnh32, Error};
 
 pub const ALEO_ADDRESS_LEN: usize = 63;
 
-#[derive(Serialize, Deserialize, Debug, PartialEq, Eq)]
+#[derive(Serialize, Deserialize, Debug, PartialEq, Eq, Clone)]
 pub struct Address(pub String);
 
 impl Default for Address {

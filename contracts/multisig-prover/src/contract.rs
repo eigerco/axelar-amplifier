@@ -148,7 +148,7 @@ pub fn migrate(
 
     CONFIG.save(deps.storage, &new_config)?;
 
-    crate::state::CURRENT_VERIFIER_SET.remove(deps.storage);
+    // crate::state::CURRENT_VERIFIER_SET.remove(deps.storage);
 
     Ok(Response::default())
 }

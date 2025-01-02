@@ -51,8 +51,7 @@ impl Encoder {
             Encoder::Bcs => bcs::encode_execute_data(domain_separator, verifier_set, sigs, payload),
             Encoder::StellarXdr => stellar_xdr::encode_execute_data(verifier_set, sigs, payload),
             Encoder::Aleo => {
-                todo!()
-                // aleo::encode_execute_data(domain_separator, verifier_set, sigs, payload)
+                aleo::encode_execute_data(domain_separator, verifier_set, sigs, payload)
             }
         }
     }

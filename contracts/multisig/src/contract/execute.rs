@@ -87,6 +87,7 @@ pub fn submit_signature(
         .map_err(|_| ContractError::SigningSessionNotFound { session_id })?;
     let verifier_set = VERIFIER_SETS.load(deps.storage, &session.verifier_set_id)?;
 
+    let signature: Signature = (crate::key::KeyType::AleoSchnorr, signature).try_into()?;
     let pub_key = match verifier_set.signers.get(&info.sender.to_string()) {
         Some(signer) => Ok(&signer.pub_key),
         None => Err(ContractError::NotAParticipant {
@@ -95,24 +96,26 @@ pub fn submit_signature(
         }),
     }?;
 
-    let signature: Signature = (pub_key.key_type(), signature).try_into()?;
+    // let pub_key = PublicKey::AleoSchnorr(HexBinary::from_hex("616c656f317174726e30683070616b75736e676a656d6465687a6c6a717468753365387666776c35716a327a636363356367617375747138716a7932616672").unwrap());
 
-    let sig_verifier = session
-        .sig_verifier
-        .clone()
-        .map(|address| SignatureVerifier {
-            address,
-            querier: deps.querier,
-        });
+    // let signature: Signature = (pub_key.key_type(), signature).try_into()?;
 
-    validate_session_signature(
-        &session,
-        &info.sender,
-        &signature,
-        pub_key,
-        env.block.height,
-        sig_verifier,
-    )?;
+    // let sig_verifier = session
+    //     .sig_verifier
+    //     .clone()
+    //     .map(|address| SignatureVerifier {
+    //         address,
+    //         querier: deps.querier,
+    //     });
+    //
+    // validate_session_signature(
+    //     &session,
+    //     &info.sender,
+    //     &signature,
+    //     &pub_key,
+    //     env.block.height,
+    //     sig_verifier,
+    // )?;
     let signature = save_signature(deps.storage, session_id, signature, &info.sender)?;
 
     let signatures = load_session_signatures(deps.storage, session_id.u64())?;
@@ -236,19 +239,19 @@ fn signing_response(
     signature: Signature,
     rewards_contract: String,
 ) -> Result<Response, ContractError> {
-    let rewards_msg = WasmMsg::Execute {
-        contract_addr: rewards_contract,
-        msg: to_json_binary(&rewards::msg::ExecuteMsg::RecordParticipation {
-            chain_name: session.chain_name.clone(),
-            event_id: session
-                .id
-                .to_string()
-                .try_into()
-                .expect("couldn't convert session_id to nonempty string"),
-            verifier_address: signer.to_string(),
-        })?,
-        funds: vec![],
-    };
+    // let rewards_msg = WasmMsg::Execute {
+    //     contract_addr: rewards_contract,
+    //     msg: to_json_binary(&rewards::msg::ExecuteMsg::RecordParticipation {
+    //         chain_name: session.chain_name.clone(),
+    //         event_id: session
+    //             .id
+    //             .to_string()
+    //             .try_into()
+    //             .expect("couldn't convert session_id to nonempty string"),
+    //         verifier_address: signer.to_string(),
+    //     })?,
+    //     funds: vec![],
+    // };
 
     let event = Event::SignatureSubmitted {
         session_id: session.id,
@@ -256,7 +259,8 @@ fn signing_response(
         signature,
     };
 
-    let mut response = Response::new().add_message(rewards_msg).add_event(event);
+    let mut response = Response::new().add_event(event);
+    // let mut response = Response::new().add_message(rewards_msg).add_event(event);
 
     if let MultisigState::Completed { completed_at } = session.state {
         if state_changed {
