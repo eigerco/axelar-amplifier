@@ -23,6 +23,10 @@ pub enum Event {
         participant: Addr,
         signature: Signature,
     },
+    Signature {
+        public_key: PublicKey,
+        signature: HexBinary,
+    },
     // Emitted when a signing session was completed
     SigningCompleted {
         session_id: Uint64,
@@ -108,6 +112,9 @@ impl From<Event> for cosmwasm_std::Event {
                 .add_attribute("chain_name", chain_name),
             Event::SigningEnabled => cosmwasm_std::Event::new("signing_enabled"),
             Event::SigningDisabled => cosmwasm_std::Event::new("signing_disabled"),
+            Event::Signature { public_key, signature } => cosmwasm_std::Event::new("signature")
+                .add_attribute("public_key", to_string(&public_key).unwrap())
+                .add_attribute("signature", HexBinary::from(signature).to_hex()),
         }
     }
 }

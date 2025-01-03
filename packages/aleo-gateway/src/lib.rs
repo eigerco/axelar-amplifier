@@ -14,7 +14,7 @@ pub enum Error {
     AleoGateway(String),
     #[error("Unsupported Public Key: {0}")]
     UnsupportedPublicKey(String),
-    #[error("Aleo: {0}")]
+  #[error("Aleo: {0}")]
     Aleo(#[from] snarkvm_wasm::program::Error),
     #[error("Hex: {0}")]
     Hex(#[from] hex::FromHexError),
@@ -31,7 +31,7 @@ pub struct Message {
     pub source_address: String,
     pub destination_chain: router_api::ChainName,
     pub destination_address: String,
-    pub payload_hash: [u8; 32],
+    pub payload_hash: [u8; 32], // The hash of the payload, send from the relayer of the source chain
 }
 
 #[derive(Debug, Clone)]
@@ -95,7 +95,7 @@ impl TryFrom<&VerifierSet> for WeightedSigners {
     type Error = Report<Error>;
 
     fn try_from(value: &VerifierSet) -> Result<Self, Self::Error> {
-        let signers = value
+        let mut signers = value
             .signers
             .values()
             .map(|signer| match &signer.pub_key {
@@ -123,6 +123,8 @@ impl TryFrom<&VerifierSet> for WeightedSigners {
             }))
             .take(32)
             .collect::<Result<Vec<_>, _>>()?;
+
+        signers.sort_by(|signer1, signer2| signer1.signer.cmp(&signer2.signer));
 
         let threshold = value.threshold;
         let nonce = [0, 0, 0, value.created_at];
@@ -328,6 +330,18 @@ pub struct RawSignature {
     pub signature: Vec<u8>,
 }
 
+impl RawSignature {
+    pub fn to_aleo_string(&self) -> Result<String, Report<Error>> {
+        let res = String::from_utf8(self.signature.clone()).map_err(|e| {
+            Report::new(Error::AleoGateway(format!(
+                "Failed to convert to utf8: {}",
+                e
+            )))
+        })?;
+        Ok(res)
+    }
+}
+
 #[derive(Clone, Debug)]
 pub struct SignerWithSignature {
     pub signer: WeightedSigner,
@@ -339,30 +353,93 @@ pub struct Proof {
     pub signers: Vec<SignerWithSignature>,
 }
 
-impl TryFrom<(VerifierSet, Vec<SignerWithSig>)> for Proof {
-    type Error = Report<Error>;
+impl Proof {
+    pub fn new(
+        verifier_set: VerifierSet,
+        signer_with_signature: Vec<SignerWithSig>,
+    ) -> Result<Self, Report<Error>> {
+        let weighted_signers = WeightedSigners::try_from(&verifier_set)?;
 
-    fn try_from(
-        (verifier_set, signer_with_signature): (VerifierSet, Vec<SignerWithSig>),
-    ) -> Result<Self, Self::Error> {
-        let signers = vec![SignerWithSignature {
-            signer: WeightedSigner {
-                signer: Address::default(),
-                weight: 0,
-            },
-            signature: RawSignature {
-                signature: match signer_with_signature[0].clone().signature {
-                    multisig::key::Signature::AleoSchnorr(sig) => sig.to_vec(),
-                    _ => {
-                        return Err(Report::new(Error::UnsupportedPublicKey(
-                            "HERE 1".to_string(),
-                        )))
-                    }
-                },
-            },
-        }];
+        let mut signer_with_signature = signer_with_signature;
+
+        signer_with_signature.sort_by(|s1, s2| s1.signer.address.cmp(&s2.signer.address));
+
+        let raw_signatures = signer_with_signature
+            .iter()
+            .cloned()
+            .map(|s| {
+                Ok(RawSignature {
+                    signature: match s.signature {
+                        multisig::key::Signature::AleoSchnorr(sig) => sig.to_vec(),
+                        _ => {
+                            return Err(Report::new(Error::UnsupportedPublicKey(
+                                "Missing Aleo schnorr signature".to_string(),
+                            )))
+                        }
+                    },
+                })
+            })
+            .collect::<Result<Vec<_>, Report<Error>>>()?;
+
+        let signers = weighted_signers
+            .signers
+            .iter()
+            .cloned()
+            .zip(raw_signatures)
+            .map(|(signer, signature)| Ok(SignerWithSignature { signer, signature }))
+            .collect::<Result<Vec<_>, Report<Error>>>()?;
 
         Ok(Proof { signers })
+    }
+}
+
+impl Proof {
+    pub fn to_aleo_string(&self) -> Result<String, Error> {
+        let res = format!(
+            r#"{{ signers: [{}] }}"#,
+            self.signers
+                .iter()
+                .map(|signer| {
+                    format!(
+                        r#"{{ signer: {}, sign: {} }}"#,
+                        signer.signer.to_aleo_string(),
+                        signer.signature.to_aleo_string().unwrap(),
+                    )
+                })
+                .collect::<Vec<_>>()
+                .join(", ")
+        );
+
+        Ok(res)
+    }
+
+    pub fn hash(&self) -> Result<[u8; 32], Report<Error>> {
+        hash(self.to_aleo_string()?)
+    }
+}
+
+pub struct ExecuteData {
+    proof: Proof,
+    payload: Messages,
+}
+
+impl ExecuteData {
+    pub fn new(proof: Proof, payload: Messages) -> ExecuteData {
+        ExecuteData { proof, payload }
+    }
+
+    pub fn to_aleo_string(&self) -> Result<String, Error> {
+        let res = format!(
+            r#"{{ proof: {}, payload: {} }}"#,
+            self.proof.to_aleo_string()?,
+            self.payload.to_aleo_string()?
+        );
+
+        Ok(res)
+    }
+
+    pub fn hash(&self) -> Result<[u8; 32], Report<Error>> {
+        hash(self.to_aleo_string()?)
     }
 }
 
@@ -382,8 +459,8 @@ mod test {
         let message_id = "au14zeyyly2s2nc8f4vze5u2gs27uyjv72qds66cvre3tlwrewqdurqpsj839";
         let source_address = "aleo10fmsqwh059uqm74x6t6zgj93wfxtep0avevcxz0n4w9uawymkv9s7whsau";
         let destination_chain = "chain1";
-        let payload_hash = "8c3685dc41c2eca11426f8035742fb97ea9f14931152670a5703f18fe8b392f0";
         let destination_address = "666f6f0000000000000000000000000000000000";
+        let payload_hash = "8c3685dc41c2eca11426f8035742fb97ea9f14931152670a5703f18fe8b392f0";
 
         let router_messages = RouterMessage {
             cc_id: CrossChainId::new(source_chain, message_id).unwrap(),
@@ -418,7 +495,10 @@ mod test {
                             "aleo1xpc0kpexvqc29eskjfkuyrervtqr8a8tptnmp7rhdg964xlw55psq5dnk4",
                         ),
                         weight: 1u8.into(),
-                        pub_key: PublicKey::AleoSchnorr(HexBinary::default()),
+                        pub_key: PublicKey::AleoSchnorr(HexBinary::from(
+                            "aleo1xpc0kpexvqc29eskjfkuyrervtqr8a8tptnmp7rhdg964xlw55psq5dnk4"
+                                .as_bytes(),
+                        )),
                     },
                 ),
                 (
@@ -428,7 +508,10 @@ mod test {
                             "aleo1p8utxn802p9wrextsfjynz04rg6eq36404jxvt40sy89jpfl0qzq20l35n",
                         ),
                         weight: 1u8.into(),
-                        pub_key: PublicKey::AleoSchnorr(HexBinary::default()),
+                        pub_key: PublicKey::AleoSchnorr(HexBinary::from(
+                            "aleo1p8utxn802p9wrextsfjynz04rg6eq36404jxvt40sy89jpfl0qzq20l35n"
+                                .as_bytes(),
+                        )),
                     },
                 ),
             ]),
@@ -441,9 +524,158 @@ mod test {
         println!("weighted_signers: {:?}", weighted_signers.to_aleo_string());
         println!("hash: {:?}", weighted_signers.hash().unwrap());
     }
-}
 
-/*
-{ messages: [{source_chain: [99u8, 104u8, 97u8, 105u8, 110u8, 48u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8], message_id: [24949u16, 12596u16, 31333u16, 31097u16, 27769u16, 12915u16, 12910u16, 25400u16, 26164u16, 30330u16, 25909u16, 30002u16, 26483u16, 12855u16, 30073u16, 27254u16, 14130u16, 29028u16, 29494u16, 13923u16, 30322u16, 25907u16, 29804u16, 30578u16, 25975u16, 29028u16, 30066u16, 29040u16, 29546u16, 14387u16, 14592u16], source_address: [82u8, 68u8, 79u8, 24u8, 53u8, 173u8, 192u8, 32u8, 134u8, 195u8, 124u8, 178u8, 38u8, 86u8, 22u8, 5u8, 226u8, 225u8, 105u8, 155u8], destination_address: [164u8, 241u8, 15u8, 118u8, 184u8, 110u8, 1u8, 185u8, 141u8, 175u8, 102u8, 163u8, 208u8, 42u8, 101u8, 225u8, 74u8, 219u8, 7u8, 103u8], payload_hash: [140u8, 54u8, 133u8, 220u8, 65u8, 194u8, 236u8, 161u8, 20u8, 38u8, 248u8, 3u8, 87u8, 66u8, 251u8, 151u8, 234u8, 159u8, 20u8, 147u8, 17u8, 82u8, 103u8, 10u8, 87u8, 3u8, 241u8, 143u8, 232u8, 179u8, 146u8, 240u8]}] }
-{ signers: [ WeightedSigner {signer: aleo1p8utxn802p9wrextsfjynz04rg6eq36404jxvt40sy89jpfl0qzq20l35n, weight: 1u128}, WeightedSigner {signer: aleo1xpc0kpexvqc29eskjfkuyrervtqr8a8tptnmp7rhdg964xlw55psq5dnk4, weight: 1u128}, WeightedSigner {signer: aleo1cpwac324ulhwk55wpljtq5kserrzj8dj6qw35fje7ypt2sqpv5ysj8p76w, weight: 0u128}, WeightedSigner {signer: aleo1cpwac324ulhwk55wpljtq5kserrzj8dj6qw35fje7ypt2sqpv5ysj8p76w, weight: 0u128}, WeightedSigner {signer: aleo1cpwac324ulhwk55wpljtq5kserrzj8dj6qw35fje7ypt2sqpv5ysj8p76w, weight: 0u128}, WeightedSigner {signer: aleo1cpwac324ulhwk55wpljtq5kserrzj8dj6qw35fje7ypt2sqpv5ysj8p76w, weight: 0u128}, WeightedSigner {signer: aleo1cpwac324ulhwk55wpljtq5kserrzj8dj6qw35fje7ypt2sqpv5ysj8p76w, weight: 0u128}, WeightedSigner {signer: aleo1cpwac324ulhwk55wpljtq5kserrzj8dj6qw35fje7ypt2sqpv5ysj8p76w, weight: 0u128}, WeightedSigner {signer: aleo1cpwac324ulhwk55wpljtq5kserrzj8dj6qw35fje7ypt2sqpv5ysj8p76w, weight: 0u128}, WeightedSigner {signer: aleo1cpwac324ulhwk55wpljtq5kserrzj8dj6qw35fje7ypt2sqpv5ysj8p76w, weight: 0u128}, WeightedSigner {signer: aleo1cpwac324ulhwk55wpljtq5kserrzj8dj6qw35fje7ypt2sqpv5ysj8p76w, weight: 0u128}, WeightedSigner {signer: aleo1cpwac324ulhwk55wpljtq5kserrzj8dj6qw35fje7ypt2sqpv5ysj8p76w, weight: 0u128}, WeightedSigner {signer: aleo1cpwac324ulhwk55wpljtq5kserrzj8dj6qw35fje7ypt2sqpv5ysj8p76w, weight: 0u128}, WeightedSigner {signer: aleo1cpwac324ulhwk55wpljtq5kserrzj8dj6qw35fje7ypt2sqpv5ysj8p76w, weight: 0u128}, WeightedSigner {signer: aleo1cpwac324ulhwk55wpljtq5kserrzj8dj6qw35fje7ypt2sqpv5ysj8p76w, weight: 0u128}, WeightedSigner {signer: aleo1cpwac324ulhwk55wpljtq5kserrzj8dj6qw35fje7ypt2sqpv5ysj8p76w, weight: 0u128}, WeightedSigner {signer: aleo1cpwac324ulhwk55wpljtq5kserrzj8dj6qw35fje7ypt2sqpv5ysj8p76w, weight: 0u128}, WeightedSigner {signer: aleo1cpwac324ulhwk55wpljtq5kserrzj8dj6qw35fje7ypt2sqpv5ysj8p76w, weight: 0u128}, WeightedSigner {signer: aleo1cpwac324ulhwk55wpljtq5kserrzj8dj6qw35fje7ypt2sqpv5ysj8p76w, weight: 0u128}, WeightedSigner {signer: aleo1cpwac324ulhwk55wpljtq5kserrzj8dj6qw35fje7ypt2sqpv5ysj8p76w, weight: 0u128}, WeightedSigner {signer: aleo1cpwac324ulhwk55wpljtq5kserrzj8dj6qw35fje7ypt2sqpv5ysj8p76w, weight: 0u128}, WeightedSigner {signer: aleo1cpwac324ulhwk55wpljtq5kserrzj8dj6qw35fje7ypt2sqpv5ysj8p76w, weight: 0u128}, WeightedSigner {signer: aleo1cpwac324ulhwk55wpljtq5kserrzj8dj6qw35fje7ypt2sqpv5ysj8p76w, weight: 0u128}, WeightedSigner {signer: aleo1cpwac324ulhwk55wpljtq5kserrzj8dj6qw35fje7ypt2sqpv5ysj8p76w, weight: 0u128}, WeightedSigner {signer: aleo1cpwac324ulhwk55wpljtq5kserrzj8dj6qw35fje7ypt2sqpv5ysj8p76w, weight: 0u128}, WeightedSigner {signer: aleo1cpwac324ulhwk55wpljtq5kserrzj8dj6qw35fje7ypt2sqpv5ysj8p76w, weight: 0u128}, WeightedSigner {signer: aleo1cpwac324ulhwk55wpljtq5kserrzj8dj6qw35fje7ypt2sqpv5ysj8p76w, weight: 0u128}, WeightedSigner {signer: aleo1cpwac324ulhwk55wpljtq5kserrzj8dj6qw35fje7ypt2sqpv5ysj8p76w, weight: 0u128}, WeightedSigner {signer: aleo1cpwac324ulhwk55wpljtq5kserrzj8dj6qw35fje7ypt2sqpv5ysj8p76w, weight: 0u128}, WeightedSigner {signer: aleo1cpwac324ulhwk55wpljtq5kserrzj8dj6qw35fje7ypt2sqpv5ysj8p76w, weight: 0u128}, WeightedSigner {signer: aleo1cpwac324ulhwk55wpljtq5kserrzj8dj6qw35fje7ypt2sqpv5ysj8p76w, weight: 0u128}, WeightedSigner {signer: aleo1cpwac324ulhwk55wpljtq5kserrzj8dj6qw35fje7ypt2sqpv5ysj8p76w, weight: 0u128} ], threshold: 2u128, nonce: [ 0u64, 0u64, 0u64, 100u64 ] }
-*/
+    fn message() -> Message {
+        let source_chain = "chain0";
+        let message_id = "au14zeyyly2s2nc8f4vze5u2gs27uyjv72qds66cvre3tlwrewqdurqpsj839";
+        let source_address = "aleo10fmsqwh059uqm74x6t6zgj93wfxtep0avevcxz0n4w9uawymkv9s7whsau";
+        let destination_chain = "chain1";
+        let destination_address = "666f6f0000000000000000000000000000000000";
+        let payload_hash = "8c3685dc41c2eca11426f8035742fb97ea9f14931152670a5703f18fe8b392f0";
+
+        let router_messages = RouterMessage {
+            cc_id: CrossChainId::new(source_chain, message_id).unwrap(),
+            source_address: source_address.parse().unwrap(),
+            destination_address: destination_address.parse().unwrap(),
+            destination_chain: destination_chain.parse().unwrap(),
+            payload_hash: HexBinary::from_hex(payload_hash)
+                .unwrap()
+                .to_array::<32>()
+                .unwrap(),
+        };
+        Message::try_from(&router_messages).unwrap()
+    }
+
+    fn weighted_signers() -> WeightedSigners {
+        let verifier_set = VerifierSet {
+            signers: BTreeMap::from_iter(vec![
+                (
+                    "aleo1xpc0kpexvqc29eskjfkuyrervtqr8a8tptnmp7rhdg964xlw55psq5dnk4".to_string(),
+                    Signer {
+                        address: Addr::unchecked(
+                            "aleo1xpc0kpexvqc29eskjfkuyrervtqr8a8tptnmp7rhdg964xlw55psq5dnk4",
+                        ),
+                        weight: 1u8.into(),
+                        pub_key: PublicKey::AleoSchnorr(HexBinary::from(
+                            "aleo1xpc0kpexvqc29eskjfkuyrervtqr8a8tptnmp7rhdg964xlw55psq5dnk4"
+                                .as_bytes(),
+                        )),
+                    },
+                ),
+                (
+                    "aleo1p8utxn802p9wrextsfjynz04rg6eq36404jxvt40sy89jpfl0qzq20l35n".to_string(),
+                    Signer {
+                        address: Addr::unchecked(
+                            "aleo1p8utxn802p9wrextsfjynz04rg6eq36404jxvt40sy89jpfl0qzq20l35n",
+                        ),
+                        weight: 1u8.into(),
+                        pub_key: PublicKey::AleoSchnorr(HexBinary::from(
+                            "aleo1p8utxn802p9wrextsfjynz04rg6eq36404jxvt40sy89jpfl0qzq20l35n"
+                                .as_bytes(),
+                        )),
+                    },
+                ),
+            ]),
+            threshold: 2u8.into(),
+            created_at: 100u64,
+        };
+
+        WeightedSigners::try_from(&verifier_set).unwrap()
+    }
+
+    #[test]
+    fn foo() {
+        let w = weighted_signers();
+        println!("w: {:?}", w.to_aleo_string());
+    }
+
+    #[test]
+    fn payload_digest() {
+        let messages = Messages::from(vec![message()]);
+        let weighted_signers = weighted_signers();
+
+        let messages_hash = messages.hash().unwrap();
+        let weighted_signers_hash = weighted_signers.hash().unwrap();
+        let domain_separator: [u8; 32] =
+            hex::decode("6973c72935604464b28827141b0a463af8e3487616de69c5aa0c785392c9fb9f")
+                .unwrap()
+                .try_into()
+                .unwrap();
+
+        let payload_digest =
+            PayloadDigest::new(&domain_separator, &weighted_signers_hash, &messages_hash);
+
+        let hash = hash(payload_digest.to_aleo_string()).unwrap();
+        assert_eq!(
+            hash,
+            [
+                43u8, 248u8, 246u8, 8u8, 215u8, 130u8, 185u8, 164u8, 19u8, 56u8, 205u8, 182u8,
+                249u8, 113u8, 213u8, 193u8, 20u8, 116u8, 38u8, 252u8, 144u8, 133u8, 179u8, 34u8,
+                30u8, 137u8, 68u8, 203u8, 100u8, 157u8, 71u8, 143u8
+            ]
+        );
+    }
+
+    #[test]
+    fn proof() {
+        // APrivateKey1zkp2BXKmUopUZoU7b2necZ4xSxJnBazytJoSTXiPDqvqUny
+        // AViewKey1dYXjvYok2j5543n2Bkdy5mQqhtsKWv5QorWmCyJp3rMu
+        let addr1 = "aleo1hhssuewasdcya3xjepae5eum0dqja0m4z6carnr5qfp6lnqtxyqskavctq";
+
+        //
+        // APrivateKey1zkpB9x9aKfPwHBALJFCpENtteCkBkFPCCSmgyVWeqZ6PgKy
+        // AViewKey1hoTRJKFTK3VUiKDFBVCfFBqH2atcT4eTFmNYysNe9xch
+        let addr2 = "aleo17ge8zcz2js90h8mvgpr4w5wqqy56jlt2txznh4zavvvrtrzra5qs7v0n84";
+
+        let verifier_set = VerifierSet {
+            signers: BTreeMap::from_iter(vec![
+                (
+                    addr1.to_string(),
+                    Signer {
+                        address: Addr::unchecked(addr1),
+                        weight: 1u8.into(),
+                        pub_key: PublicKey::AleoSchnorr(HexBinary::from(addr1.as_bytes())),
+                    },
+                ),
+                (
+                    addr2.to_string(),
+                    Signer {
+                        address: Addr::unchecked(addr2),
+                        weight: 1u8.into(),
+                        pub_key: PublicKey::AleoSchnorr(HexBinary::from(addr2.as_bytes())),
+                    },
+                ),
+            ]),
+            threshold: 2u8.into(),
+            created_at: 100u64,
+        };
+
+        //foo
+        let sign1 = "sign1enc46v36a9kdc7wenwmd8pm27x9hphvqw4f05suqjuxky2rjdqqvqvl3w09u7sg99ky7kcelprw7ww2aglmunfjhmatzm5hx0fhdyqzqutkjzvshmqjnxvfdu7qnkrplyesp88uwarr38z44mwfe998aqnr6tvq6qwastx9942fphg99l522t89kvrswfdea5nxttgsxwqwsx7wdty9";
+        // bar
+        let sign2 = "sign1zq7azu97z7rdkchqe9nlun7t5sjnyhlrxks93fyu3f9yfu68qcpr4zlwvqtka36lcaq06yxf3u6h2jkytc5ajdh0t0xr5vjtfjrvqqzkwlnfxjjxg6gr0lzlxth7rq6xq27828zs6s75tlskrwvw2hfhpks52z8m5un66eqt0yp8ehe6498ljtd4skqyu8ftfesvh28qypeqjpxrglp";
+
+        let signer_with_sig = vec![
+            SignerWithSig {
+                signer: Signer {
+                    address: Addr::unchecked(addr1),
+                    weight: 1u8.into(),
+                    pub_key: PublicKey::AleoSchnorr(HexBinary::from(addr1.as_bytes())),
+                },
+                signature: multisig::key::Signature::AleoSchnorr(HexBinary::from(sign1.as_bytes())),
+            },
+            SignerWithSig {
+                signer: Signer {
+                    address: Addr::unchecked(addr2),
+                    weight: 1u8.into(),
+                    pub_key: PublicKey::AleoSchnorr(HexBinary::from(addr2.as_bytes())),
+                },
+                signature: multisig::key::Signature::AleoSchnorr(HexBinary::from(sign2.as_bytes())),
+            },
+        ];
+
+        let proof = Proof::new(verifier_set, signer_with_sig).unwrap();
+        let aleo_string = proof.to_aleo_string().unwrap();
+        println!("proof: {:?}", aleo_string);
+    }
+}

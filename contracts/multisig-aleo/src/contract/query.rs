@@ -4,7 +4,7 @@ use cosmwasm_std::{HexBinary, StdResult};
 
 pub(crate) fn verify_signature(signature: HexBinary,
         message: HexBinary,
-        public_key: HexBinary,
+        public_key: String,
         ) -> StdResult<bool> {
     // TODO: make network generic
     type Curr = snarkvm_wasm::network::TestnetV0;

@@ -36,13 +36,13 @@ pub fn query(
         QueryMsg::VerifySignature {
             signature,
             message,
-            public_key,
-            signer_address: _,
+            public_key: _,
+            signer_address,
             session_id: _,
         } => to_json_binary(&query::verify_signature(
             signature,
             message,
-            public_key,
+            signer_address,
         )?)?,
     }
     .then(Ok)

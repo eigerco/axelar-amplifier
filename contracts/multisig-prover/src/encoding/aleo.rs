@@ -53,17 +53,16 @@ pub fn encode_execute_data(
             .map(Message::try_from)
             .collect::<Result<Vec<_>, _>>()
             .change_context(ContractError::InvalidMessage)?
-            .then(Messages::from)
-            .then(|m| m.to_aleo_string())
-            .unwrap(),
-        Payload::VerifierSet(verifier_set) => WeightedSigners::try_from(verifier_set)
-            .change_context(ContractError::InvalidVerifierSet)?
-            .then(|v| v.to_aleo_string()),
+            .then(Messages::from),
+        Payload::VerifierSet(verifier_set) => todo!(),
     };
 
-    let proof = aleo_gateway::Proof::try_from((verifier_set.clone(), signatures))
+    let proof = aleo_gateway::Proof::new(verifier_set.clone(), signatures)
         .change_context(ContractError::Proof)?;
 
-    let data = payload.as_bytes();
-    Ok(HexBinary::from(data))
+    let execute_data = aleo_gateway::ExecuteData::new(proof, payload);
+    let execute_data = execute_data
+        .to_aleo_string()
+        .change_context(ContractError::SerializeData)?;
+    Ok(HexBinary::from(execute_data.as_bytes()))
 }

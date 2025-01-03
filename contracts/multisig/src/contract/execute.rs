@@ -87,7 +87,6 @@ pub fn submit_signature(
         .map_err(|_| ContractError::SigningSessionNotFound { session_id })?;
     let verifier_set = VERIFIER_SETS.load(deps.storage, &session.verifier_set_id)?;
 
-    let signature: Signature = (crate::key::KeyType::AleoSchnorr, signature).try_into()?;
     let pub_key = match verifier_set.signers.get(&info.sender.to_string()) {
         Some(signer) => Ok(&signer.pub_key),
         None => Err(ContractError::NotAParticipant {
@@ -96,26 +95,39 @@ pub fn submit_signature(
         }),
     }?;
 
+    let sig = signature.clone();
+    // let signature: Signature = (crate::key::KeyType::AleoSchnorr, signature).try_into()?;
+    // let pub_key = match verifier_set.signers.get(&info.sender.to_string()) {
+    //     Some(signer) => Ok(&signer.pub_key),
+    //     None => Err(ContractError::NotAParticipant {
+    //         session_id,
+    //         signer: info.sender.to_string(),
+    //     }),
+    // }?;
+
+    // pub_key.
+
     // let pub_key = PublicKey::AleoSchnorr(HexBinary::from_hex("616c656f317174726e30683070616b75736e676a656d6465687a6c6a717468753365387666776c35716a327a636363356367617375747138716a7932616672").unwrap());
 
-    // let signature: Signature = (pub_key.key_type(), signature).try_into()?;
+    let signature: Signature = (pub_key.key_type(), signature).try_into().unwrap();
 
-    // let sig_verifier = session
-    //     .sig_verifier
-    //     .clone()
-    //     .map(|address| SignatureVerifier {
-    //         address,
-    //         querier: deps.querier,
-    //     });
-    //
-    // validate_session_signature(
-    //     &session,
-    //     &info.sender,
-    //     &signature,
-    //     &pub_key,
-    //     env.block.height,
-    //     sig_verifier,
-    // )?;
+    let sig_verifier = session
+        .sig_verifier
+        .clone()
+        .map(|address| SignatureVerifier {
+            address,
+            querier: deps.querier,
+        });
+
+    validate_session_signature(
+        &session,
+        &info.sender,
+        &signature,
+        &pub_key,
+        env.block.height,
+        sig_verifier,
+    )?;
+
     let signature = save_signature(deps.storage, session_id, signature, &info.sender)?;
 
     let signatures = load_session_signatures(deps.storage, session_id.u64())?;
@@ -127,13 +139,22 @@ pub fn submit_signature(
 
     let state_changed = old_state != session.state;
 
-    signing_response(
+    let res = signing_response(
         session,
         state_changed,
         info.sender,
         signature,
         config.rewards_contract.into_string(),
-    )
+    )?;
+
+    let event = Event::Signature {
+        public_key: pub_key.clone(),
+        signature: sig,
+    };
+
+    let res = res.add_event(event);
+
+    Ok(res)
 }
 
 pub fn register_verifier_set(
