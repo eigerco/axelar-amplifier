@@ -64,6 +64,7 @@ thiserror = { workspace = true }
 snarkvm-wasm = { workspace = true }
 
 rand_chacha = "0.3"
+multisig-aleo = { path = "../multisig-aleo" }
 
 [dev-dependencies]
 curve25519-dalek = "4.1.3"

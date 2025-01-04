@@ -95,20 +95,6 @@ pub fn submit_signature(
         }),
     }?;
 
-    let sig = signature.clone();
-    // let signature: Signature = (crate::key::KeyType::AleoSchnorr, signature).try_into()?;
-    // let pub_key = match verifier_set.signers.get(&info.sender.to_string()) {
-    //     Some(signer) => Ok(&signer.pub_key),
-    //     None => Err(ContractError::NotAParticipant {
-    //         session_id,
-    //         signer: info.sender.to_string(),
-    //     }),
-    // }?;
-
-    // pub_key.
-
-    // let pub_key = PublicKey::AleoSchnorr(HexBinary::from_hex("616c656f317174726e30683070616b75736e676a656d6465687a6c6a717468753365387666776c35716a327a636363356367617375747138716a7932616672").unwrap());
-
     let signature: Signature = (pub_key.key_type(), signature).try_into().unwrap();
 
     let sig_verifier = session
@@ -146,13 +132,6 @@ pub fn submit_signature(
         signature,
         config.rewards_contract.into_string(),
     )?;
-
-    let event = Event::Signature {
-        public_key: pub_key.clone(),
-        signature: sig,
-    };
-
-    let res = res.add_event(event);
 
     Ok(res)
 }
@@ -260,19 +239,19 @@ fn signing_response(
     signature: Signature,
     rewards_contract: String,
 ) -> Result<Response, ContractError> {
-    // let rewards_msg = WasmMsg::Execute {
-    //     contract_addr: rewards_contract,
-    //     msg: to_json_binary(&rewards::msg::ExecuteMsg::RecordParticipation {
-    //         chain_name: session.chain_name.clone(),
-    //         event_id: session
-    //             .id
-    //             .to_string()
-    //             .try_into()
-    //             .expect("couldn't convert session_id to nonempty string"),
-    //         verifier_address: signer.to_string(),
-    //     })?,
-    //     funds: vec![],
-    // };
+    let rewards_msg = WasmMsg::Execute {
+        contract_addr: rewards_contract,
+        msg: to_json_binary(&rewards::msg::ExecuteMsg::RecordParticipation {
+            chain_name: session.chain_name.clone(),
+            event_id: session
+                .id
+                .to_string()
+                .try_into()
+                .expect("couldn't convert session_id to nonempty string"),
+            verifier_address: signer.to_string(),
+        })?,
+        funds: vec![],
+    };
 
     let event = Event::SignatureSubmitted {
         session_id: session.id,
@@ -280,8 +259,8 @@ fn signing_response(
         signature,
     };
 
-    let mut response = Response::new().add_event(event);
-    // let mut response = Response::new().add_message(rewards_msg).add_event(event);
+    // let mut response = Response::new().add_event(event);
+    let mut response = Response::new().add_message(rewards_msg).add_event(event);
 
     if let MultisigState::Completed { completed_at } = session.state {
         if state_changed {

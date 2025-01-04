@@ -178,7 +178,8 @@ pub mod aleo_schnorr_test_data {
     }
 
     pub fn message() -> HexBinary {
-        HexBinary::from("foo".as_bytes())
+        HexBinary::from_hex("fa0609efd1dfeedfdcc8ba51520fae2d5176b7621d2560f071e801b0817e1537")
+            .unwrap()
     }
 
     pub fn signers() -> Vec<TestSigner> {
