@@ -5,7 +5,7 @@ use cosmwasm_std::{to_json_binary, Binary, Deps, DepsMut, Empty, Env, MessageInf
 
 use crate::msg::{InstantiateMsg, QueryMsg};
 
-mod query;
+pub mod query;
 
 #[cfg_attr(not(feature = "library"), entry_point)]
 pub fn migrate(
@@ -36,13 +36,13 @@ pub fn query(
         QueryMsg::VerifySignature {
             signature,
             message,
-            public_key: _,
-            signer_address,
+            public_key,
+            signer_address: _,
             session_id: _,
         } => to_json_binary(&query::verify_signature(
             signature,
             message,
-            signer_address,
+            public_key,
         )?)?,
     }
     .then(Ok)

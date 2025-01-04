@@ -5,9 +5,6 @@ use cosmwasm_std::{HexBinary, Uint64};
 pub struct InstantiateMsg {}
 
 #[cw_serde]
-pub enum ExecuteMsg {}
-
-#[cw_serde]
 #[derive(QueryResponses)]
 pub enum QueryMsg {
     #[returns(bool)]
