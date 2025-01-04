@@ -17,5 +17,10 @@ router-api = { workspace = true }
 sha3 = { workspace = true }
 thiserror = { workspace = true }
 
+ethers = { version = "2.0.14", optional = true }
+
 [lints]
 workspace = true
+
+[features]
+external-dep = ["ethers"]
