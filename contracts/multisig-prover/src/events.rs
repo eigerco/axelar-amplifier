@@ -1,7 +1,9 @@
+use axelar_wasm_std::hash::Hash;
 use cosmwasm_std::Uint64;
+use multisig::verifier_set::VerifierSet;
 use router_api::{ChainName, CrossChainId};
 
-use crate::payload::PayloadId;
+use crate::payload::{Payload, PayloadId};
 
 pub enum Event {
     ProofUnderConstruction {
@@ -9,6 +11,11 @@ pub enum Event {
         payload_id: PayloadId,
         multisig_session_id: Uint64,
         msg_ids: Vec<CrossChainId>,
+    },
+    DebugEvent {
+        domain_separator: Hash,
+        verifier_set: VerifierSet,
+        payload: Payload,
     },
 }
 
@@ -41,6 +48,33 @@ impl From<Event> for cosmwasm_std::Event {
                     serde_json::to_string(&msg_ids)
                         .expect("violated invariant: message_ids is not serializable"),
                 ),
+            Event::DebugEvent {
+                domain_separator,
+                verifier_set,
+                payload,
+            } => {
+                let domain_separator = domain_separator
+                    .iter()
+                    .map(|b| format!("{}u8", b))
+                    .collect::<Vec<_>>()
+                    .join(", ");
+                cosmwasm_std::Event::new("debug_event")
+                    .add_attribute(
+                        "domain_separator",
+                        serde_json::to_string(&domain_separator)
+                            .expect("violated invariant: domain_separator is not serializable"),
+                    )
+                    .add_attribute(
+                        "verifier_set",
+                        serde_json::to_string(&verifier_set)
+                            .expect("violated invariant: verifier_set is not serializable"),
+                    )
+                    .add_attribute(
+                        "payload",
+                        serde_json::to_string(&payload)
+                            .expect("violated invariant: payload is not serializable"),
+                    )
+            }
         }
     }
 }

@@ -14,7 +14,7 @@ pub enum Error {
     AleoGateway(String),
     #[error("Unsupported Public Key: {0}")]
     UnsupportedPublicKey(String),
-  #[error("Aleo: {0}")]
+    #[error("Aleo: {0}")]
     Aleo(#[from] snarkvm_wasm::program::Error),
     #[error("Hex: {0}")]
     Hex(#[from] hex::FromHexError),
@@ -40,6 +40,7 @@ pub struct WeightedSigner {
     weight: u128,
 }
 
+#[derive(Debug, Clone)]
 pub struct WeightedSigners {
     signers: Vec<WeightedSigner>, // TODO: [WeightedSigner; 32],
     threshold: Uint128,
@@ -152,6 +153,7 @@ impl WeightedSigners {
     }
 
     pub fn hash(&self) -> Result<[u8; 32], Report<Error>> {
+        println!("WeightedSigners: {:?}", self.to_aleo_string());
         hash(self.to_aleo_string())
     }
 }
@@ -350,7 +352,8 @@ pub struct SignerWithSignature {
 
 #[derive(Clone, Debug)]
 pub struct Proof {
-    pub signers: Vec<SignerWithSignature>,
+    pub weighted_signers: WeightedSigners,
+    pub signatures: Vec<RawSignature>,
 }
 
 impl Proof {
@@ -364,7 +367,7 @@ impl Proof {
 
         signer_with_signature.sort_by(|s1, s2| s1.signer.address.cmp(&s2.signer.address));
 
-        let raw_signatures = signer_with_signature
+        let signatures = signer_with_signature
             .iter()
             .cloned()
             .map(|s| {
@@ -381,29 +384,24 @@ impl Proof {
             })
             .collect::<Result<Vec<_>, Report<Error>>>()?;
 
-        let signers = weighted_signers
-            .signers
-            .iter()
-            .cloned()
-            .zip(raw_signatures)
-            .map(|(signer, signature)| Ok(SignerWithSignature { signer, signature }))
-            .collect::<Result<Vec<_>, Report<Error>>>()?;
-
-        Ok(Proof { signers })
+        Ok(Proof {
+            weighted_signers,
+            signatures,
+        })
     }
 }
 
 impl Proof {
     pub fn to_aleo_string(&self) -> Result<String, Error> {
         let res = format!(
-            r#"{{ signers: [{}] }}"#,
-            self.signers
+            r#"{{ weighted_signers: [{}], signatures: [{}] }}"#,
+            self.weighted_signers.to_aleo_string(),
+            self.signatures
                 .iter()
-                .map(|signer| {
+                .map(|signature| {
                     format!(
-                        r#"{{ signer: {}, sign: {} }}"#,
-                        signer.signer.to_aleo_string(),
-                        signer.signature.to_aleo_string().unwrap(),
+                        r#"{}"#,
+                        signature.to_aleo_string().unwrap(),
                     )
                 })
                 .collect::<Vec<_>>()

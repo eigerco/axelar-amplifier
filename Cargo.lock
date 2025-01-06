@@ -5986,6 +5986,7 @@ dependencies = [
  "enum-display-derive",
  "error-stack",
  "getrandom",
+ "hex",
  "msgs-derive",
  "report",
  "serde",

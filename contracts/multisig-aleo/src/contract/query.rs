@@ -1,6 +1,11 @@
 use std::str::FromStr as _;
 
 use cosmwasm_std::{HexBinary, StdResult};
+use snarkvm_wasm::account::ToFields;
+use snarkvm_wasm::program::Value;
+use snarkvm_wasm::types::Field;
+
+type Curr = snarkvm_wasm::network::TestnetV0;
 
 pub fn verify_signature(
     signature: HexBinary,
@@ -8,7 +13,6 @@ pub fn verify_signature(
     public_key: HexBinary,
 ) -> StdResult<bool> {
     // TODO: make network generic
-    type Curr = snarkvm_wasm::network::TestnetV0;
 
     let signed = String::from_utf8(signature.into()).map_err(|e| {
         cosmwasm_std::StdError::generic_err(format!("Failed to parse signature: {}", e))
@@ -27,6 +31,53 @@ pub fn verify_signature(
         cosmwasm_std::StdError::generic_err(format!("Failed to parse address: {}", e))
     })?;
 
-    let res = signature.verify_bytes(&addr, message.as_slice());
+    let message = aleo_encoded(&message)?;
+
+    let res = signature.verify(&addr, message.as_slice());
+
     Ok(res)
+}
+
+fn aleo_encoded(data: &HexBinary) -> Result<Vec<Field<Curr>>, cosmwasm_std::StdError> {
+    let message = [
+        "[",
+        data.as_ref()
+            .iter()
+            .map(|b| format!("{:?}u8", b))
+            .collect::<Vec<_>>()
+            .join(", ")
+            .as_str(),
+        "]",
+    ]
+    .concat();
+
+    Value::from_str(message.as_str())
+        .map_err(|e| {
+            cosmwasm_std::StdError::generic_err(format!("Failed to parse signature: {}", e))
+        })?
+        .to_fields()
+        .map_err(|e| {
+            cosmwasm_std::StdError::generic_err(format!("Failed to parse signature: {}", e))
+        })
+    //     .map_err(|_| TofnFatal)?
+    //     .to_fields()
+    //     .map_err(|_| TofnFatal)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_verify_signature() {
+        let msg = "df4fd7e608879cb128c53f82614cdffcfd163b4d14adbe5c797f3aaaa3e316b8";
+        let signature = "7369676e317179713530387371793264327a706a6a3364676b616d636379377272307a30777175656e3966346e6377367874396c326576717a6b646a6d38716b6d796c7038636a6675716434387937656a657937676b777a6d66787039756868376366636c6c7034666370797078703661706372676e7a61773367666479776c61396d347678797776686e73756577643338616c7377703370786d75387a7436706a35346e673877327478766e7a6a70356333707975396c7435346636686c6778756c6e39386a677a72776e70737161737364743376346e";
+        let address = "aleo145tj9hqrnv3hqylrem6p7zjyxc2kryyp3hdm4ht48ntj3e5ttuxs9xs9ak";
+
+        let msg = HexBinary::from_hex(msg).unwrap();
+        let signature = HexBinary::from_hex(signature).unwrap();
+        let address = HexBinary::from(address.as_bytes());
+
+        assert!(verify_signature(signature, msg, address).is_ok());
+    }
 }
