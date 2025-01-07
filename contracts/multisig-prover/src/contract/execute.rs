@@ -71,12 +71,6 @@ pub fn construct_proof(
         .digest(&config.domain_separator, &verifier_set, &payload)?
         .into();
 
-    let event = crate::events::Event::DebugEvent {
-        domain_separator: config.domain_separator,
-        verifier_set: verifier_set.clone(),
-        payload: payload.clone(),
-    };
-
     let start_sig_msg = multisig::msg::ExecuteMsg::StartSigningSession {
         verifier_set_id: verifier_set.id(),
         msg: digest.into(),
@@ -97,9 +91,7 @@ pub fn construct_proof(
     let wasm_msg =
         wasm_execute(config.multisig, &start_sig_msg, vec![]).map_err(ContractError::from)?;
 
-    Ok(Response::new()
-        .add_event(event)
-        .add_submessage(SubMsg::reply_on_success(wasm_msg, START_MULTISIG_REPLY_ID)))
+    Ok(Response::new().add_submessage(SubMsg::reply_on_success(wasm_msg, START_MULTISIG_REPLY_ID)))
 }
 
 fn messages(
