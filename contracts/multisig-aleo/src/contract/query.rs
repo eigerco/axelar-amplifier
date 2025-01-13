@@ -1,25 +1,21 @@
 use std::str::FromStr as _;
 
 use cosmwasm_std::{HexBinary, StdResult};
-use snarkvm_wasm::account::ToFields;
-use snarkvm_wasm::program::Value;
-use snarkvm_wasm::types::Field;
+use snarkvm_cosmwasm::account::ToFields;
+use snarkvm_cosmwasm::program::{Network, Signature, Value};
+use snarkvm_cosmwasm::types::{Address, Field};
 
-type Curr = snarkvm_wasm::network::TestnetV0;
-
-pub fn verify_signature(
+pub fn verify_signature<N: Network>(
     signature: HexBinary,
     message: HexBinary,
     public_key: HexBinary,
 ) -> StdResult<bool> {
-    // TODO: make network generic
-
     let signed = String::from_utf8(signature.into()).map_err(|e| {
         cosmwasm_std::StdError::generic_err(format!("Failed to parse signature: {}", e))
     })?;
 
-    let signature: snarkvm_wasm::account::signature::Signature<Curr> =
-        snarkvm_wasm::account::signature::Signature::from_str(signed.as_str()).map_err(|e| {
+    let signature = Signature::<N>::from_str(signed.as_str())
+        .map_err(|e| {
             cosmwasm_std::StdError::generic_err(format!("Failed to parse signature: {}", e))
         })?;
 
@@ -27,7 +23,7 @@ pub fn verify_signature(
         cosmwasm_std::StdError::generic_err(format!("Failed to parse public key: {}", e))
     })?;
 
-    let addr = snarkvm_wasm::types::Address::<Curr>::from_str(address.as_str()).map_err(|e| {
+    let addr = Address::from_str(address.as_str()).map_err(|e| {
         cosmwasm_std::StdError::generic_err(format!("Failed to parse address: {}", e))
     })?;
 
@@ -38,7 +34,7 @@ pub fn verify_signature(
     Ok(res)
 }
 
-fn aleo_encoded(data: &HexBinary) -> Result<Vec<Field<Curr>>, cosmwasm_std::StdError> {
+fn aleo_encoded<N: Network>(data: &HexBinary) -> Result<Vec<Field<N>>, cosmwasm_std::StdError> {
     let message = [
         "[",
         data.as_ref()
@@ -59,9 +55,6 @@ fn aleo_encoded(data: &HexBinary) -> Result<Vec<Field<Curr>>, cosmwasm_std::StdE
         .map_err(|e| {
             cosmwasm_std::StdError::generic_err(format!("Failed to parse signature: {}", e))
         })
-    //     .map_err(|_| TofnFatal)?
-    //     .to_fields()
-    //     .map_err(|_| TofnFatal)
 }
 
 #[cfg(test)]

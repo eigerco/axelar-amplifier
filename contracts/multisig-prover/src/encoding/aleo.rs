@@ -1,15 +1,16 @@
-use aleo_gateway::{Message, Messages, PayloadDigest, WeightedSigners};
+use aleo_gateway::{Message, Messages, PayloadDigest, WeightedSigners, AleoValue};
 use axelar_wasm_std::hash::Hash;
 use axelar_wasm_std::FnExt;
 use cosmwasm_std::HexBinary;
 use error_stack::{Result, ResultExt};
 use multisig::msg::SignerWithSig;
 use multisig::verifier_set::VerifierSet;
+use snarkvm_cosmwasm::program::Network;
 
 use crate::error::ContractError;
 use crate::payload::Payload;
 
-pub fn payload_digest(
+pub fn payload_digest<N: Network>(
     domain_separator: &Hash,
     verifier_set: &VerifierSet,
     payload: &Payload,
@@ -21,27 +22,22 @@ pub fn payload_digest(
             .collect::<Result<Vec<_>, _>>()
             .change_context(ContractError::InvalidMessage)?
             .then(Messages::from)
-            .hash(),
+            .hash::<N>(),
         Payload::VerifierSet(verifier_set) => WeightedSigners::try_from(verifier_set)
             .change_context(ContractError::InvalidVerifierSet)?
-            .hash(),
+            .hash::<N>(),
     }
     .change_context(ContractError::SerializeData)?;
 
     let signers_hash = WeightedSigners::try_from(verifier_set)
         .change_context(ContractError::InvalidVerifierSet)?
-        .hash()
+        .hash::<N>()
         .change_context(ContractError::SerializeData)?;
 
     let payload_digest = PayloadDigest::new(domain_separator, &signers_hash, &data_hash);
 
-    println!("domain_separator: {:?}", domain_separator);
-    println!("data_hash: {:?}", data_hash);
-    println!("signers_hash: {:?}", signers_hash);
-    println!("payload_digest: {:?}", payload_digest.hash());
-
     Ok(payload_digest
-        .hash()
+        .hash::<N>()
         .map_err(|e| ContractError::AleoError(e.to_string()))?)
 }
 

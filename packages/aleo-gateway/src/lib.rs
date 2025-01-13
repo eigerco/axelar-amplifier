@@ -1,12 +1,29 @@
 use std::str::FromStr as _;
 
-use aleo_types::address::Address;
-use cosmwasm_std::Uint128;
 use error_stack::Report;
-use multisig::key::PublicKey;
-use multisig::msg::SignerWithSig;
-use multisig::verifier_set::VerifierSet;
+use snarkvm_cosmwasm::network::Network;
+use snarkvm_cosmwasm::program::ToBits;
 use thiserror::Error;
+
+mod execute_data;
+mod message;
+mod messages;
+mod payload_digest;
+mod proof;
+mod raw_signature;
+mod signer_with_signature;
+mod weighted_signer;
+mod weighted_signers;
+
+pub use execute_data::*;
+pub use message::*;
+pub use messages::*;
+pub use payload_digest::*;
+pub use proof::*;
+pub use raw_signature::*;
+pub use signer_with_signature::*;
+pub use weighted_signer::*;
+pub use weighted_signers::*;
 
 #[derive(Error, Debug)]
 pub enum Error {
@@ -15,161 +32,31 @@ pub enum Error {
     #[error("Unsupported Public Key: {0}")]
     UnsupportedPublicKey(String),
     #[error("Aleo: {0}")]
-    Aleo(#[from] snarkvm_wasm::program::Error),
+    Aleo(#[from] snarkvm_cosmwasm::program::Error),
     #[error("Hex: {0}")]
     Hex(#[from] hex::FromHexError),
     #[error("AleoTypes: {0}")]
     AleoTypes(#[from] aleo_types::Error),
 }
 
-#[derive(Debug, Clone)]
-pub struct Hash(pub [u8; 32]);
+pub trait AleoValue {
+    fn to_aleo_string(&self) -> Result<String, Report<Error>>;
 
-#[derive(Debug, Clone)]
-pub struct Message {
-    pub cc_id: router_api::CrossChainId,
-    pub source_address: String,
-    pub destination_chain: router_api::ChainName,
-    pub destination_address: String,
-    pub payload_hash: [u8; 32], // The hash of the payload, send from the relayer of the source chain
-}
-
-#[derive(Debug, Clone)]
-pub struct WeightedSigner {
-    signer: Address,
-    weight: u128,
-}
-
-#[derive(Debug, Clone)]
-pub struct WeightedSigners {
-    signers: Vec<WeightedSigner>, // TODO: [WeightedSigner; 32],
-    threshold: Uint128,
-    nonce: [u64; 4],
-}
-
-pub struct PayloadDigest<'a> {
-    domain_separator: &'a [u8; 32],
-    signers_hash: &'a [u8; 32],
-    data_hash: &'a [u8; 32],
-}
-
-impl<'a> PayloadDigest<'a> {
-    pub fn new(
-        domain_separator: &'a [u8; 32],
-        signers_hash: &'a [u8; 32],
-        data_hash: &'a [u8; 32],
-    ) -> PayloadDigest<'a> {
-        PayloadDigest {
-            domain_separator,
-            signers_hash,
-            data_hash,
-        }
-    }
-
-    pub fn to_aleo_string(&self) -> String {
-        format!(
-            r#"{{ domain_separator: [ {} ], signers_hash: [ {} ], data_hash: [ {} ] }}"#,
-            self.domain_separator
-                .iter()
-                .map(|b| format!("{}u8", b))
-                .collect::<Vec<_>>()
-                .join(", "),
-            self.signers_hash
-                .iter()
-                .map(|b| format!("{}u8", b))
-                .collect::<Vec<_>>()
-                .join(", "),
-            self.data_hash
-                .iter()
-                .map(|b| format!("{}u8", b))
-                .collect::<Vec<_>>()
-                .join(", ")
-        )
-    }
-
-    pub fn hash(&self) -> Result<[u8; 32], Report<Error>> {
-        hash(self.to_aleo_string())
+    fn hash<N: Network>(&self) -> Result<[u8; 32], Report<Error>> {
+        let input = self.to_aleo_string()?;
+        hash::<std::string::String, N>(input)
     }
 }
 
-impl TryFrom<&VerifierSet> for WeightedSigners {
-    type Error = Report<Error>;
-
-    fn try_from(value: &VerifierSet) -> Result<Self, Self::Error> {
-        let mut signers = value
-            .signers
-            .values()
-            .map(|signer| match &signer.pub_key {
-                PublicKey::AleoSchnorr(key) => Ok(WeightedSigner {
-                    signer: Address::try_from(key).map_err(|e| {
-                        Report::new(Error::AleoGateway(format!(
-                            "Failed to parse address: {}",
-                            e
-                        )))
-                    })?,
-                    weight: signer.weight.into(),
-                }),
-                PublicKey::Ecdsa(_) => Err(Report::new(Error::UnsupportedPublicKey(
-                    "received Ecdsa".to_string(),
-                ))),
-                PublicKey::Ed25519(_) => Err(Report::new(Error::UnsupportedPublicKey(
-                    "received Ed25519".to_string(),
-                ))),
-            })
-            .chain(std::iter::repeat_with(|| {
-                Ok(WeightedSigner {
-                    signer: Address::default(),
-                    weight: Default::default(),
-                })
-            }))
-            .take(32)
-            .collect::<Result<Vec<_>, _>>()?;
-
-        signers.sort_by(|signer1, signer2| signer1.signer.cmp(&signer2.signer));
-
-        let threshold = value.threshold;
-        let nonce = [0, 0, 0, value.created_at];
-
-        Ok(WeightedSigners {
-            signers,
-            threshold,
-            nonce,
-        })
-    }
-}
-
-impl WeightedSigners {
-    pub fn to_aleo_string(&self) -> String {
-        let signers = self
-            .signers
-            .iter()
-            .map(|signer| format!("{}", signer.to_aleo_string()))
-            .collect::<Vec<_>>()
-            .join(", ");
-        format!(
-            r#"{{ signers: [ {} ], threshold: {}u128, nonce: [ {}u64, {}u64, {}u64, {}u64 ] }}"#,
-            signers, self.threshold, self.nonce[0], self.nonce[1], self.nonce[2], self.nonce[3]
-        )
-    }
-
-    pub fn hash(&self) -> Result<[u8; 32], Report<Error>> {
-        println!("WeightedSigners: {:?}", self.to_aleo_string());
-        hash(self.to_aleo_string())
-    }
-}
-
-fn hash<T: AsRef<str>>(input: T) -> Result<[u8; 32], Report<Error>> {
-    let aleo_value =
-        snarkvm_wasm::program::Plaintext::<snarkvm_wasm::network::TestnetV0>::from_str(
-            input.as_ref(),
-        )
+fn hash<T: AsRef<str>, N: Network>(input: T) -> Result<[u8; 32], Report<Error>> {
+    let aleo_value: Vec<bool> = snarkvm_cosmwasm::program::Value::<N>::from_str(input.as_ref())
         .map_err(|e| {
             Report::new(Error::Aleo(e))
                 .attach_printable(format!("input: '{:?}'", input.as_ref().to_owned()))
         })?
         .to_bits_le();
 
-    let bits = snarkvm_wasm::network::TestnetV0::hash_keccak256(&aleo_value).map_err(|e| {
+    let bits = N::hash_keccak256(&aleo_value).map_err(|e| {
         Report::new(Error::Aleo(e))
             .attach_printable(format!("input2: '{:?}'", input.as_ref().to_owned()))
     })?;
@@ -186,259 +73,6 @@ fn hash<T: AsRef<str>>(input: T) -> Result<[u8; 32], Report<Error>> {
     }
 
     Ok(hash)
-}
-
-impl WeightedSigner {
-    pub fn to_aleo_string(&self) -> String {
-        format!(
-            r#"{{signer: {}, weight: {}u128}}"#,
-            self.signer.0, self.weight
-        )
-    }
-
-    pub fn hash(&self) -> Result<[u8; 32], Report<Error>> {
-        hash(self.to_aleo_string())
-    }
-}
-
-impl Message {
-    pub fn aleo_string(&self) -> Result<String, Error> {
-        let source_chain = <&str>::from(&self.cc_id.source_chain);
-        let source_address: Vec<u16> = self
-            .source_address
-            .as_str()
-            .as_bytes()
-            .chunks(2)
-            .map(|chunk| {
-                if chunk.len() == 2 {
-                    ((chunk[0] as u16) << 8) | (chunk[1] as u16)
-                } else {
-                    (chunk[0] as u16) << 8
-                }
-            })
-            .collect();
-
-        let destination_address_hex: Vec<u8> = hex::decode(self.destination_address.as_str())?;
-        let message_id: Vec<String> = self
-            .cc_id
-            .message_id
-            .chars()
-            .collect::<Vec<_>>()
-            .chunks(2)
-            .map(|chunk| {
-                let high = chunk.get(0).map_or(0, |&c| c as u16);
-                let low = chunk.get(1).map_or(0, |&c| c as u16);
-                let value = (high << 8) | low;
-                format!("{}u16", value)
-            })
-            .collect();
-        let message_id = message_id.join(", ");
-
-        let res = format!(
-            r#"{{source_chain: [{}], message_id: [{}], source_address: [{}], destination_address: [{}], payload_hash: [{}]}}"#,
-            source_chain
-                .chars()
-                .take(source_chain.len() - 1)
-                .map(|c| format!("{}u8, ", c as u8))
-                .chain(
-                    source_chain
-                        .chars()
-                        .last()
-                        .map(|c| format!("{}u8", c as u8))
-                )
-                .chain(std::iter::repeat(", 0u8".to_string()).take(32 - source_chain.len()))
-                .collect::<String>(),
-            message_id,
-            source_address
-                .iter()
-                .take(source_address.len() - 1)
-                .map(|c| format!("{}u16, ", c))
-                .chain(source_address.last().map(|c| format!("{}u16", c)))
-                .chain(std::iter::repeat(", 0u16".to_string()).take(32 - source_address.len()))
-                .collect::<String>(),
-            destination_address_hex
-                .iter()
-                .take(destination_address_hex.len() - 1)
-                .map(|c| format!("{}u8, ", c))
-                .chain(
-                    destination_address_hex
-                        .iter()
-                        .last()
-                        .map(|c| format!("{}u8", c))
-                )
-                .chain(
-                    std::iter::repeat(", 0u8".to_string()).take(20 - destination_address_hex.len())
-                )
-                .collect::<String>(),
-            self.payload_hash
-                .iter()
-                .map(|b| format!("{}u8", b))
-                .collect::<Vec<_>>()
-                .join(", ")
-        );
-
-        Ok(res)
-    }
-}
-
-impl TryFrom<&router_api::Message> for Message {
-    type Error = Report<Error>;
-
-    fn try_from(value: &router_api::Message) -> Result<Self, Self::Error> {
-        Ok(Message {
-            cc_id: value.cc_id.clone(),
-            source_address: value.source_address.to_string(),
-            destination_chain: value.destination_chain.clone(),
-            destination_address: value.destination_address.to_string(),
-            payload_hash: value.payload_hash,
-        })
-    }
-}
-
-pub struct Messages(Vec<Message>);
-
-impl From<Vec<Message>> for Messages {
-    fn from(v: Vec<Message>) -> Self {
-        Messages(v)
-    }
-}
-
-use snarkvm_wasm::network::Network;
-use snarkvm_wasm::program::ToBits;
-
-impl Messages {
-    pub fn to_aleo_string(&self) -> Result<String, Error> {
-        let res = format!(
-            r#"{{ messages: [{}] }}"#,
-            self.0
-                .iter()
-                .map(Message::aleo_string)
-                .collect::<Result<Vec<_>, Error>>()?
-                .join(", ")
-        );
-
-        Ok(res)
-    }
-
-    pub fn hash(&self) -> Result<[u8; 32], Report<Error>> {
-        hash(self.to_aleo_string()?)
-    }
-}
-
-// TODO: nonce is skipped
-
-#[derive(Clone, Debug)]
-pub struct RawSignature {
-    pub signature: Vec<u8>,
-}
-
-impl RawSignature {
-    pub fn to_aleo_string(&self) -> Result<String, Report<Error>> {
-        let res = String::from_utf8(self.signature.clone()).map_err(|e| {
-            Report::new(Error::AleoGateway(format!(
-                "Failed to convert to utf8: {}",
-                e
-            )))
-        })?;
-        Ok(res)
-    }
-}
-
-#[derive(Clone, Debug)]
-pub struct SignerWithSignature {
-    pub signer: WeightedSigner,
-    pub signature: RawSignature,
-}
-
-#[derive(Clone, Debug)]
-pub struct Proof {
-    pub weighted_signers: WeightedSigners,
-    pub signatures: Vec<RawSignature>,
-}
-
-impl Proof {
-    pub fn new(
-        verifier_set: VerifierSet,
-        signer_with_signature: Vec<SignerWithSig>,
-    ) -> Result<Self, Report<Error>> {
-        let weighted_signers = WeightedSigners::try_from(&verifier_set)?;
-
-        let mut signer_with_signature = signer_with_signature;
-
-        signer_with_signature.sort_by(|s1, s2| s1.signer.address.cmp(&s2.signer.address));
-
-        let signatures = signer_with_signature
-            .iter()
-            .cloned()
-            .map(|s| {
-                Ok(RawSignature {
-                    signature: match s.signature {
-                        multisig::key::Signature::AleoSchnorr(sig) => sig.to_vec(),
-                        _ => {
-                            return Err(Report::new(Error::UnsupportedPublicKey(
-                                "Missing Aleo schnorr signature".to_string(),
-                            )))
-                        }
-                    },
-                })
-            })
-            .collect::<Result<Vec<_>, Report<Error>>>()?;
-
-        Ok(Proof {
-            weighted_signers,
-            signatures,
-        })
-    }
-}
-
-impl Proof {
-    pub fn to_aleo_string(&self) -> Result<String, Error> {
-        let res = format!(
-            r#"{{ weighted_signers: [{}], signatures: [{}] }}"#,
-            self.weighted_signers.to_aleo_string(),
-            self.signatures
-                .iter()
-                .map(|signature| {
-                    format!(
-                        r#"{}"#,
-                        signature.to_aleo_string().unwrap(),
-                    )
-                })
-                .collect::<Vec<_>>()
-                .join(", ")
-        );
-
-        Ok(res)
-    }
-
-    pub fn hash(&self) -> Result<[u8; 32], Report<Error>> {
-        hash(self.to_aleo_string()?)
-    }
-}
-
-pub struct ExecuteData {
-    proof: Proof,
-    payload: Messages,
-}
-
-impl ExecuteData {
-    pub fn new(proof: Proof, payload: Messages) -> ExecuteData {
-        ExecuteData { proof, payload }
-    }
-
-    pub fn to_aleo_string(&self) -> Result<String, Error> {
-        let res = format!(
-            r#"{{ proof: {}, payload: {} }}"#,
-            self.proof.to_aleo_string()?,
-            self.payload.to_aleo_string()?
-        );
-
-        Ok(res)
-    }
-
-    pub fn hash(&self) -> Result<[u8; 32], Report<Error>> {
-        hash(self.to_aleo_string()?)
-    }
 }
 
 #[cfg(test)]

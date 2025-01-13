@@ -9,11 +9,10 @@ aleo-types = { workspace = true }
 router-api = { workspace = true }
 error-stack = { workspace = true }
 thiserror = { workspace = true }
-bitvec = { workspace = true }
 cosmwasm-std = { workspace = true }
 hex.workspace = true
 multisig = { workspace = true, features = ["library"] }
-snarkvm-wasm = { workspace = true }
+snarkvm-cosmwasm = { workspace = true }
 
 [lints]
 workspace = true
