@@ -89,11 +89,11 @@ impl PartialEq<crate::handlers::aleo_verify_msg::Message> for TransitionReceipt 
             let payload: Vec<u8> = serde_json::from_str(&payload).unwrap();
             let payload = std::str::from_utf8(&payload).unwrap();
             let payload = solabi::encode(&payload);
-            let payload_hash = keccack256(&payload).to_vec();
+            let payload_hash = keccak256(&payload).to_vec();
             Hash::from_slice(&payload_hash)
         }
         else {
-            let payload_hash = keccack256(&payload).to_vec();
+            let payload_hash = keccak256(&payload).to_vec();
             Hash::from_slice(&payload_hash)
         };
 
@@ -336,7 +336,7 @@ where
     }
 }
 
-fn keccack256(payload: impl AsRef<[u8]>) -> [u8; 32] {
+fn keccak256(payload: impl AsRef<[u8]>) -> [u8; 32] {
     let mut hasher = Keccak256::new();
     hasher.update(payload);
     hasher.finalize().into()
