@@ -66,7 +66,7 @@ impl AleoValue for Message {
         let message_id = message_id.join(", ");
 
         let res = format!(
-            r#"{{source_chain: [{}], message_id: [{}], source_address: [{}], destination_address: [{}], payload_hash: [{}]}}"#,
+            r#"{{source_chain: [{}], message_id: [{}], source_address: [{}], contract_address: [{}], payload_hash: [{}]}}"#,
             source_chain
                 .chars()
                 .take(source_chain.len() - 1)

@@ -1,4 +1,4 @@
-use aleo_gateway::{Message, Messages, PayloadDigest, WeightedSigners, AleoValue};
+use aleo_gateway::{AleoValue, Message, Messages, PayloadDigest, WeightedSigners};
 use axelar_wasm_std::hash::Hash;
 use axelar_wasm_std::FnExt;
 use cosmwasm_std::HexBinary;
@@ -16,25 +16,36 @@ pub fn payload_digest<N: Network>(
     payload: &Payload,
 ) -> Result<Hash, ContractError> {
     let data_hash = match payload {
-        Payload::Messages(messages) => messages
-            .iter()
-            .map(Message::try_from)
-            .collect::<Result<Vec<_>, _>>()
-            .change_context(ContractError::InvalidMessage)?
-            .then(Messages::from)
-            .hash::<N>(),
+        Payload::Messages(messages) => {
+            let messages = messages
+                .iter()
+                .map(Message::try_from)
+                .collect::<Result<Vec<_>, _>>()
+                .change_context(ContractError::InvalidMessage)?
+                .then(Messages::from);
+
+            messages
+                .0
+                .first()
+                .ok_or(ContractError::InvalidMessage)?
+                .hash::<N>()
+        }
         Payload::VerifierSet(verifier_set) => WeightedSigners::try_from(verifier_set)
             .change_context(ContractError::InvalidVerifierSet)?
             .hash::<N>(),
     }
     .change_context(ContractError::SerializeData)?;
 
-    let signers_hash = WeightedSigners::try_from(verifier_set)
-        .change_context(ContractError::InvalidVerifierSet)?
-        .hash::<N>()
-        .change_context(ContractError::SerializeData)?;
+    let part1 = u128::from_le_bytes(domain_separator[0..16].try_into().map_err(|_| {
+        ContractError::AleoError("Failed to convert domain separator to u128".to_string())
+    })?);
+    let part2 = u128::from_le_bytes(domain_separator[16..32].try_into().map_err(|_| {
+        ContractError::AleoError("Failed to convert domain separator to u128".to_string())
+    })?);
+    let domain_separator: [u128; 2] = [part1, part2];
 
-    let payload_digest = PayloadDigest::new(domain_separator, &signers_hash, &data_hash);
+    let payload_digest = PayloadDigest::new(&domain_separator, verifier_set, &data_hash)
+        .map_err(|e| ContractError::AleoError(e.to_string()))?;
 
     Ok(payload_digest
         .hash::<N>()
@@ -58,13 +69,21 @@ pub fn encode_execute_data(
         Payload::VerifierSet(verifier_set) => todo!(),
     };
 
-    let proof = aleo_gateway::Proof::new(verifier_set.clone(), signatures)
-        .change_context(ContractError::Proof)?;
+    let proof = aleo_gateway::Proof::new(
+        verifier_set.clone(),
+        signatures.first().ok_or(ContractError::Proof)?.clone(),
+    )
+    .change_context(ContractError::Proof)?;
 
-    let execute_data = aleo_gateway::ExecuteData::new(proof, payload);
+    let execute_data = aleo_gateway::ExecuteData::new(
+        proof,
+        payload.0.first().ok_or(ContractError::Proof)?.clone(),
+    );
+
     let execute_data = execute_data
         .to_aleo_string()
         .change_context(ContractError::SerializeData)?;
+
     Ok(HexBinary::from(execute_data.as_bytes()))
 }
 
@@ -105,10 +124,14 @@ mod tests {
         let message = router_api::Message {
             cc_id: router_api::CrossChainId {
                 source_chain: ChainNameRaw::from_str("aleo-2").unwrap(),
-                message_id: "au1h9zxxrshyratfx0g0p5w8myqxk3ydfyxc948jysk0nxcna59ssqq0n3n3y".parse().unwrap(),
+                message_id: "au1h9zxxrshyratfx0g0p5w8myqxk3ydfyxc948jysk0nxcna59ssqq0n3n3y"
+                    .parse()
+                    .unwrap(),
             },
-            source_address: "aleo10fmsqwh059uqm74x6t6zgj93wfxtep0avevcxz0n4w9uawymkv9s7whsau".parse().unwrap(),
-                // .to_string(),
+            source_address: "aleo10fmsqwh059uqm74x6t6zgj93wfxtep0avevcxz0n4w9uawymkv9s7whsau"
+                .parse()
+                .unwrap(),
+            // .to_string(),
             destination_chain: "aleo-2".parse().unwrap(),
             destination_address: "666f6f0000000000000000000000000000000000".parse().unwrap(), // to_string(),
             payload_hash: [
@@ -120,8 +143,12 @@ mod tests {
 
         // The hash of the payload, send from the relayer of the source chain
         let payload = Payload::Messages(vec![message]);
-        //
-        let res = payload_digest(&domain_separator, &verifier_set, &payload);
+
+        let res = payload_digest::<snarkvm_cosmwasm::network::TestnetV0>(
+            &domain_separator,
+            &verifier_set,
+            &payload,
+        );
         println!("{:?}", res);
     }
 }

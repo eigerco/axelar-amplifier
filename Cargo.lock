@@ -114,6 +114,7 @@ dependencies = [
  "error-stack",
  "hex",
  "multisig",
+ "rand",
  "router-api",
  "snarkvm-cosmwasm",
  "thiserror 1.0.69",

@@ -67,7 +67,7 @@ chain_name = 'aleo-2'
 chain_rpc_url = "http://localhost:3030"
 base_url = "http://localhost:3030"
 network = "testnet"
-gateway_contract = "vzevxifdoj.aleo"
+gateway_contract = "gateway_base.aleo"
 # cosmwasm_contract = "axelar1gneuvdsf733h77hj6hn24kukgljvr5xnlladxnnc9gqqwwvu3uvsnxl2hc"
 
 
