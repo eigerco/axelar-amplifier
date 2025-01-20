@@ -1,3 +1,4 @@
+use aleo_gateway::StringEncoder;
 use pest::iterators::Pair;
 use pest::Parser;
 use pest_derive::Parser;
@@ -23,7 +24,7 @@ pub(crate) enum AleoValue<'a> {
     Object(Vec<(&'a str, AleoValue<'a>)>),
     Array(Vec<AleoValue<'a>>),
     String(&'a str),
-    Number(u8),
+    Number(u128),
     Boolean(bool),
     Null,
 }
@@ -32,22 +33,28 @@ pub(crate) enum AleoValue<'a> {
 pub struct CallContract {
     pub(crate) caller: String,
     pub(crate) sender: String,
-    pub(crate) destination_chain: Vec<u8>,
-    pub(crate) destination_address: Vec<u8>,
+    pub(crate) destination_chain: Vec<u128>,
+    pub(crate) destination_address: Vec<u128>,
 }
 
 impl CallContract {
     pub fn destination_chain(&self) -> String {
-        self.destination_chain
-            .iter()
-            .take_while(|&&value| value != 0) // Stop at the first zero
-            .map(|&value| value as char) // Convert to characters
-            .collect()
+        let encoded_string = StringEncoder { buf: self.destination_chain.clone() };
+        encoded_string.decode()
+    }
+
+    pub fn destination_address(&self) -> String {
+        let encoded_string = StringEncoder { buf: self.destination_address.clone() };
+        let hex_bytes = encoded_string.decode();
+        let hex = hex::decode(hex_bytes).unwrap();
+        String::from_utf8(hex).unwrap()
     }
 }
 
 fn parse(input: &str) -> Result<Option<Pair<Rule>>, Error> {
-    Ok(AleoParser::parse(Rule::aleo, input).map_err(Box::new)?.next())
+    Ok(AleoParser::parse(Rule::aleo, input)
+        .map_err(Box::new)?
+        .next())
 }
 
 #[allow(dead_code)]
@@ -67,7 +74,13 @@ pub(crate) fn generic_parse(input: &str) -> Result<AleoValue, Error> {
                     .collect(),
             ),
             Rule::array => AleoValue::Array(pair.into_inner().map(parse_value).collect()),
-            Rule::number => AleoValue::Number(pair.as_str().replace("u8", "").parse().unwrap()),
+            Rule::number => AleoValue::Number(
+                pair.as_str()
+                    .replace("u8", "")
+                    .replace("u128", "")
+                    .parse()
+                    .unwrap(),
+            ),
             Rule::boolean => AleoValue::Boolean(pair.as_str().parse().unwrap()),
             Rule::null => AleoValue::Null,
             Rule::aleo_address => AleoValue::String(pair.as_str()),
@@ -80,14 +93,17 @@ pub(crate) fn generic_parse(input: &str) -> Result<AleoValue, Error> {
     Ok(parse_value(aleo))
 }
 
-fn parse_array(pair: Pair<Rule>) -> Vec<u8> {
+fn parse_array(pair: Pair<Rule>) -> Vec<u128> {
     pair.into_inner()
-        .map(|p| p.as_str().replace("u8", "").parse::<u8>().unwrap())
+        .map(|p| p.as_str().replace("u128", "").parse::<u128>().unwrap())
         .collect()
 }
 
 pub fn parse_call_contract(input: &str) -> Option<CallContract> {
+    // println!("Parsing: {}", input);
+    // println!("parse: {:?}", parse(input));
     let pair = parse(input).ok().flatten()?;
+    // println!("Pair: {:?}", pair);
 
     let mut caller = String::new();
     let mut sender = String::new();

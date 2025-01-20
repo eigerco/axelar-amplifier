@@ -115,6 +115,7 @@ dependencies = [
  "hex",
  "multisig",
  "rand",
+ "regex",
  "router-api",
  "snarkvm-cosmwasm",
  "thiserror 1.0.69",
@@ -322,6 +323,7 @@ dependencies = [
 name = "ampd"
 version = "1.4.0"
 dependencies = [
+ "aleo-gateway",
  "aleo-types",
  "assert_ok",
  "async-trait",

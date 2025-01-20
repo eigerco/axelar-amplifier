@@ -118,8 +118,6 @@ where
             event => event.change_context(DeserializeEvent)?,
         };
 
-        println!("--->ALEO EVENT");
-
         if self.chain != source_chain {
             return Ok(vec![]);
         }

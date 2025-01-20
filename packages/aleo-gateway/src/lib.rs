@@ -12,6 +12,7 @@ mod payload_digest;
 mod proof;
 mod raw_signature;
 mod signer_with_signature;
+mod string_encoder;
 mod weighted_signer;
 mod weighted_signers;
 
@@ -22,6 +23,7 @@ pub use payload_digest::*;
 pub use proof::*;
 pub use raw_signature::*;
 pub use signer_with_signature::*;
+pub use string_encoder::*;
 pub use weighted_signer::*;
 pub use weighted_signers::*;
 
@@ -37,6 +39,10 @@ pub enum Error {
     Hex(#[from] hex::FromHexError),
     #[error("AleoTypes: {0}")]
     AleoTypes(#[from] aleo_types::Error),
+    #[error("InvalidSourceChainLength: expected: {expected}, actual: {actual}")]
+    InvalidEncodedStringLength { expected: usize, actual: usize },
+    #[error("Invalid ascii character")]
+    InvalidAscii,
 }
 
 pub trait AleoValue {
@@ -87,18 +93,20 @@ mod test {
     use snarkvm_cosmwasm::account::PrivateKey;
     use snarkvm_cosmwasm::network::ToFields;
     use snarkvm_cosmwasm::types::{Address, Field};
+    use string_encoder::StringEncoder;
 
     use super::*;
 
-    fn message() -> Message {
+    fn router_message() -> RouterMessage {
         let source_chain = "aleo-2";
         let message_id = "au1dudq5uvhtvqry59cfm5nz4pwu95hyrak427nqqk2uvg5n530hg9su50yfm";
         let source_address = "aleo10fmsqwh059uqm74x6t6zgj93wfxtep0avevcxz0n4w9uawymkv9s7whsau";
         let destination_chain = "aleo-2";
-        let destination_address = "666f6f0000000000000000000000000000000000";
+        let destination_address = "666f6f";
+        // let destination_address = "666f6f0000000000000000000000000000000000";
         let payload_hash = "a432dc983dfe6fc48bb47a90915465d9c8185b1c2aea5c87f85818cba35051c6";
 
-        let router_messages = RouterMessage {
+        RouterMessage {
             cc_id: CrossChainId::new(source_chain, message_id).unwrap(),
             source_address: source_address.parse().unwrap(),
             destination_address: destination_address.parse().unwrap(),
@@ -107,9 +115,67 @@ mod test {
                 .unwrap()
                 .to_array::<32>()
                 .unwrap(),
+        }
+    }
+
+    // fn message(router_message: RouterMessage) -> Message {
+    //     Message::try_from(&router_messages).unwrap()
+    // }
+
+    // fn from_aleo_string(input: String) {
+    //     const PATTERN: &str = r#"\{source_chain: \[([0-9]+u128, [0-9]+u128)\], message_id: \[([0-9]+u128, [0-9]+u128, [0-9]+u128, [0-9]+u128, [0-9]+u128, [0-9]+u128, [0-9]+u128, [0-9]+u128)\], source_address: \[([0-9]+u128, [0-9]+u128, [0-9]+u128, [0-9]+u128)\], contract_address: \[([0-9]+u128, [0-9]+u128, [0-9]+u128, [0-9]+u128)\], payload_hash: \[([0-9]+u8, [0-9]+u8, [0-9]+u8, [0-9]+u8, [0-9]+u8, [0-9]+u8, [0-9]+u8, [0-9]+u8, [0-9]+u8, [0-9]+u8, [0-9]+u8, [0-9]+u8, [0-9]+u8, [0-9]+u8, [0-9]+u8, [0-9]+u8, [0-9]+u8, [0-9]+u8, [0-9]+u8, [0-9]+u8, [0-9]+u8, [0-9]+u8, [0-9]+u8, [0-9]+u8, [0-9]+u8, [0-9]+u8, [0-9]+u8, [0-9]+u8, [0-9]+u8, [0-9]+u8, [0-9]+u8, [0-9]+u8)\]\}"#;
+    //
+    //     let reg = regex::Regex::new(PATTERN).unwrap();
+    //
+    //     let (_, [source_chain, message_id, source_address, contract_address, payload_hash]) =
+    //         reg.captures(input.as_str()).unwrap().extract();
+    //
+    //     let source_chain = StringEncoder::from_aleo_value(source_chain).unwrap();
+    //     let message_id = StringEncoder::from_aleo_value(message_id).unwrap();
+    //     let source_address = StringEncoder::from_aleo_value(source_address).unwrap();
+    //     let contract_address = StringEncoder::from_aleo_value(contract_address).unwrap();
+    //
+    //     println!("source_chain: {:?}", source_chain.decode());
+    //     println!("message_id: {:?}", message_id.decode());
+    //     println!("source_address: {:?}", source_address.decode());
+    //     println!("contract_address: {:?}", contract_address.decode());
+    //     println!("payload_hash: {:?}", payload_hash);
+    // }
+
+    #[test]
+    fn sanity_test_encode_decode() {
+        let router_message = router_message();
+        let message = Message::try_from(&router_message).unwrap();
+        let aleo_string = message.to_aleo_string().unwrap();
+        println!("aleo_string: {:?}", aleo_string);
+
+        const PATTERN: &str = r#"\{source_chain: \[([0-9]+u128, [0-9]+u128)\], message_id: \[([0-9]+u128, [0-9]+u128, [0-9]+u128, [0-9]+u128, [0-9]+u128, [0-9]+u128, [0-9]+u128, [0-9]+u128)\], source_address: \[([0-9]+u128, [0-9]+u128, [0-9]+u128, [0-9]+u128)\], contract_address: \[([0-9]+u128, [0-9]+u128, [0-9]+u128, [0-9]+u128)\], payload_hash: \[([0-9]+u8, [0-9]+u8, [0-9]+u8, [0-9]+u8, [0-9]+u8, [0-9]+u8, [0-9]+u8, [0-9]+u8, [0-9]+u8, [0-9]+u8, [0-9]+u8, [0-9]+u8, [0-9]+u8, [0-9]+u8, [0-9]+u8, [0-9]+u8, [0-9]+u8, [0-9]+u8, [0-9]+u8, [0-9]+u8, [0-9]+u8, [0-9]+u8, [0-9]+u8, [0-9]+u8, [0-9]+u8, [0-9]+u8, [0-9]+u8, [0-9]+u8, [0-9]+u8, [0-9]+u8, [0-9]+u8, [0-9]+u8)\]\}"#;
+
+        let reg = regex::Regex::new(PATTERN).unwrap();
+
+        let (_, [source_chain, message_id, source_address, contract_address, payload_hash]) =
+            reg.captures(aleo_string.as_str()).unwrap().extract();
+
+        let source_chain = StringEncoder::from_aleo_value(source_chain).unwrap().decode();
+        let message_id = StringEncoder::from_aleo_value(message_id).unwrap().decode();
+        let source_address = StringEncoder::from_aleo_value(source_address).unwrap().decode();
+        let contract_address = StringEncoder::from_aleo_value(contract_address).unwrap().decode();
+        let payload_hash = "a432dc983dfe6fc48bb47a90915465d9c8185b1c2aea5c87f85818cba35051c6";
+
+        println!("source_chain: {:?}", source_chain);
+        println!("message_id: {:?}", message_id);
+        println!("source_address: {:?}", source_address);
+        println!("contract_address: {:?}", contract_address);
+
+        let next_message = Message {
+            cc_id: CrossChainId::new(source_chain.clone(), message_id).unwrap(),
+            source_address: source_address.parse().unwrap(),
+            destination_address: contract_address.parse().unwrap(),
+            destination_chain: source_chain.parse().unwrap(),
+            payload_hash: message.payload_hash,
         };
 
-        Message::try_from(&router_messages).unwrap()
+        assert_eq!(message, next_message);
     }
 
     #[test]
@@ -134,7 +200,7 @@ mod test {
 
         let message = Message::try_from(&router_messages).unwrap();
         println!("messages: {:?}", message.to_aleo_string());
-        assert_eq!(message.to_aleo_string().unwrap(), "{source_chain: [97u8, 108u8, 101u8, 111u8, 45u8, 50u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8], message_id: [24949u16, 12644u16, 30052u16, 28981u16, 30070u16, 26740u16, 30321u16, 29305u16, 13625u16, 25446u16, 27957u16, 28282u16, 13424u16, 30581u16, 14645u16, 26745u16, 29281u16, 27444u16, 12855u16, 28273u16, 29035u16, 12917u16, 30311u16, 13678u16, 13619u16, 12392u16, 26425u16, 29557u16, 13616u16, 31078u16, 27904u16], source_address: [24940u16, 25967u16, 12592u16, 26221u16, 29553u16, 30568u16, 12341u16, 14709u16, 29037u16, 14132u16, 30774u16, 29750u16, 31335u16, 27193u16, 13175u16, 26232u16, 29797u16, 28720u16, 24950u16, 25974u16, 25464u16, 31280u16, 28212u16, 30521u16, 30049u16, 30585u16, 28011u16, 30265u16, 29495u16, 30568u16, 29537u16, 29952u16], contract_address: [102u8, 111u8, 111u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8], payload_hash: [164u8, 50u8, 220u8, 152u8, 61u8, 254u8, 111u8, 196u8, 139u8, 180u8, 122u8, 144u8, 145u8, 84u8, 101u8, 217u8, 200u8, 24u8, 91u8, 28u8, 42u8, 234u8, 92u8, 135u8, 248u8, 88u8, 24u8, 203u8, 163u8, 80u8, 81u8, 198u8]}");
+        // assert_eq!(message.to_aleo_string().unwrap(), "{source_chain: [97u8, 108u8, 101u8, 111u8, 45u8, 50u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8], message_id: [24949u16, 12644u16, 30052u16, 28981u16, 30070u16, 26740u16, 30321u16, 29305u16, 13625u16, 25446u16, 27957u16, 28282u16, 13424u16, 30581u16, 14645u16, 26745u16, 29281u16, 27444u16, 12855u16, 28273u16, 29035u16, 12917u16, 30311u16, 13678u16, 13619u16, 12392u16, 26425u16, 29557u16, 13616u16, 31078u16, 27904u16], source_address: [24940u16, 25967u16, 12592u16, 26221u16, 29553u16, 30568u16, 12341u16, 14709u16, 29037u16, 14132u16, 30774u16, 29750u16, 31335u16, 27193u16, 13175u16, 26232u16, 29797u16, 28720u16, 24950u16, 25974u16, 25464u16, 31280u16, 28212u16, 30521u16, 30049u16, 30585u16, 28011u16, 30265u16, 29495u16, 30568u16, 29537u16, 29952u16], contract_address: [102u8, 111u8, 111u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8], payload_hash: [164u8, 50u8, 220u8, 152u8, 61u8, 254u8, 111u8, 196u8, 139u8, 180u8, 122u8, 144u8, 145u8, 84u8, 101u8, 217u8, 200u8, 24u8, 91u8, 28u8, 42u8, 234u8, 92u8, 135u8, 248u8, 88u8, 24u8, 203u8, 163u8, 80u8, 81u8, 198u8]}");
         // assert_eq!(
         //     messages.hash().unwrap(),
         //     [
@@ -295,7 +361,8 @@ mod test {
     }
 
     pub fn payload_digest<N: Network>(verifier_set: &VerifierSet) -> [u8; 32] {
-        let message = message();
+        let message = router_message();
+        let message = Message::try_from(&message).unwrap();
         let data_hash = message.hash::<N>().unwrap();
         println!("data_hash: {:?}", data_hash);
 
@@ -356,16 +423,14 @@ mod test {
         let addr = addr.to_string();
 
         let verifier_set = VerifierSet {
-            signers: BTreeMap::from_iter(vec![
-                (
-                    addr.to_string(),
-                    Signer {
-                        address: Addr::unchecked(addr.as_str()),
-                        weight: 1u8.into(),
-                        pub_key: PublicKey::AleoSchnorr(HexBinary::from(addr.as_str().as_bytes())),
-                    },
-                ),
-            ]),
+            signers: BTreeMap::from_iter(vec![(
+                addr.to_string(),
+                Signer {
+                    address: Addr::unchecked(addr.as_str()),
+                    weight: 1u8.into(),
+                    pub_key: PublicKey::AleoSchnorr(HexBinary::from(addr.as_str().as_bytes())),
+                },
+            )]),
             threshold: 2u8.into(),
             created_at: 100u64,
         };
@@ -401,11 +466,9 @@ mod test {
         let aleo_string = proof.to_aleo_string().unwrap();
         println!("proof: {:?}", aleo_string);
 
-        let m = message();
-        let execute_data = ExecuteData::new(
-            proof,
-            m,
-        );
+        let router_message = router_message();
+        let m = Message::try_from(&router_message).unwrap();
+        let execute_data = ExecuteData::new(proof, m);
         let res = execute_data.to_aleo_string().unwrap();
         println!("execute_data: {:?}", res);
     }

@@ -212,6 +212,7 @@ where
     }
 
     fn find_call_contract(&self, outputs: &[Output<CurrentNetwork>]) -> Option<CallContract> {
+        // println!("outputs ------>{outputs:#?}");
         if outputs.len() != 1 {
             return None;
         }
@@ -293,15 +294,26 @@ where
         // The transition should have only the gateway call
         let outputs = gateway_transition.outputs();
         let call_contract_call = self.find_call_contract(outputs);
+        // println!("----> call_contract_call: {call_contract_call:#?}");
         let call_contract = call_contract_call.ok_or(Error::CallnotFound)?;
 
+        // println!("----> call_contract: {call_contract:#?}");
         let scm = gateway_transition.scm();
+        // println!("----> scm: {scm:#?}");
 
         let gateway_calls_count = transaction
             .transitions()
-            .filter(|t| t.scm() == scm && t.program_id().to_string().as_str() == gateway_contract)
+            .filter(|t| {
+                // println!("t.scm(): {:#?}", t.scm());
+                // println!("t.program_id().to_string().as_str(): {:#?}", t.program_id().to_string().as_str());
+                // println!("gateway_contract: {:#?}", gateway_contract);
+                // println!("res: {:?}", t.scm() == scm && t.program_id().to_string().as_str() == gateway_contract);
+
+                t.scm() == scm && t.program_id().to_string().as_str() == gateway_contract
+            })
             .count();
 
+        // println!("gateway_calls_count: {gateway_calls_count:#?}");
         ensure!(gateway_calls_count == 1, Error::CallnotFound);
 
         let same_scm: Vec<_> = transaction
@@ -318,15 +330,9 @@ where
             Error::UserCallnotFound
         );
 
-        let t = format!("{:02x?}", &call_contract.destination_address);
-        let cleaned: String = t
-            .chars()
-            .filter(|c| !['[', ']', ',', ' '].contains(c))
-            .collect();
-
         Ok(Receipt::Found(TransitionReceipt {
             transition: transition_id.clone(),
-            destination_address: cleaned,
+            destination_address: call_contract.destination_address(),
             destination_chain: ChainName::try_from(call_contract.destination_chain())
                 .change_context(Error::InvalidChainName)?,
             source_address: Address::from_str(call_contract.sender.to_string().as_ref())
@@ -377,17 +383,48 @@ pub mod tests {
         mock_client
     }
 
+    pub fn mock_client_2() -> MockClientTrait {
+        let mut mock_client = MockClientTrait::new();
+
+        let transaction_id = "at1dgmvx30f79wt6w8fcjurwtsc5zak4efg4ayyme79862xylve7gxsq3nfh6";
+        let mut expected_transitions: HashMap<Transaction, SnarkvmTransaction<CurrentNetwork>> =
+            HashMap::new();
+        let transaction_one = include_str!(
+            "../tests/at1dgmvx30f79wt6w8fcjurwtsc5zak4efg4ayyme79862xylve7gxsq3nfh6.json"
+        );
+        let snark_tansaction =
+            SnarkvmTransaction::<CurrentNetwork>::from_str(transaction_one).unwrap();
+        let transaction = Transaction::from_str(transaction_id).unwrap();
+        expected_transitions.insert(transaction, snark_tansaction);
+
+        mock_client
+            .expect_get_transaction()
+            .returning(move |transaction| {
+                // println!("{transaction:#?}");
+                Ok(expected_transitions.get(transaction).unwrap().clone())
+            });
+
+        mock_client.expect_find_transaction().returning(move |_| {
+            let transaction_id = "at1dgmvx30f79wt6w8fcjurwtsc5zak4efg4ayyme79862xylve7gxsq3nfh6";
+            Ok(transaction_id.to_string())
+        });
+
+        mock_client
+    }
+
     #[tokio::test]
     async fn foo_test() {
-        let client = mock_client();
-        let transision_id = "au1knlxwe55dx6cnm2j5sgtsl2z2z590jprme2t4cc49h85uv0emgrsuzvutv";
+        let client = mock_client_2();
+        let transision_id = "au1zn24gzpgkr936qv49g466vfccg8aykcv05rk39s239hjxwrtsu8sltpsd8";
+        // let transision_id = "au1knlxwe55dx6cnm2j5sgtsl2z2z590jprme2t4cc49h85uv0emgrsuzvutv";
         let transition = Transition::from_str(transision_id).unwrap();
         let client = ClientWrapper::new(&client);
-        let gateway_contract = "vzevxifdoj.aleo";
+        let gateway_contract = "gateway_base.aleo";
 
         let res = client
             .transition_receipt(&transition, gateway_contract)
             .await;
         println!("{res:#?}");
+        assert!(res.is_ok());
     }
 }

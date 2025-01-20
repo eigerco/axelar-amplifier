@@ -1,8 +1,24 @@
-use error_stack::Report;
+use error_stack::{ensure, Report};
 
+use crate::string_encoder::StringEncoder;
 use crate::{AleoValue, Error};
 
-#[derive(Debug, Clone)]
+/*
+    struct Message {
+        // ascii encoded chain name
+        source_chain: [u128; 2],
+        // TODO: unit test all valid message_id formats
+        message_id: [u128; 8],
+        // TODO: unit test few valid source addresses
+        source_address: [u128; 4],
+        // detination contract on aleo
+        contract_address: [u128; 4], // This is the program name
+        // hash of the payload
+        payload_hash: [u8; 32],
+    }
+*/
+
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Message {
     pub cc_id: router_api::CrossChainId,
     pub source_address: String,
@@ -27,80 +43,90 @@ impl TryFrom<&router_api::Message> for Message {
 
 impl AleoValue for Message {
     fn to_aleo_string(&self) -> Result<String, Report<Error>> {
-        let source_chain = <&str>::from(&self.cc_id.source_chain);
-        let source_address: Vec<u16> = self
-            .source_address
-            .as_str()
-            .as_bytes()
-            .chunks(2)
-            .map(|chunk| {
-                if chunk.len() == 2 {
-                    ((chunk[0] as u16) << 8) | (chunk[1] as u16)
-                } else {
-                    (chunk[0] as u16) << 8
-                }
-            })
-            .collect();
+        const SOURCE_CHAIN_LEN: usize = 2;
+        let source_chain = StringEncoder::encode_string(self.cc_id.source_chain.as_ref())?;
+        let source_chain_len = source_chain.u128_len();
+        ensure!(
+            source_chain_len <= SOURCE_CHAIN_LEN,
+            Error::InvalidEncodedStringLength {
+                expected: SOURCE_CHAIN_LEN,
+                actual: source_chain.u128_len()
+            }
+        );
 
-        let destination_address_hex: Vec<u8> = hex::decode(self.destination_address.as_str())
-            .map_err(|e| {
-                Report::new(Error::AleoGateway(format!(
-                    "Failed to decode destination address: {}",
-                    e
-                )))
-            })?;
+        const MESSAGE_ID_LEN: usize = 8;
+        let message_id = StringEncoder::encode_string(self.cc_id.message_id.as_str())?;
+        let message_id_len = message_id.u128_len();
+        ensure!(
+            message_id_len <= MESSAGE_ID_LEN,
+            Error::InvalidEncodedStringLength {
+                expected: MESSAGE_ID_LEN,
+                actual: message_id.u128_len()
+            }
+        );
 
-        let message_id: Vec<String> = self
-            .cc_id
-            .message_id
-            .chars()
-            .collect::<Vec<_>>()
-            .chunks(2)
-            .map(|chunk| {
-                let high = chunk.get(0).map_or(0, |&c| c as u16);
-                let low = chunk.get(1).map_or(0, |&c| c as u16);
-                let value = (high << 8) | low;
-                format!("{}u16", value)
-            })
-            .collect();
-        let message_id = message_id.join(", ");
+        const SOURCE_ADDRESS_LEN: usize = 4;
+        let source_address = StringEncoder::encode_string(self.source_address.as_str())?;
+        let source_address_len = source_address.u128_len();
+        ensure!(
+            source_address_len <= SOURCE_ADDRESS_LEN,
+            Error::InvalidEncodedStringLength {
+                expected: SOURCE_ADDRESS_LEN,
+                actual: source_address.u128_len()
+            }
+        );
+
+        const CONTRACT_ADDRESS_LEN: usize = 4;
+        println!("---> destination_address: {}", self.destination_address);
+        let contract_address = StringEncoder::encode_string(self.destination_address.as_str())?;
+        let contract_address_len = contract_address.u128_len();
+        ensure!(
+            contract_address_len <= CONTRACT_ADDRESS_LEN,
+            Error::InvalidEncodedStringLength {
+                expected: CONTRACT_ADDRESS_LEN,
+                actual: contract_address.u128_len()
+            }
+        );
 
         let res = format!(
             r#"{{source_chain: [{}], message_id: [{}], source_address: [{}], contract_address: [{}], payload_hash: [{}]}}"#,
             source_chain
-                .chars()
-                .take(source_chain.len() - 1)
-                .map(|c| format!("{}u8, ", c as u8))
+                .consume()
+                .into_iter()
+                .map(|c| format!("{}u128", c as u128))
                 .chain(
-                    source_chain
-                        .chars()
-                        .last()
-                        .map(|c| format!("{}u8", c as u8))
+                    std::iter::repeat("0u128".to_string())
+                        .take(SOURCE_CHAIN_LEN - source_chain_len)
                 )
-                .chain(std::iter::repeat(", 0u8".to_string()).take(32 - source_chain.len()))
-                .collect::<String>(),
-            message_id,
+                .collect::<Vec<_>>()
+                .join(", "),
+            message_id
+                .consume()
+                .into_iter()
+                .map(|c| format!("{}u128", c as u128))
+                .chain(std::iter::repeat("0u128".to_string()).take(MESSAGE_ID_LEN - message_id_len))
+                .collect::<Vec<_>>()
+                .join(", "),
             source_address
-                .iter()
-                .take(source_address.len() - 1)
-                .map(|c| format!("{}u16, ", c))
-                .chain(source_address.last().map(|c| format!("{}u16", c)))
-                .chain(std::iter::repeat(", 0u16".to_string()).take(32 - source_address.len()))
-                .collect::<String>(),
-            destination_address_hex
-                .iter()
-                .take(destination_address_hex.len() - 1)
-                .map(|c| format!("{}u8, ", c))
+                .consume()
+                .into_iter()
+                .map(|c| format!("{}u128", c as u128))
                 .chain(
-                    destination_address_hex
-                        .iter()
-                        .last()
-                        .map(|c| format!("{}u8", c))
+                    std::iter::repeat("0u128".to_string())
+                        .take(SOURCE_ADDRESS_LEN - source_address_len)
                 )
+                .collect::<Vec<_>>()
+                .join(", "),
+            contract_address
+                .consume()
+                .into_iter()
+                .map(|c| format!("{}u128", c as u128))
                 .chain(
-                    std::iter::repeat(", 0u8".to_string()).take(20 - destination_address_hex.len())
+                    std::iter::repeat("0u128".to_string())
+                        .take(CONTRACT_ADDRESS_LEN - contract_address_len)
                 )
-                .collect::<String>(),
+                .collect::<Vec<_>>()
+                .join(", "),
             self.payload_hash
                 .iter()
                 .map(|b| format!("{}u8", b))
