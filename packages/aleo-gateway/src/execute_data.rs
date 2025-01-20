@@ -1,6 +1,5 @@
 use error_stack::Report;
 
-use crate::messages::Messages;
 use crate::proof::Proof;
 use crate::{AleoValue, Error, Message};
 

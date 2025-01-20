@@ -1,7 +1,9 @@
+use std::str::FromStr as _;
+
 use aleo_gateway::{AleoValue, Message, Messages, PayloadDigest, WeightedSigners};
 use axelar_wasm_std::hash::Hash;
 use axelar_wasm_std::FnExt;
-use cosmwasm_std::HexBinary;
+use cosmwasm_std::{HexBinary, Uint256};
 use error_stack::{Result, ResultExt};
 use multisig::msg::SignerWithSig;
 use multisig::verifier_set::VerifierSet;
@@ -28,13 +30,13 @@ pub fn payload_digest<N: Network>(
                 .0
                 .first()
                 .ok_or(ContractError::InvalidMessage)?
-                .hash::<N>()
+                .bhp::<N>()
         }
         Payload::VerifierSet(verifier_set) => WeightedSigners::try_from(verifier_set)
             .change_context(ContractError::InvalidVerifierSet)?
-            .hash::<N>(),
+            .bhp::<N>(),
     }
-    .change_context(ContractError::SerializeData)?;
+    .map_err(|e| ContractError::AleoError(e.to_string()))?;
 
     let part1 = u128::from_le_bytes(domain_separator[0..16].try_into().map_err(|_| {
         ContractError::AleoError("Failed to convert domain separator to u128".to_string())
@@ -44,12 +46,20 @@ pub fn payload_digest<N: Network>(
     })?);
     let domain_separator: [u128; 2] = [part1, part2];
 
-    let payload_digest = PayloadDigest::new(&domain_separator, verifier_set, &data_hash)
+    let payload_digest = PayloadDigest::new(&domain_separator, verifier_set, data_hash)
         .map_err(|e| ContractError::AleoError(e.to_string()))?;
 
-    Ok(payload_digest
-        .hash::<N>()
-        .map_err(|e| ContractError::AleoError(e.to_string()))?)
+    let hash = payload_digest
+        .bhp::<N>()
+        .map_err(|e| ContractError::AleoError(e.to_string()))?;
+
+    let next = hash.strip_suffix("group");
+    let hash = next.unwrap_or(&hash);
+
+    let hash = Uint256::from_str(&hash).unwrap();
+    let hash = hash.to_le_bytes();
+
+    Ok(hash)
 }
 
 /// The relayer will use this data to submit the payload to the contract.
@@ -82,7 +92,7 @@ pub fn encode_execute_data(
 
     let execute_data = execute_data
         .to_aleo_string()
-        .change_context(ContractError::SerializeData)?;
+        .map_err(|e| ContractError::AleoError(e.to_string()))?;
 
     Ok(HexBinary::from(execute_data.as_bytes()))
 }

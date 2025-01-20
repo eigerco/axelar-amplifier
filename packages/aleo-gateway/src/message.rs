@@ -1,4 +1,8 @@
+use std::str::FromStr as _;
+use snarkvm_cosmwasm::network::Network;
+// use cosmwasm_std::Uint256;
 use error_stack::{ensure, Report};
+use snarkvm_cosmwasm::program::ToBits as _;
 
 use crate::string_encoder::StringEncoder;
 use crate::{AleoValue, Error};
@@ -77,7 +81,6 @@ impl AleoValue for Message {
         );
 
         const CONTRACT_ADDRESS_LEN: usize = 4;
-        println!("---> destination_address: {}", self.destination_address);
         let contract_address = StringEncoder::encode_string(self.destination_address.as_str())?;
         let contract_address_len = contract_address.u128_len();
         ensure!(
@@ -88,8 +91,25 @@ impl AleoValue for Message {
             }
         );
 
+        let input = self
+            .payload_hash
+            .iter()
+            .map(|c| format!("{}u8", c))
+            .collect::<Vec<_>>()
+            .join(",");
+        let input = format!("[{}]", input);
+
+        let aleo_value = snarkvm_cosmwasm::program::Value::<
+            snarkvm_cosmwasm::network::TestnetV0,
+        >::from_str(input.as_str())
+        .unwrap();
+
+        let bits = aleo_value.to_bits_le();
+
+        let group = snarkvm_cosmwasm::network::TestnetV0::hash_to_group_bhp256(&bits).unwrap();
+
         let res = format!(
-            r#"{{source_chain: [{}], message_id: [{}], source_address: [{}], contract_address: [{}], payload_hash: [{}]}}"#,
+            r#"{{source_chain: [{}], message_id: [{}], source_address: [{}], contract_address: [{}], payload_hash: {} }}"#,
             source_chain
                 .consume()
                 .into_iter()
@@ -127,11 +147,7 @@ impl AleoValue for Message {
                 )
                 .collect::<Vec<_>>()
                 .join(", "),
-            self.payload_hash
-                .iter()
-                .map(|b| format!("{}u8", b))
-                .collect::<Vec<_>>()
-                .join(", ")
+            group
         );
 
         Ok(res)

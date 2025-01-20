@@ -50,9 +50,31 @@ pub trait AleoValue {
 
     fn hash<N: Network>(&self) -> Result<[u8; 32], Report<Error>> {
         let input = self.to_aleo_string()?;
-        println!("input: {:?}", input);
         hash::<std::string::String, N>(input)
     }
+
+    fn bhp<N: Network>(&self) -> Result<String, Report<Error>> {
+        let input = self.to_aleo_string()?;
+        aleo_hash::<std::string::String, N>(input)
+    }
+}
+
+fn aleo_hash<T: AsRef<str>, N: Network>(input: T) -> Result<String, Report<Error>> {
+    let aleo_value: Vec<bool> = snarkvm_cosmwasm::program::Value::<N>::from_str(input.as_ref())
+        .map_err(|e| {
+            Report::new(Error::Aleo(e))
+                .attach_printable(format!("input: '{:?}'", input.as_ref().to_owned()))
+        })?
+        .to_bits_le();
+
+    let bits = N::hash_keccak256(&aleo_value).map_err(|e| {
+        Report::new(Error::Aleo(e))
+            .attach_printable(format!("input2: '{:?}'", input.as_ref().to_owned()))
+    })?;
+
+    let group = N::hash_to_group_bhp256(&bits).unwrap();
+
+    Ok(group.to_string())
 }
 
 fn hash<T: AsRef<str>, N: Network>(input: T) -> Result<[u8; 32], Report<Error>> {
@@ -156,10 +178,16 @@ mod test {
         let (_, [source_chain, message_id, source_address, contract_address, payload_hash]) =
             reg.captures(aleo_string.as_str()).unwrap().extract();
 
-        let source_chain = StringEncoder::from_aleo_value(source_chain).unwrap().decode();
+        let source_chain = StringEncoder::from_aleo_value(source_chain)
+            .unwrap()
+            .decode();
         let message_id = StringEncoder::from_aleo_value(message_id).unwrap().decode();
-        let source_address = StringEncoder::from_aleo_value(source_address).unwrap().decode();
-        let contract_address = StringEncoder::from_aleo_value(contract_address).unwrap().decode();
+        let source_address = StringEncoder::from_aleo_value(source_address)
+            .unwrap()
+            .decode();
+        let contract_address = StringEncoder::from_aleo_value(contract_address)
+            .unwrap()
+            .decode();
         let payload_hash = "a432dc983dfe6fc48bb47a90915465d9c8185b1c2aea5c87f85818cba35051c6";
 
         println!("source_chain: {:?}", source_chain);

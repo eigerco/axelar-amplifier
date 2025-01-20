@@ -7,14 +7,14 @@ use crate::{AleoValue, Error};
 pub struct PayloadDigest<'a> {
     domain_separator: &'a [u128; 2],
     signer: Address,
-    data_hash: &'a [u8; 32],
+    data_hash: String,
 }
 
 impl<'a> PayloadDigest<'a> {
     pub fn new(
         domain_separator: &'a [u128; 2],
         verifier_set: &VerifierSet,
-        data_hash: &'a [u8; 32],
+        data_hash: String,
     ) -> Result<PayloadDigest<'a>, Report<Error>> {
         let address = verifier_set
             .signers
@@ -49,7 +49,7 @@ impl<'a> PayloadDigest<'a> {
 impl AleoValue for PayloadDigest<'_> {
     fn to_aleo_string(&self) -> Result<String, Report<Error>> {
         let res = format!(
-            r#"{{ domain_separator: [{}], signer: {}, data_hash: [{}] }}"#,
+            r#"{{ domain_separator: [{}], signer: {}, data_hash: {} }}"#,
             self.domain_separator
                 .iter()
                 .map(|b| format!("{}u128", b))
@@ -57,10 +57,6 @@ impl AleoValue for PayloadDigest<'_> {
                 .join(", "),
             self.signer,
             self.data_hash
-                .iter()
-                .map(|b| format!("{}u8", b))
-                .collect::<Vec<_>>()
-                .join(", ")
         );
 
         Ok(res)
