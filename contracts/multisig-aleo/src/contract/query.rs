@@ -35,17 +35,8 @@ pub fn verify_signature<N: Network>(
 }
 
 fn aleo_encoded<N: Network>(data: &HexBinary) -> Result<Vec<Field<N>>, cosmwasm_std::StdError> {
-    let message = [
-        "[",
-        data.as_ref()
-            .iter()
-            .map(|b| format!("{:?}u8", b))
-            .collect::<Vec<_>>()
-            .join(", ")
-            .as_str(),
-        "]",
-    ]
-    .concat();
+    let num = cosmwasm_std::Uint256::from_le_bytes(data.as_slice().try_into().unwrap());
+    let message = format!("{num}group");
 
     Value::from_str(message.as_str())
         .map_err(|e| {

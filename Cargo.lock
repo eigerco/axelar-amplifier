@@ -1285,6 +1285,27 @@ dependencies = [
 ]
 
 [[package]]
+name = "bindgen"
+version = "0.65.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "cfdf7b466f9a4903edc73f95d6d2bcd5baf8ae620638762244d3f60143643cc5"
+dependencies = [
+ "bitflags 1.3.2",
+ "cexpr",
+ "clang-sys",
+ "lazy_static",
+ "lazycell",
+ "peeking_take_while",
+ "prettyplease 0.2.25",
+ "proc-macro2 1.0.92",
+ "quote 1.0.38",
+ "regex",
+ "rustc-hash 1.1.0",
+ "shlex",
+ "syn 2.0.92",
+]
+
+[[package]]
 name = "bip32"
 version = "0.5.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1591,6 +1612,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "bzip2-sys"
+version = "0.1.11+1.0.8"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "736a955f3fa7875102d57c82b8cac37ec45224a07fd32d58f9f7a186b6cd4cdc"
+dependencies = [
+ "cc",
+ "libc",
+ "pkg-config",
+]
+
+[[package]]
 name = "camino"
 version = "1.1.9"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1640,6 +1672,15 @@ dependencies = [
  "jobserver",
  "libc",
  "shlex",
+]
+
+[[package]]
+name = "cexpr"
+version = "0.6.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "6fac387a98bb7c37292057cffc56d62ecb629900026402633ae9160df93a8766"
+dependencies = [
+ "nom",
 ]
 
 [[package]]
@@ -1704,6 +1745,17 @@ checksum = "773f3b9af64447d2ce9850330c473515014aa235e6a783b02db81ff39e4a3dad"
 dependencies = [
  "crypto-common",
  "inout",
+]
+
+[[package]]
+name = "clang-sys"
+version = "1.8.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "0b023947811758c97c59bf9d1c188fd619ad4718dcaa767947df1cadb14f39f4"
+dependencies = [
+ "glob",
+ "libc",
+ "libloading",
 ]
 
 [[package]]
@@ -1900,7 +1952,7 @@ dependencies = [
  "semver 1.0.24",
  "service-registry-api",
  "thiserror 1.0.69",
- "tofn",
+ "tofn 1.1.0 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
 [[package]]
@@ -4535,7 +4587,7 @@ dependencies = [
  "service-registry",
  "service-registry-api",
  "sha3",
- "tofn",
+ "tofn 1.1.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "voting-verifier",
 ]
 
@@ -4952,6 +5004,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "lazycell"
+version = "1.3.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "830d08ce1d1d941e6b30645f1a0eb5643013d835ce3779a5fc208261dbe10f55"
+
+[[package]]
 name = "leb128"
 version = "0.2.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -4962,6 +5020,16 @@ name = "libc"
 version = "0.2.168"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "5aaeb2981e0606ca11d79718f8bb01164f1d6ed75080182d3abf017e6d244b6d"
+
+[[package]]
+name = "libloading"
+version = "0.8.6"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "fc2f4eb4bc735547cfed7c0a4922cbd04a4655978c09b54f1f7b228750664c34"
+dependencies = [
+ "cfg-if",
+ "windows-targets 0.48.5",
+]
 
 [[package]]
 name = "libm"
@@ -4977,6 +5045,21 @@ checksum = "c0ff37bd590ca25063e35af745c343cb7a0271906fb7b37e4813e8f79f00268d"
 dependencies = [
  "bitflags 2.6.0",
  "libc",
+]
+
+[[package]]
+name = "librocksdb-sys"
+version = "0.11.0+8.1.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "d3386f101bcb4bd252d8e9d2fb41ec3b0862a15a62b478c355b2982efa469e3e"
+dependencies = [
+ "bindgen",
+ "bzip2-sys",
+ "cc",
+ "glob",
+ "libc",
+ "libz-sys",
+ "lz4-sys",
 ]
 
 [[package]]
@@ -5057,6 +5140,16 @@ dependencies = [
  "serde_json",
  "serde_repr",
  "url",
+]
+
+[[package]]
+name = "lz4-sys"
+version = "1.11.1+lz4-1.10.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "6bd8c0d6c6ed0cd30b3652886bb8711dc4bb01d637a68105a3d5158039b418e6"
+dependencies = [
+ "cc",
+ "libc",
 ]
 
 [[package]]
@@ -5681,11 +5774,13 @@ dependencies = [
  "service-registry",
  "service-registry-api",
  "sha3",
+ "snarkvm",
  "snarkvm-cosmwasm",
  "stellar",
  "stellar-xdr",
  "sui-gateway",
  "thiserror 1.0.69",
+ "tofn 1.1.0 (git+https://github.com/eigerco/tofn.git?branch=aleo-schnorr)",
  "voting-verifier",
 ]
 
@@ -6389,6 +6484,12 @@ dependencies = [
  "digest 0.10.7",
  "hmac",
 ]
+
+[[package]]
+name = "peeking_take_while"
+version = "0.1.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "19b17cddbe7ec3f8bc800887bab5e717348c95ea2ca0b1bf0837fb964dc67099"
 
 [[package]]
 name = "peg"
@@ -7534,6 +7635,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "rocksdb"
+version = "0.21.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "bb6f170a4041d50a0ce04b0d2e14916d6ca863ea2e422689a5b694395d299ffe"
+dependencies = [
+ "libc",
+ "librocksdb-sys",
+]
+
+[[package]]
 name = "ron"
 version = "0.7.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -8516,6 +8627,18 @@ name = "snap"
 version = "1.1.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "1b6b67fb9a61334225b5b790716f609cd58395f895b3fe8b328786812a40bc3b"
+
+[[package]]
+name = "snarkos-account"
+version = "3.2.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "680adc14b4416f1c69900a0fd356635f54e53bf22de3739391955496a7e12991"
+dependencies = [
+ "anyhow",
+ "colored",
+ "rand",
+ "snarkvm",
+]
 
 [[package]]
 name = "snarkvm"
@@ -9520,10 +9643,13 @@ dependencies = [
  "anyhow",
  "bincode",
  "indexmap 2.7.0",
+ "once_cell",
  "parking_lot",
  "rayon",
+ "rocksdb",
  "serde",
  "serde_json",
+ "smallvec",
  "snarkvm-console",
  "snarkvm-ledger-authority",
  "snarkvm-ledger-block",
@@ -9532,6 +9658,7 @@ dependencies = [
  "snarkvm-ledger-puzzle",
  "snarkvm-synthesizer-program",
  "snarkvm-synthesizer-snark",
+ "tracing",
 ]
 
 [[package]]
@@ -10835,6 +10962,29 @@ dependencies = [
  "rand_chacha",
  "serde",
  "sha2 0.10.8",
+ "tracing",
+ "zeroize",
+]
+
+[[package]]
+name = "tofn"
+version = "1.1.0"
+source = "git+https://github.com/eigerco/tofn.git?branch=aleo-schnorr#cfa3d502d0290f3297eb2b20126df1551a77af91"
+dependencies = [
+ "bincode",
+ "cosmwasm-std",
+ "crypto-bigint",
+ "ecdsa",
+ "ed25519 2.2.3",
+ "ed25519-dalek",
+ "hmac",
+ "k256",
+ "rand",
+ "rand_chacha",
+ "serde",
+ "sha2 0.10.8",
+ "snarkos-account",
+ "snarkvm",
  "tracing",
  "zeroize",
 ]

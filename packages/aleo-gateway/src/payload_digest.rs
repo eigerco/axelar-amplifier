@@ -4,6 +4,7 @@ use multisig::verifier_set::{self, VerifierSet};
 
 use crate::{AleoValue, Error};
 
+#[derive(Debug)]
 pub struct PayloadDigest<'a> {
     domain_separator: &'a [u128; 2],
     signer: Address,

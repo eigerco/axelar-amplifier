@@ -3,6 +3,7 @@ use error_stack::Report;
 use crate::message::Message;
 use crate::{AleoValue, Error};
 
+#[derive(Debug)]
 pub struct Messages(pub Vec<Message>);
 
 impl From<Vec<Message>> for Messages {
