@@ -91,25 +91,10 @@ impl AleoValue for Message {
             }
         );
 
-        let input = self
-            .payload_hash
-            .iter()
-            .map(|c| format!("{}u8", c))
-            .collect::<Vec<_>>()
-            .join(",");
-        let input = format!("[{}]", input);
-
-        let aleo_value = snarkvm_cosmwasm::program::Value::<
-            snarkvm_cosmwasm::network::TestnetV0,
-        >::from_str(input.as_str())
-        .unwrap();
-
-        let bits = aleo_value.to_bits_le();
-
-        let group = snarkvm_cosmwasm::network::TestnetV0::hash_to_group_bhp256(&bits).unwrap();
+        let payload_hash = cosmwasm_std::Uint256::from_le_bytes(self.payload_hash);
 
         let res = format!(
-            r#"{{source_chain: [{}], message_id: [{}], source_address: [{}], contract_address: [{}], payload_hash: {} }}"#,
+            r#"{{source_chain: [{}], message_id: [{}], source_address: [{}], contract_address: [{}], payload_hash: {}group }}"#,
             source_chain
                 .consume()
                 .into_iter()
@@ -147,7 +132,7 @@ impl AleoValue for Message {
                 )
                 .collect::<Vec<_>>()
                 .join(", "),
-            group
+            payload_hash
         );
 
         Ok(res)

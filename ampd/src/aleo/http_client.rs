@@ -93,8 +93,12 @@ impl PartialEq<crate::handlers::aleo_verify_msg::Message> for TransitionReceipt 
             Hash::from_slice(&payload_hash)
         }
         else {
-            let payload_hash = keccak256(&payload).to_vec();
-            Hash::from_slice(&payload_hash)
+            // let payload_hash = keccak256(&payload).to_vec();
+            let payload_hash = aleo_gateway::aleo_hash::<&str, snarkvm_cosmwasm::network::TestnetV0>(payload).unwrap();
+            let payload_hash = payload_hash.strip_suffix("group").unwrap();
+            let hash = cosmwasm_std::Uint256::from_str(&payload_hash).unwrap();
+            let hash = hash.to_le_bytes();
+            Hash::from_slice(&hash)
         };
 
         info!(

@@ -59,7 +59,7 @@ pub trait AleoValue {
     }
 }
 
-fn aleo_hash<T: AsRef<str>, N: Network>(input: T) -> Result<String, Report<Error>> {
+pub fn aleo_hash<T: AsRef<str>, N: Network>(input: T) -> Result<String, Report<Error>> {
     let aleo_value: Vec<bool> = snarkvm_cosmwasm::program::Value::<N>::from_str(input.as_ref())
         .map_err(|e| {
             Report::new(Error::Aleo(e))
