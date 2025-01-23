@@ -1,7 +1,8 @@
 use std::str::FromStr as _;
-use snarkvm_cosmwasm::network::Network;
+
 // use cosmwasm_std::Uint256;
 use error_stack::{ensure, Report};
+use snarkvm_cosmwasm::network::Network;
 use snarkvm_cosmwasm::program::ToBits as _;
 
 use crate::string_encoder::StringEncoder;
@@ -43,6 +44,13 @@ impl TryFrom<&router_api::Message> for Message {
             payload_hash: value.payload_hash,
         })
     }
+}
+
+fn bytes_to_bits(bytes: &Vec<u8>) -> Vec<bool> {
+    bytes
+        .iter()
+        .flat_map(|&byte| (0..8).rev().map(move |i| (byte >> i) & 1 == 1))
+        .collect()
 }
 
 impl AleoValue for Message {
@@ -91,10 +99,22 @@ impl AleoValue for Message {
             }
         );
 
-        let payload_hash = cosmwasm_std::Uint256::from_le_bytes(self.payload_hash);
+        // TODO: check if we can know at this point that only Aleo can be the destination chain
+        let payload_hash = if self.cc_id.source_chain == "aleo-2" {
+            let n = cosmwasm_std::Uint256::from_le_bytes(self.payload_hash);
+            format!("{n}group")
+        } else {
+            let reverse_hash = self.payload_hash.iter().map(|b| b.reverse_bits()).collect();
+            let keccak_bits: Vec<bool> = bytes_to_bits(&reverse_hash);
+
+            let group =
+                <snarkvm_cosmwasm::network::TestnetV0>::hash_to_group_bhp256(&keccak_bits).unwrap();
+
+            format!("{group}")
+        };
 
         let res = format!(
-            r#"{{source_chain: [{}], message_id: [{}], source_address: [{}], contract_address: [{}], payload_hash: {}group }}"#,
+            r#"{{source_chain: [{}], message_id: [{}], source_address: [{}], contract_address: [{}], payload_hash: {} }}"#,
             source_chain
                 .consume()
                 .into_iter()
