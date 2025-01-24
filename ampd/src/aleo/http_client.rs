@@ -336,7 +336,9 @@ where
 
         Ok(Receipt::Found(TransitionReceipt {
             transition: transition_id.clone(),
-            destination_address: call_contract.destination_address(),
+            destination_address: call_contract.destination_address().map_err(|e| {
+                Report::new(Error::FailedToCreateAleoID(e.to_string()))
+            })?,
             destination_chain: ChainName::try_from(call_contract.destination_chain())
                 .change_context(Error::InvalidChainName)?,
             source_address: Address::from_str(call_contract.sender.to_string().as_ref())

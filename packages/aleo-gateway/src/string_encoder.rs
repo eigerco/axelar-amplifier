@@ -65,7 +65,7 @@ impl StringEncoder {
     }
 
     /// Decodes and consumes the StringEncoder, returning the original ASCII string
-    pub fn decode(self) -> String {
+    pub fn decode(&self) -> String {
         let mut result = Vec::new();
 
         for (i, value) in self.buf.iter().enumerate() {

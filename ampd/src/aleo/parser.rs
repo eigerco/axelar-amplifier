@@ -1,4 +1,5 @@
 use aleo_gateway::StringEncoder;
+use error_stack::ResultExt;
 use pest::iterators::Pair;
 use pest::Parser;
 use pest_derive::Parser;
@@ -13,7 +14,6 @@ struct AleoParser;
 pub enum Error {
     #[error("Pest: {0}")]
     Pest(#[from] Box<pest::error::Error<Rule>>),
-    #[allow(dead_code)]
     #[error("AleoParser: {0}")]
     AleoParser(String),
 }
@@ -39,15 +39,18 @@ pub struct CallContract {
 
 impl CallContract {
     pub fn destination_chain(&self) -> String {
-        let encoded_string = StringEncoder { buf: self.destination_chain.clone() };
+        let encoded_string = StringEncoder {
+            buf: self.destination_chain.clone(),
+        };
         encoded_string.decode()
     }
 
-    pub fn destination_address(&self) -> String {
-        let encoded_string = StringEncoder { buf: self.destination_address.clone() };
-        let hex_bytes = encoded_string.decode();
-        let hex = hex::decode(hex_bytes).unwrap();
-        String::from_utf8(hex).unwrap()
+    pub fn destination_address(&self) -> Result<String, error_stack::Report<Error>> {
+        let encoded_string = StringEncoder {
+            buf: self.destination_address.clone(),
+        };
+        let ascii_string = encoded_string.decode();
+        Ok(ascii_string)
     }
 }
 

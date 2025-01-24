@@ -64,10 +64,12 @@ type = 'AleoMsgVerifier'
 # voting-verifier contract
 cosmwasm_contract = "axelar1gneuvdsf733h77hj6hn24kukgljvr5xnlladxnnc9gqqwwvu3uvsnxl2hc"
 chain_name = 'aleo-2'
-chain_rpc_url = "http://localhost:3030"
-base_url = "http://localhost:3030"
+chain_rpc_url="https://api.explorer.provable.com/v1"
+base_url="https://api.explorer.provable.com/v1"
+# chain_rpc_url = "http://localhost:3030"
+# base_url = "http://localhost:3030"
 network = "testnet"
-gateway_contract = "gateway_base.aleo"
+gateway_contract = "ac64caccf8221554ec3f89bf.aleo"
 # cosmwasm_contract = "axelar1gneuvdsf733h77hj6hn24kukgljvr5xnlladxnnc9gqqwwvu3uvsnxl2hc"
 
 
