@@ -418,6 +418,34 @@ pub mod tests {
         mock_client
     }
 
+    pub fn mock_client_3() -> MockClientTrait {
+        let mut mock_client = MockClientTrait::new();
+
+        let transaction_id = "at14gry4nauteg5sp00p6d2pj93dhpsm5857ml8y3xg57nkpszhav9qk0tgvd";
+        let mut expected_transitions: HashMap<Transaction, SnarkvmTransaction<CurrentNetwork>> =
+            HashMap::new();
+        let transaction_one = include_str!(
+            "../tests/at14gry4nauteg5sp00p6d2pj93dhpsm5857ml8y3xg57nkpszhav9qk0tgvd.json"
+        );
+        let snark_tansaction =
+            SnarkvmTransaction::<CurrentNetwork>::from_str(transaction_one).unwrap();
+        let transaction = Transaction::from_str(transaction_id).unwrap();
+        expected_transitions.insert(transaction, snark_tansaction);
+
+        mock_client
+            .expect_get_transaction()
+            .returning(move |transaction| {
+                Ok(expected_transitions.get(transaction).unwrap().clone())
+            });
+
+        mock_client.expect_find_transaction().returning(move |_| {
+            let transaction_id = "at14gry4nauteg5sp00p6d2pj93dhpsm5857ml8y3xg57nkpszhav9qk0tgvd";
+            Ok(transaction_id.to_string())
+        });
+
+        mock_client
+    }
+
     #[tokio::test]
     async fn foo_test() {
         let client = mock_client_2();
@@ -434,48 +462,18 @@ pub mod tests {
         assert!(res.is_ok());
     }
 
-    pub fn mock_client_3() -> MockClientTrait {
-        let mut mock_client = MockClientTrait::new();
-
-        let transaction_id = "at1yfe335uv65frv805y87yvswz77ph35azq82wegf9v6e4wgfxvyrq7ckqv3";
-        let mut expected_transitions: HashMap<Transaction, SnarkvmTransaction<CurrentNetwork>> =
-            HashMap::new();
-        let transaction_one = include_str!(
-            "../tests/at1yfe335uv65frv805y87yvswz77ph35azq82wegf9v6e4wgfxvyrq7ckqv3.json"
-        );
-        let snark_tansaction =
-            SnarkvmTransaction::<CurrentNetwork>::from_str(transaction_one).unwrap();
-        let transaction = Transaction::from_str(transaction_id).unwrap();
-        expected_transitions.insert(transaction, snark_tansaction);
-
-        mock_client
-            .expect_get_transaction()
-            .returning(move |transaction| {
-                // println!("{transaction:#?}");
-                Ok(expected_transitions.get(transaction).unwrap().clone())
-            });
-
-        mock_client.expect_find_transaction().returning(move |_| {
-            let transaction_id = "at1yfe335uv65frv805y87yvswz77ph35azq82wegf9v6e4wgfxvyrq7ckqv3";
-            Ok(transaction_id.to_string())
-        });
-
-        mock_client
-    }
-
     #[tokio::test]
-    async fn foo_test3() {
+    async fn flow_test() {
         let client = mock_client_3();
-        let transision_id = "au1zqr6glyjladyazx6llal66w2s00nvx70d058qhtje3mn0rn75grqlz22rd";
-        // let transision_id = "au1knlxwe55dx6cnm2j5sgtsl2z2z590jprme2t4cc49h85uv0emgrsuzvutv";
+        let transision_id = "au17kdp7a7p6xuq6h0z3qrdydn4f6fjaufvzvlgkdd6vzpr87lgcgrq8qx6st";
         let transition = Transition::from_str(transision_id).unwrap();
         let client = ClientWrapper::new(&client);
-        let gateway_contract = "gateway_base.aleo";
+        let gateway_contract = "ac64caccf8221554ec3f89bf.aleo";
 
         let res = client
             .transition_receipt(&transition, gateway_contract)
             .await;
-        println!("{res:#?}");
+        // println!("{res:#?}");
         assert!(res.is_ok());
     }
 }

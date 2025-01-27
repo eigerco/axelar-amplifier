@@ -181,6 +181,7 @@ where
             votes
         });
 
+        println!("{:?}", votes);
         Ok(vec![self
             .vote_msg(poll_id, votes)
             .into_any()
@@ -193,6 +194,7 @@ mod tests {
     use std::str::FromStr;
 
     use cosmrs::AccountId;
+    // use multisig::msg::ExecuteMsg;
     use router_api::Address;
     use voting_verifier::events::{PollMetadata, PollStarted, TxEventConfirmation};
 
@@ -208,18 +210,17 @@ mod tests {
         .into()];
         let messages: Vec<Message> = vec![Message {
             tx_id: Transition::from_str(
-                "au1g37nzpnjrj9aeref8ywmne69nqs976q0rt2svp454yh2cnkresrssrgjec",
+                "au17kdp7a7p6xuq6h0z3qrdydn4f6fjaufvzvlgkdd6vzpr87lgcgrq8qx6st",
             )
             .unwrap(),
-            destination_address:
-                "0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef".to_string(),
-            destination_chain: ChainName::from_str("ethereum").unwrap(),
+            destination_address: "dapp20250123exec.aleo".to_string(),
+            destination_chain: ChainName::from_str("aleo-2").unwrap(),
             source_address: AleoAddress::from_str(
-                "aleo10fmsqwh059uqm74x6t6zgj93wfxtep0avevcxz0n4w9uawymkv9s7whsau",
+                "aleo1ejcm4cpwcjtenxlg37utj8dn7s88xs5asvl5u25w4udkd7e7dcpqvaeyaz",
             )
             .unwrap(),
             payload_hash: Hash::from_str(
-                "c5d2460186f7233c927e7db2dcc703c0e500b653ca82273b7bfad8045d85a470",
+                "d1af832424763b0b7692605ebfbdd461cc5f4d560228e06b4b6e6191c9e6fb08",
             )
             .unwrap(),
         }];
@@ -238,7 +239,7 @@ mod tests {
             ),
             (
                 "source_chain".to_string(),
-                serde_json::to_value("aleo").unwrap(),
+                serde_json::to_value("aleo-2").unwrap(),
             ),
             (
                 "source_gateway_address".to_string(),
@@ -266,11 +267,12 @@ mod tests {
         }
     }
 
-    // use crate::aleo::http_client::ClientTrait as AleoClientTrait;
+    use cosmrs::proto::cosmwasm::wasm::v1::MsgExecuteContract;
+    use prost::Message as _;
 
     #[tokio::test]
-    async fn my_foo() {
-        let mock_client = crate::aleo::http_client::tests::mock_client();
+    async fn aleo_verify_msg() {
+        let mock_client = crate::aleo::http_client::tests::mock_client_3();
         let event = poll_started_event();
 
         let handler = Handler::new(
@@ -288,11 +290,18 @@ mod tests {
             ),
             mock_client,
             tokio::sync::watch::channel(0).1,
-            "vzevxifdoj.aleo".to_string(),
+            "ac64caccf8221554ec3f89bf.aleo".to_string(),
         );
 
-        println!("{:?}", event);
-        let foo = handler.handle(&event).await;
-        println!("{:?}", foo);
+        let res = handler.handle(&event).await.unwrap();
+        let res: Vec<MsgExecuteContract> = res
+            .iter()
+            .map(|msg| MsgExecuteContract::decode(msg.value.as_slice()).unwrap())
+            .collect();
+
+        for r in res {
+            let decode: ExecuteMsg = serde_json::from_slice(&r.msg).unwrap();
+            println!("vote: {:?}", decode);
+        }
     }
 }
