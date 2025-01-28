@@ -75,6 +75,29 @@ pub fn new_verifier_set() -> VerifierSet {
     }
 }
 
+pub fn starknet_messages() -> Vec<Message> {
+    vec![Message {
+        cc_id: CrossChainId::new(
+            "ganache-1",
+            "0xff822c88807859ff226b58e24f24974a70f04b9442501ae38fd665b3c68f3834-0",
+        )
+        .unwrap(),
+        source_address: "0x52444f1835Adc02086c37Cb226561605e2E1699b"
+            .parse()
+            .unwrap(),
+        destination_address: "0x049ec69cd2e0c987857fbda7966ff59077e2e92c18959bdb9b0012438c452047"
+            .parse()
+            .unwrap(),
+        destination_chain: "starknet-devnet-v1".parse().unwrap(),
+        payload_hash: HexBinary::from_hex(
+            "8c3685dc41c2eca11426f8035742fb97ea9f14931152670a5703f18fe8b392f0",
+        )
+        .unwrap()
+        .to_array::<32>()
+        .unwrap(),
+    }]
+}
+
 pub fn messages() -> Vec<Message> {
     vec![Message {
         cc_id: CrossChainId::new(
