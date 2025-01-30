@@ -5,7 +5,7 @@ use async_trait::async_trait;
 use axelar_wasm_std::msg_id::FieldElementAndEventIndex;
 use error_stack::Report;
 use mockall::automock;
-use starknet_core::types::{ExecutionResult, Felt, TransactionReceipt};
+use starknet_core::types::{ExecutionResult, TransactionReceipt};
 use starknet_providers::jsonrpc::JsonRpcTransport;
 use starknet_providers::{JsonRpcClient, Provider, ProviderError};
 use thiserror::Error;
@@ -74,7 +74,7 @@ pub trait StarknetClient {
     async fn get_event_by_hash_and_index_signers_rotated(
         &self,
         message_id: FieldElementAndEventIndex,
-    ) -> Result<Option<(Felt, SignersRotatedEvent)>>;
+    ) -> Result<Option<SignersRotatedEvent>>;
 }
 
 #[async_trait]
@@ -113,7 +113,7 @@ where
     async fn get_event_by_hash_and_index_signers_rotated(
         &self,
         message_id: FieldElementAndEventIndex,
-    ) -> Result<Option<(Felt, SignersRotatedEvent)>> {
+    ) -> Result<Option<SignersRotatedEvent>> {
         let receipt_with_block_info = self
             .client
             .get_transaction_receipt(message_id.tx_hash.clone())
@@ -125,7 +125,7 @@ where
         };
 
         // get event from receipt by index
-        let event: Option<(Felt, SignersRotatedEvent)> = match receipt_with_block_info.receipt {
+        let event: Option<(_, SignersRotatedEvent)> = match receipt_with_block_info.receipt {
             TransactionReceipt::Invoke(tx) => {
                 let event_index: usize = match message_id.event_index.try_into() {
                     Ok(index) => index,
@@ -142,7 +142,7 @@ where
             _ => None,
         };
 
-        Ok(event)
+        Ok(event.map(|(_, event)| event))
     }
 }
 
@@ -289,7 +289,7 @@ mod test {
     #[tokio::test]
     async fn successful_signers_rotated_tx_fetch() {
         let mock_client = Client::new_with_transport(ValidMockTransportSignersRotated).unwrap();
-        let signers_rotated_event: (Felt, SignersRotatedEvent) = mock_client
+        let signers_rotated_event = mock_client
             .get_event_by_hash_and_index_signers_rotated(FieldElementAndEventIndex {
                 tx_hash: CheckedFelt::try_from(&Felt::ONE.to_bytes_be()).unwrap(),
                 event_index: 0,
@@ -298,13 +298,8 @@ mod test {
             .unwrap() // unwrap the result
             .unwrap(); // unwrap the option
 
-        assert_eq!(
-            signers_rotated_event.0,
-            Felt::from_str("0x0000000000000000000000000000000000000000000000000000000000000001")
-                .unwrap()
-        );
+        assert_eq!(signers_rotated_event.from_address, "0x2".to_string());
 
-        let actual: SignersRotatedEvent = signers_rotated_event.1;
         let expected: SignersRotatedEvent = SignersRotatedEvent {
             from_address: "0x2".to_string(),
             epoch: 1,
@@ -325,7 +320,7 @@ mod test {
             },
         };
 
-        assert_eq!(actual, expected);
+        assert_eq!(signers_rotated_event, expected);
     }
 
     #[tokio::test]

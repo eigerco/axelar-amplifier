@@ -138,7 +138,7 @@ where
             info!("ready to verify verifier set in poll",);
 
             let vote = transaction_response.map_or(Vote::NotFound, |tx_receipt| {
-                verify_verifier_set(&tx_receipt.1, &verifier_set, &source_gateway_address)
+                verify_verifier_set(&tx_receipt, &verifier_set, &source_gateway_address)
             });
 
             info!(
