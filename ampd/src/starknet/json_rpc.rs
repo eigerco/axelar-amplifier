@@ -3,7 +3,6 @@
 
 use async_trait::async_trait;
 use axelar_wasm_std::msg_id::FieldElementAndEventIndex;
-use error_stack::Report;
 use mockall::automock;
 use starknet_core::types::{ExecutionResult, TransactionReceipt};
 use starknet_providers::jsonrpc::JsonRpcTransport;
@@ -25,12 +24,6 @@ pub enum StarknetClientError {
     JsonDeserializeError(#[from] serde_json::Error),
     #[error("Failed to fetch tx receipt: {0}")]
     FetchingReceipt(#[from] ProviderError),
-    #[error("Tx not successful")]
-    UnsuccessfulTx,
-    #[error("Invalid event index")]
-    InvalidEventIndex,
-    #[error("Failed to get event from receipt")]
-    InvalidEventFromReceipt,
 }
 
 /// Implementor of verification method(s) for given network using JSON RPC
@@ -74,7 +67,7 @@ pub trait StarknetClient {
     async fn get_event_by_message_id_signers_rotated(
         &self,
         message_id: FieldElementAndEventIndex,
-    ) -> Result<Option<SignersRotatedEvent>>;
+    ) -> Option<SignersRotatedEvent>;
 }
 
 #[async_trait]
@@ -113,15 +106,15 @@ where
     async fn get_event_by_message_id_signers_rotated(
         &self,
         message_id: FieldElementAndEventIndex,
-    ) -> Result<Option<SignersRotatedEvent>> {
+    ) -> Option<SignersRotatedEvent> {
         let receipt_with_block_info = self
             .client
             .get_transaction_receipt(message_id.tx_hash.clone())
             .await
-            .map_err(StarknetClientError::FetchingReceipt)?;
+            .ok()?;
 
         if *receipt_with_block_info.receipt.execution_result() != ExecutionResult::Succeeded {
-            return Err(Report::new(StarknetClientError::UnsuccessfulTx));
+            return None;
         };
 
         // get event from receipt by index
@@ -129,11 +122,11 @@ where
             TransactionReceipt::Invoke(tx) => {
                 let event_index: usize = match message_id.event_index.try_into() {
                     Ok(index) => index,
-                    Err(_) => return Err(Report::new(StarknetClientError::InvalidEventIndex)),
+                    Err(_) => return None,
                 };
                 let event = match tx.events.get(event_index) {
                     Some(event) => event,
-                    None => return Err(Report::new(StarknetClientError::InvalidEventFromReceipt)),
+                    None => return None,
                 };
                 SignersRotatedEvent::try_from(event.clone())
                     .ok()
@@ -141,8 +134,7 @@ where
             }
             _ => None,
         };
-
-        Ok(event.map(|(_, event)| event))
+        event.map(|(_, event)| event)
     }
 }
 
@@ -178,7 +170,7 @@ mod test {
             })
             .await;
 
-        assert!(contract_call_event.unwrap().is_none());
+        assert!(contract_call_event.is_none());
     }
 
     #[tokio::test]
@@ -295,8 +287,7 @@ mod test {
                 event_index: 0,
             })
             .await
-            .unwrap() // unwrap the result
-            .unwrap(); // unwrap the option
+            .unwrap();
 
         assert_eq!(signers_rotated_event.from_address, "0x2".to_string());
 
