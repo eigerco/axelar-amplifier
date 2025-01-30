@@ -5,7 +5,6 @@ use async_trait::async_trait;
 use axelar_wasm_std::msg_id::FieldElementAndEventIndex;
 use error_stack::Report;
 use mockall::automock;
-use starknet_checked_felt::CheckedFelt;
 use starknet_core::types::{ExecutionResult, Felt, TransactionReceipt};
 use starknet_providers::jsonrpc::JsonRpcTransport;
 use starknet_providers::{JsonRpcClient, Provider, ProviderError};
@@ -28,6 +27,10 @@ pub enum StarknetClientError {
     FetchingReceipt(#[from] ProviderError),
     #[error("Tx not successful")]
     UnsuccessfulTx,
+    #[error("Invalid event index")]
+    InvalidEventIndex,
+    #[error("Failed to get event from receipt")]
+    InvalidEventFromReceipt,
 }
 
 /// Implementor of verification method(s) for given network using JSON RPC
@@ -68,9 +71,9 @@ pub trait StarknetClient {
 
     /// Attempts to fetch a SignersRotated event, by a given `tx_hash`.
     /// Returns a tuple `(tx_hash, event)` or a `StarknetClientError`.
-    async fn get_event_by_hash_signers_rotated(
+    async fn get_event_by_hash_and_index_signers_rotated(
         &self,
-        tx_hash: CheckedFelt,
+        message_id: FieldElementAndEventIndex,
     ) -> Result<Option<(Felt, SignersRotatedEvent)>>;
 }
 
@@ -107,32 +110,35 @@ where
     }
 
     // Fetches a transaction receipt by hash and extracts a `SignersRotatedEvent` if present
-    async fn get_event_by_hash_signers_rotated(
+    async fn get_event_by_hash_and_index_signers_rotated(
         &self,
-        tx_hash: CheckedFelt,
+        message_id: FieldElementAndEventIndex,
     ) -> Result<Option<(Felt, SignersRotatedEvent)>> {
         let receipt_with_block_info = self
             .client
-            .get_transaction_receipt(tx_hash)
+            .get_transaction_receipt(message_id.tx_hash.clone())
             .await
             .map_err(StarknetClientError::FetchingReceipt)?;
 
         if *receipt_with_block_info.receipt.execution_result() != ExecutionResult::Succeeded {
             return Err(Report::new(StarknetClientError::UnsuccessfulTx));
-        }
+        };
 
+        // get event from receipt by index
         let event: Option<(Felt, SignersRotatedEvent)> = match receipt_with_block_info.receipt {
-            TransactionReceipt::Invoke(tx) => tx
-                .events
-                .iter()
-                .filter_map(|e| {
-                    if let Ok(sre) = SignersRotatedEvent::try_from(e.clone()) {
-                        Some((tx.transaction_hash, sre))
-                    } else {
-                        None
-                    }
-                })
-                .next(),
+            TransactionReceipt::Invoke(tx) => {
+                let event_index: usize = match message_id.event_index.try_into() {
+                    Ok(index) => index,
+                    Err(_) => return Err(Report::new(StarknetClientError::InvalidEventIndex)),
+                };
+                let event = match tx.events.get(event_index) {
+                    Some(event) => event,
+                    None => return Err(Report::new(StarknetClientError::InvalidEventFromReceipt)),
+                };
+                SignersRotatedEvent::try_from(event.clone())
+                    .ok()
+                    .map(|sre| (tx.transaction_hash, sre))
+            }
             _ => None,
         };
 
@@ -166,9 +172,10 @@ mod test {
         let mock_client =
             Client::new_with_transport(InvalidSignersRotatedEventMockTransport).unwrap();
         let contract_call_event = mock_client
-            .get_event_by_hash_signers_rotated(
-                CheckedFelt::try_from(&Felt::ONE.to_bytes_be()).unwrap(),
-            )
+            .get_event_by_hash_and_index_signers_rotated(FieldElementAndEventIndex {
+                tx_hash: CheckedFelt::try_from(&Felt::ONE.to_bytes_be()).unwrap(),
+                event_index: 0,
+            })
             .await;
 
         assert!(contract_call_event.unwrap().is_none());
@@ -283,9 +290,10 @@ mod test {
     async fn successful_signers_rotated_tx_fetch() {
         let mock_client = Client::new_with_transport(ValidMockTransportSignersRotated).unwrap();
         let signers_rotated_event: (Felt, SignersRotatedEvent) = mock_client
-            .get_event_by_hash_signers_rotated(
-                CheckedFelt::try_from(&Felt::ONE.to_bytes_be()).unwrap(),
-            )
+            .get_event_by_hash_and_index_signers_rotated(FieldElementAndEventIndex {
+                tx_hash: CheckedFelt::try_from(&Felt::ONE.to_bytes_be()).unwrap(),
+                event_index: 0,
+            })
             .await
             .unwrap() // unwrap the result
             .unwrap(); // unwrap the option
