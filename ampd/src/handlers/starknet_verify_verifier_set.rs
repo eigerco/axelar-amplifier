@@ -125,7 +125,7 @@ where
 
         let transaction_response = self
             .rpc_client
-            .get_event_by_hash_and_index_signers_rotated(verifier_set.message_id.clone())
+            .get_event_by_message_id_signers_rotated(verifier_set.message_id.clone())
             .await
             .change_context(Error::StarknetClient)?;
 
@@ -198,7 +198,7 @@ mod tests {
         let mut rpc_client = MockStarknetClient::new();
         // mock the rpc client as erroring. If the handler successfully ignores the poll, we won't hit this
         rpc_client
-            .expect_get_event_by_hash_and_index_signers_rotated()
+            .expect_get_event_by_message_id_signers_rotated()
             .returning(|_| Err(Report::from(StarknetClientError::UnsuccessfulTx)));
 
         let voting_verifier = TMAddress::random(PREFIX);
