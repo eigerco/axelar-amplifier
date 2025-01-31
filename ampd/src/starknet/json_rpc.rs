@@ -118,23 +118,15 @@ where
         };
 
         // get event from receipt by index
-        let event: Option<(_, SignersRotatedEvent)> = match receipt_with_block_info.receipt {
+        match receipt_with_block_info.receipt {
             TransactionReceipt::Invoke(tx) => {
-                let event_index: usize = match message_id.event_index.try_into() {
-                    Ok(index) => index,
-                    Err(_) => return None,
-                };
-                let event = match tx.events.get(event_index) {
-                    Some(event) => event,
-                    None => return None,
-                };
-                SignersRotatedEvent::try_from(event.clone())
-                    .ok()
-                    .map(|sre| (tx.transaction_hash, sre))
+                let event_index: usize = message_id.event_index.try_into().ok()?;
+                let event = tx.events.get(event_index)?;
+
+                SignersRotatedEvent::try_from(event.clone()).ok()
             }
             _ => None,
-        };
-        event.map(|(_, event)| event)
+        }
     }
 }
 
