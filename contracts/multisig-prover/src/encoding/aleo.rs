@@ -26,7 +26,6 @@ pub fn payload_digest<N: Network>(
                 .change_context(ContractError::InvalidMessage)?
                 .then(Messages::from);
 
-            // println!("messages: {:?}", messages.to_aleo_string());
             messages
                 .0
                 .first()
@@ -46,18 +45,13 @@ pub fn payload_digest<N: Network>(
         ContractError::AleoError("Failed to convert domain separator to u128".to_string())
     })?);
     let domain_separator: [u128; 2] = [part1, part2];
-    // println!("domain_separator: {:02x?}", domain_separator);
 
     let payload_digest = PayloadDigest::new(&domain_separator, verifier_set, data_hash)
         .map_err(|e| ContractError::AleoError(e.to_string()))?;
 
-    // println!("payload_digest: {:?}", payload_digest);
-
     let hash = payload_digest
         .bhp::<N>()
         .map_err(|e| ContractError::AleoError(e.to_string()))?;
-
-    // println!("payload_digest hash: {:?}", hash);
 
     let next = hash.strip_suffix("group");
     let hash = next.unwrap_or(&hash);
@@ -127,9 +121,8 @@ mod tests {
             source_address: "aleo10fmsqwh059uqm74x6t6zgj93wfxtep0avevcxz0n4w9uawymkv9s7whsau"
                 .parse()
                 .unwrap(),
-            // .to_string(),
             destination_chain: "aleo-2".parse().unwrap(),
-            destination_address: "foo".parse().unwrap(), // to_string(),
+            destination_address: "foo".parse().unwrap(),
             payload_hash: [
                 0xa4, 0x32, 0xdc, 0x98, 0x3d, 0xfe, 0x6f, 0xc4, 0x8b, 0xb4, 0x7a, 0x90, 0x91, 0x54,
                 0x65, 0xd9, 0xc8, 0x18, 0x5b, 0x1c, 0x2a, 0xea, 0x5c, 0x87, 0xf8, 0x58, 0x18, 0xcb,
@@ -172,7 +165,6 @@ mod tests {
         res.unwrap()
     }
 
-    // type Curr = snarkvm_cosmwasm::network::TestnetV0;
     type Curr = snarkvm::prelude::TestnetV0;
 
     use tofn::aleo_schnorr::keygen;
@@ -185,9 +177,7 @@ mod tests {
         let msg = tofn::sdk::api::MessageDigest::from(digest);
         let signature = tofn::aleo_schnorr::sign(&key_pair, &msg).unwrap();
 
-        // println!("encoded_signature: {:?}", signature);
         let signature_str = String::from_utf8(signature.clone()).unwrap();
-        // println!("encoded_signature: {:?}", signature_str);
         let verify_key = key_pair.encoded_verifying_key();
 
         let signer = Signer {
@@ -196,15 +186,9 @@ mod tests {
             pub_key: PublicKey::AleoSchnorr(HexBinary::from(verify_key.as_bytes())),
         };
 
-        // println!("verify_key: {:?}", verify_key);
-        // println!("signer: {:?}", signer);
-
         let signature = multisig::key::Signature::AleoSchnorr(HexBinary::from(&signature[..]));
 
-        println!("--> addr: {:?}", verify_key);
-        println!("--> signature: {:?}", signature_str);
         let digest = Uint256::from_le_bytes(digest);
-        println!("--> digest: {}group", digest);
 
         SignerWithSig { signer, signature }
     }
@@ -231,7 +215,6 @@ mod tests {
             4860541,
         );
 
-        // let digest = aleo_digest();
         let digest = payload_digest::<snarkvm_cosmwasm::network::TestnetV0>(
             &domain_separator,
             &verifier_set,

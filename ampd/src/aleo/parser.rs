@@ -1,5 +1,4 @@
 use aleo_gateway::StringEncoder;
-use error_stack::ResultExt;
 use pest::iterators::Pair;
 use pest::Parser;
 use pest_derive::Parser;
@@ -103,10 +102,7 @@ fn parse_array(pair: Pair<Rule>) -> Vec<u128> {
 }
 
 pub fn parse_call_contract(input: &str) -> Option<CallContract> {
-    // println!("Parsing: {}", input);
-    // println!("parse: {:?}", parse(input));
     let pair = parse(input).ok().flatten()?;
-    // println!("Pair: {:?}", pair);
 
     let mut caller = String::new();
     let mut sender = String::new();

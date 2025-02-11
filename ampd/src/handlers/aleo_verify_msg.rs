@@ -2,7 +2,6 @@ use std::collections::{HashMap, HashSet};
 use std::str::FromStr;
 
 use aleo_types::address::Address as AleoAddress;
-use aleo_types::program::Program;
 use aleo_types::transition::Transition;
 use async_trait::async_trait;
 use axelar_wasm_std::voting::{PollId, Vote};
@@ -42,7 +41,6 @@ pub struct Message {
 struct PollStartedEvent {
     poll_id: PollId,
     source_chain: ChainName,
-    source_gateway_address: Program,
     expires_at: u64,
     participants: Vec<TMAddress>,
     messages: Vec<Message>,
@@ -107,7 +105,6 @@ where
         let PollStartedEvent {
             poll_id,
             source_chain,
-            source_gateway_address: _,
             expires_at,
             participants,
             messages,

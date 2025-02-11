@@ -1,9 +1,0 @@
-call_indirect (type 8)
-    call_indirect (type 11)
-
-  (func $_ZN3std3f6421_$LT$impl$u20$f64$GT$4ceil17hdd97a0309344262bE (type 25) (param f64) (result f64)
-  (func $_ZN12wasm_bindgen7convert5impls70_$LT$impl$u20$wasm_bindgen..convert..traits..WasmAbi$u20$for$u20$T$GT$4join17h0496ce99cb8b8cd3E (type 40) (param f32) (result f32)
-  (func $_ZN12wasm_bindgen7convert8closures11invoke3_mut17h26b21fce42394289E (type 41) (param i32 i32 f32 i32 i32)
-(func $_ZN12wasm_bindgen7convert8closures11invoke3_mut17hb3cf0cd3921a74a2E (type 42) (param i32 i32 f64 i32 i32)
-  (func $_ZN67_$LT$f64$u20$as$u20$core..convert..num..FloatToInt$LT$usize$GT$$GT$16to_int_unchecked17h1cd68005153e7188E (type 47) (param f64) (result i32)
-

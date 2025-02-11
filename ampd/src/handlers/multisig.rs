@@ -154,8 +154,6 @@ where
                     .await
                     .change_context(Error::Sign)?;
 
-                info!("signing key: {}", pub_key);
-                println!("--> signing key: {}", pub_key);
                 info!(signature = encode(&signature), "ready to submit signature");
 
                 Ok(vec![self

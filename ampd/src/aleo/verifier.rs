@@ -5,7 +5,6 @@ use super::http_client::Receipt;
 use crate::handlers::aleo_verify_msg::Message;
 
 fn verify(
-    // _gateway_address: &Program, // TODO: use this
     receipt: &Receipt,
     msg: &Message,
 ) -> Vote {

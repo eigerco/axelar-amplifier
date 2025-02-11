@@ -1300,13 +1300,13 @@ dependencies = [
  "lazy_static",
  "lazycell",
  "peeking_take_while",
- "prettyplease 0.2.25",
+ "prettyplease 0.2.29",
  "proc-macro2 1.0.92",
  "quote 1.0.38",
  "regex",
  "rustc-hash 1.1.0",
  "shlex",
- "syn 2.0.92",
+ "syn 2.0.96",
 ]
 
 [[package]]
@@ -2908,7 +2908,7 @@ checksum = "a1ab991c1362ac86c61ab6f556cff143daa22e5a15e4e189df818b2fd19fe65b"
 dependencies = [
  "proc-macro2 1.0.92",
  "quote 1.0.38",
- "syn 2.0.92",
+ "syn 2.0.96",
 ]
 
 [[package]]
@@ -9877,7 +9877,7 @@ source = "git+https://github.com/eigerco/snarkVM?branch=cosmwasm#49f3f6f5f1cc639
 dependencies = [
  "proc-macro2 1.0.92",
  "quote 1.0.38",
- "syn 2.0.92",
+ "syn 2.0.96",
 ]
 
 [[package]]
@@ -9888,7 +9888,7 @@ checksum = "eea94280e7bbaa7da748a95c9b83f301fd36a90d426c7c7f40b9395563040208"
 dependencies = [
  "proc-macro2 1.0.92",
  "quote 1.0.38",
- "syn 2.0.92",
+ "syn 2.0.96",
 ]
 
 [[package]]

@@ -11,7 +11,7 @@ use sha3::{Digest, Keccak256};
 use snarkvm::ledger::{Output, Transaction as SnarkvmTransaction};
 use snarkvm::prelude::{AleoID, Field, TestnetV0};
 use thiserror::Error;
-use tracing::{debug, info, warn};
+use tracing::{info, warn};
 
 use super::json_like;
 use super::parser::CallContract;
@@ -93,7 +93,6 @@ impl PartialEq<crate::handlers::aleo_verify_msg::Message> for TransitionReceipt 
             Hash::from_slice(&payload_hash)
         }
         else {
-            // let payload_hash = keccak256(&payload).to_vec();
             let payload_hash = aleo_gateway::aleo_hash::<&str, snarkvm_cosmwasm::network::TestnetV0>(payload).unwrap();
             let payload_hash = payload_hash.strip_suffix("group").unwrap();
             let hash = cosmwasm_std::Uint256::from_str(&payload_hash).unwrap();
@@ -298,26 +297,17 @@ where
         // The transition should have only the gateway call
         let outputs = gateway_transition.outputs();
         let call_contract_call = self.find_call_contract(outputs);
-        // println!("----> call_contract_call: {call_contract_call:#?}");
         let call_contract = call_contract_call.ok_or(Error::CallnotFound)?;
 
-        // println!("----> call_contract: {call_contract:#?}");
         let scm = gateway_transition.scm();
-        // println!("----> scm: {scm:#?}");
 
         let gateway_calls_count = transaction
             .transitions()
             .filter(|t| {
-                // println!("t.scm(): {:#?}", t.scm());
-                // println!("t.program_id().to_string().as_str(): {:#?}", t.program_id().to_string().as_str());
-                // println!("gateway_contract: {:#?}", gateway_contract);
-                // println!("res: {:?}", t.scm() == scm && t.program_id().to_string().as_str() == gateway_contract);
-
                 t.scm() == scm && t.program_id().to_string().as_str() == gateway_contract
             })
             .count();
 
-        // println!("gateway_calls_count: {gateway_calls_count:#?}");
         ensure!(gateway_calls_count == 1, Error::CallnotFound);
 
         let same_scm: Vec<_> = transaction
@@ -450,7 +440,6 @@ pub mod tests {
     async fn foo_test() {
         let client = mock_client_2();
         let transision_id = "au1zn24gzpgkr936qv49g466vfccg8aykcv05rk39s239hjxwrtsu8sltpsd8";
-        // let transision_id = "au1knlxwe55dx6cnm2j5sgtsl2z2z590jprme2t4cc49h85uv0emgrsuzvutv";
         let transition = Transition::from_str(transision_id).unwrap();
         let client = ClientWrapper::new(&client);
         let gateway_contract = "gateway_base.aleo";
@@ -473,7 +462,6 @@ pub mod tests {
         let res = client
             .transition_receipt(&transition, gateway_contract)
             .await;
-        // println!("{res:#?}");
         assert!(res.is_ok());
     }
 }
