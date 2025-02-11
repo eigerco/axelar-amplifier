@@ -194,6 +194,7 @@ mod tests {
     // use multisig::msg::ExecuteMsg;
     use router_api::Address;
     use voting_verifier::events::{PollMetadata, PollStarted, TxEventConfirmation};
+    use aleo_types::program::Program;
 
     use super::*;
     use crate::types::TMAddress;

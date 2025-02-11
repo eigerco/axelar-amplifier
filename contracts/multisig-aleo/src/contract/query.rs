@@ -14,10 +14,9 @@ pub fn verify_signature<N: Network>(
         cosmwasm_std::StdError::generic_err(format!("Failed to parse signature: {}", e))
     })?;
 
-    let signature = Signature::<N>::from_str(signed.as_str())
-        .map_err(|e| {
-            cosmwasm_std::StdError::generic_err(format!("Failed to parse signature: {}", e))
-        })?;
+    let signature = Signature::<N>::from_str(signed.as_str()).map_err(|e| {
+        cosmwasm_std::StdError::generic_err(format!("Failed to parse signature: {}", e))
+    })?;
 
     let address = String::from_utf8(public_key.into()).map_err(|e| {
         cosmwasm_std::StdError::generic_err(format!("Failed to parse public key: {}", e))
@@ -62,6 +61,6 @@ mod tests {
         let signature = HexBinary::from_hex(signature).unwrap();
         let address = HexBinary::from(address.as_bytes());
 
-        assert!(verify_signature(signature, msg, address).is_ok());
+        assert!(verify_signature::<snarkvm_cosmwasm::network::TestnetV0>(signature, msg, address).is_ok());
     }
 }
