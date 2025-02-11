@@ -95,7 +95,7 @@ pub fn submit_signature(
         }),
     }?;
 
-    let signature: Signature = (pub_key.key_type(), signature).try_into()?;
+    let signature: Signature = (pub_key.key_type(), signature).try_into().unwrap();
 
     let sig_verifier = session
         .sig_verifier
@@ -109,10 +109,11 @@ pub fn submit_signature(
         &session,
         &info.sender,
         &signature,
-        pub_key,
+        &pub_key,
         env.block.height,
         sig_verifier,
     )?;
+
     let signature = save_signature(deps.storage, session_id, signature, &info.sender)?;
 
     let signatures = load_session_signatures(deps.storage, session_id.u64())?;
@@ -124,13 +125,15 @@ pub fn submit_signature(
 
     let state_changed = old_state != session.state;
 
-    signing_response(
+    let res = signing_response(
         session,
         state_changed,
         info.sender,
         signature,
         config.rewards_contract.into_string(),
-    )
+    )?;
+
+    Ok(res)
 }
 
 pub fn register_verifier_set(
@@ -255,6 +258,7 @@ fn signing_response(
         signature,
     };
 
+    // let mut response = Response::new().add_event(event);
     let mut response = Response::new().add_message(rewards_msg).add_event(event);
 
     if let MultisigState::Completed { completed_at } = session.state {

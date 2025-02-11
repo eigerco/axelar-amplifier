@@ -1,5 +1,6 @@
 use std::str::FromStr;
 
+use aleo_types::address::Address as AleoAddress;
 use alloy_primitives::Address;
 use cosmwasm_schema::cw_serde;
 use cosmwasm_std::{Addr, Api};
@@ -21,6 +22,21 @@ pub enum AddressFormat {
     Sui,
     Stellar,
     Starknet,
+    Aleo,
+}
+
+/// Aleo has different id for programs
+/// Each program has an associated Aleo address, but the program name is used as the program id when is needed to find the program.
+pub fn validate_contract_address(address: &str, format: &AddressFormat) -> Result<(), Error> {
+    match format {
+        AddressFormat::Aleo => {
+            aleo_types::program::Program::from_str(address)
+                .change_context(Error::InvalidAddress(address.to_string()))?;
+
+            Ok(())
+        }
+        _ => validate_address(address, format),
+    }
 }
 
 pub fn validate_address(address: &str, format: &AddressFormat) -> Result<(), Error> {
@@ -38,6 +54,10 @@ pub fn validate_address(address: &str, format: &AddressFormat) -> Result<(), Err
                 bail!(Error::InvalidAddress(address.to_string()))
             }
             ScAddress::from_str(address)
+                .change_context(Error::InvalidAddress(address.to_string()))?;
+        }
+        AddressFormat::Aleo => {
+            AleoAddress::from_str(address)
                 .change_context(Error::InvalidAddress(address.to_string()))?;
         }
         AddressFormat::Starknet => {

@@ -1,0 +1,22 @@
+[package]
+name = "aleo-types"
+version = "0.1.0"
+edition = { workspace = true }
+rust-version = { workspace = true }
+
+[dependencies]
+cosmwasm-std = { workspace = true }
+error-stack = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+thiserror = { workspace = true }
+bech32 = { workspace = true }
+valuable = "0.1.0"
+hex = { workspace = true }
+
+[dev-dependencies]
+axelar-wasm-std = { workspace = true }
+assert_ok = { workspace = true }
+
+[lints]
+workspace = true

@@ -140,6 +140,7 @@ where
                 let key_type = match pub_key {
                     PublicKey::Secp256k1(_) => tofnd::Algorithm::Ecdsa,
                     PublicKey::Ed25519(_) => tofnd::Algorithm::Ed25519,
+                    PublicKey::AleoSchnorr(_) => tofnd::Algorithm::AleoSchnorr,
                 };
 
                 let signature = self
@@ -153,6 +154,8 @@ where
                     .await
                     .change_context(Error::Sign)?;
 
+                info!("signing key: {}", pub_key);
+                println!("--> signing key: {}", pub_key);
                 info!(signature = encode(&signature), "ready to submit signature");
 
                 Ok(vec![self

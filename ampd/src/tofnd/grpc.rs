@@ -74,6 +74,7 @@ impl Multisig for MultisigClient {
                 KeygenResponse::PubKey(pub_key) => match algorithm {
                     Algorithm::Ecdsa => PublicKey::new_secp256k1(&pub_key),
                     Algorithm::Ed25519 => PublicKey::new_ed25519(&pub_key),
+                    Algorithm::AleoSchnorr => PublicKey::new_aleo_schnorr(&pub_key),
                 }
                 .change_context(Error::ParsingFailed)
                 .attach_printable(format!("{{ invalid_value = {:?} }}", pub_key)),
@@ -118,6 +119,7 @@ impl Multisig for MultisigClient {
                     Algorithm::Ed25519 => {
                         ed25519_dalek::Signature::from_slice(&signature).map(|sig| sig.to_vec())
                     }
+                    Algorithm::AleoSchnorr => Ok(signature),
                 }
                 .change_context(Error::ParsingFailed),
 

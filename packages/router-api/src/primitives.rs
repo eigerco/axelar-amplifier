@@ -189,7 +189,7 @@ impl Display for CrossChainId {
 #[cw_serde]
 #[serde(try_from = "String")]
 #[derive(Eq, Hash, Valuable)]
-pub struct ChainName(String);
+pub struct ChainName(String); // TODO: can this be empty?
 
 impl FromStr for ChainName {
     type Err = Error;
@@ -343,6 +343,13 @@ impl From<ChainNameRaw> for String {
         d.0
     }
 }
+
+impl<'a> From<&'a ChainNameRaw> for &'a str {
+    fn from(d: &'a ChainNameRaw) -> Self {
+        d.0.as_str()
+    }
+}
+
 
 impl TryFrom<String> for ChainNameRaw {
     type Error = Error;

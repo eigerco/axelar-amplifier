@@ -1,15 +1,19 @@
-use axelar_wasm_std::{address, permission_control};
+use std::str::FromStr;
+
+use axelar_wasm_std::{address, permission_control, MajorityThreshold, Threshold};
 #[cfg(not(feature = "library"))]
 use cosmwasm_std::entry_point;
 use cosmwasm_std::{
     to_json_binary, Binary, Deps, DepsMut, Empty, Env, MessageInfo, Reply, Response,
 };
 use error_stack::ResultExt;
+use router_api::ChainName;
 use semver::{Version, VersionReq};
 
 use crate::error::ContractError;
 use crate::msg::{ExecuteMsg, InstantiateMsg, QueryMsg};
 use crate::state::{Config, CONFIG};
+use crate::Encoder;
 
 mod execute;
 mod migrations;
@@ -74,6 +78,7 @@ pub fn execute(
     match msg.ensure_permissions(deps.storage, &info.sender)? {
         ExecuteMsg::ConstructProof(message_ids) => Ok(execute::construct_proof(deps, message_ids)?),
         ExecuteMsg::UpdateVerifierSet {} => Ok(execute::update_verifier_set(deps, env)?),
+        ExecuteMsg::CleanVerifierSet {} => Ok(execute::clean_verifier_set(deps)?),
         ExecuteMsg::ConfirmVerifierSet {} => Ok(execute::confirm_verifier_set(deps, info.sender)?),
         ExecuteMsg::UpdateSigningThreshold {
             new_signing_threshold,
@@ -128,6 +133,22 @@ pub fn migrate(
     assert!(version_requirement.matches(&old_version));
 
     cw2::set_contract_version(deps.storage, CONTRACT_NAME, CONTRACT_VERSION)?;
+
+    let old_config = CONFIG.load(deps.storage)?;
+    let new_config = Config {
+        chain_name: ChainName::from_str("aleo-2").unwrap(),
+        encoder: Encoder::Aleo,
+        key_type: multisig::key::KeyType::AleoSchnorr,
+        multisig: address::validate_cosmwasm_address(
+            deps.api,
+            "axelar1g5vu3hs8g5hq3wy7q2p4c6q0aar08f3n2z73nrxgf56rg7yrzkds5kh89l"
+        )?,
+        ..old_config
+    };
+
+    CONFIG.save(deps.storage, &new_config)?;
+
+    // crate::state::CURRENT_VERIFIER_SET.remove(deps.storage);
 
     Ok(Response::default())
 }

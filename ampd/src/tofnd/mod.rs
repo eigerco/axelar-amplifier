@@ -36,6 +36,18 @@ pub type Signature = Vec<u8>;
 #[derive(Clone, Debug, Deserialize, PartialEq)]
 pub struct MessageDigest([u8; 32]);
 
+#[derive(Clone, Debug, Deserialize, PartialEq)]
+pub struct MessageDigestTofnd(pub Vec<u8>);
+
+impl FromHex for MessageDigestTofnd {
+    type Error = error::Error;
+
+    fn from_hex<T: AsRef<[u8]>>(hex: T) -> Result<Self, Self::Error> {
+        Ok(MessageDigestTofnd(Vec::from_hex(hex)?))
+    }
+}
+
+
 impl FromHex for MessageDigest {
     type Error = error::Error;
 
