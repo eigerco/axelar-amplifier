@@ -12,7 +12,7 @@ use sha3::{Digest, Keccak256};
 use thiserror::Error;
 use tracing::{info, warn};
 
-use super::json_like;
+use aleo_parser::json_like;
 use super::parser::CallContract;
 use crate::types::Hash;
 
