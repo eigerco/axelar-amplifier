@@ -77,7 +77,7 @@ valuable-serde = { version = "0.1.0", features = ["std"] }
 voting-verifier = { workspace = true }
 aleo-gateway = { workspace = true }
 snarkvm-cosmwasm = { workspace = true }
-aleo-parser = { git = "ssh://git@github.com/eigerco/axelar-aleo.git", branch = "aleo-helper-libs" }
+aleo-utils = { workspace = true }
 
 [dev-dependencies]
 assert_ok = { workspace = true }

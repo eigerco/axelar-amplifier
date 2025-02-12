@@ -12,7 +12,6 @@ mod payload_digest;
 mod proof;
 mod raw_signature;
 mod signer_with_signature;
-mod string_encoder;
 mod weighted_signer;
 mod weighted_signers;
 
@@ -23,7 +22,6 @@ pub use payload_digest::*;
 pub use proof::*;
 pub use raw_signature::*;
 pub use signer_with_signature::*;
-pub use string_encoder::*;
 pub use weighted_signer::*;
 pub use weighted_signers::*;
 
@@ -43,6 +41,8 @@ pub enum Error {
     InvalidEncodedStringLength { expected: usize, actual: usize },
     #[error("Invalid ascii character")]
     InvalidAscii,
+    #[error("StringEncoder: {0}")]
+    StringEncoder(#[from] aleo_utils::string_encoder::Error),
 }
 
 pub trait AleoValue {

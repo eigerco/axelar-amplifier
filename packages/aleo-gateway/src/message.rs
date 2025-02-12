@@ -1,11 +1,7 @@
-use std::str::FromStr as _;
-
-// use cosmwasm_std::Uint256;
+use aleo_utils::string_encoder::StringEncoder;
 use error_stack::{ensure, Report};
 use snarkvm_cosmwasm::network::Network;
-use snarkvm_cosmwasm::program::ToBits as _;
 
-use crate::string_encoder::StringEncoder;
 use crate::{AleoValue, Error};
 
 /*
@@ -56,7 +52,8 @@ fn bytes_to_bits(bytes: &Vec<u8>) -> Vec<bool> {
 impl AleoValue for Message {
     fn to_aleo_string(&self) -> Result<String, Report<Error>> {
         const SOURCE_CHAIN_LEN: usize = 2;
-        let source_chain = StringEncoder::encode_string(self.cc_id.source_chain.as_ref())?;
+        let source_chain = StringEncoder::encode_string(self.cc_id.source_chain.as_ref())
+            .map_err(|e| Report::new(Error::from(e)))?;
         let source_chain_len = source_chain.u128_len();
         ensure!(
             source_chain_len <= SOURCE_CHAIN_LEN,
@@ -67,7 +64,8 @@ impl AleoValue for Message {
         );
 
         const MESSAGE_ID_LEN: usize = 8;
-        let message_id = StringEncoder::encode_string(self.cc_id.message_id.as_str())?;
+        let message_id = StringEncoder::encode_string(self.cc_id.message_id.as_str())
+            .map_err(|e| Report::new(Error::from(e)))?;
         let message_id_len = message_id.u128_len();
         ensure!(
             message_id_len <= MESSAGE_ID_LEN,
@@ -78,7 +76,9 @@ impl AleoValue for Message {
         );
 
         const SOURCE_ADDRESS_LEN: usize = 4;
-        let source_address = StringEncoder::encode_string(self.source_address.as_str())?;
+        let source_address = StringEncoder::encode_string(self.source_address.as_str())
+            .map_err(|e| Report::new(Error::from(e)))?;
+
         let source_address_len = source_address.u128_len();
         ensure!(
             source_address_len <= SOURCE_ADDRESS_LEN,
@@ -89,7 +89,9 @@ impl AleoValue for Message {
         );
 
         const CONTRACT_ADDRESS_LEN: usize = 4;
-        let contract_address = StringEncoder::encode_string(self.destination_address.as_str())?;
+        let contract_address = StringEncoder::encode_string(self.destination_address.as_str())
+            .map_err(|e| Report::new(Error::from(e)))?;
+
         let contract_address_len = contract_address.u128_len();
         ensure!(
             contract_address_len <= CONTRACT_ADDRESS_LEN,

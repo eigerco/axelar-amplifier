@@ -6,6 +6,7 @@ edition.workspace = true
 
 [dependencies]
 aleo-types = { workspace = true }
+aleo-utils = { workspace = true }
 router-api = { workspace = true }
 error-stack = { workspace = true }
 thiserror = { workspace = true }

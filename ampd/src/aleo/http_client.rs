@@ -1,8 +1,8 @@
 use std::str::FromStr;
 
-use aleo_gateway::StringEncoder;
-use aleo_parser::block_processor::IdValuePair;
-use aleo_parser::json_like;
+use aleo_utils::string_encoder::StringEncoder;
+use aleo_utils::block_processor::IdValuePair;
+use aleo_utils::json_like;
 use aleo_types::address::Address;
 use aleo_types::transaction::Transaction;
 use aleo_types::transition::Transition;
@@ -119,7 +119,7 @@ pub trait ClientTrait: Send {
     async fn get_transaction(
         &self,
         transaction_id: &Transaction,
-    ) -> Result<aleo_parser::block_processor::Transaction, Error>;
+    ) -> Result<aleo_utils::block_processor::Transaction, Error>;
 
     async fn find_transaction(&self, transition_id: &Transition) -> Result<String, Error>;
 }
@@ -158,7 +158,7 @@ impl ClientTrait for Client {
     async fn get_transaction(
         &self,
         transaction_id: &Transaction,
-    ) -> Result<aleo_parser::block_processor::Transaction, Error> {
+    ) -> Result<aleo_utils::block_processor::Transaction, Error> {
         const ENDPOINT: &str = "transaction";
         let url = format!(
             "{}/{}/{ENDPOINT}/{}",
@@ -173,7 +173,7 @@ impl ClientTrait for Client {
             .await
             .change_context(Error::Request)?;
 
-        let transaction: aleo_parser::block_processor::Transaction =
+        let transaction: aleo_utils::block_processor::Transaction =
             serde_json::from_str(&response.text().await.change_context(Error::Request)?)
                 .change_context(Error::Request)?;
         // TODO: use json like
@@ -375,12 +375,12 @@ pub mod tests {
         let transaction_id = "at18c83pwjlvvjpdk95pudngzxqydvq92np206njcyppgndjalujsrshjn48j";
         let mut expected_transitions: HashMap<
             Transaction,
-            aleo_parser::block_processor::Transaction,
+            aleo_utils::block_processor::Transaction,
         > = HashMap::new();
         let transaction_one = include_str!(
             "../tests/at18c83pwjlvvjpdk95pudngzxqydvq92np206njcyppgndjalujsrshjn48j.json"
         );
-        let snark_tansaction: aleo_parser::block_processor::Transaction =
+        let snark_tansaction: aleo_utils::block_processor::Transaction =
             serde_json::from_str(transaction_one).unwrap();
         let transaction = Transaction::from_str(transaction_id).unwrap();
         expected_transitions.insert(transaction, snark_tansaction);
@@ -405,12 +405,12 @@ pub mod tests {
         let transaction_id = "at1dgmvx30f79wt6w8fcjurwtsc5zak4efg4ayyme79862xylve7gxsq3nfh6";
         let mut expected_transitions: HashMap<
             Transaction,
-            aleo_parser::block_processor::Transaction,
+            aleo_utils::block_processor::Transaction,
         > = HashMap::new();
         let transaction_one = include_str!(
             "../tests/at1dgmvx30f79wt6w8fcjurwtsc5zak4efg4ayyme79862xylve7gxsq3nfh6.json"
         );
-        let snark_tansaction: aleo_parser::block_processor::Transaction =
+        let snark_tansaction: aleo_utils::block_processor::Transaction =
             serde_json::from_str(transaction_one).unwrap();
         let transaction = Transaction::from_str(transaction_id).unwrap();
         expected_transitions.insert(transaction, snark_tansaction);
@@ -435,12 +435,12 @@ pub mod tests {
         let transaction_id = "at14gry4nauteg5sp00p6d2pj93dhpsm5857ml8y3xg57nkpszhav9qk0tgvd";
         let mut expected_transitions: HashMap<
             Transaction,
-            aleo_parser::block_processor::Transaction,
+            aleo_utils::block_processor::Transaction,
         > = HashMap::new();
         let transaction_one = include_str!(
             "../tests/at14gry4nauteg5sp00p6d2pj93dhpsm5857ml8y3xg57nkpszhav9qk0tgvd.json"
         );
-        let snark_tansaction: aleo_parser::block_processor::Transaction =
+        let snark_tansaction: aleo_utils::block_processor::Transaction =
             serde_json::from_str(transaction_one).unwrap();
         let transaction = Transaction::from_str(transaction_id).unwrap();
         expected_transitions.insert(transaction, snark_tansaction);
