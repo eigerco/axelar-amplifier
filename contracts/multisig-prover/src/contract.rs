@@ -1,6 +1,6 @@
 use std::str::FromStr;
 
-use axelar_wasm_std::{address, permission_control, MajorityThreshold, Threshold};
+use axelar_wasm_std::{address, permission_control};
 #[cfg(not(feature = "library"))]
 use cosmwasm_std::entry_point;
 use cosmwasm_std::{
@@ -78,7 +78,6 @@ pub fn execute(
     match msg.ensure_permissions(deps.storage, &info.sender)? {
         ExecuteMsg::ConstructProof(message_ids) => Ok(execute::construct_proof(deps, message_ids)?),
         ExecuteMsg::UpdateVerifierSet {} => Ok(execute::update_verifier_set(deps, env)?),
-        ExecuteMsg::CleanVerifierSet {} => Ok(execute::clean_verifier_set(deps)?),
         ExecuteMsg::ConfirmVerifierSet {} => Ok(execute::confirm_verifier_set(deps, info.sender)?),
         ExecuteMsg::UpdateSigningThreshold {
             new_signing_threshold,

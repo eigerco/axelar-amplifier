@@ -1,14 +1,11 @@
 use std::collections::{BTreeMap, HashSet};
-use std::str::FromStr;
 
 use axelar_wasm_std::permission_control::Permission;
 use axelar_wasm_std::snapshot::{Participant, Snapshot};
 use axelar_wasm_std::{
     address, nonempty, permission_control, FnExt, MajorityThreshold, VerificationStatus,
 };
-use cosmwasm_std::{
-    wasm_execute, Addr, DepsMut, Env, HexBinary, QuerierWrapper, Response, Storage, SubMsg, Uint128,
-};
+use cosmwasm_std::{wasm_execute, Addr, DepsMut, Env, QuerierWrapper, Response, Storage, SubMsg};
 use error_stack::{report, Result, ResultExt};
 use itertools::Itertools;
 use multisig::msg::Signer;
@@ -89,16 +86,16 @@ pub fn construct_proof(
 fn messages(
     querier: QuerierWrapper,
     message_ids: Vec<CrossChainId>,
-    gateway_addr: Addr,
+    gateway: Addr,
     chain_name: ChainName,
 ) -> Result<Vec<Message>, ContractError> {
     let length = message_ids.len();
 
-    let gateway: gateway_api::Client = client::ContractClient::new(querier, &gateway_addr).into();
+    let gateway: gateway_api::Client = client::ContractClient::new(querier, &gateway).into();
 
-    let messages = gateway.outgoing_messages(message_ids).change_context(
-        ContractError::FailedToGetMessages(gateway_addr, chain_name.clone()),
-    )?;
+    let messages = gateway
+        .outgoing_messages(message_ids)
+        .change_context(ContractError::FailedToGetMessages).unwrap();
 
     assert_eq!(
         messages.len(),
@@ -247,12 +244,6 @@ pub fn update_verifier_set(
                     .collect::<HashSet<String>>(),
             ),
         ))
-}
-
-pub fn clean_verifier_set(deps: DepsMut) -> error_stack::Result<Response, ContractError> {
-    CURRENT_VERIFIER_SET.remove(deps.storage);
-
-    Ok(Response::new())
 }
 
 fn ensure_verifier_set_verification(

@@ -67,9 +67,6 @@ pub enum ExecuteMsg {
     #[permission(Elevated)]
     UpdateVerifierSet,
 
-    #[permission(Elevated)]
-    CleanVerifierSet,
-
     #[permission(Any)]
     ConfirmVerifierSet,
     // Updates the signing threshold. The threshold currently in use does not change.

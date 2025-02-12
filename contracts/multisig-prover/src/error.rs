@@ -82,8 +82,8 @@ pub enum ContractError {
     #[error("failed to serialize data for the external gateway")]
     SerializeData,
 
-    #[error("failed to get outgoing messages from gateway: '{0}', '{1}'")]
-    FailedToGetMessages(Addr, ChainName),
+    #[error("failed to get outgoing messages from gateway")]
+    FailedToGetMessages,
 
     #[error("Aleo error: {0}")]
     AleoError(String),
