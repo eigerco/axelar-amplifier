@@ -109,10 +109,11 @@ pub fn submit_signature(
         &session,
         &info.sender,
         &signature,
-        pub_key,
+        &pub_key,
         env.block.height,
         sig_verifier,
     )?;
+
     let signature = save_signature(deps.storage, session_id, signature, &info.sender)?;
 
     let signatures = load_session_signatures(deps.storage, session_id.u64())?;
@@ -255,6 +256,7 @@ fn signing_response(
         signature,
     };
 
+    // let mut response = Response::new().add_event(event);
     let mut response = Response::new().add_message(rewards_msg).add_event(event);
 
     if let MultisigState::Completed { completed_at } = session.state {
