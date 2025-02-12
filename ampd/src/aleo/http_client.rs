@@ -1,6 +1,8 @@
 use std::str::FromStr;
 
+use aleo_gateway::StringEncoder;
 use aleo_parser::block_processor::IdValuePair;
+use aleo_parser::json_like;
 use aleo_types::address::Address;
 use aleo_types::transaction::Transaction;
 use aleo_types::transition::Transition;
@@ -8,12 +10,11 @@ use async_trait::async_trait;
 use error_stack::{ensure, report, Report, Result, ResultExt};
 use mockall::automock;
 use router_api::ChainName;
+use serde::{Deserialize, Serialize};
 use sha3::{Digest, Keccak256};
 use thiserror::Error;
-use tracing::{info, warn};
+use tracing::info;
 
-use aleo_parser::json_like;
-use super::parser::CallContract;
 use crate::types::Hash;
 
 #[derive(Error, Debug)]
@@ -24,8 +25,6 @@ pub enum Error {
     Request,
     #[error("Transition not found")]
     TransitionNotFound,
-    #[error("Not an execution transition")]
-    TransactionNotexecution,
     #[error("Failed to find callContract")]
     CallnotFound,
     #[error("Failed to find user call")]
@@ -206,6 +205,31 @@ pub struct ClientWrapper<'a, C: ClientTrait> {
     client: &'a C,
 }
 
+#[derive(Debug, Serialize, Deserialize, Default, PartialEq, Eq)]
+pub struct CallContract {
+    pub(crate) caller: String,
+    pub(crate) sender: String,
+    pub(crate) destination_chain: Vec<u128>,
+    pub(crate) destination_address: Vec<u128>,
+}
+
+impl CallContract {
+    pub fn destination_chain(&self) -> String {
+        let encoded_string = StringEncoder {
+            buf: self.destination_chain.clone(),
+        };
+        encoded_string.decode()
+    }
+
+    pub fn destination_address(&self) -> Result<String, error_stack::Report<Error>> {
+        let encoded_string = StringEncoder {
+            buf: self.destination_address.clone(),
+        };
+        let ascii_string = encoded_string.decode();
+        Ok(ascii_string)
+    }
+}
+
 impl<'a, C> ClientWrapper<'a, C>
 where
     C: ClientTrait + Send + Sync + 'static,
@@ -228,7 +252,10 @@ where
                 } => Some(value),
                 _ => None,
             })
-            .and_then(|value| crate::aleo::parser::parse_call_contract(value))
+            .and_then(|value| {
+                let json = json_like::into_json(value.to_string().as_str()).unwrap();
+                serde_json::from_str::<CallContract>(&json).ok()
+            })
     }
 
     fn parse_user_output(&self, outputs: &[IdValuePair]) -> Result<ParsedOutput, Error> {
@@ -246,9 +273,10 @@ where
                 value: Some(plaintext),
             } = o
             {
-                let parsed =
-                    crate::aleo::parser::parse_call_contract(plaintext.to_string().as_str());
-                if let Some(call_contract) = parsed {
+                let json = json_like::into_json(plaintext.to_string().as_str()).unwrap();
+                let parsed = serde_json::from_str::<CallContract>(&json);
+
+                if let Ok(call_contract) = parsed {
                     parsed_output.call_contract = call_contract;
                 } else {
                     parsed_output.payload = plaintext.to_string().as_bytes().to_vec();
@@ -265,10 +293,6 @@ where
         transition_id: &Transition,
         gateway_contract: &str,
     ) -> Result<Receipt, Error> {
-        const TRANSITION_PREFIX: &[u8] = "au".as_bytes();
-        const TRANSITION_BYTES_PREFIX: u16 =
-            u16::from_le_bytes([TRANSITION_PREFIX[0], TRANSITION_PREFIX[1]]);
-
         let transaction = self.client.find_transaction(transition_id).await?;
         let transaction = transaction.trim_matches('"');
 

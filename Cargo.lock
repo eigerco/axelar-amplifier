@@ -130,7 +130,7 @@ dependencies = [
 [[package]]
 name = "aleo-parser"
 version = "0.1.0"
-source = "git+ssh://git@github.com/eigerco/axelar-aleo.git?branch=aleo-helper-libs#6d24a9e4ce1f273e7cff0e35827c744b23f15fa8"
+source = "git+ssh://git@github.com/eigerco/axelar-aleo.git?branch=aleo-helper-libs#7c932b4f690d8c5e3bf29b74d72f554af4341cde"
 dependencies = [
  "color-eyre",
  "nom 8.0.0",
@@ -380,8 +380,6 @@ dependencies = [
  "multiversx-sdk",
  "num-traits",
  "openssl",
- "pest",
- "pest_derive",
  "prost 0.11.9",
  "prost-types 0.11.9",
  "rand",
