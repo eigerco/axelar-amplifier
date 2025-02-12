@@ -235,8 +235,7 @@ where
                         .build()
                         .change_context(Error::Connection)?;
 
-                    let client =
-                        aleo::http_client::Client::new(rest_client, base_url, network).unwrap();
+                    let client = aleo::http_client::Client::new(rest_client, base_url, network);
 
                     self.create_handler_task(
                         format!("{}-msg-verifier", chain.name),

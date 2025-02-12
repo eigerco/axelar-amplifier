@@ -16,6 +16,7 @@ use thiserror::Error;
 use tracing::info;
 
 use crate::types::Hash;
+use crate::url::Url;
 
 #[derive(Error, Debug)]
 pub enum Error {
@@ -127,7 +128,7 @@ pub trait ClientTrait: Send {
 #[derive(Clone)]
 pub struct Client {
     client: reqwest::Client,
-    base_url: String,
+    base_url: Url,
     network: String,
 }
 
@@ -138,17 +139,12 @@ struct ParsedOutput {
 }
 
 impl Client {
-    pub fn new(client: reqwest::Client, base_url: String, network: String) -> Result<Self, Error> {
-        ensure!(
-            base_url.starts_with("http://") || base_url.starts_with("https://"),
-            report!(Error::Client).attach_printable("specified url {base_url} invalid, the base url must start with or https:// (or http:// if doing local development)")
-        );
-
-        Ok(Self {
+    pub fn new(client: reqwest::Client, base_url: Url, network: String) -> Self {
+        Self {
             client,
             base_url,
             network,
-        })
+        }
     }
 }
 

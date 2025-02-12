@@ -20,10 +20,6 @@ fn verify(receipt: &Receipt, msg: &Message) -> Vote {
     }
 }
 
-pub fn verify_message(
-    // _gateway_address: &Program,
-    receipt: &Receipt,
-    msg: &Message,
-) -> Vote {
+pub fn verify_message(receipt: &Receipt, msg: &Message) -> Vote {
     verify(receipt, msg)
 }

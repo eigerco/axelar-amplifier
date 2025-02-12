@@ -27,7 +27,7 @@ pub enum Config {
         #[serde(flatten, with = "chain")]
         chain: Chain,
         timeout: Option<Duration>,
-        base_url: String,
+        base_url: Url,
         network: String,
         gateway_contract: String,
     },
