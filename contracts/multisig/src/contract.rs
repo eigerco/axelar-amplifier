@@ -9,7 +9,6 @@ use cosmwasm_std::{
     StdResult, Storage, Uint64,
 };
 use error_stack::{report, Report, ResultExt};
-use execute::authorize_callers;
 use itertools::Itertools;
 use router_api::ChainName;
 
@@ -36,6 +35,9 @@ pub fn migrate(
     _env: Env,
     _msg: Empty,
 ) -> Result<Response, axelar_wasm_std::error::ContractError> {
+    cw2::assert_contract_version(deps.storage, CONTRACT_NAME, BASE_VERSION)?;
+    cw2::set_contract_version(deps.storage, CONTRACT_NAME, CONTRACT_VERSION)?;
+
     Ok(Response::default())
 }
 

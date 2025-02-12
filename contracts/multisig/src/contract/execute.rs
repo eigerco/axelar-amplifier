@@ -95,7 +95,7 @@ pub fn submit_signature(
         }),
     }?;
 
-    let signature: Signature = (pub_key.key_type(), signature).try_into().unwrap();
+    let signature: Signature = (pub_key.key_type(), signature).try_into()?;
 
     let sig_verifier = session
         .sig_verifier
@@ -125,15 +125,13 @@ pub fn submit_signature(
 
     let state_changed = old_state != session.state;
 
-    let res = signing_response(
+    signing_response(
         session,
         state_changed,
         info.sender,
         signature,
         config.rewards_contract.into_string(),
-    )?;
-
-    Ok(res)
+    )
 }
 
 pub fn register_verifier_set(
