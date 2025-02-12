@@ -1,5 +1,6 @@
 use std::str::FromStr;
 
+use aleo_parser::block_processor::IdValuePair;
 use aleo_types::address::Address;
 use aleo_types::transaction::Transaction;
 use aleo_types::transition::Transition;
@@ -8,16 +9,12 @@ use error_stack::{ensure, report, Report, Result, ResultExt};
 use mockall::automock;
 use router_api::ChainName;
 use sha3::{Digest, Keccak256};
-use snarkvm::ledger::{Output, Transaction as SnarkvmTransaction};
-use snarkvm::prelude::{AleoID, Field, TestnetV0};
 use thiserror::Error;
 use tracing::{info, warn};
 
 use super::json_like;
 use super::parser::CallContract;
 use crate::types::Hash;
-
-type CurrentNetwork = TestnetV0;
 
 #[derive(Error, Debug)]
 pub enum Error {
@@ -91,9 +88,11 @@ impl PartialEq<crate::handlers::aleo_verify_msg::Message> for TransitionReceipt 
             let payload = solabi::encode(&payload);
             let payload_hash = keccak256(&payload).to_vec();
             Hash::from_slice(&payload_hash)
-        }
-        else {
-            let payload_hash = aleo_gateway::aleo_hash::<&str, snarkvm_cosmwasm::network::TestnetV0>(payload).unwrap();
+        } else {
+            // Keccak + bhp hash
+            let payload_hash =
+                aleo_gateway::aleo_hash::<&str, snarkvm_cosmwasm::network::TestnetV0>(payload)
+                    .unwrap();
             let payload_hash = payload_hash.strip_suffix("group").unwrap();
             let hash = cosmwasm_std::Uint256::from_str(&payload_hash).unwrap();
             let hash = hash.to_le_bytes();
@@ -121,9 +120,9 @@ pub trait ClientTrait: Send {
     async fn get_transaction(
         &self,
         transaction_id: &Transaction,
-    ) -> Result<SnarkvmTransaction<CurrentNetwork>, Error>;
+    ) -> Result<aleo_parser::block_processor::Transaction, Error>;
 
-    async fn find_transaction(&self, transition_id: &Transition) -> Result<String, Error>; // TODO: remove magic number
+    async fn find_transaction(&self, transition_id: &Transition) -> Result<String, Error>;
 }
 
 #[derive(Clone)]
@@ -160,7 +159,7 @@ impl ClientTrait for Client {
     async fn get_transaction(
         &self,
         transaction_id: &Transaction,
-    ) -> Result<SnarkvmTransaction<CurrentNetwork>, Error> {
+    ) -> Result<aleo_parser::block_processor::Transaction, Error> {
         const ENDPOINT: &str = "transaction";
         let url = format!(
             "{}/{}/{ENDPOINT}/{}",
@@ -175,9 +174,10 @@ impl ClientTrait for Client {
             .await
             .change_context(Error::Request)?;
 
-        let transaction: SnarkvmTransaction<CurrentNetwork> =
+        let transaction: aleo_parser::block_processor::Transaction =
             serde_json::from_str(&response.text().await.change_context(Error::Request)?)
-                .change_context(Error::Request)?; // TODO: This is a CPU intensive operation. We need to handle it differently
+                .change_context(Error::Request)?;
+        // TODO: use json like
 
         Ok(transaction)
     }
@@ -214,8 +214,7 @@ where
         Self { client }
     }
 
-    fn find_call_contract(&self, outputs: &[Output<CurrentNetwork>]) -> Option<CallContract> {
-        // println!("outputs ------>{outputs:#?}");
+    fn find_call_contract(&self, outputs: &[IdValuePair]) -> Option<CallContract> {
         if outputs.len() != 1 {
             return None;
         }
@@ -223,16 +222,16 @@ where
         outputs
             .first()
             .and_then(|o| match o {
-                Output::<CurrentNetwork>::Public(_field, Some(plaintext)) => {
-                    Some(plaintext.to_string())
-                }
+                IdValuePair {
+                    id: _,
+                    value: Some(value),
+                } => Some(value),
                 _ => None,
             })
-            .as_ref()
             .and_then(|value| crate::aleo::parser::parse_call_contract(value))
     }
 
-    fn parse_user_output(&self, outputs: &[Output<CurrentNetwork>]) -> Result<ParsedOutput, Error> {
+    fn parse_user_output(&self, outputs: &[IdValuePair]) -> Result<ParsedOutput, Error> {
         if outputs.len() != 2 {
             return Err(Report::new(Error::UserCallnotFound));
         }
@@ -242,7 +241,11 @@ where
 
         // TODO: there mast be a better way
         for o in outputs {
-            if let Output::<CurrentNetwork>::Public(_field, Some(plaintext)) = o {
+            if let IdValuePair {
+                id: _,
+                value: Some(plaintext),
+            } = o
+            {
                 let parsed =
                     crate::aleo::parser::parse_call_contract(plaintext.to_string().as_str());
                 if let Some(call_contract) = parsed {
@@ -274,50 +277,40 @@ where
             Transaction::from_str(transaction).change_context(Error::TransitionNotFound)?;
 
         let transaction = self.client.get_transaction(&transaction_id).await?;
-
-        if transaction.execution().is_none() {
-            warn!("Transaction '{:?}' is not an execution transaction. The following transitions can not be vailidated: '{:?}'",
-                transaction_id,
-                transition_id
-            );
-            return Err(Report::new(Error::TransactionNotexecution));
-        }
-
-        // Get the gateway transition
         let gateway_transition = transaction
-            .find_transition(
-                &AleoID::<Field<CurrentNetwork>, TRANSITION_BYTES_PREFIX>::from_str(
-                    transition_id.to_string().as_str(),
-                )
-                .map_err(|e| Error::FailedToCreateAleoID(e.to_string()))?,
-            )
+            .execution
+            .transitions
+            .iter()
+            .find(|t| t.program.as_str() == gateway_contract)
             .ok_or(Error::TransitionNotFound)?;
 
         // Get the outputs of the transition
         // The transition should have only the gateway call
-        let outputs = gateway_transition.outputs();
-        let call_contract_call = self.find_call_contract(outputs);
+        let outputs = &gateway_transition.outputs;
+        let call_contract_call = self.find_call_contract(&outputs);
         let call_contract = call_contract_call.ok_or(Error::CallnotFound)?;
 
-        let scm = gateway_transition.scm();
+        let scm = gateway_transition.scm.as_str();
 
         let gateway_calls_count = transaction
-            .transitions()
-            .filter(|t| {
-                t.scm() == scm && t.program_id().to_string().as_str() == gateway_contract
-            })
+            .execution
+            .transitions
+            .iter()
+            .filter(|t| t.scm == scm && t.program == gateway_contract)
             .count();
 
         ensure!(gateway_calls_count == 1, Error::CallnotFound);
 
         let same_scm: Vec<_> = transaction
-            .transitions()
-            .filter(|t| t.scm() == scm && t.id() != gateway_transition.id())
+            .execution
+            .transitions
+            .iter()
+            .filter(|t| t.scm == scm && t.id != gateway_transition.id)
             .collect();
 
         ensure!(gateway_calls_count == 1, Error::UserCallnotFound);
 
-        let parsed_output = self.parse_user_output(same_scm[0].outputs())?;
+        let parsed_output = self.parse_user_output(&same_scm[0].outputs)?;
 
         ensure!(
             parsed_output.call_contract == call_contract,
@@ -326,9 +319,9 @@ where
 
         Ok(Receipt::Found(TransitionReceipt {
             transition: transition_id.clone(),
-            destination_address: call_contract.destination_address().map_err(|e| {
-                Report::new(Error::FailedToCreateAleoID(e.to_string()))
-            })?,
+            destination_address: call_contract
+                .destination_address()
+                .map_err(|e| Report::new(Error::FailedToCreateAleoID(e.to_string())))?,
             destination_chain: ChainName::try_from(call_contract.destination_chain())
                 .change_context(Error::InvalidChainName)?,
             source_address: Address::from_str(call_contract.sender.to_string().as_ref())
@@ -347,6 +340,7 @@ fn keccak256(payload: impl AsRef<[u8]>) -> [u8; 32] {
 #[cfg(test)]
 pub mod tests {
     use std::collections::HashMap;
+    use std::ops::Deref;
     use std::str::FromStr;
 
     use super::*;
@@ -355,13 +349,15 @@ pub mod tests {
         let mut mock_client = MockClientTrait::new();
 
         let transaction_id = "at18c83pwjlvvjpdk95pudngzxqydvq92np206njcyppgndjalujsrshjn48j";
-        let mut expected_transitions: HashMap<Transaction, SnarkvmTransaction<CurrentNetwork>> =
-            HashMap::new();
+        let mut expected_transitions: HashMap<
+            Transaction,
+            aleo_parser::block_processor::Transaction,
+        > = HashMap::new();
         let transaction_one = include_str!(
             "../tests/at18c83pwjlvvjpdk95pudngzxqydvq92np206njcyppgndjalujsrshjn48j.json"
         );
-        let snark_tansaction =
-            SnarkvmTransaction::<CurrentNetwork>::from_str(transaction_one).unwrap();
+        let snark_tansaction: aleo_parser::block_processor::Transaction =
+            serde_json::from_str(transaction_one).unwrap();
         let transaction = Transaction::from_str(transaction_id).unwrap();
         expected_transitions.insert(transaction, snark_tansaction);
 
@@ -383,20 +379,21 @@ pub mod tests {
         let mut mock_client = MockClientTrait::new();
 
         let transaction_id = "at1dgmvx30f79wt6w8fcjurwtsc5zak4efg4ayyme79862xylve7gxsq3nfh6";
-        let mut expected_transitions: HashMap<Transaction, SnarkvmTransaction<CurrentNetwork>> =
-            HashMap::new();
+        let mut expected_transitions: HashMap<
+            Transaction,
+            aleo_parser::block_processor::Transaction,
+        > = HashMap::new();
         let transaction_one = include_str!(
             "../tests/at1dgmvx30f79wt6w8fcjurwtsc5zak4efg4ayyme79862xylve7gxsq3nfh6.json"
         );
-        let snark_tansaction =
-            SnarkvmTransaction::<CurrentNetwork>::from_str(transaction_one).unwrap();
+        let snark_tansaction: aleo_parser::block_processor::Transaction =
+            serde_json::from_str(transaction_one).unwrap();
         let transaction = Transaction::from_str(transaction_id).unwrap();
         expected_transitions.insert(transaction, snark_tansaction);
 
         mock_client
             .expect_get_transaction()
             .returning(move |transaction| {
-                // println!("{transaction:#?}");
                 Ok(expected_transitions.get(transaction).unwrap().clone())
             });
 
@@ -412,13 +409,15 @@ pub mod tests {
         let mut mock_client = MockClientTrait::new();
 
         let transaction_id = "at14gry4nauteg5sp00p6d2pj93dhpsm5857ml8y3xg57nkpszhav9qk0tgvd";
-        let mut expected_transitions: HashMap<Transaction, SnarkvmTransaction<CurrentNetwork>> =
-            HashMap::new();
+        let mut expected_transitions: HashMap<
+            Transaction,
+            aleo_parser::block_processor::Transaction,
+        > = HashMap::new();
         let transaction_one = include_str!(
             "../tests/at14gry4nauteg5sp00p6d2pj93dhpsm5857ml8y3xg57nkpszhav9qk0tgvd.json"
         );
-        let snark_tansaction =
-            SnarkvmTransaction::<CurrentNetwork>::from_str(transaction_one).unwrap();
+        let snark_tansaction: aleo_parser::block_processor::Transaction =
+            serde_json::from_str(transaction_one).unwrap();
         let transaction = Transaction::from_str(transaction_id).unwrap();
         expected_transitions.insert(transaction, snark_tansaction);
 

@@ -111,7 +111,6 @@ mod test {
     use cosmwasm_std::{Addr, HexBinary};
     use multisig::msg::Signer;
     use router_api::{CrossChainId, Message as RouterMessage};
-    // use snarkvm::prelude::PrivateKey;
     use snarkvm_cosmwasm::account::PrivateKey;
     use snarkvm_cosmwasm::network::ToFields;
     use snarkvm_cosmwasm::types::{Address, Field};

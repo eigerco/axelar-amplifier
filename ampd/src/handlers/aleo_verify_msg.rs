@@ -128,6 +128,7 @@ where
             return Ok(vec![]);
         }
 
+        // Transition IDs on Aleo chain
         let transitions: HashSet<Transition> = messages.iter().map(|m| m.tx_id.clone()).collect();
 
         let http_client = AleoClientWrapper::new(&self.http_client);
@@ -191,9 +192,6 @@ mod tests {
     use std::str::FromStr;
 
     use cosmrs::AccountId;
-    // use multisig::msg::ExecuteMsg;
-    use router_api::Address;
-    use voting_verifier::events::{PollMetadata, PollStarted, TxEventConfirmation};
     use aleo_types::program::Program;
 
     use super::*;
