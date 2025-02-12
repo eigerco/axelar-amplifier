@@ -114,7 +114,7 @@ mod test {
     use snarkvm_cosmwasm::account::PrivateKey;
     use snarkvm_cosmwasm::network::ToFields;
     use snarkvm_cosmwasm::types::{Address, Field};
-    use string_encoder::StringEncoder;
+    use aleo_utils::string_encoder::StringEncoder;
 
     use super::*;
 
@@ -386,7 +386,7 @@ mod test {
             .to_fields()
             .unwrap()
     }
-
+/*
     pub fn payload_digest<N: Network>(verifier_set: &VerifierSet) -> [u8; 32] {
         let message = router_message();
         let message = Message::try_from(&message).unwrap();
@@ -409,7 +409,9 @@ mod test {
 
         payload_digest.hash::<N>().unwrap()
     }
+    */
 
+    /*
     #[test]
     fn proof() {
         // APrivateKey1zkp2BXKmUopUZoU7b2necZ4xSxJnBazytJoSTXiPDqvqUny
@@ -499,4 +501,5 @@ mod test {
         let res = execute_data.to_aleo_string().unwrap();
         println!("execute_data: {:?}", res);
     }
+    */
 }

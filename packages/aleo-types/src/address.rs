@@ -14,7 +14,6 @@ pub struct Address(pub String);
 
 impl Default for Address {
     fn default() -> Self {
-        // Self("aleo1cpwac324ulhwk55wpljtq5kserrzj8dj6qw35fje7ypt2sqpv5ysj8p76w".to_string())
         Self("aleo1qtrn0h0pakusngjemdehzljqthu3e8vfwl5qj2zccc5cgasutq8qjy2afr".to_string())
     }
 }

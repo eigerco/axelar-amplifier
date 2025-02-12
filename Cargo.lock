@@ -189,6 +189,7 @@ checksum = "7e4f181fc1a372e8ceff89612e5c9b13f72bff5b066da9f8d6827ae65af492c4"
 name = "aleo-types"
 version = "0.1.0"
 dependencies = [
+ "aleo-utils",
  "assert_ok",
  "axelar-wasm-std",
  "bech32 0.11.0",
