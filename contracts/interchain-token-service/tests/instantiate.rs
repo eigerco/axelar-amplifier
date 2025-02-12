@@ -78,7 +78,7 @@ fn invalid_gateway_address() {
             message_info(&api.addr_make("sender"), &[]),
             msg
         ),
-        axelar_wasm_std::address::Error,
-        axelar_wasm_std::address::Error::InvalidAddress(..)
+        axelar_wasm_addresses::address::Error,
+        axelar_wasm_addresses::address::Error::InvalidAddress(..)
     );
 }

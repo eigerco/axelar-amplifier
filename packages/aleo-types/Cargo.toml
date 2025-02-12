@@ -5,6 +5,7 @@ edition = { workspace = true }
 rust-version = { workspace = true }
 
 [dependencies]
+axelar-wasm-std = { workspace = true }
 cosmwasm-std = { workspace = true }
 error-stack = { workspace = true }
 serde = { workspace = true }

@@ -1,4 +1,4 @@
-use axelar_wasm_std::address;
+use axelar_wasm_addresses::address;
 use cosmwasm_std::{Deps, Order};
 use itertools::Itertools;
 use router_api::ChainName;

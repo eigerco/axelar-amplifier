@@ -33,6 +33,7 @@ anyhow = "1.0.89"
 assert_ok = "1.0"
 axelar-wasm-std = { version = "^1.0.0", path = "packages/axelar-wasm-std" }
 axelar-wasm-std-derive = { version = "^1.0.0", path = "packages/axelar-wasm-std-derive" }
+axelar-wasm-addresses = { path = "packages/axelar-wasm-addresses" }
 axelarnet-gateway = { version = "^1.0.0", path = "contracts/axelarnet-gateway" }
 bcs = "0.1.5"
 bech32 = "0.11.0"

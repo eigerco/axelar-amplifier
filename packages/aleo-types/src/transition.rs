@@ -1,6 +1,7 @@
 use std::fmt::Display;
 use std::str::FromStr;
 
+use axelar_wasm_std::nonempty;
 use error_stack::{Report, ResultExt};
 use serde::{Deserialize, Serialize};
 use valuable::Valuable;
@@ -8,7 +9,7 @@ use valuable::Valuable;
 use crate::{verify_becnh32, Error};
 
 #[derive(Serialize, Deserialize, Debug, PartialEq, Eq, Hash, Clone, Valuable)]
-pub struct Transition(String);
+pub struct Transition(nonempty::String);
 
 impl FromStr for Transition {
     type Err = Report<Error>;
@@ -22,7 +23,9 @@ impl FromStr for Transition {
         verify_becnh32(transition_id, PREFIX)
             .change_context(Error::InvalidAleoTransition(transition_id.to_string()))?;
 
-        Ok(Self(transition_id.to_string()))
+        Ok(Self(transition_id.try_into().map_err(
+            |e: axelar_wasm_std::nonempty::Error| Error::InvalidAleoTransition(e.to_string()),
+        )?))
     }
 }
 

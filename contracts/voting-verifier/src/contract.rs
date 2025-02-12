@@ -1,6 +1,7 @@
-use axelar_wasm_std::address::validate_contract_address;
+use axelar_wasm_addresses::address;
+use axelar_wasm_addresses::address::validate_contract_address;
 use axelar_wasm_std::nonempty::Uint64;
-use axelar_wasm_std::{address, permission_control, FnExt, MajorityThreshold, Threshold};
+use axelar_wasm_std::{permission_control, FnExt, MajorityThreshold, Threshold};
 #[cfg(not(feature = "library"))]
 use cosmwasm_std::entry_point;
 use cosmwasm_std::{
@@ -161,7 +162,7 @@ pub fn migrate(
 #[cfg(test)]
 mod test {
     use assert_ok::assert_ok;
-    use axelar_wasm_std::address::AddressFormat;
+    use axelar_wasm_addresses::address::AddressFormat;
     use axelar_wasm_std::msg_id::{
         Base58SolanaTxSignatureAndEventIndex, Base58TxDigestAndEventIndex,
         FieldElementAndEventIndex, HexTxHash, HexTxHashAndEventIndex, MessageIdFormat,
@@ -173,7 +174,7 @@ mod test {
     };
     use bech32::{Bech32m, Hrp};
     use cosmwasm_std::testing::{
-        message_info, mock_dependencies, mock_env, MockApi, MockQuerier, MockStorage,
+        message_info, mock_dependencies, mock_env, mock_info, MockApi, MockQuerier, MockStorage,
     };
     use cosmwasm_std::{from_json, Empty, Fraction, OwnedDeps, Uint128, Uint64, WasmQuery};
     use multisig::key::KeyType;

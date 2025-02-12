@@ -22,7 +22,6 @@ optimize = """docker run --rm -v "$(pwd)":/code \
 """
 
 [dependencies]
-aleo-types = { workspace = true }
 alloy-primitives = { workspace = true }
 axelar-wasm-std-derive = { workspace = true, optional = true }
 bech32 = { workspace = true }
@@ -54,6 +53,7 @@ strum = { workspace = true }
 sui-types = { workspace = true }
 thiserror = { workspace = true }
 valuable = { version = "0.1.0", features = ["derive"] }
+# axelar-wasm-addresses = { path = "../axelar-wasm-addresses" }
 
 [dev-dependencies]
 assert_ok = { workspace = true }

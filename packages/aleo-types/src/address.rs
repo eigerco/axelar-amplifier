@@ -1,6 +1,7 @@
 use std::fmt::Display;
 use std::str::FromStr;
 
+use axelar_wasm_std::nonempty;
 use cosmwasm_std::HexBinary;
 use error_stack::{ensure, Report, Result};
 use serde::{Deserialize, Serialize};
@@ -10,11 +11,16 @@ use crate::{verify_becnh32, Error};
 pub const ALEO_ADDRESS_LEN: usize = 63;
 
 #[derive(Serialize, Deserialize, Debug, PartialEq, Eq, Clone, PartialOrd, Ord)]
-pub struct Address(pub String);
+pub struct Address(pub nonempty::String);
 
 impl Default for Address {
     fn default() -> Self {
-        Self("aleo1qtrn0h0pakusngjemdehzljqthu3e8vfwl5qj2zccc5cgasutq8qjy2afr".to_string())
+        Self(
+            nonempty::String::try_from(
+                "aleo1qtrn0h0pakusngjemdehzljqthu3e8vfwl5qj2zccc5cgasutq8qjy2afr".to_string(),
+            )
+            .unwrap(),
+        )
     }
 }
 
@@ -48,7 +54,9 @@ impl FromStr for Address {
 
         verify_becnh32(address, PREFIX).map_err(|e| Error::InvalidAleoAddress(e.to_string()))?;
 
-        Ok(Self(address.to_string()))
+        Ok(Self(address.try_into().map_err(
+            |e: axelar_wasm_std::nonempty::Error| Error::InvalidAleoAddress(e.to_string()),
+        )?))
     }
 }
 

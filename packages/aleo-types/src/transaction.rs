@@ -1,6 +1,7 @@
 use std::fmt::Display;
 use std::str::FromStr;
 
+use axelar_wasm_std::nonempty;
 use error_stack::{Report, ResultExt};
 use serde::{Deserialize, Serialize};
 
@@ -8,7 +9,7 @@ use crate::{verify_becnh32, Error};
 
 #[derive(Serialize, Deserialize, Debug, PartialEq, Eq, Hash, Clone)]
 pub struct Transaction {
-    transition_id: String,
+    transaction_id: nonempty::String,
 }
 
 impl FromStr for Transaction {
@@ -24,14 +25,16 @@ impl FromStr for Transaction {
             .change_context(Error::InvalidAleoTransaction(transaction_id.to_string()))?;
 
         Ok(Self {
-            transition_id: transaction_id.to_string(),
+            transaction_id: transaction_id.try_into().map_err(
+                |e: axelar_wasm_std::nonempty::Error| Error::InvalidAleoTransaction(e.to_string()),
+            )?,
         })
     }
 }
 
 impl Display for Transaction {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}", self.transition_id)
+        write!(f, "{}", self.transaction_id)
     }
 }
 

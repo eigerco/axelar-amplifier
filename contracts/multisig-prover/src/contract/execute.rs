@@ -3,8 +3,9 @@ use std::collections::{BTreeMap, HashSet};
 use axelar_wasm_std::permission_control::Permission;
 use axelar_wasm_std::snapshot::{Participant, Snapshot};
 use axelar_wasm_std::{
-    address, nonempty, permission_control, FnExt, MajorityThreshold, VerificationStatus,
+    nonempty, permission_control, FnExt, MajorityThreshold, VerificationStatus,
 };
+use axelar_wasm_addresses::address;
 use cosmwasm_std::{wasm_execute, Addr, DepsMut, Env, QuerierWrapper, Response, Storage, SubMsg};
 use error_stack::{report, Result, ResultExt};
 use itertools::Itertools;

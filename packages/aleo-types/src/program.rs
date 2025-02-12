@@ -1,12 +1,13 @@
 use std::str::FromStr;
 
+use axelar_wasm_std::nonempty;
 use error_stack::{ensure, Report, Result};
 use serde::{Deserialize, Serialize};
 
 use crate::Error;
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
-pub struct Program(String);
+pub struct Program(nonempty::String);
 
 impl TryFrom<String> for Program {
     type Error = Report<Error>;
@@ -48,7 +49,9 @@ impl FromStr for Program {
             Error::InvalidProgramName(name.to_string())
         );
 
-        Ok(Self(name.to_string()))
+        Ok(Self(name.try_into().map_err(
+            |e: axelar_wasm_std::nonempty::Error| Error::InvalidProgramName(e.to_string()),
+        )?))
     }
 }
 

@@ -1,6 +1,6 @@
 use std::fmt::Debug;
 
-use axelar_wasm_std::{address, FnExt};
+use axelar_wasm_std::FnExt;
 #[cfg(not(feature = "library"))]
 use cosmwasm_std::entry_point;
 use cosmwasm_std::{ensure, Binary, Deps, DepsMut, Empty, Env, MessageInfo, Response};
@@ -8,6 +8,7 @@ use cw2::VersionError;
 use error_stack::{report, ResultExt};
 use router_api::client::Router;
 use semver::Version;
+use axelar_wasm_addresses::address;
 
 use crate::msg::{ExecuteMsg, InstantiateMsg, QueryMsg};
 use crate::state;

@@ -10,7 +10,7 @@ use crate::nonempty::Error;
 
 #[cw_serde]
 #[serde(try_from = "std::string::String")]
-#[derive(Eq, Hash, Valuable, IntoInner)]
+#[derive(Eq, Hash, Valuable, IntoInner, PartialOrd, Ord)]
 pub struct String(std::string::String);
 
 impl TryFrom<std::string::String> for String {
