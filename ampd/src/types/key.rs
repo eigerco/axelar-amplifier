@@ -4,7 +4,7 @@ use std::str::FromStr;
 use aleo_types::address::Address;
 use cosmwasm_std::HexBinary;
 use ed25519_dalek::PUBLIC_KEY_LENGTH;
-use error_stack::{self, Report, ResultExt};
+use error_stack::{self, ensure, Report, ResultExt};
 use thiserror::Error;
 
 pub type CosmosPublicKey = cosmrs::crypto::PublicKey;
@@ -29,9 +29,7 @@ pub enum PublicKey {
 fn convert_to_array(bytes: impl AsRef<[u8]>) -> Result<[u8; 63]> {
     let slice = bytes.as_ref();
 
-    if slice.len() != 63 {
-        return Err(Error::InvalidRawBytes.into());
-    }
+    ensure!(slice.len() == 63, Error::InvalidRawBytes);
 
     let mut array = [0u8; 63];
     array.copy_from_slice(slice);
