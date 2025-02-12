@@ -191,8 +191,8 @@ where
 mod tests {
     use std::str::FromStr;
 
-    use cosmrs::AccountId;
     use aleo_types::program::Program;
+    use cosmrs::AccountId;
 
     use super::*;
     use crate::types::TMAddress;

@@ -1,4 +1,5 @@
-use std::{fmt::Display, str::FromStr};
+use std::fmt::Display;
+use std::str::FromStr;
 
 use cosmwasm_std::HexBinary;
 use error_stack::{ensure, Report, Result};

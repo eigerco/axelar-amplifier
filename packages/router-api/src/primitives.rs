@@ -350,7 +350,6 @@ impl<'a> From<&'a ChainNameRaw> for &'a str {
     }
 }
 
-
 impl TryFrom<String> for ChainNameRaw {
     type Error = Error;
 

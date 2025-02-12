@@ -1,11 +1,11 @@
 use std::str::FromStr;
 
-use aleo_utils::string_encoder::StringEncoder;
-use aleo_utils::block_processor::IdValuePair;
-use aleo_utils::json_like;
 use aleo_types::address::Address;
 use aleo_types::transaction::Transaction;
 use aleo_types::transition::Transition;
+use aleo_utils::block_processor::IdValuePair;
+use aleo_utils::json_like;
+use aleo_utils::string_encoder::StringEncoder;
 use async_trait::async_trait;
 use error_stack::{ensure, report, Report, Result, ResultExt};
 use mockall::automock;

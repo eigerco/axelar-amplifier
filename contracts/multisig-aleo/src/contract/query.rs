@@ -61,6 +61,9 @@ mod tests {
         let signature = HexBinary::from_hex(signature).unwrap();
         let address = HexBinary::from(address.as_bytes());
 
-        assert!(verify_signature::<snarkvm_cosmwasm::network::TestnetV0>(signature, msg, address).is_ok());
+        assert!(
+            verify_signature::<snarkvm_cosmwasm::network::TestnetV0>(signature, msg, address)
+                .is_ok()
+        );
     }
 }

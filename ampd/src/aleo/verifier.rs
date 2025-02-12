@@ -4,10 +4,7 @@ use tracing::warn;
 use super::http_client::Receipt;
 use crate::handlers::aleo_verify_msg::Message;
 
-fn verify(
-    receipt: &Receipt,
-    msg: &Message,
-) -> Vote {
+fn verify(receipt: &Receipt, msg: &Message) -> Vote {
     let res = match receipt {
         Receipt::Found(transition_receipt) => transition_receipt == msg,
         Receipt::NotFound(transition, e) => {

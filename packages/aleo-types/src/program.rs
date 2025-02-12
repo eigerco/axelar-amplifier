@@ -6,7 +6,7 @@ use serde::{Deserialize, Serialize};
 use crate::Error;
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
-pub struct Program (String);
+pub struct Program(String);
 
 impl TryFrom<String> for Program {
     type Error = Report<Error>;
@@ -43,15 +43,12 @@ impl FromStr for Program {
         ensure!(
             name.chars()
                 .skip(1)
-                .take(
-                    name.len()
-                        .saturating_sub(SUFFIX.len().saturating_add(1)),
-                )
+                .take(name.len().saturating_sub(SUFFIX.len().saturating_add(1)),)
                 .all(|c| c.is_ascii_alphanumeric() || c == '_'),
             Error::InvalidProgramName(name.to_string())
         );
 
-        Ok(Self (name.to_string()))
+        Ok(Self(name.to_string()))
     }
 }
 

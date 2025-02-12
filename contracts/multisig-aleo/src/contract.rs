@@ -39,11 +39,9 @@ pub fn query(
             public_key,
             signer_address: _,
             session_id: _,
-        } => to_json_binary(&query::verify_signature::<snarkvm_cosmwasm::network::TestnetV0>(
-            signature,
-            message,
-            public_key,
-        )?)?,
+        } => to_json_binary(&query::verify_signature::<
+            snarkvm_cosmwasm::network::TestnetV0,
+        >(signature, message, public_key)?)?,
     }
     .then(Ok)
 }

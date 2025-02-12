@@ -219,7 +219,8 @@ mod tests {
             &domain_separator,
             &verifier_set,
             &Payload::Messages(vec![message()]),
-        ).unwrap();
+        )
+        .unwrap();
 
         println!("digest: {:?}", digest);
 
@@ -237,6 +238,11 @@ mod tests {
         );
 
         let m = message();
-        println!("message: {:?}", aleo_gateway::Message::try_from(&m).unwrap().to_aleo_string());
+        println!(
+            "message: {:?}",
+            aleo_gateway::Message::try_from(&m)
+                .unwrap()
+                .to_aleo_string()
+        );
     }
 }

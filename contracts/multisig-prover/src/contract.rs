@@ -141,7 +141,7 @@ pub fn migrate(
         key_type: multisig::key::KeyType::AleoSchnorr,
         multisig: address::validate_cosmwasm_address(
             deps.api,
-            "axelar1g5vu3hs8g5hq3wy7q2p4c6q0aar08f3n2z73nrxgf56rg7yrzkds5kh89l"
+            "axelar1g5vu3hs8g5hq3wy7q2p4c6q0aar08f3n2z73nrxgf56rg7yrzkds5kh89l",
         )?,
         ..old_config
     };

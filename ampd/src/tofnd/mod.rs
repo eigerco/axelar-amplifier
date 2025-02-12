@@ -47,7 +47,6 @@ impl FromHex for MessageDigestTofnd {
     }
 }
 
-
 impl FromHex for MessageDigest {
     type Error = error::Error;
 

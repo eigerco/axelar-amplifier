@@ -1,4 +1,5 @@
-use std::{fmt, str::FromStr};
+use std::fmt;
+use std::str::FromStr;
 
 use aleo_types::address::Address;
 use cosmwasm_std::HexBinary;
