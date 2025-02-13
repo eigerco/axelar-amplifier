@@ -19,6 +19,7 @@ valuable = { version = "0.1.0", features = ["derive"] }
 [dev-dependencies]
 assert_ok = { workspace = true }
 cw-multi-test = { workspace = true }
+axelar-wasm-std = { workspace = true }
 
 [lints]
 workspace = true

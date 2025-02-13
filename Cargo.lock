@@ -962,6 +962,7 @@ dependencies = [
  "aleo-types",
  "alloy-primitives",
  "assert_ok",
+ "axelar-wasm-std",
  "cosmwasm-schema",
  "cosmwasm-std",
  "cw-multi-test",
