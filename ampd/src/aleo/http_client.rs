@@ -24,8 +24,10 @@ pub enum Error {
     Client,
     #[error("Request error")]
     Request,
-    #[error("Transition not found")]
-    TransitionNotFound,
+    #[error("Transaction '{0}' not found")]
+    TransactionNotFound(String),
+    #[error("Transition '{0}' not found")]
+    TransitionNotFound(String),
     #[error("Failed to find callContract")]
     CallnotFound,
     #[error("Failed to find user call")]
@@ -157,7 +159,7 @@ impl ClientTrait for Client {
     ) -> Result<aleo_utils::block_processor::Transaction, Error> {
         const ENDPOINT: &str = "transaction";
         let url = format!(
-            "{}/{}/{ENDPOINT}/{}",
+            "{}{}/{ENDPOINT}/{}",
             self.base_url, self.network, &transaction_id
         );
 
@@ -172,7 +174,6 @@ impl ClientTrait for Client {
         let transaction: aleo_utils::block_processor::Transaction =
             serde_json::from_str(&response.text().await.change_context(Error::Request)?)
                 .change_context(Error::Request)?;
-        // TODO: use json like
 
         Ok(transaction)
     }
@@ -181,7 +182,7 @@ impl ClientTrait for Client {
     async fn find_transaction(&self, transition_id: &Transition) -> Result<String, Error> {
         const ENDPOINT: &str = "find/transactionID";
         let url = format!(
-            "{}/{}/{ENDPOINT}/{}",
+            "{}{}/{ENDPOINT}/{}",
             self.base_url, self.network, &transition_id
         );
         tracing::debug!(%url);
@@ -293,8 +294,8 @@ where
         let transaction = transaction.trim_matches('"');
 
         // Find transaction
-        let transaction_id =
-            Transaction::from_str(transaction).change_context(Error::TransitionNotFound)?;
+        let transaction_id = Transaction::from_str(transaction)
+            .change_context(Error::TransactionNotFound(transaction.to_string()))?;
 
         let transaction = self.client.get_transaction(&transaction_id).await?;
         let gateway_transition = transaction
@@ -302,7 +303,7 @@ where
             .transitions
             .iter()
             .find(|t| t.program.as_str() == gateway_contract)
-            .ok_or(Error::TransitionNotFound)?;
+            .ok_or(Error::TransitionNotFound(transition_id.to_string()))?;
 
         // Get the outputs of the transition
         // The transition should have only the gateway call
