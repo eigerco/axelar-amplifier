@@ -101,19 +101,19 @@ impl AleoValue for Message {
             }
         );
 
-        // TODO: check if we can know at this point that only Aleo can be the destination chain
-        let payload_hash = if self.cc_id.source_chain == "aleo-2" {
-            let n = cosmwasm_std::Uint256::from_le_bytes(self.payload_hash);
-            format!("{n}group")
-        } else {
-            let reverse_hash = self.payload_hash.iter().map(|b| b.reverse_bits()).collect();
-            let keccak_bits: Vec<bool> = bytes_to_bits(&reverse_hash);
+        // TODO: explain what is going on...
+        // The payload hash is a 32 byte array, which is a 256 bit hash.
+        // (for messages from Aleo this will happen in the relayer)
+        // The group values of Aleo are ~256bits, so in aleo we will only use bhp256(keccak256) hashes.
+        // The result of bhp256 is a group element, which comes from Aleo.
+        // We will store it in cosmos 256 bits variables just for convenience.
+        let reverse_hash = self.payload_hash.iter().map(|b| b.reverse_bits()).collect();
+        let keccak_bits: Vec<bool> = bytes_to_bits(&reverse_hash);
 
-            let group =
-                <snarkvm_cosmwasm::network::TestnetV0>::hash_to_group_bhp256(&keccak_bits).unwrap();
+        let group =
+            <snarkvm_cosmwasm::network::TestnetV0>::hash_to_group_bhp256(&keccak_bits).unwrap();
 
-            format!("{group}")
-        };
+        let payload_hash = format!("{group}");
 
         let res = format!(
             r#"{{source_chain: [{}], message_id: [{}], source_address: [{}], contract_address: [{}], payload_hash: {} }}"#,

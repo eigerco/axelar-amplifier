@@ -2,7 +2,7 @@ use cosmwasm_schema::serde::de::DeserializeOwned;
 use cosmwasm_std::{
     to_json_binary, Addr, HexBinary, QuerierWrapper, QueryRequest, Uint64, WasmQuery,
 };
-use error_stack::{Result, ResultExt};
+use error_stack::{Report, Result};
 
 use crate::msg::QueryMsg;
 
@@ -18,7 +18,12 @@ impl SignatureVerifier<'_> {
                 contract_addr: self.address.to_string(),
                 msg: to_json_binary(msg).expect("msg should always be serializable"),
             }))
-            .change_context(Error::QuerySignatureVerifier)
+            .map_err(|e| {
+                Report::new(Error::QuerySignatureVerifier(
+                    self.address.to_string(),
+                    e.to_string(),
+                ))
+            })
     }
 
     pub fn verify_signature(
@@ -41,6 +46,6 @@ impl SignatureVerifier<'_> {
 
 #[derive(thiserror::Error, Debug)]
 pub enum Error {
-    #[error("could not query the signature verifier contract")]
-    QuerySignatureVerifier,
+    #[error("could not query the signature verifier contract, address: '{0}', '{1}'")]
+    QuerySignatureVerifier(String, String),
 }

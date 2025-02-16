@@ -13,7 +13,7 @@ thiserror = { workspace = true }
 cosmwasm-std = { workspace = true }
 hex.workspace = true
 multisig = { workspace = true, features = ["library"] }
-snarkvm-cosmwasm = { workspace = true }
+snarkvm-cosmwasm = { workspace = true, features = ["program", "network"]}
 regex = { version = "1.10.0", default-features = false, features = [
   "std",
 ] }

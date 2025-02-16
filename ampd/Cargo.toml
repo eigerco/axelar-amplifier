@@ -76,7 +76,7 @@ valuable = { version = "0.1.0", features = ["derive"] }
 valuable-serde = { version = "0.1.0", features = ["std"] }
 voting-verifier = { workspace = true }
 aleo-gateway = { workspace = true }
-snarkvm-cosmwasm = { workspace = true }
+snarkvm-cosmwasm = { workspace = true, features = [ "network" ] }
 aleo-utils = { workspace = true }
 
 [dev-dependencies]
