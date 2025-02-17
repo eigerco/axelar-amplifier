@@ -48,7 +48,6 @@ pub enum Error {
 pub trait AleoValue {
     fn to_aleo_string(&self) -> Result<String, Report<Error>>;
 
-    // kecaa256 hash
     fn hash<N: Network>(&self) -> Result<[u8; 32], Report<Error>> {
         let input = self.to_aleo_string()?;
         hash::<std::string::String, N>(input)
@@ -61,14 +60,12 @@ pub trait AleoValue {
 }
 
 pub fn aleo_hash<T: AsRef<str>, N: Network>(input: T) -> Result<String, Report<Error>> {
-    println!("bhp 1: {:?}", input.as_ref());
     let aleo_value: Vec<bool> = snarkvm_cosmwasm::program::Value::<N>::from_str(input.as_ref())
         .map_err(|e| {
             Report::new(Error::Aleo(e))
                 .attach_printable(format!("input: '{:?}'", input.as_ref().to_owned()))
         })?
         .to_bits_le();
-    println!("bhp 2");
 
     let bits = N::hash_keccak256(&aleo_value).map_err(|e| {
         Report::new(Error::Aleo(e))
@@ -80,7 +77,7 @@ pub fn aleo_hash<T: AsRef<str>, N: Network>(input: T) -> Result<String, Report<E
     Ok(group.to_string())
 }
 
-fn hash<T: AsRef<str>, N: Network>(input: T) -> Result<[u8; 32], Report<Error>> {
+pub fn hash<T: AsRef<str>, N: Network>(input: T) -> Result<[u8; 32], Report<Error>> {
     let aleo_value: Vec<bool> = snarkvm_cosmwasm::program::Value::<N>::from_str(input.as_ref())
         .map_err(|e| {
             Report::new(Error::Aleo(e))

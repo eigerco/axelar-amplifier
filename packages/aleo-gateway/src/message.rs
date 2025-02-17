@@ -110,6 +110,7 @@ impl AleoValue for Message {
         let reverse_hash = self.payload_hash.iter().map(|b| b.reverse_bits()).collect();
         let keccak_bits: Vec<bool> = bytes_to_bits(&reverse_hash);
 
+        // TODO: remove unwrap
         let group =
             <snarkvm_cosmwasm::network::TestnetV0>::hash_to_group_bhp256(&keccak_bits).unwrap();
 

@@ -94,16 +94,6 @@ pub fn validate_session_signature(
     Ok(())
 }
 
-/*
-status: Unknown,
-message: "failed to execute message; message index: 0: \"axelar1ckguw8l9peg6sykx30cy35t6l0wpfu23xycme7\" submitted an invalid signature for signing session Uint64(115), reason \"Generic error:
-LOOK:
-address: 'aleo145tj9hqrnv3hqylrem6p7zjyxc2kryyp3hdm4ht48ntj3e5ttuxs9xs9ak',
-message: '[734426967266271119157240286202784854182177084087311079640681941965241316364field, 211744439field]',
-signature: 'sign1jfnmrylk3kk6ns2s355mxdhaq8l4yfrp4eq3dqyz2ckgtzy5csppefuayajhxea7hrasnmnlucs3xd5xa5phpx3aqs8d3jlxtnpnsqvpxp6apcrgnzaw3gfdywla9m4vxywvhnsuewd38alswp3pxmu8zt6pj54ng8w2txvnzjp5c3pyu9lt54f6hlgxuln98jgzrwnpsqassch0a80',
-hex_binary: 'HexBinary(5415341bb3755cc8851e6e90738243d739511001aebe587f8ff0ea67dcda7b12)'\"
-: execute wasm contract failed [CosmWasm/wasmd@v0.34.1/x/wasm/keeper/keeper.go:386] With gas wanted: '0' and gas used: '395966' ", details: [], metadata: MetadataMap { headers: {"content-type": "application/grpc", "x-cosmos-block-height": "5612175"} }
-*/
 fn call_sig_verifier(
     sig_verifier: SignatureVerifier,
     signature: HexBinary,
@@ -118,7 +108,6 @@ fn call_sig_verifier(
             reason: err.to_string(),
         })?;
 
-    // let res = verify_signature::<snarkvm_cosmwasm::network::TestnetV0>(signature, message, pub_key)?;
     if !res {
         Err(ContractError::SignatureVerificationFailed {
             reason: "unable to verify signature, verify signature is false".into(),
@@ -141,91 +130,14 @@ fn signers_weight(signatures: &HashMap<String, Signature>, verifier_set: &Verifi
         .sum()
 }
 
-use std::str::FromStr as _;
-
-use cosmwasm_std::StdResult;
-use snarkvm_cosmwasm::account::ToFields;
-use snarkvm_cosmwasm::program::{Network, Value};
-use snarkvm_cosmwasm::program::Signature as AleoSignature;
-
-
-use snarkvm_cosmwasm::types::{Address, Field};
-
-/*
-*  LOOK: address: 'aleo145tj9hqrnv3hqylrem6p7zjyxc2kryyp3hdm4ht48ntj3e5ttuxs9xs9ak',
-*  message: '[3570993132320435925381642947470595733315932391169339455385687565127846720524field, 190585187field]',
-*  signature: 'sign1jdgzp5enav4uk3n9ueld9lrh4h50pppc5p0hkxehsyn96j8k2cqfyelnsn3tluh4szpwdlrpgd3dxn7gu070m3qszwaalnswl6n3kqvpxp6apcrgnzaw3gfdywla9m4vxywvhnsuewd38alswp3pxmu8zt6pj54ng8w2txvnzjp5c3pyu9lt54f6hlgxuln98jgzrwnpsqasskt28cu'\"
-*/
-pub fn verify_signature<N: Network>(
-    signature: HexBinary,
-    message: HexBinary,
-    public_key: HexBinary,
-) -> StdResult<bool> {
-    let signed = String::from_utf8(signature.into()).map_err(|e| {
-        cosmwasm_std::StdError::generic_err(format!("Failed to parse signature: {}", e))
-    })?;
-
-    let signature = AleoSignature::<N>::from_str(signed.as_str()).map_err(|e| {
-        cosmwasm_std::StdError::generic_err(format!("Failed to parse signature: {}", e))
-    })?;
-
-    let address = String::from_utf8(public_key.into()).map_err(|e| {
-        cosmwasm_std::StdError::generic_err(format!("Failed to parse public key: {}", e))
-    })?;
-
-    let addr = Address::from_str(address.as_str()).map_err(|e| {
-        cosmwasm_std::StdError::generic_err(format!("Failed to parse address: {}", e))
-    })?;
-
-    let hex_binary = message.clone();
-    let message = aleo_encoded(&message)?;
-
-    let res = signature.verify(&addr, message.as_slice());
-    if res == false {
-        return Err(cosmwasm_std::StdError::generic_err(format!(
-            "LOOK: address: '{:?}', message: '{:?}', signature: '{:?}', hex_binary: '{:?}'",
-            addr, message, signature, hex_binary
-        )));
-    }
-
-    Ok(res)
-}
-
-fn aleo_encoded<N: Network>(data: &HexBinary) -> Result<Vec<Field<N>>, cosmwasm_std::StdError> {
-    let num = cosmwasm_std::Uint256::from_le_bytes(data.as_slice().try_into().unwrap());
-    let message = format!("{num}group");
-
-    let g = Value::from_str(message.as_str())
-        .map_err(|e| {
-            cosmwasm_std::StdError::generic_err(format!("Failed to parse signature: {}", e))
-        })?;
-    println!("---->g: {:?}", g);
-        g.to_fields()
-        .map_err(|e| {
-            cosmwasm_std::StdError::generic_err(format!("Failed to parse signature: {}", e))
-        })
-}
-
 #[cfg(test)]
 mod tests {
     use cosmwasm_std::testing::{MockApi, MockQuerier};
     use cosmwasm_std::{to_json_binary, HexBinary, QuerierWrapper};
-    // use multisig_aleo::contract::query::verify_signature;
 
     use super::*;
     use crate::key::KeyType;
     use crate::test::common::{build_verifier_set, ecdsa_test_data, ed25519_test_data};
-
-    #[test]
-    fn my_test() {
-        let signature = HexBinary::from("sign1jdgzp5enav4uk3n9ueld9lrh4h50pppc5p0hkxehsyn96j8k2cqfyelnsn3tluh4szpwdlrpgd3dxn7gu070m3qszwaalnswl6n3kqvpxp6apcrgnzaw3gfdywla9m4vxywvhnsuewd38alswp3pxmu8zt6pj54ng8w2txvnzjp5c3pyu9lt54f6hlgxuln98jgzrwnpsqasskt28cu".as_bytes());
-        let message = HexBinary::from_hex("5415341bb3755cc8851e6e90738243d739511001aebe587f8ff0ea67dcda7b12").unwrap();
-        let public_key = HexBinary::from("aleo145tj9hqrnv3hqylrem6p7zjyxc2kryyp3hdm4ht48ntj3e5ttuxs9xs9ak".as_bytes());
-        // let public_key = HexBinary::from("aleo1gjslmjhfage7vdmctyjldpdv8yeqw0uk5wmpejexnt05w823tupshxzgw7".as_bytes());
-
-        verify_signature::<snarkvm_cosmwasm::network::TestnetV0>(signature, message, public_key).unwrap();
-
-    }
 
     pub struct TestConfig {
         pub verifier_set: VerifierSet,

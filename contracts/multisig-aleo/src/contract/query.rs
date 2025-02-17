@@ -18,8 +18,6 @@ pub fn verify_signature<N: Network>(
         cosmwasm_std::StdError::generic_err(format!("Failed to parse signature: {}", e))
     })?;
 
-    // let address = "aleo145tj9hqrnv3hqylrem6p7zjyxc2kryyp3hdm4ht48ntj3e5ttuxs9xs9ak";
-    // let public_key = HexBinary::from(address.as_bytes());
     let address = String::from_utf8(public_key.into()).map_err(|e| {
         cosmwasm_std::StdError::generic_err(format!("Failed to parse public key: {}", e))
     })?;
@@ -31,28 +29,9 @@ pub fn verify_signature<N: Network>(
     let message = aleo_encoded(&message)?;
 
     let res = signature.verify(&addr, message.as_slice());
-    if res == false {
-        return Err(cosmwasm_std::StdError::generic_err(format!(
-            "LOOK: address: '{:?}', message: '{:?}', signature: '{:?}'",
-            addr, message, signature
-        )));
-    }
-
     Ok(res)
 }
 
-/*
-fn aleo_encoded<N: Network>(data: &MessageDigest) -> TofnResult<Vec<Field<N>>> {
-    let num = cosmwasm_std::Uint256::from_le_bytes(data.0);
-    let message = format!("{num}group");
-
-    snarkvm::prelude::Value::from_str(message.as_str())
-        .map_err(|_| TofnFatal)?
-        .to_fields()
-        .map_err(|_| TofnFatal)
-}
-
-*/
 fn aleo_encoded<N: Network>(data: &HexBinary) -> Result<Vec<Field<N>>, cosmwasm_std::StdError> {
     let num = cosmwasm_std::Uint256::from_le_bytes(data.as_slice().try_into().unwrap());
     let message = format!("{num}group");
@@ -71,7 +50,6 @@ fn aleo_encoded<N: Network>(data: &HexBinary) -> Result<Vec<Field<N>>, cosmwasm_
 mod tests {
     use super::*;
 
-    // 36cbce7cc1cf15e71ea4a37ce53df02cc40a7e9b2be9adbf7d45faa39257f30a
     #[test]
     fn test_verify_signature() {
         let msg = "df4fd7e608879cb128c53f82614cdffcfd163b4d14adbe5c797f3aaaa3e316b8";
@@ -119,8 +97,4 @@ mod tests {
             Ok(true)
         );
     }
-    /*
-    2025-02-15T21:57:39.089677Z  INFO ampd::handlers::multisig: get signing request session_id=107 msg="b02ac668d2c8f5d3f5d95834ca11ef5244314451602b8faa9e49a6ac5ec5360a"
-    2025-02-15T21:57:39.127465Z  INFO ampd::handlers::multisig: ready to submit signature signature="7369676e316b6e3437366175676166336c716d756675637a357a756136676a7974746439366e76346b72366873673679793832366d666770706d347877727972306b307230323973787773673774756e7a39706834736e3278333577733937766e66757238753978327a71357078703661706372676e7a61773367666479776c61396d347678797776686e73756577643338616c7377703370786d75387a7436706a35346e673877327478766e7a6a70356333707975396c7435346636686c6778756c6e39386a677a72776e70737161737374716b306879"
-    */
 }
