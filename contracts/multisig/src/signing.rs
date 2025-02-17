@@ -88,7 +88,6 @@ pub fn validate_session_signature(
         .map_err(|e| ContractError::InvalidSignature {
             session_id: session.id,
             signer: signer.into(),
-            reason: e.to_string(),
         })?;
 
     Ok(())
@@ -296,7 +295,6 @@ mod tests {
                         ContractError::InvalidSignature {
                             session_id: session.id,
                             signer: signer.clone().into(),
-                            reason: "unable to verify signature, verify signature is false".into()
                         }
                     );
                 }
@@ -392,7 +390,6 @@ mod tests {
                 ContractError::InvalidSignature {
                     session_id: session.id,
                     signer: signer.into(),
-                    reason: "Invalid signature".into()
                 }
             );
         }
