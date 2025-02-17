@@ -333,7 +333,13 @@ mod tests {
 
     #[test]
     fn migrate_sets_contract_version() {
-        let mut deps = setup_test_case();
+        let deps = setup_test_case();
+        let mut deps = OwnedDeps {
+            storage: deps.storage,
+            api: deps.api.with_prefix("axelar"),
+            querier: deps.querier,
+            custom_query_type: deps.custom_query_type,
+        };
 
         migrate(deps.as_mut(), mock_env(), Empty {}).unwrap();
 
