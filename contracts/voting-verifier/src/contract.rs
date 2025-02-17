@@ -569,45 +569,6 @@ mod test {
     }
 
     #[test]
-    fn test_drive() {
-        // TODO: THIS IS WIP. JUST FOR SANITY TESTING
-        let msg_id_format = MessageIdFormat::HexTxHashAndEventIndex;
-        let verifiers = verifiers(2);
-        let mut deps = setup_aleo(verifiers.clone(), &msg_id_format);
-
-        let msg = ExecuteMsg::VerifyMessages(vec![
-            Message {
-                cc_id: CrossChainId::new(source_chain(), message_id("id", 1, &msg_id_format))
-                    .unwrap(),
-                source_address: "aleo1thg4clvgc2d0vpl6jzgnzw7zvdulq7r4xuluw66lq2wg7sw4hszs00d8dd"
-                    .to_owned()
-                    .parse()
-                    .unwrap(),
-                destination_chain: "destination-chain1".parse().unwrap(),
-                destination_address: "destination-address1".parse().unwrap(),
-                payload_hash: [0; 32],
-            },
-            Message {
-                cc_id: CrossChainId::new(source_chain(), message_id("id", 2, &msg_id_format))
-                    .unwrap(),
-                source_address: "aleo1thg4clvgc2d0vpl6jzgnzw7zvdulq7r4xuluw66lq2wg7sw4hszs00d8dd"
-                    .to_owned()
-                    .parse()
-                    .unwrap(),
-                destination_chain: "destination-chain2".parse().unwrap(),
-                destination_address: "destination-address2".parse().unwrap(),
-                payload_hash: [0; 32],
-            },
-        ]);
-        assert_ok!(execute(
-            deps.as_mut(),
-            mock_env(),
-            mock_info(SENDER, &[]),
-            msg
-        ));
-    }
-
-    #[test]
     fn should_fail_if_messages_are_not_from_same_source() {
         let msg_id_format = MessageIdFormat::HexTxHashAndEventIndex;
         let verifiers = verifiers(2);
