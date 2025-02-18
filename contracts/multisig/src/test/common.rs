@@ -140,7 +140,6 @@ pub mod aleo_schnorr_test_data {
 
     use cosmwasm_std::testing::MockApi;
     use rand_chacha::rand_core::SeedableRng;
-    // use k256::ecdsa::signature::SignerMut;
     use sha3::{Digest, Keccak256};
     use snarkvm_cosmwasm::account::PrivateKey;
 

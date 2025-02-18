@@ -256,7 +256,6 @@ fn signing_response(
         signature,
     };
 
-    // let mut response = Response::new().add_event(event);
     let mut response = Response::new().add_message(rewards_msg).add_event(event);
 
     if let MultisigState::Completed { completed_at } = session.state {

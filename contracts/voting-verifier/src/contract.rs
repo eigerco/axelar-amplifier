@@ -113,25 +113,8 @@ pub fn migrate(
     _env: Env,
     _msg: Empty,
 ) -> Result<Response, axelar_wasm_std::error::ContractError> {
-    // TODO: THIS FUNCTION SHOULD BE REVERTED, AND THE CODE ADDED BELOW SHOULD BE DELETED
-    // cw2::assert_contract_version(deps.storage, CONTRACT_NAME, BASE_VERSION)?;
-    //
+    // TODO: THIS FUNCTION SHOULD BE REVERTED, AND THE CODE ADDED BELOW SHOULD BE DELETED BEFORE MERGING TO AXELAR-AMPLIFIER
     cw2::set_contract_version(deps.storage, CONTRACT_NAME, CONTRACT_VERSION)?;
-
-    /*
-    {
-      "service_registry_contract": "axelar1c9fkszt5lq34vvvlat3fxj6yv7ejtqapz04e97vtc9m5z9cwnamq8zjlhz",
-      "service_name": "validators",
-      "source_gateway_address": "vzevxifdoj.aleo",
-      "voting_threshold": ["1", "1"],
-      "block_expiry": "10",
-      "confirmation_height": 1,
-      "source_chain": "aleo",
-      "rewards_contract": "axelar1vaj9sfzc3z0gpel90wu4ljutncutv0wuhvvwfsh30rqxq422z89qnd989l",
-      "msg_id_format": "bech32m",
-      "address_format": "aleo"
-    }
-        */
 
     let config = Config {
         service_name: "validators".parse().unwrap(),
@@ -518,54 +501,6 @@ mod test {
                 assert_ok!(result);
             }
         }
-    }
-
-    fn setup_aleo(
-        verifiers: Vec<Verifier>,
-        msg_id_format: &MessageIdFormat,
-    ) -> OwnedDeps<MockStorage, MockApi, MockQuerier, Empty> {
-        // TODO: THIS IS WIP. JUST FOR SANITY TESTING
-        let mut deps = mock_dependencies();
-
-        instantiate(
-            deps.as_mut(),
-            mock_env(),
-            mock_info("admin", &[]),
-            InstantiateMsg {
-                governance_address: GOVERNANCE.parse().unwrap(),
-                service_registry_address: SERVICE_REGISTRY_ADDRESS.parse().unwrap(),
-                service_name: SERVICE_NAME.parse().unwrap(),
-                source_gateway_address: "gateway.aleo".parse().unwrap(),
-                voting_threshold: initial_voting_threshold(),
-                block_expiry: POLL_BLOCK_EXPIRY.try_into().unwrap(),
-                confirmation_height: 100,
-                source_chain: source_chain(),
-                rewards_address: REWARDS_ADDRESS.parse().unwrap(),
-                msg_id_format: msg_id_format.clone(),
-                address_format: AddressFormat::Aleo,
-            },
-        )
-        .unwrap();
-
-        deps.querier.update_wasm(move |wq| match wq {
-            WasmQuery::Smart { contract_addr, .. } if contract_addr == SERVICE_REGISTRY_ADDRESS => {
-                Ok(to_json_binary(
-                    &verifiers
-                        .clone()
-                        .into_iter()
-                        .map(|v| WeightedVerifier {
-                            verifier_info: v,
-                            weight: VERIFIER_WEIGHT,
-                        })
-                        .collect::<Vec<WeightedVerifier>>(),
-                )
-                .into())
-                .into()
-            }
-            _ => panic!("no mock for this query"),
-        });
-
-        deps
     }
 
     #[test]

@@ -4,21 +4,6 @@ use snarkvm_cosmwasm::network::Network;
 
 use crate::{AleoValue, Error};
 
-/*
-    struct Message {
-        // ascii encoded chain name
-        source_chain: [u128; 2],
-        // TODO: unit test all valid message_id formats
-        message_id: [u128; 8],
-        // TODO: unit test few valid source addresses
-        source_address: [u128; 4],
-        // detination contract on aleo
-        contract_address: [u128; 4], // This is the program name
-        // hash of the payload
-        payload_hash: [u8; 32],
-    }
-*/
-
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Message {
     pub cc_id: router_api::CrossChainId,
@@ -101,7 +86,6 @@ impl AleoValue for Message {
             }
         );
 
-        // TODO: explain what is going on...
         // The payload hash is a 32 byte array, which is a 256 bit hash.
         // (for messages from Aleo this will happen in the relayer)
         // The group values of Aleo are ~256bits, so in aleo we will only use bhp256(keccak256) hashes.
@@ -110,9 +94,8 @@ impl AleoValue for Message {
         let reverse_hash = self.payload_hash.iter().map(|b| b.reverse_bits()).collect();
         let keccak_bits: Vec<bool> = bytes_to_bits(&reverse_hash);
 
-        // TODO: remove unwrap
-        let group =
-            <snarkvm_cosmwasm::network::TestnetV0>::hash_to_group_bhp256(&keccak_bits).unwrap();
+        let group = <snarkvm_cosmwasm::network::TestnetV0>::hash_to_group_bhp256(&keccak_bits)
+            .map_err(|e| Report::new(Error::from(e)))?;
 
         let payload_hash = format!("{group}");
 
