@@ -229,67 +229,90 @@ pub fn update_verifier_set(
     let multisig: multisig::Client =
         client::ContractClient::new(deps.querier, &config.multisig).into();
 
-    let cur_verifier_set = CURRENT_VERIFIER_SET
-        .may_load(deps.storage)
+    let new_verifier_set = make_verifier_set(&deps, &env, &config)?;
+    CURRENT_VERIFIER_SET
+        .save(deps.storage, &new_verifier_set)
         .map_err(ContractError::from)?;
 
-    match cur_verifier_set {
-        None => {
-            // if no verifier set, just store it and return
-            let new_verifier_set = make_verifier_set(&deps, &env, &config)?;
-            CURRENT_VERIFIER_SET
-                .save(deps.storage, &new_verifier_set)
-                .map_err(ContractError::from)?;
+    Ok(Response::new()
+        .add_message(multisig.register_verifier_set(new_verifier_set.clone()))
+        .add_message(
+            coordinator.set_active_verifiers(
+                new_verifier_set
+                    .signers
+                    .values()
+                    .map(|signer| signer.address.to_string())
+                    .collect::<HashSet<String>>(),
+            ),
+        ))
 
-            Ok(Response::new()
-                .add_message(multisig.register_verifier_set(new_verifier_set.clone()))
-                .add_message(
-                    coordinator.set_active_verifiers(
-                        new_verifier_set
-                            .signers
-                            .values()
-                            .map(|signer| signer.address.to_string())
-                            .collect::<HashSet<String>>(),
-                    ),
-                ))
-        }
-        Some(cur_verifier_set) => {
-            let new_verifier_set = next_verifier_set(&deps, &env, &config)?
-                .ok_or(ContractError::VerifierSetUnchanged)?;
+    // let cur_verifier_set = CURRENT_VERIFIER_SET
+    //     .may_load(deps.storage)
+    //     .map_err(ContractError::from)?;
+    //
+    // match cur_verifier_set {
+    //     None => {
+    //         // if no verifier set, just store it and return
+    //         let new_verifier_set = make_verifier_set(&deps, &env, &config)?;
+    //         CURRENT_VERIFIER_SET
+    //             .save(deps.storage, &new_verifier_set)
+    //             .map_err(ContractError::from)?;
+    //
+    //         Ok(Response::new()
+    //             .add_message(multisig.register_verifier_set(new_verifier_set.clone()))
+    //             .add_message(
+    //                 coordinator.set_active_verifiers(
+    //                     new_verifier_set
+    //                         .signers
+    //                         .values()
+    //                         .map(|signer| signer.address.to_string())
+    //                         .collect::<HashSet<String>>(),
+    //                 ),
+    //             ))
+    //     }
+    //     Some(cur_verifier_set) => {
+    //         let new_verifier_set = next_verifier_set(&deps, &env, &config)?
+    //             .ok_or(ContractError::VerifierSetUnchanged)?;
+    //
+    //         save_next_verifier_set(deps.storage, &new_verifier_set)?;
+    //
+    //         let payload = Payload::VerifierSet(new_verifier_set.clone());
+    //         let payload_id = payload.id();
+    //         PAYLOAD
+    //             .save(deps.storage, &payload_id, &payload)
+    //             .map_err(ContractError::from)?;
+    //         REPLY_TRACKER
+    //             .save(deps.storage, &payload_id)
+    //             .map_err(ContractError::from)?;
+    //
+    //         let digest =
+    //             config
+    //                 .encoder
+    //                 .digest(&config.domain_separator, &cur_verifier_set, &payload)?;
+    //
+    //         let verifier_union_set = all_active_verifiers(deps.storage)?;
+    //
+    //         Ok(Response::new()
+    //             .add_submessage(SubMsg::reply_on_success(
+    //                 multisig.start_signing_session(
+    //                     cur_verifier_set.id(),
+    //                     digest.into(),
+    //                     config.chain_name,
+    //                     None, // TODO: sig_verifier
+    //                 ),
+    //                 START_MULTISIG_REPLY_ID,
+    //             ))
+    //             .add_message(coordinator.set_active_verifiers(
+    //                 verifier_union_set.iter().map(|v| v.to_string()).collect(),
+    //             )))
+    //     }
+    // }
+}
 
-            save_next_verifier_set(deps.storage, &new_verifier_set)?;
+pub fn clean_verifier_set(deps: DepsMut) -> error_stack::Result<Response, ContractError> {
+    CURRENT_VERIFIER_SET.remove(deps.storage);
 
-            let payload = Payload::VerifierSet(new_verifier_set.clone());
-            let payload_id = payload.id();
-            PAYLOAD
-                .save(deps.storage, &payload_id, &payload)
-                .map_err(ContractError::from)?;
-            REPLY_TRACKER
-                .save(deps.storage, &payload_id)
-                .map_err(ContractError::from)?;
-
-            let digest =
-                config
-                    .encoder
-                    .digest(&config.domain_separator, &cur_verifier_set, &payload)?;
-
-            let verifier_union_set = all_active_verifiers(deps.storage)?;
-
-            Ok(Response::new()
-                .add_submessage(SubMsg::reply_on_success(
-                    multisig.start_signing_session(
-                        cur_verifier_set.id(),
-                        digest.into(),
-                        config.chain_name,
-                        None,
-                    ),
-                    START_MULTISIG_REPLY_ID,
-                ))
-                .add_message(coordinator.set_active_verifiers(
-                    verifier_union_set.iter().map(|v| v.to_string()).collect(),
-                )))
-        }
-    }
+    Ok(Response::new())
 }
 
 fn ensure_verifier_set_verification(
