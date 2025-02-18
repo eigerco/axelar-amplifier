@@ -1,6 +1,6 @@
 use aleo_types::address::Address;
 use error_stack::Report;
-use multisig::verifier_set::{self, VerifierSet};
+use multisig::verifier_set::VerifierSet;
 
 use crate::{AleoValue, Error};
 

@@ -244,6 +244,7 @@ where
                         handlers::aleo_verify_msg::Handler::new(
                             verifier.clone(),
                             cosmwasm_contract,
+                            chain.name,
                             client,
                             self.block_height_monitor.latest_block_height(),
                             gateway_contract,

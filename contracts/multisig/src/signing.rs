@@ -85,7 +85,7 @@ pub fn validate_session_signature(
                 )
             },
         )
-        .map_err(|e| ContractError::InvalidSignature {
+        .map_err(|_| ContractError::InvalidSignature {
             session_id: session.id,
             signer: signer.into(),
         })?;

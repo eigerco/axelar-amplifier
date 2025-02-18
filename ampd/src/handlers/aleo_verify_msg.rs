@@ -1,5 +1,4 @@
 use std::collections::{HashMap, HashSet};
-use std::str::FromStr;
 
 use aleo_types::address::Address as AleoAddress;
 use aleo_types::transition::Transition;
@@ -63,6 +62,7 @@ where
     pub fn new(
         verifier: TMAddress,
         voting_verifier_contract: TMAddress,
+        chain: ChainName,
         aleo_client: C,
         latest_block_height: Receiver<u64>,
         gateway_contract: String,
@@ -72,7 +72,7 @@ where
             voting_verifier_contract,
             http_client: aleo_client,
             latest_block_height,
-            chain: ChainName::from_str("aleo-2").unwrap(),
+            chain,
             gateway_contract,
         }
     }

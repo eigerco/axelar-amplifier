@@ -1,12 +1,9 @@
-use std::ptr::addr_of_mut;
-
 use aleo_types::address::Address;
 use error_stack::Report;
 use multisig::msg::SignerWithSig;
 use multisig::verifier_set::VerifierSet;
 
 use crate::raw_signature::RawSignature;
-use crate::weighted_signers::WeightedSigners;
 use crate::{AleoValue, Error};
 
 #[derive(Clone, Debug)]

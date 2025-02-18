@@ -7,7 +7,7 @@ use aleo_utils::block_processor::IdValuePair;
 use aleo_utils::json_like;
 use aleo_utils::string_encoder::StringEncoder;
 use async_trait::async_trait;
-use error_stack::{ensure, report, Report, Result, ResultExt};
+use error_stack::{ensure, Report, Result, ResultExt};
 use mockall::automock;
 use router_api::ChainName;
 use serde::{Deserialize, Serialize};
@@ -20,8 +20,6 @@ use crate::url::Url;
 
 #[derive(Error, Debug)]
 pub enum Error {
-    #[error("failed to create client")]
-    Client,
     #[error("Request error")]
     Request,
     #[error("Transaction '{0}' not found")]
