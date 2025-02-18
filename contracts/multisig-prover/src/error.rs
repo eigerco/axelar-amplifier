@@ -1,5 +1,5 @@
 use axelar_wasm_std::{nonempty, IntoContractError};
-use cosmwasm_std::{Addr, StdError};
+use cosmwasm_std::StdError;
 use cw_utils::ParseReplyError;
 use router_api::ChainName;
 use thiserror::Error;

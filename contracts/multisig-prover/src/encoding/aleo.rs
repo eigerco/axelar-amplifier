@@ -56,7 +56,8 @@ pub fn payload_digest<N: Network>(
     let next = hash.strip_suffix("group");
     let hash = next.unwrap_or(&hash);
 
-    let hash = Uint256::from_str(&hash).unwrap();
+    let hash =
+        Uint256::from_str(&hash).map_err(|e| error_stack::Report::new(ContractError::from(e)))?;
     let hash = hash.to_le_bytes();
 
     Ok(hash)

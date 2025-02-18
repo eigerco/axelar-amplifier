@@ -96,7 +96,7 @@ fn messages(
 
     let messages = gateway
         .outgoing_messages(message_ids)
-        .change_context(ContractError::FailedToGetMessages).unwrap();
+        .change_context(ContractError::FailedToGetMessages)?;
 
     assert_eq!(
         messages.len(),
