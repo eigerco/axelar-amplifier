@@ -284,6 +284,7 @@ mod tests {
                 )
                 .unwrap(),
             ),
+            ChainName::from_str("aleo-2").unwrap(),
             mock_client,
             tokio::sync::watch::channel(0).1,
             "ac64caccf8221554ec3f89bf.aleo".to_string(),
