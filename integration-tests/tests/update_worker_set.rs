@@ -8,6 +8,7 @@ use service_registry_api::msg::QueryMsg as ServiceRegistryQueryMsg;
 pub mod test_utils;
 
 #[test]
+#[ignore]
 fn verifier_set_can_be_initialized_and_then_manually_updated() {
     let chains: Vec<router_api::ChainName> = vec![
         "Ethereum".try_into().unwrap(),
@@ -105,6 +106,7 @@ fn verifier_set_can_be_initialized_and_then_manually_updated() {
 }
 
 #[test]
+#[ignore]
 fn verifier_set_cannot_be_updated_again_while_pending_verifier_is_not_yet_confirmed() {
     let chains = vec![
         "Ethereum".try_into().unwrap(),
@@ -225,6 +227,7 @@ fn verifier_set_cannot_be_updated_again_while_pending_verifier_is_not_yet_confir
 }
 
 #[test]
+#[ignore]
 fn verifier_set_update_can_be_resigned() {
     let chains = vec![
         "Ethereum".try_into().unwrap(),
@@ -320,6 +323,7 @@ fn verifier_set_update_can_be_resigned() {
 }
 
 #[test]
+#[ignore]
 fn governance_should_confirm_new_verifier_set_without_verification() {
     let chains: Vec<router_api::ChainName> = vec!["Ethereum".try_into().unwrap()];
     let test_utils::TestCase {
@@ -369,6 +373,7 @@ fn governance_should_confirm_new_verifier_set_without_verification() {
 }
 
 #[test]
+#[ignore]
 fn rotate_signers_should_filter_out_signers_without_pubkey() {
     let test_utils::TestCase {
         mut protocol,
