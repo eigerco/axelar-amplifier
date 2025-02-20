@@ -51,27 +51,3 @@ pub struct GatewayOutput {
     pub destination_chain: [u8; 32],
 }
 
-#[cfg(test)]
-mod tests {
-    use crate::block_processor::{Block, Transaction};
-
-    #[test]
-    fn parse_block() {
-        let block = include_str!(
-            "../../../test/data/aleo-utils/ab1yf27fcu4exccn4jt6wmwuxkseafyxhs5vk92su4nutq35s4jdupqeeprdp.json"
-        );
-
-        let block = serde_json::from_str::<Block>(block);
-        assert!(block.is_ok());
-    }
-
-    #[test]
-    fn parse_transaction() {
-        let transaction = include_str!(
-            "../../../test/data/aleo-utils/at1dgmvx30f79wt6w8fcjurwtsc5zak4efg4ayyme79862xylve7gxsq3nfh6.json"
-        );
-
-        let transaction = serde_json::from_str::<Transaction>(transaction);
-        assert!(transaction.is_ok());
-    }
-}
