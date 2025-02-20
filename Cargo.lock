@@ -205,13 +205,12 @@ dependencies = [
 [[package]]
 name = "aleo-utils"
 version = "0.1.0"
-source = "git+ssh://git@github.com/eigerco/axelar-aleo.git?branch=aleo-helper-libs#f3284baaf87c7777c90f0026d1bf91163c0f8ab5"
 dependencies = [
  "nom 8.0.0",
  "serde",
  "serde_json",
  "snarkvm-cosmwasm",
- "thiserror 2.0.11",
+ "thiserror 1.0.69",
 ]
 
 [[package]]

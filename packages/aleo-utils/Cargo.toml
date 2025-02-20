@@ -1,0 +1,11 @@
+[package]
+name = "aleo-utils"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+serde = { workspace = true }
+serde_json = { workspace = true }
+thiserror = { workspace = true }
+snarkvm-cosmwasm = { workspace = true, features = ["program", "network"]}
+nom = "8.0.0"

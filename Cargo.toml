@@ -103,7 +103,7 @@ voting-verifier = { version = "^1.1.0", path = "contracts/voting-verifier" }
 axelar-core-std = { version = "^1.0.0", path = "packages/axelar-core-std" }
 proc-macro2 = "1.0.92"
 snarkvm-cosmwasm = { git = "https://github.com/eigerco/snarkVM", branch = "cosmwasm" }
-aleo-utils = { git = "ssh://git@github.com/eigerco/axelar-aleo.git", branch = "aleo-helper-libs" }
+aleo-utils = { path = "packages/aleo-utils" }
 
 [workspace.lints.clippy]
 arithmetic_side_effects = "deny"
