@@ -8867,7 +8867,7 @@ dependencies = [
 [[package]]
 name = "snarkvm-algorithms"
 version = "1.1.0"
-source = "git+https://github.com/eigerco/snarkVM?branch=cosmwasm#27797c2db2533f2cb9c8fb8c87629c9f1ccc0320"
+source = "git+https://github.com/eigerco/snarkVM?branch=cosmwasm#58f6f20eaba6bf32959a818e69c2222571b5d457"
 dependencies = [
  "aleo-std",
  "anyhow",
@@ -9146,7 +9146,7 @@ dependencies = [
 [[package]]
 name = "snarkvm-console-account"
 version = "1.1.0"
-source = "git+https://github.com/eigerco/snarkVM?branch=cosmwasm#27797c2db2533f2cb9c8fb8c87629c9f1ccc0320"
+source = "git+https://github.com/eigerco/snarkVM?branch=cosmwasm#58f6f20eaba6bf32959a818e69c2222571b5d457"
 dependencies = [
  "bs58 0.5.1",
  "snarkvm-console-network 1.1.0",
@@ -9169,7 +9169,7 @@ dependencies = [
 [[package]]
 name = "snarkvm-console-algorithms"
 version = "1.1.0"
-source = "git+https://github.com/eigerco/snarkVM?branch=cosmwasm#27797c2db2533f2cb9c8fb8c87629c9f1ccc0320"
+source = "git+https://github.com/eigerco/snarkVM?branch=cosmwasm#58f6f20eaba6bf32959a818e69c2222571b5d457"
 dependencies = [
  "blake2s_simd",
  "smallvec",
@@ -9196,7 +9196,7 @@ dependencies = [
 [[package]]
 name = "snarkvm-console-collections"
 version = "1.1.0"
-source = "git+https://github.com/eigerco/snarkVM?branch=cosmwasm#27797c2db2533f2cb9c8fb8c87629c9f1ccc0320"
+source = "git+https://github.com/eigerco/snarkVM?branch=cosmwasm#58f6f20eaba6bf32959a818e69c2222571b5d457"
 dependencies = [
  "aleo-std",
  "rayon",
@@ -9219,7 +9219,7 @@ dependencies = [
 [[package]]
 name = "snarkvm-console-network"
 version = "1.1.0"
-source = "git+https://github.com/eigerco/snarkVM?branch=cosmwasm#27797c2db2533f2cb9c8fb8c87629c9f1ccc0320"
+source = "git+https://github.com/eigerco/snarkVM?branch=cosmwasm#58f6f20eaba6bf32959a818e69c2222571b5d457"
 dependencies = [
  "anyhow",
  "indexmap 2.7.1",
@@ -9266,7 +9266,7 @@ dependencies = [
 [[package]]
 name = "snarkvm-console-network-environment"
 version = "1.1.0"
-source = "git+https://github.com/eigerco/snarkVM?branch=cosmwasm#27797c2db2533f2cb9c8fb8c87629c9f1ccc0320"
+source = "git+https://github.com/eigerco/snarkVM?branch=cosmwasm#58f6f20eaba6bf32959a818e69c2222571b5d457"
 dependencies = [
  "anyhow",
  "bech32 0.9.1",
@@ -9303,7 +9303,7 @@ dependencies = [
 [[package]]
 name = "snarkvm-console-program"
 version = "1.1.0"
-source = "git+https://github.com/eigerco/snarkVM?branch=cosmwasm#27797c2db2533f2cb9c8fb8c87629c9f1ccc0320"
+source = "git+https://github.com/eigerco/snarkVM?branch=cosmwasm#58f6f20eaba6bf32959a818e69c2222571b5d457"
 dependencies = [
  "enum-iterator",
  "enum_index",
@@ -9348,7 +9348,7 @@ dependencies = [
 [[package]]
 name = "snarkvm-console-types"
 version = "1.1.0"
-source = "git+https://github.com/eigerco/snarkVM?branch=cosmwasm#27797c2db2533f2cb9c8fb8c87629c9f1ccc0320"
+source = "git+https://github.com/eigerco/snarkVM?branch=cosmwasm#58f6f20eaba6bf32959a818e69c2222571b5d457"
 dependencies = [
  "snarkvm-console-network-environment 1.1.0",
  "snarkvm-console-types-address 1.1.0",
@@ -9379,7 +9379,7 @@ dependencies = [
 [[package]]
 name = "snarkvm-console-types-address"
 version = "1.1.0"
-source = "git+https://github.com/eigerco/snarkVM?branch=cosmwasm#27797c2db2533f2cb9c8fb8c87629c9f1ccc0320"
+source = "git+https://github.com/eigerco/snarkVM?branch=cosmwasm#58f6f20eaba6bf32959a818e69c2222571b5d457"
 dependencies = [
  "snarkvm-console-network-environment 1.1.0",
  "snarkvm-console-types-boolean 1.1.0",
@@ -9402,7 +9402,7 @@ dependencies = [
 [[package]]
 name = "snarkvm-console-types-boolean"
 version = "1.1.0"
-source = "git+https://github.com/eigerco/snarkVM?branch=cosmwasm#27797c2db2533f2cb9c8fb8c87629c9f1ccc0320"
+source = "git+https://github.com/eigerco/snarkVM?branch=cosmwasm#58f6f20eaba6bf32959a818e69c2222571b5d457"
 dependencies = [
  "snarkvm-console-network-environment 1.1.0",
 ]
@@ -9419,7 +9419,7 @@ dependencies = [
 [[package]]
 name = "snarkvm-console-types-field"
 version = "1.1.0"
-source = "git+https://github.com/eigerco/snarkVM?branch=cosmwasm#27797c2db2533f2cb9c8fb8c87629c9f1ccc0320"
+source = "git+https://github.com/eigerco/snarkVM?branch=cosmwasm#58f6f20eaba6bf32959a818e69c2222571b5d457"
 dependencies = [
  "snarkvm-console-network-environment 1.1.0",
  "snarkvm-console-types-boolean 1.1.0",
@@ -9440,7 +9440,7 @@ dependencies = [
 [[package]]
 name = "snarkvm-console-types-group"
 version = "1.1.0"
-source = "git+https://github.com/eigerco/snarkVM?branch=cosmwasm#27797c2db2533f2cb9c8fb8c87629c9f1ccc0320"
+source = "git+https://github.com/eigerco/snarkVM?branch=cosmwasm#58f6f20eaba6bf32959a818e69c2222571b5d457"
 dependencies = [
  "snarkvm-console-network-environment 1.1.0",
  "snarkvm-console-types-boolean 1.1.0",
@@ -9463,7 +9463,7 @@ dependencies = [
 [[package]]
 name = "snarkvm-console-types-integers"
 version = "1.1.0"
-source = "git+https://github.com/eigerco/snarkVM?branch=cosmwasm#27797c2db2533f2cb9c8fb8c87629c9f1ccc0320"
+source = "git+https://github.com/eigerco/snarkVM?branch=cosmwasm#58f6f20eaba6bf32959a818e69c2222571b5d457"
 dependencies = [
  "snarkvm-console-network-environment 1.1.0",
  "snarkvm-console-types-boolean 1.1.0",
@@ -9486,7 +9486,7 @@ dependencies = [
 [[package]]
 name = "snarkvm-console-types-scalar"
 version = "1.1.0"
-source = "git+https://github.com/eigerco/snarkVM?branch=cosmwasm#27797c2db2533f2cb9c8fb8c87629c9f1ccc0320"
+source = "git+https://github.com/eigerco/snarkVM?branch=cosmwasm#58f6f20eaba6bf32959a818e69c2222571b5d457"
 dependencies = [
  "snarkvm-console-network-environment 1.1.0",
  "snarkvm-console-types-boolean 1.1.0",
@@ -9509,7 +9509,7 @@ dependencies = [
 [[package]]
 name = "snarkvm-console-types-string"
 version = "1.1.0"
-source = "git+https://github.com/eigerco/snarkVM?branch=cosmwasm#27797c2db2533f2cb9c8fb8c87629c9f1ccc0320"
+source = "git+https://github.com/eigerco/snarkVM?branch=cosmwasm#58f6f20eaba6bf32959a818e69c2222571b5d457"
 dependencies = [
  "snarkvm-console-network-environment 1.1.0",
  "snarkvm-console-types-boolean 1.1.0",
@@ -9532,7 +9532,7 @@ dependencies = [
 [[package]]
 name = "snarkvm-cosmwasm"
 version = "1.1.0"
-source = "git+https://github.com/eigerco/snarkVM?branch=cosmwasm#27797c2db2533f2cb9c8fb8c87629c9f1ccc0320"
+source = "git+https://github.com/eigerco/snarkVM?branch=cosmwasm#58f6f20eaba6bf32959a818e69c2222571b5d457"
 dependencies = [
  "getrandom 0.2.15",
  "snarkvm-console-account 1.1.0",
@@ -9544,7 +9544,7 @@ dependencies = [
 [[package]]
 name = "snarkvm-curves"
 version = "1.1.0"
-source = "git+https://github.com/eigerco/snarkVM?branch=cosmwasm#27797c2db2533f2cb9c8fb8c87629c9f1ccc0320"
+source = "git+https://github.com/eigerco/snarkVM?branch=cosmwasm#58f6f20eaba6bf32959a818e69c2222571b5d457"
 dependencies = [
  "rand 0.8.5",
  "rayon",
@@ -9573,7 +9573,7 @@ dependencies = [
 [[package]]
 name = "snarkvm-fields"
 version = "1.1.0"
-source = "git+https://github.com/eigerco/snarkVM?branch=cosmwasm#27797c2db2533f2cb9c8fb8c87629c9f1ccc0320"
+source = "git+https://github.com/eigerco/snarkVM?branch=cosmwasm#58f6f20eaba6bf32959a818e69c2222571b5d457"
 dependencies = [
  "aleo-std",
  "anyhow",
@@ -9858,7 +9858,7 @@ dependencies = [
 [[package]]
 name = "snarkvm-parameters"
 version = "1.1.0"
-source = "git+https://github.com/eigerco/snarkVM?branch=cosmwasm#27797c2db2533f2cb9c8fb8c87629c9f1ccc0320"
+source = "git+https://github.com/eigerco/snarkVM?branch=cosmwasm#58f6f20eaba6bf32959a818e69c2222571b5d457"
 dependencies = [
  "aleo-std",
  "anyhow",
@@ -9996,7 +9996,7 @@ dependencies = [
 [[package]]
 name = "snarkvm-utilities"
 version = "1.1.0"
-source = "git+https://github.com/eigerco/snarkVM?branch=cosmwasm#27797c2db2533f2cb9c8fb8c87629c9f1ccc0320"
+source = "git+https://github.com/eigerco/snarkVM?branch=cosmwasm#58f6f20eaba6bf32959a818e69c2222571b5d457"
 dependencies = [
  "aleo-std",
  "anyhow",
@@ -10040,7 +10040,7 @@ dependencies = [
 [[package]]
 name = "snarkvm-utilities-derives"
 version = "1.1.0"
-source = "git+https://github.com/eigerco/snarkVM?branch=cosmwasm#27797c2db2533f2cb9c8fb8c87629c9f1ccc0320"
+source = "git+https://github.com/eigerco/snarkVM?branch=cosmwasm#58f6f20eaba6bf32959a818e69c2222571b5d457"
 dependencies = [
  "proc-macro2 1.0.93",
  "quote 1.0.38",
