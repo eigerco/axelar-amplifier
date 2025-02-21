@@ -65,7 +65,7 @@ pub fn payload_digest<N: Network>(
 
 /// The relayer will use this data to submit the payload to the contract.
 pub fn encode_execute_data(
-    domain_separator: &Hash,
+    _domain_separator: &Hash,
     verifier_set: &VerifierSet,
     signatures: Vec<SignerWithSig>,
     payload: &Payload,
@@ -77,7 +77,7 @@ pub fn encode_execute_data(
             .collect::<Result<Vec<_>, _>>()
             .change_context(ContractError::InvalidMessage)?
             .then(Messages::from),
-        Payload::VerifierSet(verifier_set) => todo!(),
+        Payload::VerifierSet(_verifier_set) => todo!(),
     };
 
     let proof = aleo_gateway::Proof::new(
