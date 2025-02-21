@@ -161,7 +161,6 @@ mod tests {
             &verifier_set,
             &payload,
         );
-        println!("payload digest: {:?}", res);
 
         res.unwrap()
     }
@@ -223,8 +222,6 @@ mod tests {
         )
         .unwrap();
 
-        println!("digest: {:?}", digest);
-
         let execute_data = encode_execute_data(
             &domain_separator,
             &verifier_set,
@@ -232,18 +229,5 @@ mod tests {
             &Payload::Messages(vec![message()]),
         )
         .unwrap();
-
-        println!(
-            "execute_data: {:?}",
-            String::from_utf8(execute_data.as_slice().to_vec()).unwrap()
-        );
-
-        let m = message();
-        println!(
-            "message: {:?}",
-            aleo_gateway::Message::try_from(&m)
-                .unwrap()
-                .to_aleo_string()
-        );
     }
 }

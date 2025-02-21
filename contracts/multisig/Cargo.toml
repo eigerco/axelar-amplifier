@@ -63,7 +63,6 @@ sha3 = { workspace = true }
 signature-verifier-api = { workspace = true }
 thiserror = { workspace = true }
 
-rand_chacha = "0.3"
 multisig-aleo = { path = "../multisig-aleo" }
 snarkvm-cosmwasm = { workspace = true }
 
@@ -73,6 +72,7 @@ cw-multi-test = { workspace = true }
 ed25519-dalek = { workspace = true, features = ["digest", "rand_core"] }
 goldie = { workspace = true }
 hex = "0.4"
+rand_chacha = "0.3"
 
 [lints]
 workspace = true

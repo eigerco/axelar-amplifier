@@ -87,7 +87,6 @@ mod tests {
     fn validate_aleo_address_errors() {
         let addr = "aleo1pqgvl3prke38qwyywqhgd0qu44msp3wks4cqpk3d8m8vxu30wvfql7nmv";
         let r = Address::from_str(addr);
-        println!("-->{r:?}");
         assert_err_contains!(
             Address::from_str(addr),
             crate::Error,

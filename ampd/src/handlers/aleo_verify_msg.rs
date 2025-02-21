@@ -179,7 +179,6 @@ where
             votes
         });
 
-        println!("{:?}", votes);
         Ok(vec![self
             .vote_msg(poll_id, votes)
             .into_any()
@@ -298,7 +297,6 @@ mod tests {
 
         for r in res {
             let decode: ExecuteMsg = serde_json::from_slice(&r.msg).unwrap();
-            println!("vote: {:?}", decode);
         }
     }
 }

@@ -7,7 +7,6 @@ use msgs_derive::EnsurePermissions;
 use router_api::ChainName;
 
 use crate::key::{KeyType, PublicKey, Signature};
-use crate::multisig::Multisig;
 use crate::verifier_set::VerifierSet;
 
 #[cw_serde]

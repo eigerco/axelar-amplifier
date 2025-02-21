@@ -465,7 +465,6 @@ pub mod tests {
         let res = client
             .transition_receipt(&transition, gateway_contract)
             .await;
-        println!("{res:#?}");
         assert!(res.is_ok());
     }
 
