@@ -11,12 +11,9 @@ router-api = { workspace = true }
 error-stack = { workspace = true }
 thiserror = { workspace = true }
 cosmwasm-std = { workspace = true }
-hex.workspace = true
+hex = { workspace = true }
 multisig = { workspace = true, features = ["library"] }
 snarkvm-cosmwasm = { workspace = true, features = ["program", "network"]}
-regex = { version = "1.10.0", default-features = false, features = [
-  "std",
-] }
 
 [dev-dependencies]
 rand = "0.8"
