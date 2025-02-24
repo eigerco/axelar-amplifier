@@ -33,7 +33,9 @@ pub fn verify_signature<N: Network>(
 }
 
 fn aleo_encoded<N: Network>(data: &HexBinary) -> Result<Vec<Field<N>>, cosmwasm_std::StdError> {
-    let num = cosmwasm_std::Uint256::from_le_bytes(data.as_slice().try_into().unwrap());
+    let num = cosmwasm_std::Uint256::from_le_bytes(data.as_slice().try_into().map_err(|e| {
+        cosmwasm_std::StdError::generic_err(format!("Failed to parse data: {}", e))
+    })?);
     let message = format!("{num}group");
 
     Value::from_str(message.as_str())
