@@ -13,7 +13,7 @@ use router_api::ChainName;
 use serde::{Deserialize, Serialize};
 use sha3::{Digest, Keccak256};
 use thiserror::Error;
-use tracing::info;
+use tracing::{error, info};
 
 use crate::types::Hash;
 use crate::url::Url;
@@ -36,6 +36,8 @@ pub enum Error {
     InvalidSourceAddress,
     #[error("Failed to create AleoID: {0}")]
     FailedToCreateAleoID(String),
+    #[error("Failed to create hash payload: {0}")]
+    PayloadHash(String),
 }
 
 #[derive(Debug)]
@@ -80,20 +82,12 @@ impl PartialEq<crate::handlers::aleo_verify_msg::Message> for TransitionReceipt 
             self.source_address == message.source_address
         );
 
-        let payload = std::str::from_utf8(&self.payload).unwrap();
-        let payload_hash = if self.destination_chain.as_ref().starts_with("eth") {
-            let payload = json_like::into_json(payload).unwrap();
-            let payload: Vec<u8> = serde_json::from_str(&payload).unwrap();
-            let payload = std::str::from_utf8(&payload).unwrap();
-            let payload = solabi::encode(&payload);
-            let payload_hash = keccak256(&payload).to_vec();
-            Hash::from_slice(&payload_hash)
-        } else {
-            // Keccak + bhp hash
-            let payload_hash =
-                aleo_gateway::hash::<&str, snarkvm_cosmwasm::network::TestnetV0>(payload)
-                    .unwrap();
-            Hash::from_slice(&payload_hash)
+        let payload_hash = match payload_hash(&self.payload, self.destination_chain.as_ref()) {
+            Ok(hash) => hash,
+            Err(e) => {
+                error!("payload_hash: {}", e);
+                return false;
+            }
         };
 
         info!(
@@ -109,6 +103,29 @@ impl PartialEq<crate::handlers::aleo_verify_msg::Message> for TransitionReceipt 
             && self.source_address == message.source_address
             && payload_hash == message.payload_hash
     }
+}
+
+fn payload_hash(payload: &[u8], destination_chain: &str) -> std::result::Result<Hash, Error> {
+    let payload = std::str::from_utf8(payload).map_err(|e| Error::PayloadHash(e.to_string()))?;
+    let payload_hash = if destination_chain.starts_with("eth") {
+        let payload =
+            json_like::into_json(payload).map_err(|e| Error::PayloadHash(e.to_string()))?;
+        let payload: Vec<u8> =
+            serde_json::from_str(&payload).map_err(|e| Error::PayloadHash(e.to_string()))?;
+        let payload =
+            std::str::from_utf8(&payload).map_err(|e| Error::PayloadHash(e.to_string()))?;
+        let payload = solabi::encode(&payload);
+        let payload_hash = keccak256(&payload).to_vec();
+        Hash::from_slice(&payload_hash)
+    } else {
+        // Keccak + bhp hash
+        let payload_hash =
+            aleo_gateway::hash::<&str, snarkvm_cosmwasm::network::TestnetV0>(payload)
+                .map_err(|e| Error::PayloadHash(e.to_string()))?;
+        Hash::from_slice(&payload_hash)
+    };
+
+    Ok(payload_hash)
 }
 
 #[automock]
