@@ -109,7 +109,7 @@ fn call_sig_verifier(
 
     if !res {
         Err(ContractError::SignatureVerificationFailed {
-            reason: "unable to verify signature, verify signature is false".into(),
+            reason: "unable to verify signature".into(),
         })
     } else {
         Ok(())
