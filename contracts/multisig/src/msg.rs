@@ -1,4 +1,5 @@
 use std::collections::HashMap;
+use crate::multisig::Multisig;
 
 use axelar_wasm_std::nonempty;
 use cosmwasm_schema::{cw_serde, QueryResponses};

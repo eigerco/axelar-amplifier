@@ -131,6 +131,7 @@ pub mod ed25519_test_data {
     }
 }
 
+#[cfg(test)]
 pub mod aleo_schnorr_test_data {
     // APrivateKey1zkpEjXSofaQtApqm33wYLmHiGNLb99VZqLeRW19xWKHQWZW
     // AViewKey1gmHkeDm2NEvJSWUTRf9SCwaEU6uSjdYnaSXa7dsn67QW
