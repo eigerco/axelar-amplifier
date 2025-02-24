@@ -72,6 +72,11 @@ fn main() -> Result<(), Error> {
     read_template(&contract_root_dir)
         .and_then(|template| reset_migration_mod(&contract_root_dir, &template))?;
 
+    println!(
+        "Migration code removed successfully from contract `{}`",
+        args.contract
+    );
+
     Ok(())
 }
 
