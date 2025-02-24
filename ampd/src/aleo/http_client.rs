@@ -306,7 +306,7 @@ where
         // Get the outputs of the transition
         // The transition should have only the gateway call
         let outputs = &gateway_transition.outputs;
-        let call_contract_call = self.find_call_contract(&outputs);
+        let call_contract_call = self.find_call_contract(outputs);
         let call_contract = call_contract_call.ok_or(Error::CallnotFound)?;
 
         let scm = gateway_transition.scm.as_str();
@@ -359,40 +359,9 @@ fn keccak256(payload: impl AsRef<[u8]>) -> [u8; 32] {
 #[cfg(test)]
 pub mod tests {
     use std::collections::HashMap;
-    use std::ops::Deref;
     use std::str::FromStr;
 
     use super::*;
-
-    pub fn mock_client() -> MockClientTrait {
-        let mut mock_client = MockClientTrait::new();
-
-        let transaction_id = "at18c83pwjlvvjpdk95pudngzxqydvq92np206njcyppgndjalujsrshjn48j";
-        let mut expected_transitions: HashMap<
-            Transaction,
-            aleo_utils::block_processor::Transaction,
-        > = HashMap::new();
-        let transaction_one = include_str!(
-            "../tests/at18c83pwjlvvjpdk95pudngzxqydvq92np206njcyppgndjalujsrshjn48j.json"
-        );
-        let snark_tansaction: aleo_utils::block_processor::Transaction =
-            serde_json::from_str(transaction_one).unwrap();
-        let transaction = Transaction::from_str(transaction_id).unwrap();
-        expected_transitions.insert(transaction, snark_tansaction);
-
-        mock_client
-            .expect_get_transaction()
-            .returning(move |transaction| {
-                Ok(expected_transitions.get(transaction).unwrap().clone())
-            });
-
-        mock_client.expect_find_transaction().returning(move |_| {
-            let transaction_id = "at18c83pwjlvvjpdk95pudngzxqydvq92np206njcyppgndjalujsrshjn48j";
-            Ok(transaction_id.to_string())
-        });
-
-        mock_client
-    }
 
     pub fn mock_client_2() -> MockClientTrait {
         let mut mock_client = MockClientTrait::new();

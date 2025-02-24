@@ -109,7 +109,7 @@ pub fn submit_signature(
         &session,
         &info.sender,
         &signature,
-        &pub_key,
+        pub_key,
         env.block.height,
         sig_verifier,
     )?;

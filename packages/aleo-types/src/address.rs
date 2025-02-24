@@ -65,7 +65,7 @@ impl TryFrom<&HexBinary> for Address {
 
     fn try_from(hex: &HexBinary) -> Result<Self, Error> {
         let address =
-            std::str::from_utf8(&hex).map_err(|e| Error::InvalidAleoAddress(e.to_string()))?;
+            std::str::from_utf8(hex).map_err(|e| Error::InvalidAleoAddress(e.to_string()))?;
         Address::from_str(address)
     }
 }
@@ -86,7 +86,6 @@ mod tests {
     #[test]
     fn validate_aleo_address_errors() {
         let addr = "aleo1pqgvl3prke38qwyywqhgd0qu44msp3wks4cqpk3d8m8vxu30wvfql7nmv";
-        let r = Address::from_str(addr);
         assert_err_contains!(
             Address::from_str(addr),
             crate::Error,

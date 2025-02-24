@@ -57,7 +57,7 @@ pub fn payload_digest<N: Network>(
     let hash = next.unwrap_or(&hash);
 
     let hash =
-        Uint256::from_str(&hash).map_err(|e| error_stack::Report::new(ContractError::from(e)))?;
+        Uint256::from_str(hash).map_err(|e| error_stack::Report::new(ContractError::from(e)))?;
     let hash = hash.to_le_bytes();
 
     Ok(hash)
@@ -106,8 +106,7 @@ mod tests {
     use cosmwasm_std::Addr;
     use multisig::key::PublicKey;
     use multisig::msg::Signer;
-    use prost::Message;
-    use router_api::{ChainName, ChainNameRaw};
+    use router_api::ChainNameRaw;
 
     use super::*;
 
@@ -132,39 +131,6 @@ mod tests {
         }
     }
 
-    fn aleo_digest() -> Hash {
-        let domain_separator = [
-            105u8, 115u8, 199u8, 41u8, 53u8, 96u8, 68u8, 100u8, 178u8, 136u8, 39u8, 20u8, 27u8,
-            10u8, 70u8, 58u8, 248u8, 227u8, 72u8, 118u8, 22u8, 222u8, 105u8, 197u8, 170u8, 12u8,
-            120u8, 83u8, 146u8, 201u8, 251u8, 159u8,
-        ];
-
-        let verifier_set = VerifierSet::new(
-            vec![
-                (Participant {
-                    address: Addr::unchecked("axelar1ckguw8l9peg6sykx30cy35t6l0wpfu23xycme7"),
-                    weight: 1.try_into().unwrap(),
-                },
-                PublicKey::AleoSchnorr(HexBinary::from(hex::decode("616c656f313435746a396871726e76336871796c72656d3670377a6a797863326b727979703368646d34687434386e746a336535747475787339787339616b").unwrap())),
-                )],
-            1u128.try_into().unwrap(),
-            4860541,
-        );
-
-        let message = message();
-
-        // The hash of the payload, send from the relayer of the source chain
-        let payload = Payload::Messages(vec![message]);
-
-        let res = payload_digest::<snarkvm_cosmwasm::network::TestnetV0>(
-            &domain_separator,
-            &verifier_set,
-            &payload,
-        );
-
-        res.unwrap()
-    }
-
     type Curr = snarkvm::prelude::TestnetV0;
 
     use tofn::aleo_schnorr::keygen;
@@ -177,18 +143,16 @@ mod tests {
         let msg = tofn::sdk::api::MessageDigest::from(digest);
         let signature = tofn::aleo_schnorr::sign(&key_pair, &msg).unwrap();
 
-        let signature_str = String::from_utf8(signature.clone()).unwrap();
+        let _signature_str = String::from_utf8(signature.clone()).unwrap();
         let verify_key = key_pair.encoded_verifying_key();
 
         let signer = Signer {
             address: Addr::unchecked("aleo-validator".to_string()),
-            weight: 1u128.try_into().unwrap(),
+            weight: 1u128.into(),
             pub_key: PublicKey::AleoSchnorr(HexBinary::from(verify_key.as_bytes())),
         };
 
         let signature = multisig::key::Signature::AleoSchnorr(HexBinary::from(&signature[..]));
-
-        let digest = Uint256::from_le_bytes(digest);
 
         SignerWithSig { signer, signature }
     }
@@ -211,7 +175,7 @@ mod tests {
                 },
                 PublicKey::AleoSchnorr(HexBinary::from(hex::decode("616c656f313435746a396871726e76336871796c72656d3670377a6a797863326b727979703368646d34687434386e746a336535747475787339787339616b").unwrap())),
                 )],
-            1u128.try_into().unwrap(),
+            1u128.into(),
             4860541,
         );
 
@@ -222,7 +186,7 @@ mod tests {
         )
         .unwrap();
 
-        let execute_data = encode_execute_data(
+        let _execute_data = encode_execute_data(
             &domain_separator,
             &verifier_set,
             vec![aleo_sig(digest)],

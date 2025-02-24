@@ -27,7 +27,7 @@ impl TryFrom<&router_api::Message> for Message {
     }
 }
 
-fn bytes_to_bits(bytes: &Vec<u8>) -> Vec<bool> {
+fn bytes_to_bits(bytes: &[u8]) -> Vec<bool> {
     bytes
         .iter()
         .flat_map(|&byte| (0..8).rev().map(move |i| (byte >> i) & 1 == 1))
@@ -91,7 +91,7 @@ impl AleoValue for Message {
         // The group values of Aleo are ~256bits, so in aleo we will only use bhp256(keccak256) hashes.
         // The result of bhp256 is a group element, which comes from Aleo.
         // We will store it in cosmos 256 bits variables just for convenience.
-        let reverse_hash = self.payload_hash.iter().map(|b| b.reverse_bits()).collect();
+        let reverse_hash: Vec<u8> = self.payload_hash.iter().map(|b| b.reverse_bits()).collect();
         let keccak_bits: Vec<bool> = bytes_to_bits(&reverse_hash);
 
         let group = <snarkvm_cosmwasm::network::TestnetV0>::hash_to_group_bhp256(&keccak_bits)
@@ -104,37 +104,37 @@ impl AleoValue for Message {
             source_chain
                 .consume()
                 .into_iter()
-                .map(|c| format!("{}u128", c as u128))
+                .map(|c| format!("{}u128", c))
                 .chain(
                     std::iter::repeat("0u128".to_string())
-                        .take(SOURCE_CHAIN_LEN - source_chain_len)
+                        .take(SOURCE_CHAIN_LEN.saturating_sub(source_chain_len))
                 )
                 .collect::<Vec<_>>()
                 .join(", "),
             message_id
                 .consume()
                 .into_iter()
-                .map(|c| format!("{}u128", c as u128))
-                .chain(std::iter::repeat("0u128".to_string()).take(MESSAGE_ID_LEN - message_id_len))
+                .map(|c| format!("{}u128", c))
+                .chain(std::iter::repeat("0u128".to_string()).take(MESSAGE_ID_LEN.saturating_sub(message_id_len)))
                 .collect::<Vec<_>>()
                 .join(", "),
             source_address
                 .consume()
                 .into_iter()
-                .map(|c| format!("{}u128", c as u128))
+                .map(|c| format!("{}u128", c))
                 .chain(
                     std::iter::repeat("0u128".to_string())
-                        .take(SOURCE_ADDRESS_LEN - source_address_len)
+                        .take(SOURCE_ADDRESS_LEN.saturating_sub(source_address_len))
                 )
                 .collect::<Vec<_>>()
                 .join(", "),
             contract_address
                 .consume()
                 .into_iter()
-                .map(|c| format!("{}u128", c as u128))
+                .map(|c| format!("{}u128", c))
                 .chain(
                     std::iter::repeat("0u128".to_string())
-                        .take(CONTRACT_ADDRESS_LEN - contract_address_len)
+                        .take(CONTRACT_ADDRESS_LEN.saturating_sub(contract_address_len))
                 )
                 .collect::<Vec<_>>()
                 .join(", "),

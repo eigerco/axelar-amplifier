@@ -141,7 +141,6 @@ pub mod aleo_schnorr_test_data {
 
     use cosmwasm_std::testing::MockApi;
     use rand_chacha::rand_core::SeedableRng;
-    use sha3::{Digest, Keccak256};
     use snarkvm_cosmwasm::account::PrivateKey;
 
     use super::*;
@@ -150,7 +149,6 @@ pub mod aleo_schnorr_test_data {
         address: Addr,
         private_key: PrivateKey<snarkvm_cosmwasm::network::TestnetV0>,
     ) -> TestSigner {
-        let address_hash = Keccak256::digest(address.as_bytes());
         let verifying_key = snarkvm_cosmwasm::account::Address::try_from(&private_key).unwrap();
         let signature = snarkvm_cosmwasm::account::signature::Signature::sign_bytes(
             &private_key,

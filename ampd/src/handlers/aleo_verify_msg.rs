@@ -296,7 +296,7 @@ mod tests {
             .collect();
 
         for r in res {
-            let decode: ExecuteMsg = serde_json::from_slice(&r.msg).unwrap();
+            let _decode: ExecuteMsg = serde_json::from_slice(&r.msg).unwrap();
         }
     }
 }
