@@ -113,7 +113,6 @@ pub fn submit_signature(
         env.block.height,
         sig_verifier,
     )?;
-
     let signature = save_signature(deps.storage, session_id, signature, &info.sender)?;
 
     let signatures = load_session_signatures(deps.storage, session_id.u64())?;
