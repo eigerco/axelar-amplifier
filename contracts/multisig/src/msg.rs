@@ -1,5 +1,4 @@
 use std::collections::HashMap;
-use crate::multisig::Multisig;
 
 use axelar_wasm_std::nonempty;
 use cosmwasm_schema::{cw_serde, QueryResponses};
@@ -8,6 +7,7 @@ use msgs_derive::EnsurePermissions;
 use router_api::ChainName;
 
 use crate::key::{KeyType, PublicKey, Signature};
+use crate::multisig::Multisig;
 use crate::verifier_set::VerifierSet;
 
 #[cw_serde]
