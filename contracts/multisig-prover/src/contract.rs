@@ -1,7 +1,7 @@
 use std::str::FromStr;
 
-use axelar_wasm_std::permission_control;
 use axelar_wasm_addresses::address;
+use axelar_wasm_std::permission_control;
 #[cfg(not(feature = "library"))]
 use cosmwasm_std::entry_point;
 use cosmwasm_std::{
@@ -511,7 +511,7 @@ mod tests {
     }
 
     #[test]
-    #[ignore]
+    #[ignore = "this should be enabled when the functionality of signers rotation is reset"]
     fn test_update_verifier_set_remove_one() {
         let mut deps = setup_test_case();
         let res = execute_update_verifier_set(deps.as_mut());
@@ -542,7 +542,7 @@ mod tests {
     }
 
     #[test]
-    #[ignore]
+    #[ignore = "this should be enabled when the functionality of signers rotation is reset"]
     fn test_update_verifier_set_add_one() {
         let mut deps = setup_test_case();
 
@@ -577,7 +577,7 @@ mod tests {
     }
 
     #[test]
-    #[ignore]
+    #[ignore = "this should be enabled when the functionality of signers rotation is reset"]
     fn test_update_verifier_set_change_public_key() {
         let mut deps = setup_test_case();
         let res = execute_update_verifier_set(deps.as_mut());
@@ -612,7 +612,7 @@ mod tests {
     }
 
     #[test]
-    #[ignore]
+    #[ignore = "this should be enabled when the functionality of signers rotation is reset"]
     fn test_update_verifier_set_unchanged() {
         let mut deps = setup_test_case();
         let res = execute_update_verifier_set(deps.as_mut());
@@ -630,7 +630,7 @@ mod tests {
     }
 
     #[test]
-    #[ignore]
+    #[ignore = "this should be enabled when the functionality of signers rotation is reset"]
     fn test_confirm_verifier_set_unconfirmed() {
         let mut deps = setup_test_case();
         let api = deps.api;
@@ -658,7 +658,7 @@ mod tests {
     }
 
     #[test]
-    #[ignore]
+    #[ignore = "this should be enabled when the functionality of signers rotation is reset"]
     fn test_confirm_verifier_set_wrong_set() {
         let mut deps = setup_test_case();
         let api = deps.api;
@@ -832,7 +832,7 @@ mod tests {
     }
 
     #[test]
-    #[ignore]
+    #[ignore = "this should be enabled when the functionality of signers rotation is reset"]
     fn update_signing_threshold_should_change_future_threshold() {
         let mut deps = setup_test_case();
         let api = deps.api;
@@ -856,7 +856,7 @@ mod tests {
     }
 
     #[test]
-    #[ignore]
+    #[ignore = "this should be enabled when the functionality of signers rotation is reset"]
     fn should_confirm_new_threshold() {
         let mut deps = setup_test_case();
         let api = deps.api;
