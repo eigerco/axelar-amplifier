@@ -4,11 +4,10 @@ use std::str::FromStr;
 use axelar_wasm_std::nonempty;
 use error_stack::{Report, ResultExt};
 use serde::{Deserialize, Serialize};
-use valuable::Valuable;
 
 use crate::{verify_becnh32, Error};
 
-#[derive(Serialize, Deserialize, Debug, PartialEq, Eq, Hash, Clone, Valuable)]
+#[derive(Serialize, Deserialize, Debug, PartialEq, Eq, Hash, Clone)]
 pub struct Transition(nonempty::String);
 
 impl FromStr for Transition {
