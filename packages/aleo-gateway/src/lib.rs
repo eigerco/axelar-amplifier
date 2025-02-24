@@ -72,7 +72,12 @@ pub fn aleo_hash<T: AsRef<str>, N: Network>(input: T) -> Result<String, Report<E
             .attach_printable(format!("input2: '{:?}'", input.as_ref().to_owned()))
     })?;
 
-    let group = N::hash_to_group_bhp256(&bits).unwrap();
+    let group = N::hash_to_group_bhp256(&bits).map_err(|e| {
+        Report::new(Error::Aleo(e)).attach_printable(format!(
+            "Failed to get bhp256 hash: '{:?}'",
+            input.as_ref().to_owned()
+        ))
+    })?;
 
     Ok(group.to_string())
 }
