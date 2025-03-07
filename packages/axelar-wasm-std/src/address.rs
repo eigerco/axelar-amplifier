@@ -248,6 +248,13 @@ mod tests {
             address::Error,
             address::Error::InvalidAddress(..)
         );
+        // Invalid address: contains invalid character 'l'
+        let invalid_char_addr4 = "4f3J7t1HgX1t36k6rph2pYJrWxk9uT1RrB2K3nVHDh8Dl";
+        assert_err_contains!(
+            address::validate_address(invalid_char_addr4, &address::AddressFormat::Base58Solana),
+            address::Error,
+            address::Error::InvalidAddress(..)
+        );
     }
 
     #[test]
