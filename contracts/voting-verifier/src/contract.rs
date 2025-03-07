@@ -1,5 +1,7 @@
-use axelar_wasm_std::address::validate_address;
-use axelar_wasm_std::{address, permission_control, FnExt};
+use axelar_wasm_addresses::address;
+use axelar_wasm_addresses::address::validate_contract_address;
+use axelar_wasm_std::nonempty::Uint64;
+use axelar_wasm_std::{permission_control, FnExt, MajorityThreshold, Threshold};
 #[cfg(not(feature = "library"))]
 use cosmwasm_std::entry_point;
 use cosmwasm_std::{
@@ -17,7 +19,6 @@ mod query;
 
 const CONTRACT_NAME: &str = env!("CARGO_PKG_NAME");
 const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
-const BASE_VERSION: &str = "1.0.0";
 
 #[cfg_attr(not(feature = "library"), entry_point)]
 pub fn instantiate(
@@ -31,7 +32,7 @@ pub fn instantiate(
     let governance = address::validate_cosmwasm_address(deps.api, &msg.governance_address)?;
     permission_control::set_governance(deps.storage, &governance)?;
 
-    validate_address(&msg.source_gateway_address, &msg.address_format)
+    validate_contract_address(&msg.source_gateway_address, &msg.address_format)
         .change_context(ContractError::InvalidSourceGatewayAddress)?;
 
     let config = Config {
@@ -111,9 +112,31 @@ pub fn migrate(
     _env: Env,
     _msg: Empty,
 ) -> Result<Response, axelar_wasm_std::error::ContractError> {
-    cw2::assert_contract_version(deps.storage, CONTRACT_NAME, BASE_VERSION)?;
-
+    // TODO: THIS FUNCTION SHOULD BE REVERTED, AND THE CODE ADDED BELOW SHOULD BE DELETED BEFORE MERGING TO AXELAR-AMPLIFIER
     cw2::set_contract_version(deps.storage, CONTRACT_NAME, CONTRACT_VERSION)?;
+
+    let config = Config {
+        service_name: "validators".parse().unwrap(),
+        service_registry_contract: cosmwasm_std::Addr::unchecked(
+            "axelar1c9fkszt5lq34vvvlat3fxj6yv7ejtqapz04e97vtc9m5z9cwnamq8zjlhz",
+        ),
+        source_gateway_address: "vzevxifdoj.aleo".parse().unwrap(),
+        voting_threshold: MajorityThreshold::try_from(Threshold::try_from((1, 1)).unwrap())
+            .unwrap(),
+        block_expiry: Uint64::try_from(10u64).unwrap(),
+        confirmation_height: 1,
+        source_chain: "aleo-2".parse().unwrap(),
+        rewards_contract: cosmwasm_std::Addr::unchecked(
+            "axelar1vaj9sfzc3z0gpel90wu4ljutncutv0wuhvvwfsh30rqxq422z89qnd989l",
+        ),
+        msg_id_format: axelar_wasm_std::msg_id::MessageIdFormat::Bech32m {
+            prefix: "au".to_string().try_into().unwrap(),
+            length: 61,
+        },
+        address_format: address::AddressFormat::Aleo,
+    };
+
+    CONFIG.save(deps.storage, &config)?;
 
     Ok(Response::default())
 }
@@ -121,7 +144,7 @@ pub fn migrate(
 #[cfg(test)]
 mod test {
     use assert_ok::assert_ok;
-    use axelar_wasm_std::address::AddressFormat;
+    use axelar_wasm_addresses::address::AddressFormat;
     use axelar_wasm_std::msg_id::{
         Base58SolanaTxSignatureAndEventIndex, Base58TxDigestAndEventIndex,
         FieldElementAndEventIndex, HexTxHash, HexTxHashAndEventIndex, MessageIdFormat,
@@ -133,7 +156,7 @@ mod test {
     };
     use bech32::{Bech32m, Hrp};
     use cosmwasm_std::testing::{
-        message_info, mock_dependencies, mock_env, MockApi, MockQuerier, MockStorage,
+        message_info, mock_dependencies, mock_env, mock_info, MockApi, MockQuerier, MockStorage,
     };
     use cosmwasm_std::{from_json, Empty, Fraction, OwnedDeps, Uint128, Uint64, WasmQuery};
     use multisig::key::KeyType;
@@ -351,6 +374,11 @@ mod test {
                 should_fail: false,
             },
             TestCase {
+                source_gateway_address: "gateway.aleo".to_string(),
+                address_format: AddressFormat::Aleo,
+                should_fail: false,
+            },
+            TestCase {
                 source_gateway_address: "0x4f4495243837681061C4743b74B3eEdf548D56A5".to_string(),
                 address_format: AddressFormat::Eip55,
                 should_fail: true,
@@ -423,6 +451,12 @@ mod test {
                         .to_string()
                         .to_uppercase(),
                 address_format: AddressFormat::Sui,
+                should_fail: true,
+            },
+            TestCase {
+                source_gateway_address:
+                    "aleo1q3t7cjwk9ncxcdxfm8r5ax83mzudd923gffncv5egfjyevfevuyscvcvz".to_string(),
+                address_format: AddressFormat::Aleo,
                 should_fail: true,
             },
         ];
