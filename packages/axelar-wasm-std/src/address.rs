@@ -43,6 +43,10 @@ pub fn validate_address(address: &str, format: &AddressFormat) -> Result<(), Err
         }
         AddressFormat::Base58Solana => {
             const SOLANA_PUBKEY_LEN: usize = 32;
+            const MAX_BASE58_LEN: usize = 44;
+            if address.len() > MAX_BASE58_LEN {
+                bail!(Error::InvalidAddress(address.to_string()));
+            }
             let pubkey_vec = bs58::decode(address)
                 .into_vec()
                 .change_context(Error::InvalidAddress(address.to_string()))?;
