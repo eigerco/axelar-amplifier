@@ -186,3 +186,271 @@ fn recoverable_ecdsa_to_array(rec: &Recoverable) -> error_stack::Result<[u8; 65]
             })?;
     Ok(res)
 }
+
+#[cfg(test)]
+mod tests {
+    use cosmwasm_std::testing::MockApi;
+    use cosmwasm_std::{HexBinary, Uint128};
+    use multisig::key::KeyType::Ed25519;
+    use multisig::key::Signature;
+    use multisig::msg::{Signer, SignerWithSig};
+    use multisig::verifier_set::VerifierSet;
+    use router_api::{CrossChainId, Message};
+
+    use super::{encode_execute_data, payload_digest};
+    use crate::payload::Payload;
+
+    #[test]
+    fn solana_messages_payload_digest() {
+        let signers_data = vec![
+            (
+                "addr_1",
+                "508bcac3df50837e0b093aebc549211ba72bd1e7c1830a288b816b677d62a046",
+                9u128,
+            ),
+            (
+                "addr_2",
+                "5c186341e6392ff06b35b2b80a05f99cdd1dd7d5b436f2eef1a6dd08c07c9463",
+                4u128,
+            ),
+        ];
+        let verifier_set = gen_verifier_set(signers_data, 22, 2024);
+
+        let payload = Payload::Messages(vec![Message {
+            cc_id: CrossChainId {
+                source_chain: "evm".parse().unwrap(),
+                message_id: "test".parse().unwrap(),
+            },
+            source_address: "0x4b20993bC481177ec7E8f571ceCaE8A9e22C02db"
+                .parse()
+                .unwrap(),
+            destination_chain: "solana".parse().unwrap(),
+            destination_address: "G7Vc8J6F4eZ3iA9LpKx2YwbM7TQh1NVR5BDFXUYmQH6E"
+                .parse()
+                .unwrap(),
+            payload_hash: HexBinary::from_hex(
+                "65ad329dc342a82bd1daedc42e183e6e2c272b8e2e3fd7c8f81d089736d0bc3c",
+            )
+            .unwrap()
+            .to_array()
+            .unwrap(),
+        }]);
+        let domain_separator: [u8; 32] =
+            HexBinary::from_hex("2a15376c1277252b1bcce5a6ecd781bfbc2697dfd969ff58d8e2e116018b501e")
+                .unwrap()
+                .to_array()
+                .unwrap();
+        goldie::assert!(hex::encode(
+            payload_digest(&domain_separator, &verifier_set, &payload).unwrap()
+        ));
+    }
+
+    #[test]
+    fn solana_verifier_set_payload_digest() {
+        let verifier_set = gen_verifier_set(
+            vec![(
+                "addr_1",
+                "bf95c447eb2e694974ee2cf5f17e7165bc884a0cb676bb4de50c604bb7a6ea77",
+                4u128,
+            )],
+            1,
+            2024,
+        );
+        let signers_data = vec![
+            (
+                "addr_1",
+                "5086d25f94b8c42faf7ef4325516864e179fcb2a1a9321720f0fc2b249105106",
+                5u128,
+            ),
+            (
+                "addr_2",
+                "57a446f70d8243b7d5e08edcd9c5774f3f0257940df7aa84bca5b1acfc0f3ba3",
+                7u128,
+            ),
+        ];
+        let payload = Payload::VerifierSet(gen_verifier_set(signers_data, 27, 2024));
+        let domain_separator: [u8; 32] =
+            HexBinary::from_hex("6773bd037510492f863cba62a0f3c55ac846883f33cae7266aff8be5eb9681e8")
+                .unwrap()
+                .to_array()
+                .unwrap();
+
+        goldie::assert!(hex::encode(
+            payload_digest(&domain_separator, &verifier_set, &payload).unwrap()
+        ));
+    }
+
+    #[test]
+    fn solana_approve_messages_execute_data() {
+        let signers_data = vec![
+            (
+                "addr_1",
+                "12f7d9a9463212335914b39ee90bfa2045f90b64c1f2d7b58ed335282abac4a4",
+                8u128,
+                Some("b5b3b0749aa585f866d802e32ca4a6356f82eb52e2a1b4797cbaa30f3d755462f2eb995c70d9099e436b8a48498e4d613ff2d3ca7618973a36c2fde17493180f"),
+            ),
+            (
+                "addr_2",
+                "4c3863e4b0252a8674c1c6ad70b3ca3002b400b49ddfae5583b21907e65c5dd8",
+                1u128,
+                None
+            ),
+        ];
+
+        let verifier_set = gen_verifier_set(
+            signers_data
+                .iter()
+                .map(|(t1, t2, t3, _)| (*t1, *t2, *t3))
+                .collect(),
+            10,
+            2024,
+        );
+
+        let signer_with_sig = gen_signers_with_sig(signers_data);
+
+        let payload = Payload::Messages(vec![Message {
+            cc_id: CrossChainId {
+                source_chain: "evm".parse().unwrap(),
+                message_id: "test".parse().unwrap(),
+            },
+            source_address: "0x4b20993bC481177ec7E8f571ceCaE8A9e22C02db"
+                .parse()
+                .unwrap(),
+            destination_chain: "solana".parse().unwrap(),
+            destination_address: "9Tp4XJZLQKdM82BHYfNAG6V3RWpLC7Y5mXo1UqKZFTJ3"
+                .parse()
+                .unwrap(),
+            payload_hash: HexBinary::from_hex(
+                "595c9108df17d1cc43e8268ec1516064299c1388bcc86fdd566bcdf400a0a1ed",
+            )
+            .unwrap()
+            .to_array()
+            .unwrap(),
+        }]);
+
+        let domain_separator =
+            HexBinary::from_hex("2a15376c1277252b1bcce5a6ecd781bfbc2697dfd969ff58d8e2e116018b501e")
+                .unwrap()
+                .to_array()
+                .unwrap();
+
+        goldie::assert!(encode_execute_data(
+            signer_with_sig,
+            &verifier_set,
+            &payload,
+            &domain_separator
+        )
+        .unwrap()
+        .to_hex());
+    }
+
+    #[test]
+    fn solana_rotate_signers_execute_data() {
+        let signers_data = vec![
+            (
+                "addr_1",
+                "77dd4768dda195f8080fe970be8fec5fee9cea781718158ce19d4a331442fd57",
+                2u128,
+                Some("91db8ad94ab379ee9021caeb3ee852582d09d06801213256cbd2937f2ad8182f518fde7a7f8c801adde7161e05cbbb9841ac0bf3290831570a54c6ae3d089703"),
+            ),
+            (
+                "addr_2",
+                "c35aa94d2038f258ecb1bb28fbc8a83ab79d2dc0a7223fd528a8f52a14c03292",
+                1u128,
+                None,
+            ),
+        ];
+
+        let verifier_set = gen_verifier_set(
+            signers_data
+                .iter()
+                .map(|(t1, t2, t3, _)| (*t1, *t2, *t3))
+                .collect(),
+            1,
+            2024,
+        );
+
+        let signer_with_sig = gen_signers_with_sig(signers_data);
+
+        let payload = Payload::VerifierSet(gen_verifier_set(
+            vec![
+                (
+                    "addr_1",
+                    "358a2305fc783b6072049ee6f5f76fb14c3a14d7c01e36d9ef502661bf46a011",
+                    9u128,
+                ),
+                (
+                    "addr_2",
+                    "3b1caf530189a9a65ae347b18cb8bf88729ba90d2aeaf7f185b600400ab49891",
+                    1u128,
+                ),
+            ],
+            17,
+            2024,
+        ));
+
+        let domain_separator: [u8; 32] =
+            HexBinary::from_hex("6773bd037510492f863cba62a0f3c55ac846883f33cae7266aff8be5eb9681e8")
+                .unwrap()
+                .to_array()
+                .unwrap();
+
+        goldie::assert!(encode_execute_data(
+            signer_with_sig,
+            &verifier_set,
+            &payload,
+            &domain_separator
+        )
+        .unwrap()
+        .to_hex());
+    }
+
+    fn gen_verifier_set(
+        signers_data: Vec<(&str, &str, u128)>,
+        threshold: u128,
+        created_at: u64,
+    ) -> VerifierSet {
+        VerifierSet {
+            signers: signers_data
+                .into_iter()
+                .map(|(addr, pub_key, weight)| {
+                    (
+                        addr.to_string(),
+                        Signer {
+                            address: MockApi::default().addr_make(addr),
+                            pub_key: (Ed25519, HexBinary::from_hex(pub_key).unwrap())
+                                .try_into()
+                                .unwrap(),
+                            weight: Uint128::from(weight),
+                        },
+                    )
+                })
+                .collect(),
+            threshold: threshold.into(),
+            created_at,
+        }
+    }
+
+    fn gen_signers_with_sig(
+        signers_data: Vec<(&str, &str, u128, Option<&str>)>,
+    ) -> Vec<SignerWithSig> {
+        signers_data
+            .into_iter()
+            .filter_map(|(addr, pub_key, weight, sig)| {
+                sig.map(|signature| (addr, pub_key, weight, signature))
+            })
+            .map(|(addr, pub_key, weight, sig)| {
+                Signer {
+                    address: MockApi::default().addr_make(addr),
+                    pub_key: (Ed25519, HexBinary::from_hex(pub_key).unwrap())
+                        .try_into()
+                        .unwrap(),
+                    weight: Uint128::from(weight),
+                }
+                .with_sig(
+                    Signature::try_from((Ed25519, HexBinary::from_hex(sig).unwrap())).unwrap(),
+                )
+            })
+            .collect::<Vec<_>>()
+    }
+}
