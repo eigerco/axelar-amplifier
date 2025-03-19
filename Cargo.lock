@@ -5450,6 +5450,7 @@ dependencies = [
  "service-registry",
  "service-registry-api",
  "sha3",
+ "starknet-message",
  "stellar",
  "stellar-xdr",
  "sui-gateway",
@@ -8425,6 +8426,18 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "bcde6bd74269b8161948190ace6cf069ef20ac6e79cd2ba09b320efa7500b6de"
 dependencies = [
  "starknet-types-core",
+]
+
+[[package]]
+name = "starknet-message"
+version = "1.0.0"
+dependencies = [
+ "error-stack",
+ "ethers-core",
+ "router-api",
+ "starknet-checked-felt",
+ "starknet-types-core",
+ "thiserror 1.0.69",
 ]
 
 [[package]]
