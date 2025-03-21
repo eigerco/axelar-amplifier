@@ -4,7 +4,7 @@ use axelar_wasm_std::hash::Hash;
 use axelar_wasm_std::FnExt;
 use cosmwasm_std::Uint256;
 use error_stack::{Report, ResultExt};
-use ethers_contract::abigen;
+use ethers_contract::{abigen, providers};
 use ethers_core::abi::Token::{self, Tuple, Uint};
 use ethers_core::abi::{encode, Tokenize};
 use ethers_core::types::{Address, Bytes, U256};
