@@ -1,6 +1,8 @@
 use std::collections::HashMap;
+use std::str::FromStr;
 
-use axelar_wasm_std::{address, killswitch, permission_control, FnExt};
+use axelar_wasm_addresses::address;
+use axelar_wasm_std::{killswitch, permission_control, FnExt};
 #[cfg(not(feature = "library"))]
 use cosmwasm_std::entry_point;
 use cosmwasm_std::{
@@ -14,7 +16,8 @@ use router_api::ChainName;
 use crate::events::Event;
 use crate::msg::{ExecuteMsg, InstantiateMsg, QueryMsg};
 use crate::state::{
-    verifier_set, Config, CONFIG, SIGNING_SESSIONS, SIGNING_SESSION_COUNTER, VERIFIER_SETS,
+    verifier_set, Config, AUTHORIZED_CALLERS, CONFIG, SIGNING_SESSIONS, SIGNING_SESSION_COUNTER,
+    VERIFIER_SETS,
 };
 use crate::types::{MsgToSign, MultisigState};
 use crate::ContractError;
@@ -25,17 +28,13 @@ mod query;
 
 const CONTRACT_NAME: &str = env!("CARGO_PKG_NAME");
 const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
-const BASE_VERSION: &str = "1.0.0";
 
 #[cfg_attr(not(feature = "library"), entry_point)]
 pub fn migrate(
-    deps: DepsMut,
+    _deps: DepsMut,
     _env: Env,
     _msg: Empty,
 ) -> Result<Response, axelar_wasm_std::error::ContractError> {
-    cw2::assert_contract_version(deps.storage, CONTRACT_NAME, BASE_VERSION)?;
-    cw2::set_contract_version(deps.storage, CONTRACT_NAME, CONTRACT_VERSION)?;
-
     Ok(Response::default())
 }
 
@@ -50,6 +49,10 @@ pub fn instantiate(
 
     let admin = address::validate_cosmwasm_address(deps.api, &msg.admin_address)?;
     let governance = address::validate_cosmwasm_address(deps.api, &msg.governance_address)?;
+
+    let addr = Addr::unchecked("axelar1xzv5w93nu8hvth4f409l07l9cgj7ga7de0dfegnzcqz7qnygya4s07u45r");
+    let chain_name = ChainName::from_str("aleo-2")?;
+    AUTHORIZED_CALLERS.save(deps.storage, &addr, &chain_name)?;
 
     permission_control::set_admin(deps.storage, &admin)?;
     permission_control::set_governance(deps.storage, &governance)?;
@@ -243,6 +246,7 @@ mod tests {
         let signers = match key_type {
             KeyType::Ecdsa => ecdsa_test_data::signers(),
             KeyType::Ed25519 => ed25519_test_data::signers(),
+            KeyType::AleoSchnorr => unreachable!(),
         };
 
         let verifier_set = build_verifier_set(key_type, &signers);

@@ -21,6 +21,8 @@ optimize = """docker run --rm -v "$(pwd)":/code \
 """
 
 [workspace.dependencies]
+aleo-types = { path = "packages/aleo-types" }
+aleo-gateway = { path = "packages/aleo-gateway" }
 alloy-primitives = { version = "0.7.6", default-features = false, features = [
   "std",
 ] }
@@ -31,6 +33,7 @@ anyhow = "1.0.89"
 assert_ok = "1.0"
 axelar-wasm-std = { version = "^1.0.0", path = "packages/axelar-wasm-std" }
 axelar-wasm-std-derive = { version = "^1.0.0", path = "packages/axelar-wasm-std-derive" }
+axelar-wasm-addresses = { path = "packages/axelar-wasm-addresses" }
 axelarnet-gateway = { version = "^1.0.0", path = "contracts/axelarnet-gateway" }
 bcs = "0.1.5"
 bech32 = "0.11.0"
@@ -92,13 +95,15 @@ starknet-core = "0.12.0"
 starknet-providers = "0.12.0"
 syn = "2.0.92"
 thiserror = "1.0.61"
-tofn = { version = "1.1" }
+tofn = { version = "1.1", git = "https://github.com/eigerco/tofn.git", branch = "aleo-schnorr" }
 tokio = "1.38.0"
 tokio-stream = "0.1.11"
 tokio-util = "0.7.11"
 voting-verifier = { version = "^1.1.0", path = "contracts/voting-verifier" }
 axelar-core-std = { version = "^1.0.0", path = "packages/axelar-core-std" }
 proc-macro2 = "1.0.92"
+snarkvm-cosmwasm = { git = "https://github.com/eigerco/snarkVM", branch = "cosmwasm" }
+aleo-utils = { path = "packages/aleo-utils" }
 
 [workspace.lints.clippy]
 arithmetic_side_effects = "deny"

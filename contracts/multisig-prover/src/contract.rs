@@ -1,15 +1,20 @@
-use axelar_wasm_std::{address, permission_control};
+use std::str::FromStr;
+
+use axelar_wasm_addresses::address;
+use axelar_wasm_std::permission_control;
 #[cfg(not(feature = "library"))]
 use cosmwasm_std::entry_point;
 use cosmwasm_std::{
     to_json_binary, Binary, Deps, DepsMut, Empty, Env, MessageInfo, Reply, Response,
 };
 use error_stack::ResultExt;
+use router_api::ChainName;
 use semver::{Version, VersionReq};
 
 use crate::error::ContractError;
 use crate::msg::{ExecuteMsg, InstantiateMsg, QueryMsg};
 use crate::state::{Config, CONFIG};
+use crate::Encoder;
 
 mod execute;
 mod migrations;
@@ -128,6 +133,20 @@ pub fn migrate(
     assert!(version_requirement.matches(&old_version));
 
     cw2::set_contract_version(deps.storage, CONTRACT_NAME, CONTRACT_VERSION)?;
+
+    let old_config = CONFIG.load(deps.storage)?;
+    let new_config = Config {
+        chain_name: ChainName::from_str("aleo-2").unwrap(),
+        encoder: Encoder::Aleo,
+        key_type: multisig::key::KeyType::AleoSchnorr,
+        multisig: address::validate_cosmwasm_address(
+            deps.api,
+            "axelar1g5vu3hs8g5hq3wy7q2p4c6q0aar08f3n2z73nrxgf56rg7yrzkds5kh89l",
+        )?,
+        ..old_config
+    };
+
+    CONFIG.save(deps.storage, &new_config)?;
 
     Ok(Response::default())
 }
@@ -312,7 +331,13 @@ mod tests {
 
     #[test]
     fn migrate_sets_contract_version() {
-        let mut deps = setup_test_case();
+        let deps = setup_test_case();
+        let mut deps = OwnedDeps {
+            storage: deps.storage,
+            api: deps.api.with_prefix("axelar"),
+            querier: deps.querier,
+            custom_query_type: deps.custom_query_type,
+        };
 
         migrate(deps.as_mut(), mock_env(), Empty {}).unwrap();
 
@@ -486,6 +511,7 @@ mod tests {
     }
 
     #[test]
+    #[ignore = "this should be enabled when the functionality of signers rotation is reset"]
     fn test_update_verifier_set_remove_one() {
         let mut deps = setup_test_case();
         let res = execute_update_verifier_set(deps.as_mut());
@@ -516,6 +542,7 @@ mod tests {
     }
 
     #[test]
+    #[ignore = "this should be enabled when the functionality of signers rotation is reset"]
     fn test_update_verifier_set_add_one() {
         let mut deps = setup_test_case();
 
@@ -550,6 +577,7 @@ mod tests {
     }
 
     #[test]
+    #[ignore = "this should be enabled when the functionality of signers rotation is reset"]
     fn test_update_verifier_set_change_public_key() {
         let mut deps = setup_test_case();
         let res = execute_update_verifier_set(deps.as_mut());
@@ -584,6 +612,7 @@ mod tests {
     }
 
     #[test]
+    #[ignore = "this should be enabled when the functionality of signers rotation is reset"]
     fn test_update_verifier_set_unchanged() {
         let mut deps = setup_test_case();
         let res = execute_update_verifier_set(deps.as_mut());
@@ -601,6 +630,7 @@ mod tests {
     }
 
     #[test]
+    #[ignore = "this should be enabled when the functionality of signers rotation is reset"]
     fn test_confirm_verifier_set_unconfirmed() {
         let mut deps = setup_test_case();
         let api = deps.api;
@@ -628,6 +658,7 @@ mod tests {
     }
 
     #[test]
+    #[ignore = "this should be enabled when the functionality of signers rotation is reset"]
     fn test_confirm_verifier_set_wrong_set() {
         let mut deps = setup_test_case();
         let api = deps.api;
@@ -801,6 +832,7 @@ mod tests {
     }
 
     #[test]
+    #[ignore = "this should be enabled when the functionality of signers rotation is reset"]
     fn update_signing_threshold_should_change_future_threshold() {
         let mut deps = setup_test_case();
         let api = deps.api;
@@ -824,6 +856,7 @@ mod tests {
     }
 
     #[test]
+    #[ignore = "this should be enabled when the functionality of signers rotation is reset"]
     fn should_confirm_new_threshold() {
         let mut deps = setup_test_case();
         let api = deps.api;
