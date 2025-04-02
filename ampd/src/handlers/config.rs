@@ -31,7 +31,15 @@ pub enum Config {
         network: String,
         gateway_contract: String,
     },
-    AleoVerifierSetVerifier {},
+    AleoVerifierSetVerifier {
+        cosmwasm_contract: TMAddress,
+        #[serde(flatten, with = "chain")]
+        chain: Chain,
+        timeout: Option<Duration>,
+        base_url: Url,
+        network: String,
+        verifier_contract: String,
+    },
     EvmMsgVerifier {
         cosmwasm_contract: TMAddress,
         #[serde(flatten, with = "chain")]

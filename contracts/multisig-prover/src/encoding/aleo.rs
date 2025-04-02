@@ -26,15 +26,17 @@ pub fn payload_digest<N: Network>(
                 .change_context(ContractError::InvalidMessage)?
                 .then(Messages::from);
 
-            messages
-                .0
-                .first()
-                .ok_or(ContractError::InvalidMessage)?
-                .bhp::<N>()
+            // TODO: make the MessageGroup configurable from outside
+            let group: aleo_gateway::MessageGroup<N, 2, 2> =
+                aleo_gateway::MessageGroup::new(messages.0)
+                    .change_context(ContractError::InvalidMessage)?;
+
+            group.bhp_string::<N>()
         }
-        Payload::VerifierSet(verifier_set) => WeightedSigners::try_from(verifier_set)
+        // TODO: make the WeightedSigners configurable from outside
+        Payload::VerifierSet(verifier_set) => WeightedSigners::<2, 2>::try_from(verifier_set)
             .change_context(ContractError::InvalidVerifierSet)?
-            .bhp::<N>(),
+            .bhp_string::<N>(),
     }
     .map_err(|e| ContractError::AleoError(e.to_string()))?;
 
@@ -50,7 +52,7 @@ pub fn payload_digest<N: Network>(
         .map_err(|e| ContractError::AleoError(e.to_string()))?;
 
     let hash = payload_digest
-        .bhp::<N>()
+        .bhp_string::<N>()
         .map_err(|e| ContractError::AleoError(e.to_string()))?;
 
     let next = hash.strip_suffix("group");
@@ -70,32 +72,40 @@ pub fn encode_execute_data(
     signatures: Vec<SignerWithSig>,
     payload: &Payload,
 ) -> Result<HexBinary, ContractError> {
-    let payload = match payload {
-        Payload::Messages(messages) => messages
-            .iter()
-            .map(Message::try_from)
-            .collect::<Result<Vec<_>, _>>()
-            .change_context(ContractError::InvalidMessage)?
-            .then(Messages::from),
-        Payload::VerifierSet(_verifier_set) => todo!(),
-    };
+    match payload {
+        Payload::Messages(messages) => {
+            let gmp_messages = messages
+                .iter()
+                .map(Message::try_from)
+                .collect::<Result<Vec<_>, _>>()
+                .change_context(ContractError::InvalidMessage)?
+                .then(Messages::from);
 
-    let proof = aleo_gateway::Proof::new(
-        verifier_set.clone(),
-        signatures.first().ok_or(ContractError::Proof)?.clone(),
-    )
-    .change_context(ContractError::Proof)?;
+            let proof = aleo_gateway::Proof::new(verifier_set.clone(), signatures)
+                .change_context(ContractError::Proof)?;
 
-    let execute_data = aleo_gateway::ExecuteData::new(
-        proof,
-        payload.0.first().ok_or(ContractError::Proof)?.clone(),
-    );
+            let execute_data = aleo_gateway::ExecuteDataMessages::new(proof, gmp_messages);
 
-    let execute_data = execute_data
-        .to_aleo_string()
-        .map_err(|e| ContractError::AleoError(e.to_string()))?;
+            let execute_data = execute_data
+                .to_aleo_string()
+                .map_err(|e| ContractError::AleoError(e.to_string()))?;
 
-    Ok(HexBinary::from(execute_data.as_bytes()))
+            Ok(HexBinary::from(execute_data.as_bytes()))
+        }
+        Payload::VerifierSet(verifier_set) => {
+            let proof = aleo_gateway::Proof::new(verifier_set.clone(), signatures)
+                .change_context(ContractError::Proof)?;
+
+            let execute_data =
+                aleo_gateway::ExecuteDataVerifierSet::<2, 2>::new(proof, verifier_set.clone());
+
+            let execute_data = execute_data
+                .to_aleo_string()
+                .map_err(|e| ContractError::AleoError(e.to_string()))?;
+
+            Ok(HexBinary::from(execute_data.as_bytes()))
+        }
+    }
 }
 
 #[cfg(test)]
@@ -136,6 +146,8 @@ mod tests {
     use tofn::aleo_schnorr::keygen;
     use tofn::sdk::api::SecretRecoveryKey;
 
+    // APrivateKey1zkpFMDCJZbRdcBcjnqjRqCrhcWFf4L9FRRSgbLpS6D47Cmo
+    // aleo1v7mmux8wkue8zmuxdfks03rh85qchfmms9fkpflgs4dt87n4jy9s8nzfss
     fn aleo_sig(digest: [u8; 32]) -> SignerWithSig {
         let arr = [0; 64];
         let k = SecretRecoveryKey::try_from(&arr[..]).unwrap();
@@ -173,7 +185,7 @@ mod tests {
                     address: Addr::unchecked("axelar1ckguw8l9peg6sykx30cy35t6l0wpfu23xycme7"),
                     weight: 1.try_into().unwrap(),
                 },
-                PublicKey::AleoSchnorr(HexBinary::from(hex::decode("616c656f313435746a396871726e76336871796c72656d3670377a6a797863326b727979703368646d34687434386e746a336535747475787339787339616b").unwrap())),
+                PublicKey::AleoSchnorr(HexBinary::from(hex::decode("616C656F3176376D6D757838776B7565387A6D757864666B73303372683835716368666D6D7339666B70666C677334647438376E346A793973386E7A667373").unwrap())),
                 )],
             1u128.into(),
             4860541,

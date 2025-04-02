@@ -253,7 +253,35 @@ where
                         event_processor_config.clone(),
                     )
                 }
-                handlers::config::Config::AleoVerifierSetVerifier {} => todo!(),
+                handlers::config::Config::AleoVerifierSetVerifier {
+                    cosmwasm_contract,
+                    chain,
+                    timeout,
+                    base_url,
+                    network,
+                    verifier_contract,
+                } => {
+                    let rest_client = reqwest::ClientBuilder::new()
+                        .connect_timeout(timeout.unwrap_or(DEFAULT_RPC_TIMEOUT))
+                        .timeout(timeout.unwrap_or(DEFAULT_RPC_TIMEOUT))
+                        .build()
+                        .change_context(Error::Connection)?;
+
+                    let client = aleo::http_client::Client::new(rest_client, base_url, network);
+
+                    self.create_handler_task(
+                        format!("{}-verifier-set-verifier", chain.name),
+                        handlers::aleo_verify_verifier_set::Handler::new(
+                            verifier.clone(),
+                            cosmwasm_contract,
+                            chain.name,
+                            client,
+                            self.block_height_monitor.latest_block_height(),
+                            verifier_contract,
+                        ),
+                        event_processor_config.clone(),
+                    )
+                }
                 handlers::config::Config::EvmMsgVerifier {
                     chain,
                     cosmwasm_contract,

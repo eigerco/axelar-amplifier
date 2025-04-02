@@ -1,12 +1,10 @@
-use nom::{
-    IResult, Parser,
-    branch::alt,
-    bytes::complete::{tag, take_while_m_n},
-    character::complete::{alpha1, alphanumeric1, char, digit1, multispace0},
-    combinator::{all_consuming, map_parser, map_res, recognize},
-    multi::{many0, separated_list1},
-    sequence::{delimited, pair, preceded, separated_pair, terminated},
-};
+use nom::branch::alt;
+use nom::bytes::complete::{tag, take_while_m_n};
+use nom::character::complete::{alpha1, alphanumeric1, char, digit1, multispace0};
+use nom::combinator::{all_consuming, map_parser, map_res, recognize};
+use nom::multi::{many0, separated_list1};
+use nom::sequence::{delimited, pair, preceded, separated_pair, terminated};
+use nom::{IResult, Parser};
 
 /// Translate a Leo-like JSON string into a JSON string
 pub fn into_json(i: &str) -> Result<String, String> {
@@ -25,7 +23,8 @@ fn record(i: &str) -> IResult<&str, String> {
             preceded(multispace0, char('}')),
         ),
         |values| -> Result<String, ()> { Ok(format!("{{{}}}", values.join(","))) },
-    ).parse(i)
+    )
+    .parse(i)
 }
 
 fn field(i: &str) -> IResult<&str, String> {
@@ -36,7 +35,8 @@ fn field(i: &str) -> IResult<&str, String> {
             preceded(multispace0, expression),
         ),
         |(name, value)| -> Result<String, ()> { Ok(format!("\"{name}\":{value}")) },
-    ).parse(i)
+    )
+    .parse(i)
 }
 
 /// From Leo's grammar:
@@ -64,7 +64,8 @@ fn array_expression(i: &str) -> IResult<&str, String> {
             terminated(tag("]"), multispace0),
         ),
         |values| -> Result<String, ()> { Ok(format!("[{}]", values.join(","))) },
-    ).parse(i)
+    )
+    .parse(i)
 }
 
 fn expression(i: &str) -> IResult<&str, String> {
@@ -117,7 +118,8 @@ fn numeric_literal(i: &str) -> IResult<&str, String> {
             )),
         ),
         into,
-    ).parse(i)
+    )
+    .parse(i)
 }
 
 /// From Leo's grammar:
@@ -137,7 +139,8 @@ fn explicit_address_literal(i: &str) -> IResult<&str, String> {
             take_while_m_n(58, 58, is_ascii_lowercase_or_ascii_digit),
         )),
         quote,
-    ).parse(i)
+    )
+    .parse(i)
 }
 
 fn is_ascii_lowercase_or_ascii_digit(i: char) -> bool {

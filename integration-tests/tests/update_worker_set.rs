@@ -8,7 +8,6 @@ use service_registry_api::msg::QueryMsg as ServiceRegistryQueryMsg;
 pub mod test_utils;
 
 #[test]
-#[ignore = "This should be enabled when the functionality of signers rotation is reset"]
 fn verifier_set_can_be_initialized_and_then_manually_updated() {
     let chains: Vec<router_api::ChainName> = vec![
         "Ethereum".try_into().unwrap(),
@@ -106,7 +105,6 @@ fn verifier_set_can_be_initialized_and_then_manually_updated() {
 }
 
 #[test]
-#[ignore = "This should be enabled when the functionality of signers rotation is reset"]
 fn verifier_set_cannot_be_updated_again_while_pending_verifier_is_not_yet_confirmed() {
     let chains = vec![
         "Ethereum".try_into().unwrap(),
@@ -227,7 +225,6 @@ fn verifier_set_cannot_be_updated_again_while_pending_verifier_is_not_yet_confir
 }
 
 #[test]
-#[ignore = "This should be enabled when the functionality of signers rotation is reset"]
 fn verifier_set_update_can_be_resigned() {
     let chains = vec![
         "Ethereum".try_into().unwrap(),
@@ -323,7 +320,6 @@ fn verifier_set_update_can_be_resigned() {
 }
 
 #[test]
-#[ignore = "This should be enabled when the functionality of signers rotation is reset"]
 fn governance_should_confirm_new_verifier_set_without_verification() {
     let chains: Vec<router_api::ChainName> = vec!["Ethereum".try_into().unwrap()];
     let test_utils::TestCase {
@@ -373,7 +369,6 @@ fn governance_should_confirm_new_verifier_set_without_verification() {
 }
 
 #[test]
-#[ignore = "this should be enabled when the functionality of signers rotation is reset"]
 fn rotate_signers_should_filter_out_signers_without_pubkey() {
     let test_utils::TestCase {
         mut protocol,

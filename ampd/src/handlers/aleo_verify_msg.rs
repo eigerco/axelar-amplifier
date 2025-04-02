@@ -18,9 +18,8 @@ use tracing::{debug, info, info_span};
 use valuable::Valuable;
 use voting_verifier::msg::ExecuteMsg;
 
-use crate::aleo::http_client::{
-    ClientTrait as AleoClientTrait, ClientWrapper as AleoClientWrapper, Receipt,
-};
+use crate::aleo::http_client::ClientTrait as AleoClientTrait;
+use crate::aleo::{Receipt, ReceiptBuilder};
 use crate::event_processor::EventHandler;
 use crate::handlers::errors::Error;
 use crate::handlers::errors::Error::DeserializeEvent;
@@ -88,6 +87,59 @@ where
     }
 }
 
+async fn fetch_transition_receipt<C>(
+    http_client: &C,
+    program: &str,
+    id: Transition,
+) -> Result<(Transition, Receipt), Error>
+where
+    C: AleoClientTrait + Send + Sync + 'static,
+{
+    let receipt = async {
+        ReceiptBuilder::new(http_client, &program)?
+            .get_transaction_id(&id)
+            .await?
+            .get_transaction()
+            .await?
+            .get_transition()?
+            .check_call_contract()
+    }
+    .await;
+
+    let res = match receipt {
+        Ok(receipt) => (id, receipt),
+        Err(e) => (id.clone(), Receipt::NotFound(id, e)),
+    };
+
+    Ok(res)
+}
+
+async fn process_transitions<C, I>(
+    http_client: &C,
+    program: &str,
+    transitions: I,
+) -> HashMap<Transition, Receipt>
+where
+    C: AleoClientTrait + Send + Sync + 'static,
+    I: IntoIterator<Item = Transition>,
+{
+    let mut result_map = HashMap::new();
+
+    let results: Vec<_> = stream::iter(transitions)
+        .map(|id| fetch_transition_receipt(http_client, program, id))
+        .buffer_unordered(10)
+        .collect()
+        .await;
+
+    for result in results {
+        if let Ok((transition, receipt)) = result {
+            result_map.insert(transition, receipt);
+        }
+    }
+
+    result_map
+}
+
 #[async_trait]
 impl<C> EventHandler for Handler<C>
 where
@@ -131,20 +183,12 @@ where
         // Transition IDs on Aleo chain
         let transitions: HashSet<Transition> = messages.iter().map(|m| m.tx_id.clone()).collect();
 
-        let http_client = AleoClientWrapper::new(&self.http_client);
-        let transition_receipts: HashMap<_, _> = stream::iter(transitions)
-            .map(|id| async {
-                match http_client
-                    .transition_receipt(&id, self.gateway_contract.as_str())
-                    .await
-                {
-                    Ok(recipt) => (id, recipt),
-                    Err(e) => (id.clone(), Receipt::NotFound(id, e)),
-                }
-            })
-            .buffer_unordered(10)
-            .collect()
-            .await;
+        let transition_receipts = process_transitions(
+            &self.http_client,
+            self.gateway_contract.as_str(),
+            transitions,
+        )
+        .await;
 
         let poll_id_str: String = poll_id.into();
         let source_chain_str: String = source_chain.into();
@@ -267,7 +311,7 @@ mod tests {
 
     #[tokio::test]
     async fn aleo_verify_msg() {
-        let mock_client = crate::aleo::http_client::tests::mock_client_3();
+        let mock_client = crate::aleo::http_client::tests::mock_client_2();
         let event = poll_started_event();
 
         let handler = Handler::new(

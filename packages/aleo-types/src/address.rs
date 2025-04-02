@@ -10,14 +10,14 @@ use crate::{verify_becnh32, Error};
 
 pub const ALEO_ADDRESS_LEN: usize = 63;
 
-#[derive(Serialize, Deserialize, Debug, PartialEq, Eq, Clone, PartialOrd, Ord)]
+#[derive(Serialize, Deserialize, Debug, PartialEq, Eq, Clone, PartialOrd, Ord, Hash)]
 pub struct Address(pub nonempty::String);
 
 impl Default for Address {
     fn default() -> Self {
         Self(
             nonempty::String::try_from(
-                "aleo1qtrn0h0pakusngjemdehzljqthu3e8vfwl5qj2zccc5cgasutq8qjy2afr".to_string(),
+                "aleo1qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq3ljyzc".to_string(),
             )
             .unwrap(),
         )
