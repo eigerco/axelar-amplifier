@@ -3,7 +3,7 @@ use error_stack::Report;
 use crate::{AleoValue, Error};
 
 // TODO: nonce is skipped
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Default)]
 pub struct RawSignature {
     pub signature: Vec<u8>,
 }

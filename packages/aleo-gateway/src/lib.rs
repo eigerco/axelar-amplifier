@@ -3,10 +3,12 @@ use std::str::FromStr as _;
 use error_stack::Report;
 use snarkvm_cosmwasm::network::Network;
 use snarkvm_cosmwasm::program::ToBits;
+use snarkvm_cosmwasm::types::Group;
 use thiserror::Error;
 
 mod execute_data;
 mod message;
+mod message_group;
 mod messages;
 mod payload_digest;
 mod proof;
@@ -17,6 +19,7 @@ mod weighted_signers;
 
 pub use execute_data::*;
 pub use message::*;
+pub use message_group::*;
 pub use messages::*;
 pub use payload_digest::*;
 pub use proof::*;
@@ -53,13 +56,18 @@ pub trait AleoValue {
         hash::<std::string::String, N>(input)
     }
 
-    fn bhp<N: Network>(&self) -> Result<String, Report<Error>> {
+    fn bhp<N: Network>(&self) -> Result<Group<N>, Report<Error>> {
         let input = self.to_aleo_string()?;
         aleo_hash::<std::string::String, N>(input)
     }
+
+    fn bhp_string<N: Network>(&self) -> Result<String, Report<Error>> {
+        let input = self.to_aleo_string()?;
+        aleo_hash::<std::string::String, N>(input).map(|g| g.to_string())
+    }
 }
 
-pub fn aleo_hash<T: AsRef<str>, N: Network>(input: T) -> Result<String, Report<Error>> {
+pub fn aleo_hash<T: AsRef<str>, N: Network>(input: T) -> Result<Group<N>, Report<Error>> {
     let aleo_value: Vec<bool> = snarkvm_cosmwasm::program::Value::<N>::from_str(input.as_ref())
         .map_err(|e| {
             Report::new(Error::Aleo(e))
@@ -79,7 +87,7 @@ pub fn aleo_hash<T: AsRef<str>, N: Network>(input: T) -> Result<String, Report<E
         ))
     })?;
 
-    Ok(group.to_string())
+    Ok(group)
 }
 
 pub fn hash<T: AsRef<str>, N: Network>(input: T) -> Result<[u8; 32], Report<Error>> {

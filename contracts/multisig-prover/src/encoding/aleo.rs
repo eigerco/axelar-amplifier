@@ -26,15 +26,15 @@ pub fn payload_digest<N: Network>(
                 .change_context(ContractError::InvalidMessage)?
                 .then(Messages::from);
 
-            messages
-                .0
-                .first()
-                .ok_or(ContractError::InvalidMessage)?
-                .bhp::<N>()
+            let group: aleo_gateway::MessageGroup<N, 16, 12> =
+                aleo_gateway::MessageGroup::new(messages.0)
+                    .change_context(ContractError::InvalidMessage)?;
+
+            group.bhp_string::<N>()
         }
         Payload::VerifierSet(verifier_set) => WeightedSigners::try_from(verifier_set)
             .change_context(ContractError::InvalidVerifierSet)?
-            .bhp::<N>(),
+            .bhp_string::<N>(),
     }
     .map_err(|e| ContractError::AleoError(e.to_string()))?;
 
@@ -50,7 +50,7 @@ pub fn payload_digest<N: Network>(
         .map_err(|e| ContractError::AleoError(e.to_string()))?;
 
     let hash = payload_digest
-        .bhp::<N>()
+        .bhp_string::<N>()
         .map_err(|e| ContractError::AleoError(e.to_string()))?;
 
     let next = hash.strip_suffix("group");
@@ -82,7 +82,7 @@ pub fn encode_execute_data(
 
     let proof = aleo_gateway::Proof::new(
         verifier_set.clone(),
-        signatures.first().ok_or(ContractError::Proof)?.clone(),
+        signatures,
     )
     .change_context(ContractError::Proof)?;
 
