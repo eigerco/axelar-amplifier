@@ -1,6 +1,8 @@
 use std::str::FromStr;
 
+use aleo_gateway::WeightedSigners;
 use aleo_types::address::Address;
+use aleo_types::program::Program;
 use aleo_types::transaction::Transaction;
 use aleo_types::transition::Transition;
 use aleo_utils::block_processor::IdValuePair;
@@ -27,7 +29,7 @@ pub enum Error {
     #[error("Transition '{0}' not found")]
     TransitionNotFound(String),
     #[error("Failed to find callContract")]
-    CallnotFound,
+    CallContractNotFound,
     #[error("Failed to find user call")]
     UserCallnotFound,
     #[error("The provided chain name is invalid")]
@@ -38,16 +40,287 @@ pub enum Error {
     FailedToCreateAleoID(String),
     #[error("Failed to create hash payload: {0}")]
     PayloadHash(String),
+    #[error("Failed to find transition '{0}' in transaction")]
+    TransitionNotFoundInTransaction(String),
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct Initial;
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct StateTanstitionId {
+    transition_id: Transition,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct StateTransactionId {
+    transaction_id: Transaction,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct StateTransactionFound {
+    transaction: aleo_utils::block_processor::Transaction,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct StateTransitionFound {
+    transaction: aleo_utils::block_processor::Transaction,
+    transition: aleo_utils::block_processor::Transition,
+}
+
+pub struct Driver<'a, C: ClientTrait, S> {
+    client: &'a C,
+    target_contract: Program, // The target program can be the CallContract or the
+    state: S,
+}
+
+impl<'a, C> Driver<'a, C, Initial>
+where
+    C: ClientTrait + Send + Sync + 'static,
+{
+    pub fn new(client: &'a C, target_contract: Program) -> Self {
+        Self {
+            client,
+            target_contract,
+            state: Initial,
+        }
+    }
+
+    pub async fn get_transaction_id(
+        self,
+        transition_id: Transition,
+    ) -> Result<Driver<'a, C, StateTransactionId>, Error> {
+        let transaction_id = self
+            .client
+            .find_transaction(&transition_id)
+            .await
+            .change_context(Error::TransitionNotFound(transition_id.to_string()))?;
+
+        let transaction = transaction_id.trim_matches('"');
+
+        Ok(Driver {
+            client: self.client,
+            target_contract: self.target_contract.clone(),
+            state: StateTransactionId {
+                transaction_id: Transaction::from_str(transaction)
+                    .change_context(Error::TransactionNotFound(transaction.to_string()))?,
+            },
+        })
+    }
+}
+
+impl<'a, C> Driver<'a, C, StateTransactionId>
+where
+    C: ClientTrait + Send + Sync + 'static,
+{
+    pub async fn get_transaction(self) -> Result<Driver<'a, C, StateTransactionFound>, Error> {
+        let transaction = self
+            .client
+            .get_transaction(&self.state.transaction_id)
+            .await
+            .change_context(Error::TransactionNotFound(
+                self.state.transaction_id.to_string(),
+            ))?;
+
+        Ok(Driver {
+            client: self.client,
+            target_contract: self.target_contract.clone(),
+            state: StateTransactionFound { transaction },
+        })
+    }
+}
+
+impl<'a, C> Driver<'a, C, StateTransactionFound>
+where
+    C: ClientTrait + Send + Sync + 'static,
+{
+    pub fn get_transition(self) -> Result<Driver<'a, C, StateTransitionFound>, Error> {
+        let transition = self
+            .state
+            .transaction
+            .execution
+            .transitions
+            .iter()
+            .find(|t| t.program.as_str() == self.target_contract.as_str())
+            .ok_or(Error::TransitionNotFoundInTransaction(
+                self.target_contract.to_string(),
+            ))?
+            .clone(); // TODO: remove clone
+
+        Ok(Driver {
+            client: self.client,
+            target_contract: self.target_contract.clone(),
+            state: StateTransitionFound {
+                transaction: self.state.transaction,
+                transition,
+            },
+        })
+    }
+}
+
+impl<'a, C> Driver<'a, C, StateTransitionFound>
+where
+    C: ClientTrait + Send + Sync + 'static,
+{
+    pub fn check_call_contract(self) -> Result<Receipt, Error> {
+        let outputs = self.state.transition.outputs;
+        let call_contract = find_call_contract(&outputs).ok_or(Error::CallContractNotFound)?;
+        let scm = self.state.transition.scm.as_str();
+
+        let gateway_calls_count = self
+            .state
+            .transaction
+            .execution
+            .transitions
+            .iter()
+            .filter(|t| t.scm == scm && t.program == self.target_contract.as_str())
+            .count();
+
+        ensure!(gateway_calls_count == 1, Error::CallContractNotFound);
+
+        let same_scm: Vec<_> = self
+            .state
+            .transaction
+            .execution
+            .transitions
+            .iter()
+            .filter(|t| t.scm == scm && t.id != self.state.transition.id)
+            .collect();
+
+        ensure!(same_scm.len() == 1, Error::UserCallnotFound);
+
+        let parsed_output =
+            parse_user_output(&same_scm[0].outputs).change_context(Error::UserCallnotFound)?;
+
+        ensure!(
+            parsed_output.call_contract == call_contract,
+            Error::UserCallnotFound
+        );
+
+        Ok(Receipt::Found(FoundReceipt::CallContract(
+            CallContractReceipt {
+                transition: Transition::from_str(self.state.transition.id.as_str()).unwrap(),
+                destination_address: call_contract
+                    .destination_address()
+                    .map_err(|e| Report::new(Error::FailedToCreateAleoID(e.to_string())))?,
+                destination_chain: ChainName::try_from(call_contract.destination_chain())
+                    .change_context(Error::InvalidChainName)?,
+                source_address: Address::from_str(call_contract.sender.to_string().as_ref())
+                    .change_context(Error::InvalidSourceAddress)?,
+                payload: parsed_output.payload,
+            },
+        )))
+    }
+
+    pub fn check_signer_rotation(self) -> Result<Receipt, Error> {
+        let outputs = self.state.transition.outputs;
+        let signer_rotation = find_signer_rotation(&outputs).ok_or(Error::CallContractNotFound)?;
+        let scm = self.state.transition.scm.as_str();
+
+        let signers_rotation_calls = self
+            .state
+            .transaction
+            .execution
+            .transitions
+            .iter()
+            .filter(|t| {
+                t.scm == scm
+                    && t.program == self.target_contract.as_str()
+                    && t.id != self.state.transition.id
+            })
+            .count();
+
+        ensure!(signers_rotation_calls == 1, Error::CallContractNotFound);
+
+        Ok(Receipt::Found(FoundReceipt::SignerRotation(
+            signer_rotation,
+        )))
+    }
+}
+
+fn parse_user_output(outputs: &[IdValuePair]) -> Result<ParsedOutput, Error> {
+    if outputs.len() != 2 {
+        return Err(Report::new(Error::UserCallnotFound));
+    }
+
+    // ParsedOutput
+    let mut parsed_output = ParsedOutput::default();
+
+    // TODO: there mast be a better way
+    for o in outputs {
+        if let IdValuePair {
+            id: _,
+            value: Some(plaintext),
+        } = o
+        {
+            let json = json_like::into_json(plaintext.to_string().as_str()).unwrap();
+            let parsed = serde_json::from_str::<CallContract>(&json);
+
+            if let Ok(call_contract) = parsed {
+                parsed_output.call_contract = call_contract;
+            } else {
+                parsed_output.payload = plaintext.to_string().as_bytes().to_vec();
+            }
+        }
+    }
+
+    Ok(parsed_output)
+}
+
+fn find_call_contract(outputs: &[IdValuePair]) -> Option<CallContract> {
+    if outputs.len() != 1 {
+        return None;
+    }
+
+    outputs
+        .first()
+        .and_then(|o| match o {
+            IdValuePair {
+                id: _,
+                value: Some(value),
+            } => Some(value),
+            _ => None,
+        })
+        .and_then(|value| {
+            let json = json_like::into_json(value.to_string().as_str()).unwrap();
+            serde_json::from_str::<CallContract>(&json).ok()
+        })
+}
+
+fn find_signer_rotation(outputs: &[IdValuePair]) -> Option<SignerRotation> {
+    if outputs.len() != 1 {
+        return None;
+    }
+
+    outputs
+        .first()
+        .and_then(|o| match o {
+            IdValuePair {
+                id: _,
+                value: Some(value),
+            } => Some(value),
+            _ => None,
+        })
+        .and_then(|value| {
+            let json = json_like::into_json(value.to_string().as_str()).unwrap();
+            serde_json::from_str::<SignerRotation>(&json).ok()
+        })
 }
 
 #[derive(Debug)]
 pub enum Receipt {
-    Found(TransitionReceipt),
+    Found(FoundReceipt),
     NotFound(Transition, Report<Error>),
 }
 
 #[derive(Debug)]
-pub struct TransitionReceipt {
+pub enum FoundReceipt {
+    CallContract(CallContractReceipt),
+    SignerRotation(SignerRotation),
+}
+
+#[derive(Debug)]
+pub struct CallContractReceipt {
     pub transition: Transition,
     pub destination_address: String,
     pub destination_chain: ChainName,
@@ -55,7 +328,7 @@ pub struct TransitionReceipt {
     pub payload: Vec<u8>,
 }
 
-impl PartialEq<crate::handlers::aleo_verify_msg::Message> for TransitionReceipt {
+impl PartialEq<crate::handlers::aleo_verify_msg::Message> for CallContractReceipt {
     fn eq(&self, message: &crate::handlers::aleo_verify_msg::Message) -> bool {
         info!(
             "transition_id: chain.{} == msg.{} ({})",
@@ -104,6 +377,15 @@ impl PartialEq<crate::handlers::aleo_verify_msg::Message> for TransitionReceipt 
             && payload_hash == message.payload_hash
     }
 }
+
+#[derive(Debug, PartialEq, Eq)]
+pub struct SignerRotationReceipt {}
+
+// impl PartialEq<crate::handlers::aleo_verify_msg::Message> for SignerRotationReceipt {
+//     fn eq(&self, message: &crate::handlers::aleo_verify_verifier_set::VerifierSetConfirmation) -> bool {
+//         true
+//     }
+// }
 
 fn payload_hash(payload: &[u8], destination_chain: &str) -> std::result::Result<Hash, Error> {
     let payload = std::str::from_utf8(payload).map_err(|e| Error::PayloadHash(e.to_string()))?;
@@ -210,8 +492,11 @@ impl ClientTrait for Client {
     }
 }
 
-pub struct ClientWrapper<'a, C: ClientTrait> {
-    client: &'a C,
+#[derive(Debug, Deserialize, PartialEq, Eq)]
+pub struct SignerRotation {
+    pub(crate) block_height: u32,
+    pub(crate) signers_hash: String,
+    pub(crate) weighted_signers: WeightedSigners,
 }
 
 #[derive(Debug, Serialize, Deserialize, Default, PartialEq, Eq)]
@@ -236,131 +521,6 @@ impl CallContract {
         };
         let ascii_string = encoded_string.decode();
         Ok(ascii_string)
-    }
-}
-
-impl<'a, C> ClientWrapper<'a, C>
-where
-    C: ClientTrait + Send + Sync + 'static,
-{
-    pub fn new(client: &'a C) -> Self {
-        Self { client }
-    }
-
-    fn find_call_contract(&self, outputs: &[IdValuePair]) -> Option<CallContract> {
-        if outputs.len() != 1 {
-            return None;
-        }
-
-        outputs
-            .first()
-            .and_then(|o| match o {
-                IdValuePair {
-                    id: _,
-                    value: Some(value),
-                } => Some(value),
-                _ => None,
-            })
-            .and_then(|value| {
-                let json = json_like::into_json(value.to_string().as_str()).unwrap();
-                serde_json::from_str::<CallContract>(&json).ok()
-            })
-    }
-
-    fn parse_user_output(&self, outputs: &[IdValuePair]) -> Result<ParsedOutput, Error> {
-        if outputs.len() != 2 {
-            return Err(Report::new(Error::UserCallnotFound));
-        }
-
-        // ParsedOutput
-        let mut parsed_output = ParsedOutput::default();
-
-        // TODO: there mast be a better way
-        for o in outputs {
-            if let IdValuePair {
-                id: _,
-                value: Some(plaintext),
-            } = o
-            {
-                let json = json_like::into_json(plaintext.to_string().as_str()).unwrap();
-                let parsed = serde_json::from_str::<CallContract>(&json);
-
-                if let Ok(call_contract) = parsed {
-                    parsed_output.call_contract = call_contract;
-                } else {
-                    parsed_output.payload = plaintext.to_string().as_bytes().to_vec();
-                }
-            }
-        }
-
-        Ok(parsed_output)
-    }
-
-    #[tracing::instrument(skip(self))]
-    pub async fn transition_receipt(
-        &self,
-        transition_id: &Transition,
-        gateway_contract: &str,
-    ) -> Result<Receipt, Error> {
-        let transaction = self.client.find_transaction(transition_id).await?;
-        let transaction = transaction.trim_matches('"');
-
-        // Find transaction
-        let transaction_id = Transaction::from_str(transaction)
-            .change_context(Error::TransactionNotFound(transaction.to_string()))?;
-
-        let transaction = self.client.get_transaction(&transaction_id).await?;
-        let gateway_transition = transaction
-            .execution
-            .transitions
-            .iter()
-            .find(|t| t.program.as_str() == gateway_contract)
-            .ok_or(Error::TransitionNotFound(transition_id.to_string()))?;
-
-        // Get the outputs of the transition
-        // The transition should have only the gateway call
-        let outputs = &gateway_transition.outputs;
-        let call_contract_call = self.find_call_contract(outputs);
-        let call_contract = call_contract_call.ok_or(Error::CallnotFound)?;
-
-        let scm = gateway_transition.scm.as_str();
-
-        let gateway_calls_count = transaction
-            .execution
-            .transitions
-            .iter()
-            .filter(|t| t.scm == scm && t.program == gateway_contract)
-            .count();
-
-        ensure!(gateway_calls_count == 1, Error::CallnotFound);
-
-        let same_scm: Vec<_> = transaction
-            .execution
-            .transitions
-            .iter()
-            .filter(|t| t.scm == scm && t.id != gateway_transition.id)
-            .collect();
-
-        ensure!(gateway_calls_count == 1, Error::UserCallnotFound);
-
-        let parsed_output = self.parse_user_output(&same_scm[0].outputs)?;
-
-        ensure!(
-            parsed_output.call_contract == call_contract,
-            Error::UserCallnotFound
-        );
-
-        Ok(Receipt::Found(TransitionReceipt {
-            transition: transition_id.clone(),
-            destination_address: call_contract
-                .destination_address()
-                .map_err(|e| Report::new(Error::FailedToCreateAleoID(e.to_string())))?,
-            destination_chain: ChainName::try_from(call_contract.destination_chain())
-                .change_context(Error::InvalidChainName)?,
-            source_address: Address::from_str(call_contract.sender.to_string().as_ref())
-                .change_context(Error::InvalidSourceAddress)?,
-            payload: parsed_output.payload,
-        }))
     }
 }
 
@@ -437,31 +597,49 @@ pub mod tests {
         mock_client
     }
 
-    #[tokio::test]
-    async fn foo_test() {
-        let client = mock_client_2();
-        let transision_id = "au1zn24gzpgkr936qv49g466vfccg8aykcv05rk39s239hjxwrtsu8sltpsd8";
-        let transition = Transition::from_str(transision_id).unwrap();
-        let client = ClientWrapper::new(&client);
-        let gateway_contract = "gateway_base.aleo";
+    // #[tokio::test]
+    // async fn foo_test() {
+    //     let client = mock_client_2();
+    //     let transision_id = "au1zn24gzpgkr936qv49g466vfccg8aykcv05rk39s239hjxwrtsu8sltpsd8";
+    //     let transition = Transition::from_str(transision_id).unwrap();
+    //     let client = ClientWrapper::new(&client);
+    //     let gateway_contract = "gateway_base.aleo";
+    //
+    //     let res = client
+    //         .transition_receipt(&transition, gateway_contract)
+    //         .await;
+    //     assert!(res.is_ok());
+    // }
+    //
+    // #[tokio::test]
+    // async fn flow_test1() {
+    //     let client = mock_client_3();
+    //     let transision_id = "au17kdp7a7p6xuq6h0z3qrdydn4f6fjaufvzvlgkdd6vzpr87lgcgrq8qx6st";
+    //     let transition = Transition::from_str(transision_id).unwrap();
+    //     let client = ClientWrapper::new(&client);
+    //     let gateway_contract = "ac64caccf8221554ec3f89bf.aleo";
+    //
+    //     let res = client
+    //         .transition_receipt(&transition, gateway_contract)
+    //         .await;
+    //     println!("res: {:#?}", res);
+    //     assert!(res.is_ok());
+    // }
 
-        let res = client
-            .transition_receipt(&transition, gateway_contract)
-            .await;
-        assert!(res.is_ok());
-    }
-
     #[tokio::test]
-    async fn flow_test() {
+    async fn flow_test2() {
         let client = mock_client_3();
         let transision_id = "au17kdp7a7p6xuq6h0z3qrdydn4f6fjaufvzvlgkdd6vzpr87lgcgrq8qx6st";
         let transition = Transition::from_str(transision_id).unwrap();
-        let client = ClientWrapper::new(&client);
         let gateway_contract = "ac64caccf8221554ec3f89bf.aleo";
 
-        let res = client
-            .transition_receipt(&transition, gateway_contract)
-            .await;
-        assert!(res.is_ok());
+        let driver = Driver::new(&client, Program::from_str(gateway_contract).unwrap());
+
+        let driver = driver.get_transaction_id(transition.clone()).await.unwrap();
+        let driver = driver.get_transaction().await.unwrap();
+        let driver = driver.get_transition().unwrap();
+        let receipt = driver.check_call_contract().unwrap();
+
+        println!("driver: {:#?}", receipt);
     }
 }

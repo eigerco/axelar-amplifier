@@ -62,7 +62,10 @@ impl PoolId {
     ) -> Result<Self, axelar_wasm_addresses::address::Error> {
         Ok(Self::new(
             pool_id.chain_name,
-            axelar_wasm_addresses::address::validate_cosmwasm_address(api, pool_id.contract.as_str())?,
+            axelar_wasm_addresses::address::validate_cosmwasm_address(
+                api,
+                pool_id.contract.as_str(),
+            )?,
         ))
     }
 }

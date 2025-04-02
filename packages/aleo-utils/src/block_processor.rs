@@ -50,4 +50,3 @@ pub struct GatewayOutput {
     pub destination_address: [u8; 20],
     pub destination_chain: [u8; 32],
 }
-

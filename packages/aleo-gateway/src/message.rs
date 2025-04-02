@@ -115,7 +115,10 @@ impl AleoValue for Message {
                 .consume()
                 .into_iter()
                 .map(|c| format!("{}u128", c))
-                .chain(std::iter::repeat("0u128".to_string()).take(MESSAGE_ID_LEN.saturating_sub(message_id_len)))
+                .chain(
+                    std::iter::repeat("0u128".to_string())
+                        .take(MESSAGE_ID_LEN.saturating_sub(message_id_len))
+                )
                 .collect::<Vec<_>>()
                 .join(", "),
             source_address

@@ -10,7 +10,6 @@ pub mod test_utils;
 /// gateway, votes on the poll, routes the message to the outgoing gateway, triggers signing at the prover
 /// and signs via multisig. Also tests that rewards are distributed as expected for voting and signing.
 #[test]
-#[ignore = "This should be enabled when the functionality of signers rotation is reset"]
 fn single_message_can_be_verified_and_routed_and_proven_and_rewards_are_distributed() {
     let test_utils::TestCase {
         mut protocol,
@@ -70,12 +69,14 @@ fn single_message_can_be_verified_and_routed_and_proven_and_rewards_are_distribu
     assert_eq!(found_msgs, msgs);
 
     // trigger signing and submit all necessary signatures
+    println!("TEST 1");
     let session_id = test_utils::construct_proof_and_sign(
         &mut protocol,
         &chain2.multisig_prover,
         &msgs,
         &verifiers,
     );
+    println!("TEST 2");
 
     let proof = test_utils::proof(&mut protocol.app, &chain2.multisig_prover, &session_id);
 
