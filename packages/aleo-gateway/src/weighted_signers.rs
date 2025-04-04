@@ -98,28 +98,58 @@ impl<const GROUP_SIZE: usize, const GROUPS: usize> TryFrom<&VerifierSet>
     }
 }
 
-impl AleoValue for WeightedSigners {
+impl<const GROUP_SIZE: usize, const GROUPS: usize> AleoValue
+    for WeightedSigners<GROUP_SIZE, GROUPS>
+{
     fn to_aleo_string(&self) -> Result<String, Report<Error>> {
-        let res = format!(
-            r#"{{ signers: [ [{}], [{}] ], threshold: {}u128 }}"#,
-            // r#"{{ signers: [ {}, {} ], threshold: {}u128, nonce: [ {}u64, {}u64, {}u64, {}u64 ] }}"#,
-            self.signers[0]
-                .iter()
-                .map(|s| s.to_aleo_string())
-                .collect::<Result<Vec<_>, _>>()?
-                .join(", "),
-            self.signers[1]
-                .iter()
-                .map(|s| s.to_aleo_string())
-                .collect::<Result<Vec<_>, _>>()?
-                .join(", "),
-            self.threshold,
-            // self.nonce[0],
-            // self.nonce[1],
-            // self.nonce[2],
-            // self.nonce[3]
-        );
+        // Start with the opening part of the string
+        let mut res = String::from("{ signers: [ ");
+
+        // Add each group's formatted string
+        for (i, group) in self.signers.iter().enumerate() {
+            let group_str = format!(
+                "[{}]",
+                group
+                    .iter()
+                    .map(|s| s.to_aleo_string())
+                    .collect::<Result<Vec<_>, _>>()?
+                    .join(", ")
+            );
+
+            res.push_str(&group_str);
+
+            // Add comma if not the last group
+            if i < self.signers.len() - 1 {
+                res.push_str(", ");
+            }
+        }
+
+        // Add the threshold and closing part
+        res.push_str(&format!(" ], threshold: {}u128 }}", self.threshold));
 
         Ok(res)
     }
+    // fn to_aleo_string(&self) -> Result<String, Report<Error>> {
+    //     let res = format!(
+    //         r#"{{ signers: [ [{}], [{}] ], threshold: {}u128 }}"#,
+    //         // r#"{{ signers: [ {}, {} ], threshold: {}u128, nonce: [ {}u64, {}u64, {}u64, {}u64 ] }}"#,
+    //         self.signers[0]
+    //             .iter()
+    //             .map(|s| s.to_aleo_string())
+    //             .collect::<Result<Vec<_>, _>>()?
+    //             .join(", "),
+    //         self.signers[1]
+    //             .iter()
+    //             .map(|s| s.to_aleo_string())
+    //             .collect::<Result<Vec<_>, _>>()?
+    //             .join(", "),
+    //         self.threshold,
+    //         // self.nonce[0],
+    //         // self.nonce[1],
+    //         // self.nonce[2],
+    //         // self.nonce[3]
+    //     );
+    //
+    //     Ok(res)
+    // }
 }

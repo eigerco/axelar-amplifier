@@ -11,13 +11,13 @@ use crate::raw_signature::RawSignature;
 use crate::{signer_with_signature, AleoValue, Error, WeightedSigners};
 
 #[derive(Clone, Debug)]
-pub struct Proof {
-    pub weighted_signers: WeightedSigners,
-    pub signature: [[RawSignature; 32]; 2],
+pub struct Proof<const GROUP_SIZE: usize = 2, const GROUPS: usize = 2> {
+    pub weighted_signers: WeightedSigners<GROUP_SIZE, GROUPS>,
+    pub signature: [[RawSignature; GROUP_SIZE]; GROUPS],
     // pub nonce: [u128; 2],
 }
 
-impl Proof {
+impl<const GROUP_SIZE: usize, const GROUPS: usize> Proof<GROUP_SIZE, GROUPS> {
     pub fn new(
         verifier_set: VerifierSet,
         signer_with_signature: Vec<SignerWithSig>,
@@ -67,23 +67,22 @@ impl Proof {
 
         println!("all signatures: {:?}", my_map);
 
-        // TODO: refactor this to be more efficient
-        let mut signature: [[RawSignature; 32]; 2] =
+        // TO-DO: refactor this to be more efficient
+        let mut signature: [[RawSignature; GROUP_SIZE]; GROUPS] =
             core::array::from_fn(|_| core::array::from_fn(|_| RawSignature::default()));
 
         let mut i = 0;
-        for signer in weighted_signers.signers.iter() {
-            for weighted_signer in signer.iter() {
+        for (group_idx, signer_group) in weighted_signers.signers.iter().enumerate() {
+            for (signer_idx, weighted_signer) in signer_group.iter().enumerate() {
                 if weighted_signer.signer == Address::default() {
-                    i += 1;
-                    // TODO: break outer
+                    // TO-DO: break outer
                     break;
                 }
                 println!("HELLO ONE >{}<", weighted_signer.signer);
 
                 if let Some(sig) = my_map.get(&weighted_signer.signer) {
                     println!("HELLO TWO >{}<", sig);
-                    signature[i / 32][i % 32] = RawSignature {
+                    signature[group_idx][signer_idx] = RawSignature {
                         signature: sig.as_slice().to_vec(),
                     };
                 }
@@ -106,12 +105,16 @@ impl AleoValue for Proof {
             r#"{{ weighted_signer: {}, signaturee: [ {} ] }}"#,
             // r#"{{ weighted_signer: {}, signaturee: [ {} ], nonce: [ {}u128, {}u128 ] }}"#,
             self.weighted_signers.to_aleo_string()?,
-            self.signature.iter()
+            self.signature
+                .iter()
                 .map(|sig| {
-                    format!("[{}]", sig.iter()
-                        .map(|s| s.to_aleo_string())
-                        .collect::<Result<Vec<_>, Report<Error>>>().unwrap() // TODO: remove unwrap
-                        .join(", ")
+                    format!(
+                        "[{}]",
+                        sig.iter()
+                            .map(|s| s.to_aleo_string())
+                            .collect::<Result<Vec<_>, Report<Error>>>()
+                            .unwrap() // TODO: remove unwrap
+                            .join(", ")
                     )
                 })
                 .collect::<Vec<_>>()
