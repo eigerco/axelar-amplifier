@@ -11,7 +11,7 @@ use crate::{AleoValue, Error};
 pub struct WeightedSigners {
     pub signers: [[WeightedSigner; 32]; 2],
     threshold: Uint128,
-    nonce: [u64; 4],
+    // nonce: [u64; 4], // TODO: this should be included before going to main net
 }
 
 impl TryFrom<&VerifierSet> for WeightedSigners {
@@ -83,7 +83,7 @@ impl TryFrom<&VerifierSet> for WeightedSigners {
         Ok(WeightedSigners {
             signers: [first_array, second_array],
             threshold,
-            nonce,
+            // nonce,
         })
     }
 }
@@ -91,7 +91,8 @@ impl TryFrom<&VerifierSet> for WeightedSigners {
 impl AleoValue for WeightedSigners {
     fn to_aleo_string(&self) -> Result<String, Report<Error>> {
         let res = format!(
-            r#"{{ signers: [ {}, {} ], threshold: {}u128, nonce: [ {}u64, {}u64, {}u64, {}u64 ] }}"#,
+            r#"{{ signers: [ {}, {} ], threshold: {}u128 }}"#,
+            // r#"{{ signers: [ {}, {} ], threshold: {}u128, nonce: [ {}u64, {}u64, {}u64, {}u64 ] }}"#,
             self.signers[0]
                 .iter()
                 .map(|s| s.to_aleo_string())
@@ -103,10 +104,10 @@ impl AleoValue for WeightedSigners {
                 .collect::<Result<Vec<_>, _>>()?
                 .join(", "),
             self.threshold,
-            self.nonce[0],
-            self.nonce[1],
-            self.nonce[2],
-            self.nonce[3]
+            // self.nonce[0],
+            // self.nonce[1],
+            // self.nonce[2],
+            // self.nonce[3]
         );
 
         Ok(res)

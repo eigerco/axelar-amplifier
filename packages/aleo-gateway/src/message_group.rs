@@ -8,7 +8,8 @@ use crate::{AleoValue, Error, Message};
 
 /// MN: Number of messages in a message group
 /// MG: Number of message groups
-pub struct MessageGroup<N: Network, const MN: usize, const MG: usize> {
+#[derive(Debug)]
+pub struct MessageGroup<N: Network, const MN: usize = 16, const MG: usize = 3> {
     messages: [[Group<N>; MN]; MG],
 }
 
@@ -42,7 +43,7 @@ impl<N: Network, const MN: usize, const MG: usize> AleoValue for MessageGroup<N,
             .iter()
             .map(|message_group| {
                 format!(
-                    r#"{{ [{}] }}"#,
+                    r#"[{}]"#,
                     message_group
                         .iter()
                         .map(Group::to_string)

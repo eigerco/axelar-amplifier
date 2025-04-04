@@ -75,12 +75,13 @@ pub fn aleo_hash<T: AsRef<str>, N: Network>(input: T) -> Result<Group<N>, Report
         })?
         .to_bits_le();
 
-    let bits = N::hash_keccak256(&aleo_value).map_err(|e| {
-        Report::new(Error::Aleo(e))
-            .attach_printable(format!("input2: '{:?}'", input.as_ref().to_owned()))
-    })?;
+    // TODO: remove the keccak256 hash if not needed
+    // let bits = N::hash_keccak256(&aleo_value).map_err(|e| {
+    //     Report::new(Error::Aleo(e))
+    //         .attach_printable(format!("input2: '{:?}'", input.as_ref().to_owned()))
+    // })?;
 
-    let group = N::hash_to_group_bhp256(&bits).map_err(|e| {
+    let group = N::hash_to_group_bhp256(&aleo_value).map_err(|e| {
         Report::new(Error::Aleo(e)).attach_printable(format!(
             "Failed to get bhp256 hash: '{:?}'",
             input.as_ref().to_owned()

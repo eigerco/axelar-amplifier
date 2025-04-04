@@ -14,7 +14,7 @@ use crate::{signer_with_signature, AleoValue, Error, WeightedSigners};
 pub struct Proof {
     pub weighted_signers: WeightedSigners,
     pub signature: [[RawSignature; 32]; 2],
-    pub nonce: [u128; 2],
+    // pub nonce: [u128; 2],
 }
 
 impl Proof {
@@ -65,9 +65,11 @@ impl Proof {
             })
             .collect();
 
+        println!("all signatures: {:?}", my_map);
+
         // TODO: refactor this to be more efficient
         let mut signature: [[RawSignature; 32]; 2] =
-            core::array::from_fn(|_| core::array::from_fn(|_| RawSignature { signature: vec![] }));
+            core::array::from_fn(|_| core::array::from_fn(|_| RawSignature::default()));
 
         let mut i = 0;
         for signer in weighted_signers.signers.iter() {
@@ -77,8 +79,10 @@ impl Proof {
                     // TODO: break outer
                     break;
                 }
+                println!("HELLO ONE >{}<", weighted_signer.signer);
 
                 if let Some(sig) = my_map.get(&weighted_signer.signer) {
+                    println!("HELLO TWO >{}<", sig);
                     signature[i / 32][i % 32] = RawSignature {
                         signature: sig.as_slice().to_vec(),
                     };
@@ -91,7 +95,7 @@ impl Proof {
         Ok(Proof {
             weighted_signers,
             signature,
-            nonce: [3, 1],
+            // nonce: [3, 1],
         })
     }
 }
@@ -99,12 +103,21 @@ impl Proof {
 impl AleoValue for Proof {
     fn to_aleo_string(&self) -> Result<String, Report<Error>> {
         let res = format!(
-            r#"{{ weighted_signer: {}, signaturee: {}, nonce: [ {}u128, {}u128 ] }}"#,
+            r#"{{ weighted_signer: {}, signaturee: [ {} ] }}"#,
+            // r#"{{ weighted_signer: {}, signaturee: [ {} ], nonce: [ {}u128, {}u128 ] }}"#,
             self.weighted_signers.to_aleo_string()?,
-            todo!(),
-            // self.signature.to_aleo_string()?,
-            self.nonce[0],
-            self.nonce[1],
+            self.signature.iter()
+                .map(|sig| {
+                    format!("[{}]", sig.iter()
+                        .map(|s| s.to_aleo_string())
+                        .collect::<Result<Vec<_>, Report<Error>>>().unwrap() // TODO: remove unwrap
+                        .join(", ")
+                    )
+                })
+                .collect::<Vec<_>>()
+                .join(", "),
+            // self.nonce[0],
+            // self.nonce[1],
         );
 
         Ok(res)
