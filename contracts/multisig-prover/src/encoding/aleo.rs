@@ -26,7 +26,7 @@ pub fn payload_digest<N: Network>(
                 .change_context(ContractError::InvalidMessage)?
                 .then(Messages::from);
 
-            let group: aleo_gateway::MessageGroup<N, 16, 12> =
+            let group: aleo_gateway::MessageGroup<N, 16, 3> =
                 aleo_gateway::MessageGroup::new(messages.0)
                     .change_context(ContractError::InvalidMessage)?;
 
@@ -55,6 +55,7 @@ pub fn payload_digest<N: Network>(
         .bhp_string::<N>()
         .map_err(|e| ContractError::AleoError(e.to_string()))?;
 
+    println!("----> digest hash: {:?}", hash);
     let next = hash.strip_suffix("group");
     let hash = next.unwrap_or(&hash);
 

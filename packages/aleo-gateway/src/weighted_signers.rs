@@ -8,17 +8,19 @@ use crate::weighted_signer::WeightedSigner;
 use crate::{AleoValue, Error};
 
 #[derive(Debug, Clone)]
-pub struct WeightedSigners {
-    pub signers: [[WeightedSigner; 32]; 2],
+pub struct WeightedSigners<const GROUP_SIZE: usize = 2, const GROUPS: usize = 2> {
+    pub signers: [[WeightedSigner; GROUP_SIZE]; GROUPS],
     threshold: Uint128,
     // nonce: [u64; 4], // TODO: this should be included before going to main net
 }
 
-impl TryFrom<&VerifierSet> for WeightedSigners {
+impl<const GROUP_SIZE: usize, const GROUPS: usize> TryFrom<&VerifierSet>
+    for WeightedSigners<GROUP_SIZE, GROUPS>
+{
     type Error = Report<Error>;
 
     fn try_from(value: &VerifierSet) -> Result<Self, Self::Error> {
-        if value.signers.len() > 64 {
+        if value.signers.len() > GROUP_SIZE * GROUPS {
             return Err(Report::new(Error::AleoGateway(
                 "Too many signers in the verifier set".to_string(),
             )));
@@ -50,7 +52,7 @@ impl TryFrom<&VerifierSet> for WeightedSigners {
                     weight: Default::default(),
                 })
             }))
-            .take(64)
+            .take(GROUP_SIZE * GROUPS)
             .collect::<Result<Vec<_>, _>>()?;
 
         // signers.sort_by(|signer1, signer2| signer1.signer.cmp(&signer2.signer));
@@ -68,20 +70,28 @@ impl TryFrom<&VerifierSet> for WeightedSigners {
         let threshold = value.threshold;
         let nonce = [0, 0, 0, value.created_at];
 
-        // TODO: refactor this to be more efficient
-        let mut iter = signers.into_iter();
-        let first_vec: Vec<_> = iter.by_ref().take(32).collect();
-        let second_vec: Vec<_> = iter.collect();
+        // Distribute signers across groups
+        let mut grouped_signers = Vec::with_capacity(GROUPS);
+        for group_idx in 0..GROUPS {
+            let start = group_idx * GROUP_SIZE;
+            let end = start + GROUP_SIZE;
 
-        // Convert to arrays
-        let first_array: [WeightedSigner; 32] =
-            first_vec.try_into().expect("Should be exactly 32 elements");
-        let second_array: [WeightedSigner; 32] = second_vec
+            let group_vec: Vec<_> = signers[start..end].to_vec();
+            let group_array: [WeightedSigner; GROUP_SIZE] = group_vec.try_into().expect(&format!(
+                "Group {} should have exactly {} elements",
+                group_idx, GROUP_SIZE
+            ));
+
+            grouped_signers.push(group_array);
+        }
+
+        // Convert Vec<[WeightedSigner; GROUP_SIZE]> to [[WeightedSigner; GROUP_SIZE]; GROUPS]
+        let signers_array: [[WeightedSigner; GROUP_SIZE]; GROUPS] = grouped_signers
             .try_into()
-            .expect("Should be exactly 32 elements");
+            .unwrap_or_else(|_| panic!("Failed to convert to array of size {}", GROUPS));
 
         Ok(WeightedSigners {
-            signers: [first_array, second_array],
+            signers: signers_array,
             threshold,
             // nonce,
         })
@@ -91,7 +101,7 @@ impl TryFrom<&VerifierSet> for WeightedSigners {
 impl AleoValue for WeightedSigners {
     fn to_aleo_string(&self) -> Result<String, Report<Error>> {
         let res = format!(
-            r#"{{ signers: [ {}, {} ], threshold: {}u128 }}"#,
+            r#"{{ signers: [ [{}], [{}] ], threshold: {}u128 }}"#,
             // r#"{{ signers: [ {}, {} ], threshold: {}u128, nonce: [ {}u64, {}u64, {}u64, {}u64 ] }}"#,
             self.signers[0]
                 .iter()

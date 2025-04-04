@@ -3,7 +3,7 @@ use error_stack::Report;
 
 use crate::{AleoValue, Error};
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Default)]
 pub struct WeightedSigner {
     pub signer: Address,
     pub weight: u128,
