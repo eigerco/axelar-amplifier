@@ -65,14 +65,14 @@ impl<const GROUP_SIZE: usize, const GROUPS: usize> Proof<GROUP_SIZE, GROUPS> {
             })
             .collect();
 
-        // TO-DO: refactor this to be more efficient
+        // TODO: refactor this to be more efficient
         let mut signature: [[RawSignature; GROUP_SIZE]; GROUPS] =
             core::array::from_fn(|_| core::array::from_fn(|_| RawSignature::default()));
 
         for (group_idx, signer_group) in weighted_signers.signers.iter().enumerate() {
             for (signer_idx, weighted_signer) in signer_group.iter().enumerate() {
                 if weighted_signer.signer == Address::default() {
-                    // TO-DO: break outer
+                    // TODO: break outer
                     break;
                 }
 

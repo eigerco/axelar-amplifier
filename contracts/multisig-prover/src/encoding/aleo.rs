@@ -26,12 +26,14 @@ pub fn payload_digest<N: Network>(
                 .change_context(ContractError::InvalidMessage)?
                 .then(Messages::from);
 
+            // TODO: make the MessageGroup configurable from outside
             let group: aleo_gateway::MessageGroup<N, 2, 2> =
                 aleo_gateway::MessageGroup::new(messages.0)
                     .change_context(ContractError::InvalidMessage)?;
 
             group.bhp_string::<N>()
         }
+        // TODO: make the WeightedSigners configurable from outside
         Payload::VerifierSet(verifier_set) => WeightedSigners::<2, 2>::try_from(verifier_set)
             .change_context(ContractError::InvalidVerifierSet)?
             .bhp_string::<N>(),
