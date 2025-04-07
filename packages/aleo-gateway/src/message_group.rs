@@ -30,7 +30,6 @@ impl<N: Network, const MN: usize, const MG: usize> MessageGroup<N, MN, MG> {
         for (i, message) in messages.iter().enumerate() {
             message_groups[i / MN][i % MN] = *message;
         }
-        println!("message_groups hash: {:?}", message_groups);
 
         Ok(Self {
             messages: message_groups,

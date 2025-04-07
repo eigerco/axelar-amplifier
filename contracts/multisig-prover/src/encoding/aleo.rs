@@ -48,14 +48,11 @@ pub fn payload_digest<N: Network>(
 
     let payload_digest = PayloadDigest::new(&domain_separator, verifier_set, data_hash)
         .map_err(|e| ContractError::AleoError(e.to_string()))?;
-    // TODO: print this to
-    println!("----> payload_digest: {:?}", payload_digest.to_aleo_string());
 
     let hash = payload_digest
         .bhp_string::<N>()
         .map_err(|e| ContractError::AleoError(e.to_string()))?;
 
-    println!("----> digest hash: {:?}", hash);
     let next = hash.strip_suffix("group");
     let hash = next.unwrap_or(&hash);
 
@@ -83,7 +80,6 @@ pub fn encode_execute_data(
         Payload::VerifierSet(_verifier_set) => todo!(),
     };
 
-    println!("----> signatures: {:?}", signatures);
     let proof = aleo_gateway::Proof::new(verifier_set.clone(), signatures)
         .change_context(ContractError::Proof)?;
 
@@ -96,7 +92,6 @@ pub fn encode_execute_data(
         .to_aleo_string()
         .map_err(|e| ContractError::AleoError(e.to_string()))?;
 
-    println!("-->{:?}<--", execute_data);
     Ok(HexBinary::from(execute_data.as_bytes()))
 }
 
@@ -190,15 +185,12 @@ mod tests {
         )
         .unwrap();
 
-        let execute_data = encode_execute_data(
+        let _execute_data = encode_execute_data(
             &domain_separator,
             &verifier_set,
             vec![aleo_sig(digest)],
             &Payload::Messages(vec![message()]),
         )
         .unwrap();
-
-        println!("-----------------------------");
-        println!("----> execute_data: >{:?}<", execute_data);
     }
 }

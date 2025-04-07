@@ -65,29 +65,22 @@ impl<const GROUP_SIZE: usize, const GROUPS: usize> Proof<GROUP_SIZE, GROUPS> {
             })
             .collect();
 
-        println!("all signatures: {:?}", my_map);
-
         // TO-DO: refactor this to be more efficient
         let mut signature: [[RawSignature; GROUP_SIZE]; GROUPS] =
             core::array::from_fn(|_| core::array::from_fn(|_| RawSignature::default()));
 
-        let mut i = 0;
         for (group_idx, signer_group) in weighted_signers.signers.iter().enumerate() {
             for (signer_idx, weighted_signer) in signer_group.iter().enumerate() {
                 if weighted_signer.signer == Address::default() {
                     // TO-DO: break outer
                     break;
                 }
-                println!("HELLO ONE >{}<", weighted_signer.signer);
 
                 if let Some(sig) = my_map.get(&weighted_signer.signer) {
-                    println!("HELLO TWO >{}<", sig);
                     signature[group_idx][signer_idx] = RawSignature {
                         signature: sig.as_slice().to_vec(),
                     };
                 }
-
-                i += 1;
             }
         }
 
