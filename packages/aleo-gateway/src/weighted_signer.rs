@@ -12,7 +12,7 @@ pub struct WeightedSigner {
 impl AleoValue for WeightedSigner {
     fn to_aleo_string(&self) -> Result<String, Report<Error>> {
         let res = format!(
-            r#"{{signer: {}, weight: {}u128}}"#,
+            r#"{{addr: {}, weight: {}u128}}"#,
             self.signer.0, self.weight
         );
 

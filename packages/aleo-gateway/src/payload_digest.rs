@@ -29,7 +29,7 @@ impl<'a> PayloadDigest<'a> {
 impl AleoValue for PayloadDigest<'_> {
     fn to_aleo_string(&self) -> Result<String, Report<Error>> {
         let res = format!(
-            r#"{{ domain_separator: [{}], signer: [{}], data_hash: {} }}"#,
+            r#"{{ domain_separator: [{}], signer: {}, data_hash: {} }}"#,
             self.domain_separator
                 .iter()
                 .map(|b| format!("{}u128", b))

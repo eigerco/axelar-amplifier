@@ -49,7 +49,7 @@ pub fn payload_digest<N: Network>(
     let payload_digest = PayloadDigest::new(&domain_separator, verifier_set, data_hash)
         .map_err(|e| ContractError::AleoError(e.to_string()))?;
     // TODO: print this to
-    println!("----> payload_digest: {:?}", payload_digest);
+    println!("----> payload_digest: {:?}", payload_digest.to_aleo_string());
 
     let hash = payload_digest
         .bhp_string::<N>()

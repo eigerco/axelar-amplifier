@@ -125,7 +125,7 @@ impl<const GROUP_SIZE: usize, const GROUPS: usize> AleoValue
         }
 
         // Add the threshold and closing part
-        res.push_str(&format!(" ], threshold: {}u128 }}", self.threshold));
+        res.push_str(&format!(" ], quorum: {}u128 }}", self.threshold));
 
         Ok(res)
     }
