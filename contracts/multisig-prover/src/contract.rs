@@ -76,6 +76,7 @@ pub fn execute(
     info: MessageInfo,
     msg: ExecuteMsg,
 ) -> Result<Response, axelar_wasm_std::error::ContractError> {
+    println!("HELLO WORLD: {:?}", msg);
     match msg.ensure_permissions(deps.storage, &info.sender)? {
         ExecuteMsg::ConstructProof(message_ids) => Ok(execute::construct_proof(deps, message_ids)?),
         ExecuteMsg::UpdateVerifierSet {} => Ok(execute::update_verifier_set(deps, env)?),
@@ -511,7 +512,6 @@ mod tests {
     }
 
     #[test]
-    #[ignore = "this should be enabled when the functionality of signers rotation is reset"]
     fn test_update_verifier_set_remove_one() {
         let mut deps = setup_test_case();
         let res = execute_update_verifier_set(deps.as_mut());
@@ -542,7 +542,6 @@ mod tests {
     }
 
     #[test]
-    #[ignore = "this should be enabled when the functionality of signers rotation is reset"]
     fn test_update_verifier_set_add_one() {
         let mut deps = setup_test_case();
 
@@ -577,7 +576,6 @@ mod tests {
     }
 
     #[test]
-    #[ignore = "this should be enabled when the functionality of signers rotation is reset"]
     fn test_update_verifier_set_change_public_key() {
         let mut deps = setup_test_case();
         let res = execute_update_verifier_set(deps.as_mut());
@@ -612,7 +610,6 @@ mod tests {
     }
 
     #[test]
-    #[ignore = "this should be enabled when the functionality of signers rotation is reset"]
     fn test_update_verifier_set_unchanged() {
         let mut deps = setup_test_case();
         let res = execute_update_verifier_set(deps.as_mut());
@@ -630,7 +627,6 @@ mod tests {
     }
 
     #[test]
-    #[ignore = "this should be enabled when the functionality of signers rotation is reset"]
     fn test_confirm_verifier_set_unconfirmed() {
         let mut deps = setup_test_case();
         let api = deps.api;
@@ -658,7 +654,6 @@ mod tests {
     }
 
     #[test]
-    #[ignore = "this should be enabled when the functionality of signers rotation is reset"]
     fn test_confirm_verifier_set_wrong_set() {
         let mut deps = setup_test_case();
         let api = deps.api;
@@ -832,7 +827,6 @@ mod tests {
     }
 
     #[test]
-    #[ignore = "this should be enabled when the functionality of signers rotation is reset"]
     fn update_signing_threshold_should_change_future_threshold() {
         let mut deps = setup_test_case();
         let api = deps.api;
@@ -856,7 +850,6 @@ mod tests {
     }
 
     #[test]
-    #[ignore = "this should be enabled when the functionality of signers rotation is reset"]
     fn should_confirm_new_threshold() {
         let mut deps = setup_test_case();
         let api = deps.api;
