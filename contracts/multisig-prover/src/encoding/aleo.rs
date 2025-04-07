@@ -72,29 +72,45 @@ pub fn encode_execute_data(
     signatures: Vec<SignerWithSig>,
     payload: &Payload,
 ) -> Result<HexBinary, ContractError> {
-    let payload = match payload {
-        Payload::Messages(messages) => messages
-            .iter()
-            .map(Message::try_from)
-            .collect::<Result<Vec<_>, _>>()
-            .change_context(ContractError::InvalidMessage)?
-            .then(Messages::from),
-        Payload::VerifierSet(_verifier_set) => todo!(),
-    };
+    match payload {
+        Payload::Messages(messages) => {
+            let gmp_messages = messages
+                .iter()
+                .map(Message::try_from)
+                .collect::<Result<Vec<_>, _>>()
+                .change_context(ContractError::InvalidMessage)?
+                .then(Messages::from);
 
-    let proof = aleo_gateway::Proof::new(verifier_set.clone(), signatures)
-        .change_context(ContractError::Proof)?;
+            let proof = aleo_gateway::Proof::new(verifier_set.clone(), signatures)
+                .change_context(ContractError::Proof)?;
 
-    let execute_data = aleo_gateway::ExecuteData::new(
-        proof,
-        payload.0.first().ok_or(ContractError::Proof)?.clone(),
-    );
+            let execute_data = aleo_gateway::ExecuteDataMessages::new(
+                proof,
+                gmp_messages
+            );
 
-    let execute_data = execute_data
-        .to_aleo_string()
-        .map_err(|e| ContractError::AleoError(e.to_string()))?;
+            let execute_data = execute_data
+                .to_aleo_string()
+                .map_err(|e| ContractError::AleoError(e.to_string()))?;
 
-    Ok(HexBinary::from(execute_data.as_bytes()))
+            Ok(HexBinary::from(execute_data.as_bytes()))
+        }
+        Payload::VerifierSet(verifier_set) => {
+            let proof = aleo_gateway::Proof::new(verifier_set.clone(), signatures)
+                .change_context(ContractError::Proof)?;
+
+            let execute_data = aleo_gateway::ExecuteDataVerifierSet::<2, 2>::new(
+                proof,
+                verifier_set.clone(),
+            );
+
+            let execute_data = execute_data
+                .to_aleo_string()
+                .map_err(|e| ContractError::AleoError(e.to_string()))?;
+
+            Ok(HexBinary::from(execute_data.as_bytes()))
+        },
+    }
 }
 
 #[cfg(test)]

@@ -224,7 +224,6 @@ pub fn update_verifier_set(
     deps: DepsMut,
     env: Env,
 ) -> error_stack::Result<Response, ContractError> {
-    // TODO: restore signers rotation
     let config = CONFIG.load(deps.storage).map_err(ContractError::from)?;
 
     let coordinator: coordinator::Client =
