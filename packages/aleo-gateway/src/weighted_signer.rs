@@ -1,9 +1,10 @@
 use aleo_types::address::Address;
 use error_stack::Report;
+use serde::{Deserialize, Serialize};
 
 use crate::{AleoValue, Error};
 
-#[derive(Debug, Clone, Default)]
+#[derive(Debug, Clone, Default, Deserialize, Serialize)]
 pub struct WeightedSigner {
     pub signer: Address,
     pub weight: u128,

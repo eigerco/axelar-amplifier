@@ -84,10 +84,7 @@ pub fn encode_execute_data(
             let proof = aleo_gateway::Proof::new(verifier_set.clone(), signatures)
                 .change_context(ContractError::Proof)?;
 
-            let execute_data = aleo_gateway::ExecuteDataMessages::new(
-                proof,
-                gmp_messages
-            );
+            let execute_data = aleo_gateway::ExecuteDataMessages::new(proof, gmp_messages);
 
             let execute_data = execute_data
                 .to_aleo_string()
@@ -99,17 +96,15 @@ pub fn encode_execute_data(
             let proof = aleo_gateway::Proof::new(verifier_set.clone(), signatures)
                 .change_context(ContractError::Proof)?;
 
-            let execute_data = aleo_gateway::ExecuteDataVerifierSet::<2, 2>::new(
-                proof,
-                verifier_set.clone(),
-            );
+            let execute_data =
+                aleo_gateway::ExecuteDataVerifierSet::<2, 2>::new(proof, verifier_set.clone());
 
             let execute_data = execute_data
                 .to_aleo_string()
                 .map_err(|e| ContractError::AleoError(e.to_string()))?;
 
             Ok(HexBinary::from(execute_data.as_bytes()))
-        },
+        }
     }
 }
 

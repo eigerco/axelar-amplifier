@@ -117,6 +117,8 @@ dependencies = [
  "multisig",
  "rand 0.8.5",
  "router-api",
+ "serde",
+ "serde_with",
  "snarkvm-cosmwasm",
  "thiserror 1.0.69",
 ]

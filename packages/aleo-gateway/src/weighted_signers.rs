@@ -3,12 +3,16 @@ use cosmwasm_std::Uint128;
 use error_stack::Report;
 use multisig::key::PublicKey;
 use multisig::verifier_set::VerifierSet;
+use serde::{Deserialize, Serialize};
+ use serde_with::serde_as;
 
 use crate::weighted_signer::WeightedSigner;
 use crate::{AleoValue, Error};
 
-#[derive(Debug, Clone)]
+#[serde_as]
+#[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct WeightedSigners<const GROUP_SIZE: usize = 2, const GROUPS: usize = 2> {
+    #[serde_as(as = "[[_; GROUP_SIZE]; GROUPS]")]
     pub signers: [[WeightedSigner; GROUP_SIZE]; GROUPS],
     threshold: Uint128,
     // nonce: [u64; 4], // TODO: this should be included before going to main net
