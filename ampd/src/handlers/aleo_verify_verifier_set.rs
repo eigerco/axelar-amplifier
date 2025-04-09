@@ -1,6 +1,7 @@
 use std::collections::{HashMap, HashSet};
 use std::str::FromStr;
 
+use aleo_gateway::WeightedSigners;
 use aleo_types::address::Address as AleoAddress;
 use aleo_types::program::Program;
 use aleo_types::transition::Transition;
@@ -178,7 +179,9 @@ where
         .in_scope(|| {
             info!("ready to verify messages in poll");
 
-            let vote = verify_verifier_set(&receipt.1);
+            let weighted_signers = WeightedSigners::try_from(&verifier_set.verifier_set).unwrap();
+
+            let vote = verify_verifier_set(&receipt.1, &weighted_signers);
             info!(
                 vote = ?vote,
                 "ready to vote for messages in poll"

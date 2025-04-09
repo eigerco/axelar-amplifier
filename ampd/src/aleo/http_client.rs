@@ -211,13 +211,29 @@ where
             },
         )))
     }
+
     pub fn check_signer_rotation(self) -> Result<Receipt, Error> {
         let outputs = self.state.transition.outputs;
         let signer_rotation = find_signer_rotation(&outputs).ok_or(Error::CallContractNotFound)?;
         let scm = self.state.transition.scm.as_str();
 
+        let signers_rotation_calls = self
+            .state
+            .transaction
+            .execution
+            .transitions
+            .iter()
+            .filter(|t| {
+                t.scm == scm
+                    && t.program == self.target_contract.as_str()
+                    && t.id != self.state.transition.id
+            })
+            .count();
+
+        ensure!(signers_rotation_calls == 1, Error::CallContractNotFound);
+
         Ok(Receipt::Found(FoundReceipt::SignerRotation(
-            SignerRotationReceipt {},
+            signer_rotation,
         )))
     }
 }
@@ -300,7 +316,7 @@ pub enum Receipt {
 #[derive(Debug)]
 pub enum FoundReceipt {
     CallContract(CallContractReceipt),
-    SignerRotation(SignerRotationReceipt),
+    SignerRotation(SignerRotation),
 }
 
 #[derive(Debug)]
@@ -476,7 +492,7 @@ impl ClientTrait for Client {
     }
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, PartialEq, Eq)]
 pub struct SignerRotation {
     pub(crate) block_height: u32,
     pub(crate) signers_hash: String,

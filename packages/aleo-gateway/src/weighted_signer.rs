@@ -4,7 +4,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::{AleoValue, Error};
 
-#[derive(Debug, Clone, Default, Deserialize, Serialize)]
+#[derive(Debug, Clone, Default, Deserialize, Serialize, PartialEq, Eq)]
 pub struct WeightedSigner {
     pub signer: Address,
     pub weight: u128,

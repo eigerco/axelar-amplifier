@@ -10,7 +10,7 @@ use crate::weighted_signer::WeightedSigner;
 use crate::{AleoValue, Error};
 
 #[serde_as]
-#[derive(Debug, Clone, Deserialize, Serialize)]
+#[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Eq)]
 pub struct WeightedSigners<const GROUP_SIZE: usize = 2, const GROUPS: usize = 2> {
     #[serde_as(as = "[[_; GROUP_SIZE]; GROUPS]")]
     pub signers: [[WeightedSigner; GROUP_SIZE]; GROUPS],
