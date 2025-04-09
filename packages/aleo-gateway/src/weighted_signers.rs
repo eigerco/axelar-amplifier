@@ -4,7 +4,7 @@ use error_stack::Report;
 use multisig::key::PublicKey;
 use multisig::verifier_set::VerifierSet;
 use serde::{Deserialize, Serialize};
- use serde_with::serde_as;
+use serde_with::serde_as;
 
 use crate::weighted_signer::WeightedSigner;
 use crate::{AleoValue, Error};

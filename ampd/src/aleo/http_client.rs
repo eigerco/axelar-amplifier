@@ -40,8 +40,8 @@ pub enum Error {
     FailedToCreateAleoID(String),
     #[error("Failed to create hash payload: {0}")]
     PayloadHash(String),
-    #[error("Failed to find transition '{0}' in transaction '{1}'")]
-    TransitionNotFoundInTransaction(String, String),
+    #[error("Failed to find transition '{0}' in transaction")]
+    TransitionNotFoundInTransaction(String),
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -142,7 +142,9 @@ where
             .transitions
             .iter()
             .find(|t| t.program.as_str() == self.target_contract.as_str())
-            .ok_or(Error::TransitionNotFoundInTransaction("foo".to_string(), "bar".to_string()))?
+            .ok_or(Error::TransitionNotFoundInTransaction(
+                self.target_contract.to_string(),
+            ))?
             .clone(); // TODO: remove clone
 
         Ok(Driver {
@@ -214,36 +216,6 @@ where
         let signer_rotation = find_signer_rotation(&outputs).ok_or(Error::CallContractNotFound)?;
         let scm = self.state.transition.scm.as_str();
 
-        // let gateway_calls_count = self
-        //     .state
-        //     .transaction
-        //     .execution
-        //     .transitions
-        //     .iter()
-        //     .filter(|t| t.scm == scm && t.program == self.target_contract.as_str())
-        //     .count();
-        //
-        // ensure!(gateway_calls_count == 1, Error::CallContractNotFound);
-        //
-        // let same_scm: Vec<_> = self
-        //     .state
-        //     .transaction
-        //     .execution
-        //     .transitions
-        //     .iter()
-        //     .filter(|t| t.scm == scm && t.id != self.state.transition.id)
-        //     .collect();
-        //
-        // ensure!(same_scm.len() == 1, Error::UserCallnotFound);
-        //
-        // let parsed_output =
-        //     parse_user_output(&same_scm[0].outputs).change_context(Error::UserCallnotFound)?;
-        //
-        // ensure!(
-        //     parsed_output.call_contract == call_contract,
-        //     Error::UserCallnotFound
-        // );
-        //
         Ok(Receipt::Found(FoundReceipt::SignerRotation(
             SignerRotationReceipt {},
         )))
@@ -391,9 +363,7 @@ impl PartialEq<crate::handlers::aleo_verify_msg::Message> for CallContractReceip
 }
 
 #[derive(Debug, PartialEq, Eq)]
-pub struct SignerRotationReceipt {
-
-}
+pub struct SignerRotationReceipt {}
 
 // impl PartialEq<crate::handlers::aleo_verify_msg::Message> for SignerRotationReceipt {
 //     fn eq(&self, message: &crate::handlers::aleo_verify_verifier_set::VerifierSetConfirmation) -> bool {
