@@ -40,6 +40,8 @@ pub enum Error {
     FailedToCreateAleoID(String),
     #[error("Failed to create hash payload: {0}")]
     PayloadHash(String),
+    #[error("Failed to find transition '{0}' in transaction '{1}'")]
+    TransitionNotFoundInTransaction(String, String),
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -92,7 +94,7 @@ where
             .client
             .find_transaction(&transition_id)
             .await
-            .change_context(Error::TransactionNotFound(transition_id.to_string()))?;
+            .change_context(Error::TransitionNotFound(transition_id.to_string()))?;
 
         let transaction = transaction_id.trim_matches('"');
 
@@ -140,7 +142,7 @@ where
             .transitions
             .iter()
             .find(|t| t.program.as_str() == self.target_contract.as_str())
-            .unwrap()
+            .ok_or(Error::TransitionNotFoundInTransaction("foo".to_string(), "bar".to_string()))?
             .clone(); // TODO: remove clone
 
         Ok(Driver {
@@ -388,8 +390,16 @@ impl PartialEq<crate::handlers::aleo_verify_msg::Message> for CallContractReceip
     }
 }
 
-#[derive(Debug)]
-pub struct SignerRotationReceipt {}
+#[derive(Debug, PartialEq, Eq)]
+pub struct SignerRotationReceipt {
+
+}
+
+// impl PartialEq<crate::handlers::aleo_verify_msg::Message> for SignerRotationReceipt {
+//     fn eq(&self, message: &crate::handlers::aleo_verify_verifier_set::VerifierSetConfirmation) -> bool {
+//         true
+//     }
+// }
 
 fn payload_hash(payload: &[u8], destination_chain: &str) -> std::result::Result<Hash, Error> {
     let payload = std::str::from_utf8(payload).map_err(|e| Error::PayloadHash(e.to_string()))?;

@@ -24,3 +24,7 @@ fn verify(receipt: &Receipt, msg: &Message) -> Vote {
 pub fn verify_message(receipt: &Receipt, msg: &Message) -> Vote {
     verify(receipt, msg)
 }
+
+pub fn verify_verifier_set(receipt: &Receipt) -> Vote {
+    todo!()
+}

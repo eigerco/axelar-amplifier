@@ -1,6 +1,8 @@
 use std::collections::{HashMap, HashSet};
+use std::str::FromStr;
 
 use aleo_types::address::Address as AleoAddress;
+use aleo_types::program::Program;
 use aleo_types::transition::Transition;
 use async_trait::async_trait;
 use axelar_wasm_std::voting::{PollId, Vote};
@@ -19,9 +21,8 @@ use tracing::{debug, info, info_span};
 use valuable::Valuable;
 use voting_verifier::msg::ExecuteMsg;
 
-use crate::aleo::http_client::{
-    ClientTrait as AleoClientTrait, ClientWrapper as AleoClientWrapper, Receipt,
-};
+use crate::aleo::http_client::{ClientTrait as AleoClientTrait, Driver, Receipt};
+use crate::aleo::verifier::verify_verifier_set;
 use crate::event_processor::EventHandler;
 use crate::handlers::errors::Error;
 use crate::handlers::errors::Error::DeserializeEvent;
@@ -52,7 +53,7 @@ pub struct Handler<C: AleoClientTrait> {
     http_client: C,
     latest_block_height: Receiver<u64>,
     chain: ChainName,
-    gateway_contract: String,
+    verifier_set_contract: String,
 }
 
 impl<C> Handler<C>
@@ -73,7 +74,7 @@ where
             http_client: aleo_client,
             latest_block_height,
             chain,
-            gateway_contract,
+            verifier_set_contract: gateway_contract,
         }
     }
 
@@ -88,6 +89,33 @@ where
             .expect("vote msg should serialize"),
             funds: vec![],
         }
+    }
+}
+
+async fn fetch_transition_receipt<C>(
+    http_client: &C,
+    program: Program,
+    id: Transition,
+) -> (Transition, Receipt)
+where
+    C: AleoClientTrait + Send + Sync + 'static,
+{
+    let driver = Driver::new(http_client, program);
+
+    let receipt = async {
+        driver
+            .get_transaction_id(id.clone())
+            .await?
+            .get_transaction()
+            .await?
+            .get_transition()? // TODO: check if this should go out of async
+            .check_signer_rotation()
+    }
+    .await;
+
+    match receipt {
+        Ok(receipt) => (id, receipt),
+        Err(e) => (id.clone(), Receipt::NotFound(id, e)),
     }
 }
 
@@ -134,38 +162,26 @@ where
         // Transition IDs on Aleo chain
         let transition = verifier_set.tx_id;
 
-        let http_client = AleoClientWrapper::new(&self.http_client);
-        let receipt = http_client
-            .transition_receipt(&transition, self.gateway_contract.as_str())
-            .await;
+        let program = Program::from_str(self.verifier_set_contract.as_str()).unwrap();
+
+        let receipt =
+            fetch_transition_receipt(&self.http_client, program, transition.clone()).await;
 
         let poll_id_str: String = poll_id.into();
         let source_chain_str: String = source_chain.into();
         let vote = info_span!(
-            "verify verifier set from an Aleo chain",
+            "verify messages from an Aleo chain",
             poll_id = poll_id_str,
             source_chain = source_chain_str,
-            id = transition.to_string(),
+            message_ids = transition.to_string(),
         )
         .in_scope(|| {
             info!("ready to verify messages in poll");
 
-            let vote = receipt.map_or(Vote::NotFound, |tx_receipt| {
-                todo!()
-                // crate::aleo::verifier::verify_message(&tx_receipt, transition)
-            });
-            // let vote = receipt.map_or(Vote::NotFound, |tx_receipt| {
-            //         todo!()
-            //     // crate::aleo::verifier::verify_verifier_set(
-            //     //     &verifier_set.verifier_set,
-            //     //     &tx_receipt,
-            //     //     &verifier_set,
-            //     // )
-            // });
-
+            let vote = verify_verifier_set(&receipt.1);
             info!(
-                vote = vote.as_value(),
-                "ready to vote for new verifier set in poll"
+                vote = ?vote,
+                "ready to vote for messages in poll"
             );
 
             vote
