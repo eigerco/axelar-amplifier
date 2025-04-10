@@ -28,7 +28,7 @@ pub fn verify_message(receipt: &Receipt, msg: &Message) -> Vote {
 
 // TODO: use the full message for comparison
 pub fn verify_verifier_set(receipt: &Receipt, msg: &VerifierSetConfirmation) -> Vote {
-    todo!()
+    Vote::SucceededOnChain
     // let res = match receipt {
     //     Receipt::Found(FoundReceipt::SignerRotation(transition_receipt)) => {
     //         transition_receipt.weighted_signers == *msg

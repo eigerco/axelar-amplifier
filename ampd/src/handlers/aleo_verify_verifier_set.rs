@@ -1,3 +1,4 @@
+use std::borrow::Borrow;
 use std::collections::{HashMap, HashSet};
 use std::str::FromStr;
 
@@ -158,7 +159,13 @@ where
             return Ok(vec![]);
         }
 
-        if *self.latest_block_height.borrow() >= expires_at {
+        let latest_block_height = *self.latest_block_height.borrow();
+        println!(
+            "HELLO: {:?} -- {:?}",
+            *self.latest_block_height.borrow(),
+            expires_at
+        );
+        if latest_block_height >= expires_at {
             info!(poll_id = poll_id.to_string(), "skipping expired poll");
             return Ok(vec![]);
         }
@@ -204,85 +211,33 @@ mod tests {
     use std::str::FromStr;
 
     use aleo_types::transition::Transition;
-    use axelar_wasm_std::msg_id::HexTxHashAndEventIndex;
     use axelar_wasm_std::voting::PollId;
-    use cosmwasm_std::Addr;
-    use error_stack::Report;
-    use ethers_core::types::H256;
-    use ethers_providers::ProviderError;
     use events::Event;
     use multisig::key::KeyType;
-    use multisig::test::common::{aleo_schnorr_test_data, build_verifier_set, ecdsa_test_data};
+    use multisig::test::common::{aleo_schnorr_test_data, build_verifier_set};
     use multisig::verifier_set::VerifierSet;
     use router_api::ChainName;
-    use tokio::sync::watch;
-    use tokio::test as async_test;
     use voting_verifier::events::{PollMetadata, PollStarted, VerifierSetConfirmation};
 
-    use crate::event_processor::EventHandler;
-    use crate::evm::finalizer::Finalization;
-    use crate::evm::json_rpc::MockEthereumClient;
     use crate::handlers::aleo_verify_verifier_set::PollStartedEvent;
-    // use crate::handlers::evm_verify_verifier_set::PollStartedEvent;
     use crate::handlers::tests::{into_structured_event, participants};
     use crate::types::TMAddress;
     use crate::PREFIX;
 
     #[test]
     fn aleo_verify_verifier_set_should_deserialize_correct_event() {
-        let config = config(None);
+        let expiration = 100u64;
+        let config = config(None, expiration);
 
-        let event: Event = into_structured_event(
-            poll_started_event(&config),
-            &TMAddress::random(PREFIX),
-        );
+        let event: Event =
+            into_structured_event(poll_started_event(&config), &TMAddress::random(PREFIX));
         let event: PollStartedEvent = event.try_into().unwrap();
-        println!("event: {event:#?}");
 
         goldie::assert_debug!(event);
     }
 
-    // #[async_test]
-    // async fn should_skip_expired_poll() {
-    //     let mut rpc_client = MockEthereumClient::new();
-    //     // mock the rpc client as erroring. If the handler successfully ignores the poll, we won't hit this
-    //     rpc_client.expect_finalized_block().returning(|| {
-    //         Err(Report::from(ProviderError::CustomError(
-    //             "failed to get finalized block".to_string(),
-    //         )))
-    //     });
-    //
-    //     let voting_verifier = TMAddress::random(PREFIX);
-    //     let verifier = TMAddress::random(PREFIX);
-    //     let expiration = 100u64;
-    //     let event: Event = into_structured_event(
-    //         poll_started_event(participants(5, Some(verifier.clone())), expiration),
-    //         &voting_verifier,
-    //     );
-    //
-    //     let (tx, rx) = watch::channel(expiration - 1);
-    //
-    //     let handler = super::Handler::new(
-    //         verifier,
-    //         voting_verifier,
-    //         ChainName::from_str("ethereum").unwrap(),
-    //         Finalization::RPCFinalizedBlock,
-    //         rpc_client,
-    //         rx,
-    //     );
-    //
-    //     // poll is not expired yet, should hit rpc error
-    //     assert!(handler.handle(&event).await.is_err());
-    //
-    //     let _ = tx.send(expiration + 1);
-    //
-    //     // poll is expired, should not hit rpc error now
-    //     assert_eq!(handler.handle(&event).await.unwrap(), vec![]);
-    // }
-    //
     struct Config {
         transition: Transition,
-        key_type: KeyType,
         verifier_set: VerifierSet,
         poll_id: PollId,
         source_chain: ChainName,
@@ -292,7 +247,7 @@ mod tests {
         participants: Vec<TMAddress>,
     }
 
-    fn config(verifier: Option<TMAddress>) -> Config {
+    fn config(verifier: Option<TMAddress>, expires_at: u64) -> Config {
         let transition =
             Transition::from_str("au17kdp7a7p6xuq6h0z3qrdydn4f6fjaufvzvlgkdd6vzpr87lgcgrq8qx6st")
                 .unwrap();
@@ -300,14 +255,12 @@ mod tests {
         let verifier_set = build_verifier_set(key_type, &aleo_schnorr_test_data::signers());
         let poll_id = PollId::from_str("100").unwrap();
         let source_chain = ChainName::from_str("aleo-2").unwrap();
-        let source_gateway_address = "mygateway".to_string();
+        let source_gateway_address = "mygateway.aleo".to_string();
         let confirmation_height = 15;
-        let expires_at = 100u64;
         let participants = participants(5, verifier);
 
         Config {
             transition,
-            key_type,
             verifier_set,
             poll_id,
             source_chain,
