@@ -35,7 +35,7 @@ PollStartedEvent {
     ),
     source_gateway_address: Program(
         String(
-            "mygateway",
+            "mygateway.aleo",
         ),
     ),
     expires_at: 100,

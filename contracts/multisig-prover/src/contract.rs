@@ -170,6 +170,7 @@ mod tests {
     use crate::contract::execute::should_update_verifier_set;
     use crate::encoding::Encoder;
     use crate::msg::{ProofResponse, ProofStatus, VerifierSetResponse};
+    use crate::test::aleo_test_data;
     use crate::test::test_data::{self, TestOperator};
     use crate::test::test_utils::{
         mock_querier_handler, ADMIN, COORDINATOR_ADDRESS, GATEWAY_ADDRESS, GOVERNANCE,
@@ -212,6 +213,53 @@ mod tests {
         .unwrap();
 
         deps
+    }
+
+    pub fn aleo_setup_test_case() -> OwnedDeps<MockStorage, MockApi, MockQuerier, Empty> {
+        let mut deps = mock_dependencies();
+        let api = deps.api;
+
+        deps.querier.update_wasm(mock_querier_handler(
+            aleo_test_data::operators(),
+            VerificationStatus::SucceededOnSourceChain,
+        ));
+
+        instantiate(
+            deps.as_mut(),
+            mock_env(),
+            message_info(&api.addr_make(ADMIN), &[]),
+            InstantiateMsg {
+                admin_address: api.addr_make(ADMIN).to_string(),
+                governance_address: api.addr_make(GOVERNANCE).to_string(),
+                gateway_address: api.addr_make(GATEWAY_ADDRESS).to_string(),
+                multisig_address: api.addr_make(MULTISIG_ADDRESS).to_string(),
+                coordinator_address: api.addr_make(COORDINATOR_ADDRESS).to_string(),
+                service_registry_address: api.addr_make(SERVICE_REGISTRY_ADDRESS).to_string(),
+                voting_verifier_address: api.addr_make(VOTING_VERIFIER_ADDRESS).to_string(),
+                signing_threshold: test_data::threshold(),
+                service_name: SERVICE_NAME.to_string(),
+                chain_name: "ganache-0".to_string(),
+                verifier_set_diff_threshold: 0,
+                encoder: Encoder::Aleo,
+                key_type: multisig::key::KeyType::AleoSchnorr,
+                domain_separator: [0; 32],
+            },
+        )
+        .unwrap();
+
+        deps
+    }
+
+    fn aleo_execute_update_verifier_set(
+        deps: DepsMut,
+    ) -> Result<Response, axelar_wasm_std::error::ContractError> {
+        let msg = ExecuteMsg::UpdateVerifierSet {};
+        execute(
+            deps,
+            mock_env(),
+            message_info(&MockApi::default().addr_make(ADMIN), &[]),
+            msg,
+        )
     }
 
     fn execute_update_verifier_set(
@@ -460,6 +508,29 @@ mod tests {
 
         assert_eq!(verifier_set, expected_verifier_set.into());
     }
+
+    #[test]
+    fn aleo_test_update_verifier_set_fresh() {
+        let mut deps = aleo_setup_test_case();
+        let verifier_set = query_verifier_set(deps.as_ref());
+        assert!(verifier_set.is_ok());
+        assert!(verifier_set.unwrap().is_none());
+
+        let res = aleo_execute_update_verifier_set(deps.as_mut());
+
+        assert!(res.is_ok());
+
+        let verifier_set = query_verifier_set(deps.as_ref());
+        assert!(verifier_set.is_ok());
+
+        let verifier_set = verifier_set.unwrap().unwrap();
+
+        let expected_verifier_set =
+            test_operators_to_verifier_set(aleo_test_data::operators(), mock_env().block.height);
+
+        assert_eq!(verifier_set, expected_verifier_set.into());
+    }
+
 
     #[test]
     fn test_update_verifier_set_from_non_admin_or_governance_should_fail() {

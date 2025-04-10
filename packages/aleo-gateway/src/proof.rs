@@ -4,11 +4,11 @@ use aleo_types::address::Address;
 use cosmwasm_std::HexBinary;
 use error_stack::Report;
 use multisig::key::{PublicKey, Signature};
-use multisig::msg::{Signer, SignerWithSig};
+use multisig::msg::SignerWithSig;
 use multisig::verifier_set::VerifierSet;
 
 use crate::raw_signature::RawSignature;
-use crate::{signer_with_signature, AleoValue, Error, WeightedSigners};
+use crate::{AleoValue, Error, WeightedSigners};
 
 #[derive(Clone, Debug)]
 pub struct Proof<const GROUP_SIZE: usize = 2, const GROUPS: usize = 2> {

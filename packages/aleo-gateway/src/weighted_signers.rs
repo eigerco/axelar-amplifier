@@ -72,7 +72,7 @@ impl<const GROUP_SIZE: usize, const GROUPS: usize> TryFrom<&VerifierSet>
         });
 
         let threshold = value.threshold;
-        let nonce = [0, 0, 0, value.created_at];
+        let _nonce = [0, 0, 0, value.created_at];
 
         // Distribute signers across groups
         let mut grouped_signers = Vec::with_capacity(GROUPS);
