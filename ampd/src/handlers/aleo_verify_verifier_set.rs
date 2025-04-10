@@ -19,7 +19,6 @@ use router_api::ChainName;
 use serde::{Deserialize, Serialize};
 use tokio::sync::watch::Receiver;
 use tracing::{debug, info, info_span};
-use valuable::Valuable;
 use voting_verifier::msg::ExecuteMsg;
 
 use crate::aleo::http_client::{ClientTrait as AleoClientTrait, Driver, Receipt};
@@ -33,7 +32,7 @@ type Result<T> = error_stack::Result<T, Error>;
 
 #[derive(Deserialize, Debug)]
 pub struct VerifierSetConfirmation {
-    pub tx_id: Transition,
+    pub message_id: Transition,
     pub verifier_set: VerifierSet,
 }
 
@@ -43,7 +42,9 @@ struct PollStartedEvent {
     verifier_set: VerifierSetConfirmation,
     poll_id: PollId,
     source_chain: ChainName,
+    source_gateway_address: Program,
     expires_at: u64,
+    confirmation_height: u64,
     participants: Vec<TMAddress>,
 }
 
@@ -137,7 +138,9 @@ where
         let PollStartedEvent {
             poll_id,
             source_chain,
+            source_gateway_address,
             expires_at,
+            confirmation_height,
             participants,
             verifier_set,
         } = match event.try_into() as error_stack::Result<_, _> {
@@ -161,7 +164,7 @@ where
         }
 
         // Transition IDs on Aleo chain
-        let transition = verifier_set.tx_id;
+        let transition = &verifier_set.message_id;
 
         let program = Program::from_str(self.verifier_set_contract.as_str()).unwrap();
 
@@ -179,9 +182,7 @@ where
         .in_scope(|| {
             info!("ready to verify messages in poll");
 
-            let weighted_signers = WeightedSigners::try_from(&verifier_set.verifier_set).unwrap();
-
-            let vote = verify_verifier_set(&receipt.1, &weighted_signers);
+            let vote = verify_verifier_set(&receipt.1, &verifier_set);
             info!(
                 vote = ?vote,
                 "ready to vote for messages in poll"
@@ -194,5 +195,149 @@ where
             .vote_msg(poll_id, vote)
             .into_any()
             .expect("vote msg should serialize")])
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use std::convert::TryInto;
+    use std::str::FromStr;
+
+    use aleo_types::transition::Transition;
+    use axelar_wasm_std::msg_id::HexTxHashAndEventIndex;
+    use axelar_wasm_std::voting::PollId;
+    use cosmwasm_std::Addr;
+    use error_stack::Report;
+    use ethers_core::types::H256;
+    use ethers_providers::ProviderError;
+    use events::Event;
+    use multisig::key::KeyType;
+    use multisig::test::common::{aleo_schnorr_test_data, build_verifier_set, ecdsa_test_data};
+    use multisig::verifier_set::VerifierSet;
+    use router_api::ChainName;
+    use tokio::sync::watch;
+    use tokio::test as async_test;
+    use voting_verifier::events::{PollMetadata, PollStarted, VerifierSetConfirmation};
+
+    use crate::event_processor::EventHandler;
+    use crate::evm::finalizer::Finalization;
+    use crate::evm::json_rpc::MockEthereumClient;
+    use crate::handlers::aleo_verify_verifier_set::PollStartedEvent;
+    // use crate::handlers::evm_verify_verifier_set::PollStartedEvent;
+    use crate::handlers::tests::{into_structured_event, participants};
+    use crate::types::TMAddress;
+    use crate::PREFIX;
+
+    #[test]
+    fn aleo_verify_verifier_set_should_deserialize_correct_event() {
+        let config = config(None);
+
+        let event: Event = into_structured_event(
+            poll_started_event(&config),
+            &TMAddress::random(PREFIX),
+        );
+        let event: PollStartedEvent = event.try_into().unwrap();
+        println!("event: {event:#?}");
+
+        goldie::assert_debug!(event);
+    }
+
+    // #[async_test]
+    // async fn should_skip_expired_poll() {
+    //     let mut rpc_client = MockEthereumClient::new();
+    //     // mock the rpc client as erroring. If the handler successfully ignores the poll, we won't hit this
+    //     rpc_client.expect_finalized_block().returning(|| {
+    //         Err(Report::from(ProviderError::CustomError(
+    //             "failed to get finalized block".to_string(),
+    //         )))
+    //     });
+    //
+    //     let voting_verifier = TMAddress::random(PREFIX);
+    //     let verifier = TMAddress::random(PREFIX);
+    //     let expiration = 100u64;
+    //     let event: Event = into_structured_event(
+    //         poll_started_event(participants(5, Some(verifier.clone())), expiration),
+    //         &voting_verifier,
+    //     );
+    //
+    //     let (tx, rx) = watch::channel(expiration - 1);
+    //
+    //     let handler = super::Handler::new(
+    //         verifier,
+    //         voting_verifier,
+    //         ChainName::from_str("ethereum").unwrap(),
+    //         Finalization::RPCFinalizedBlock,
+    //         rpc_client,
+    //         rx,
+    //     );
+    //
+    //     // poll is not expired yet, should hit rpc error
+    //     assert!(handler.handle(&event).await.is_err());
+    //
+    //     let _ = tx.send(expiration + 1);
+    //
+    //     // poll is expired, should not hit rpc error now
+    //     assert_eq!(handler.handle(&event).await.unwrap(), vec![]);
+    // }
+    //
+    struct Config {
+        transition: Transition,
+        key_type: KeyType,
+        verifier_set: VerifierSet,
+        poll_id: PollId,
+        source_chain: ChainName,
+        source_gateway_address: String,
+        confirmation_height: u64,
+        expires_at: u64,
+        participants: Vec<TMAddress>,
+    }
+
+    fn config(verifier: Option<TMAddress>) -> Config {
+        let transition =
+            Transition::from_str("au17kdp7a7p6xuq6h0z3qrdydn4f6fjaufvzvlgkdd6vzpr87lgcgrq8qx6st")
+                .unwrap();
+        let key_type = KeyType::AleoSchnorr;
+        let verifier_set = build_verifier_set(key_type, &aleo_schnorr_test_data::signers());
+        let poll_id = PollId::from_str("100").unwrap();
+        let source_chain = ChainName::from_str("aleo-2").unwrap();
+        let source_gateway_address = "mygateway".to_string();
+        let confirmation_height = 15;
+        let expires_at = 100u64;
+        let participants = participants(5, verifier);
+
+        Config {
+            transition,
+            key_type,
+            verifier_set,
+            poll_id,
+            source_chain,
+            source_gateway_address,
+            confirmation_height,
+            expires_at,
+            participants,
+        }
+    }
+
+    fn poll_started_event(config: &Config) -> PollStarted {
+        PollStarted::VerifierSet {
+            #[allow(deprecated)] // TODO: The below event uses the deprecated tx_id and event_index fields. Remove this attribute when those fields are removed
+            verifier_set: VerifierSetConfirmation {
+                tx_id: "foo".to_string().parse().unwrap(), // this field is deprecated
+                event_index: 0u32, // this field is deprecated
+                message_id: config.transition.to_string().parse().unwrap(),
+                verifier_set: config.verifier_set.clone(),
+            },
+            metadata: PollMetadata {
+                poll_id: config.poll_id,
+                source_chain: config.source_chain.clone(),
+                source_gateway_address: config.source_gateway_address.parse().unwrap(),
+                confirmation_height: config.confirmation_height,
+                expires_at: config.expires_at,
+                participants: config.participants.iter()
+                    .map(|addr| cosmwasm_std::Addr::unchecked(addr.to_string()))
+                    .collect(),
+
+            },
+        }
     }
 }
