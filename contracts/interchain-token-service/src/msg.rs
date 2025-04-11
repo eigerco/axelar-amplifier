@@ -6,8 +6,10 @@ use cosmwasm_schema::{cw_serde, QueryResponses};
 use msgs_derive::EnsurePermissions;
 use router_api::{Address, ChainNameRaw};
 
+pub use crate::contract::MigrateMsg;
+use crate::shared::NumBits;
 use crate::state::{TokenConfig, TokenInstance};
-use crate::TokenId;
+use crate::{TokenId, TokenSupply};
 
 pub const DEFAULT_PAGINATION_LIMIT: u32 = 30;
 
@@ -19,6 +21,7 @@ const fn default_pagination_limit() -> u32 {
 pub struct InstantiateMsg {
     pub governance_address: String,
     pub admin_address: String,
+    pub operator_address: String,
     /// The address of the axelarnet-gateway contract on Amplifier
     pub axelarnet_gateway_address: String,
 }
@@ -30,12 +33,35 @@ pub enum ExecuteMsg {
     #[permission(Specific(gateway))]
     Execute(AxelarExecutableMsg),
 
+    /// Registers an existing ITS token with the hub. This is useful for tokens that were deployed
+    /// before the hub existed and have operated in p2p mode. Both instance_chain and origin_chain
+    /// must be registered with the hub.
+    #[permission(Elevated, Specific(operator))]
+    RegisterP2pTokenInstance {
+        chain: ChainNameRaw,
+        token_id: TokenId,
+        origin_chain: ChainNameRaw,
+        decimals: u8,
+        supply: TokenSupply,
+    },
+
     /// For each chain, register the ITS contract and set config parameters.
     /// Each chain's ITS contract has to be whitelisted before
     /// ITS Hub can send cross-chain messages to it, or receive messages from it.
     /// If any chain is already registered, an error is returned.
     #[permission(Governance)]
     RegisterChains { chains: Vec<ChainConfig> },
+
+    // Increase or decrease the supply for a given token and chain.
+    // If the supply is untracked, this command will attempt to set it.
+    // Errors if the token is not deployed to the specified chain, or if
+    // the supply modification overflows or underflows
+    #[permission(Elevated, Specific(operator))]
+    ModifySupply {
+        chain: ChainNameRaw,
+        token_id: TokenId,
+        supply_modifier: SupplyModifier,
+    },
 
     /// For each chain, update the ITS contract and config parameters.
     /// If any chain has not been registered, returns an error
@@ -64,6 +90,12 @@ pub enum ChainStatusFilter {
 }
 
 #[cw_serde]
+pub enum SupplyModifier {
+    IncreaseSupply(nonempty::Uint256),
+    DecreaseSupply(nonempty::Uint256),
+}
+
+#[cw_serde]
 #[derive(Default)]
 pub struct ChainFilter {
     pub status: Option<ChainStatusFilter>,
@@ -78,8 +110,8 @@ pub struct ChainConfig {
 
 #[cw_serde]
 pub struct TruncationConfig {
-    pub max_uint: nonempty::Uint256, // The maximum uint value that is supported by the chain's token standard
-    pub max_decimals_when_truncating: u8, // The maximum number of decimals that is preserved when deploying from a chain with a larger max_uint
+    pub max_uint_bits: NumBits, // The maximum number of bits used by the chain to represent unsigned integers
+    pub max_decimals_when_truncating: u8, // The maximum number of decimals that is preserved when deploying from a chain with a larger max unsigned integer
 }
 
 #[cw_serde]
