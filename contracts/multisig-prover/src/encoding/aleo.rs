@@ -74,17 +74,22 @@ pub fn encode_execute_data(
 ) -> Result<HexBinary, ContractError> {
     match payload {
         Payload::Messages(messages) => {
-            let gmp_messages = messages
-                .iter()
-                .map(Message::try_from)
-                .collect::<Result<Vec<_>, _>>()
-                .change_context(ContractError::InvalidMessage)?
-                .then(Messages::from);
+            // TODO: make a unittest that validates that this digest is the same as the one from
+            // payload_digest
+            let message_group =
+                aleo_gateway::MessageGroup::<snarkvm_cosmwasm::network::TestnetV0, 2, 2>::new(
+                    messages
+                        .iter()
+                        .map(Message::try_from)
+                        .collect::<Result<Vec<_>, _>>()
+                        .change_context(ContractError::InvalidMessage)?,
+                )
+                .change_context(ContractError::InvalidMessage)?;
 
             let proof = aleo_gateway::Proof::new(verifier_set.clone(), signatures)
                 .change_context(ContractError::Proof)?;
 
-            let execute_data = aleo_gateway::ExecuteDataMessages::new(proof, gmp_messages);
+            let execute_data = aleo_gateway::ExecuteDataMessages::new(proof, message_group);
 
             let execute_data = execute_data
                 .to_aleo_string()
@@ -198,12 +203,14 @@ mod tests {
         )
         .unwrap();
 
-        let _execute_data = encode_execute_data(
+        let execute_data = encode_execute_data(
             &domain_separator,
             &verifier_set,
             vec![aleo_sig(digest)],
             &Payload::Messages(vec![message()]),
         )
         .unwrap();
+
+        println!("execute_data: {:?}", execute_data);
     }
 }

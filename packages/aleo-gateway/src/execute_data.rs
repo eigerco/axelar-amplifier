@@ -1,21 +1,22 @@
 use error_stack::Report;
 use multisig::verifier_set::VerifierSet;
+use snarkvm_cosmwasm::program::Network;
 
 use crate::proof::Proof;
-use crate::{AleoValue, Error, Messages, WeightedSigners};
+use crate::{AleoValue, Error, MessageGroup, WeightedSigners};
 
-pub struct ExecuteDataMessages {
+pub struct ExecuteDataMessages <N: Network, const MN: usize = 16, const MG: usize = 3> {
     proof: Proof,
-    payload: Messages,
+    payload: MessageGroup<N, MN, MG>,
 }
 
-impl ExecuteDataMessages {
-    pub fn new(proof: Proof, payload: Messages) -> ExecuteDataMessages {
+impl<N: Network, const MN: usize, const MG: usize> ExecuteDataMessages<N, MN, MG> {
+    pub fn new(proof: Proof, payload: MessageGroup<N, MN, MG>) -> Self {
         ExecuteDataMessages { proof, payload }
     }
 }
 
-impl AleoValue for ExecuteDataMessages {
+impl<N: Network, const MN: usize, const MG: usize> AleoValue for ExecuteDataMessages<N, MN, MG> {
     fn to_aleo_string(&self) -> Result<String, Report<Error>> {
         let res = format!(
             r#"{{ proof: {}, message: {} }}"#,

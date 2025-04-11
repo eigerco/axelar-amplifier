@@ -95,7 +95,7 @@ impl<const GROUP_SIZE: usize, const GROUPS: usize> Proof<GROUP_SIZE, GROUPS> {
 impl AleoValue for Proof {
     fn to_aleo_string(&self) -> Result<String, Report<Error>> {
         let res = format!(
-            r#"{{ weighted_signer: {}, signaturee: [ {} ] }}"#,
+            r#"{{ weighted_signer: {}, signatures: [ {} ] }}"#,
             // r#"{{ weighted_signer: {}, signaturee: [ {} ], nonce: [ {}u128, {}u128 ] }}"#,
             self.weighted_signers.to_aleo_string()?,
             self.signature
