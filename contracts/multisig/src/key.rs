@@ -160,8 +160,9 @@ where
     Ok(pk)
 }
 
-impl PublicKey {
-    pub fn inner(&self) -> &HexBinary {
+impl std::ops::Deref for PublicKey {
+    type Target = HexBinary;
+    fn deref(&self) -> &Self::Target {
         match &self {
             PublicKey::Ecdsa(hex_binary)
             | PublicKey::Ed25519(hex_binary)

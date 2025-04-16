@@ -54,37 +54,13 @@ pub fn parse_user_output(outputs: &[IdValuePair]) -> Result<ParsedOutput, Error>
 }
 
 /// Generic function to find a specific type in the outputs
-fn find_in_outputs<T: for<'de> serde::Deserialize<'de>>(outputs: &[IdValuePair]) -> Option<T> {
+pub fn find_in_outputs<T: for<'de> serde::Deserialize<'de>>(outputs: &[IdValuePair]) -> Option<T> {
     // Only proceed if there's exactly one output
     if outputs.len() != 1 {
         return None;
     }
 
-    outputs
-        .first()
-        .and_then(|o| match o {
-            IdValuePair {
-                id: _,
-                value: Some(value),
-            } => Some(value),
-            _ => None,
-        })
-        .and_then(|value| {
-            let json = json_like::into_json(value).ok()?;
-            serde_json::from_str::<T>(&json).ok()
-        })
-}
-
-/// Find CallContract in the outputs
-pub fn find_call_contract(
-    outputs: &[IdValuePair],
-) -> Option<crate::aleo::receipt_builder::CallContract> {
-    find_in_outputs(outputs)
-}
-
-/// Find SignerRotation in the outputs
-pub fn find_signer_rotation(
-    outputs: &[IdValuePair],
-) -> Option<crate::aleo::receipt_builder::SignerRotation> {
-    find_in_outputs(outputs)
+    let value = &outputs.first()?.value;
+    let json = json_like::into_json(value.as_ref()?).ok()?;
+    serde_json::from_str(&json).ok()
 }

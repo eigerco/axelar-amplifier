@@ -154,7 +154,7 @@ where
 {
     pub fn check_call_contract<N: Network>(self) -> Result<Receipt<CallContractReceipt<N>>, Error> {
         let outputs = self.state.transition.outputs;
-        let call_contract = find_call_contract(&outputs).ok_or(Error::CallContractNotFound)?;
+        let call_contract = find_in_outputs(&outputs).ok_or(Error::CallContractNotFound)?;
         let scm = self.state.transition.scm.as_str();
 
         let gateway_calls_count = self
@@ -203,7 +203,7 @@ where
     pub fn check_signer_rotation(self) -> Result<Receipt<SignerRotation>, Error> {
         let outputs = self.state.transition.outputs;
         let signer_rotation =
-            find_signer_rotation(&outputs).ok_or(Error::SignerRotationNotFound)?;
+            find_in_outputs(&outputs).ok_or(Error::SignerRotationNotFound)?;
         let scm = self.state.transition.scm.as_str();
 
         let signers_rotation_calls = self

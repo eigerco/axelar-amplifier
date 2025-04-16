@@ -48,6 +48,11 @@ pub enum Error {
     StringEncoder(#[from] aleo_utils::string_encoder::Error),
     #[error("InvalidMessageGroupLength: expected: {max}, actual: {actual}")]
     InvalidMessageGroupLength { max: usize, actual: usize },
+    #[error("The number of address signatures ({address_signatures}) does not match the number of signer signatures ({signer_signatures}).")]
+    MismatchedSignerCount {
+        address_signatures: usize,
+        signer_signatures: usize,
+    },
 }
 
 pub trait AleoValue {

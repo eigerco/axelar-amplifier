@@ -1,9 +1,9 @@
 use std::collections::HashMap;
 use std::mem::MaybeUninit;
 
-use aleo_types::address::{Address, ZERO_ADDRESS};
+use aleo_types::address::Address;
 use cosmwasm_std::HexBinary;
-use error_stack::Report;
+use error_stack::{ensure, Report};
 use multisig::key::{PublicKey, Signature};
 use multisig::msg::SignerWithSig;
 use multisig::verifier_set::VerifierSet;
@@ -21,43 +21,35 @@ pub struct Proof<const GROUP_SIZE: usize = 2, const GROUPS: usize = 2> {
 impl<const GROUP_SIZE: usize, const GROUPS: usize> Proof<GROUP_SIZE, GROUPS> {
     pub fn new(
         verifier_set: VerifierSet,
-        mut signer_with_signature: Vec<SignerWithSig>,
+        signer_with_signature: Vec<SignerWithSig>,
     ) -> Result<Self, Report<Error>> {
         let weighted_signers = WeightedSigners::try_from(&verifier_set)?;
 
-        signer_with_signature.sort_by(|signer1, signer2| {
-            let pub_key1 = Address::try_from(signer1.signer.pub_key.inner())
-                .expect("Invalid public key for signer1");
-            let pub_key2 = Address::try_from(signer2.signer.pub_key.inner())
-                .expect("Invalid public key for signer2");
 
-            /* give the lowest priority to the default address */
-            if pub_key1 == *ZERO_ADDRESS {
-                std::cmp::Ordering::Greater
-            } else if pub_key2 == *ZERO_ADDRESS {
-                std::cmp::Ordering::Less
-            } else {
-                pub_key1.cmp(&pub_key2)
-            }
-        });
-
+        let signer_with_signature_len = signer_with_signature.len();
         let address_signature: HashMap<Address, HexBinary> = signer_with_signature
-            .iter()
+            .into_iter()
             .filter_map(|signer_with_signature| {
-                // TODO: refactor this to be more efficient
-                let PublicKey::AleoSchnorr(key) = signer_with_signature.signer.pub_key.clone()
-                else {
-                    return None;
-                };
-
-                let Signature::AleoSchnorr(sig) = signer_with_signature.signature.clone() else {
-                    return None;
+                let (key, sig) = match (
+                    signer_with_signature.signer.pub_key,
+                    signer_with_signature.signature,
+                ) {
+                    (PublicKey::AleoSchnorr(key), Signature::AleoSchnorr(sig)) => (key, sig),
+                    _ => return None,
                 };
 
                 let addr = Address::try_from(&key).ok()?;
                 Some((addr, sig))
             })
             .collect();
+
+        ensure!(
+            address_signature.len() == signer_with_signature_len,
+            Error:: MismatchedSignerCount {
+                address_signatures: address_signature.len(),
+                signer_signatures: signer_with_signature_len
+            },
+        );
 
         // TODO: refactor this to be more efficient
         let mut signature: [[MaybeUninit<RawSignature>; GROUP_SIZE]; GROUPS] =
