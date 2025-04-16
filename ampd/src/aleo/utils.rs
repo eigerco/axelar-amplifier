@@ -12,6 +12,8 @@ pub struct ParsedOutput {
     pub call_contract: CallContract,
 }
 
+/// Find the call contract from outputs.
+/// CallContract consist of the CallContract data and the raw payload.
 pub fn parse_user_output(outputs: &[IdValuePair]) -> Result<ParsedOutput, Error> {
     if outputs.len() != 2 {
         return Err(Report::new(Error::UserCallnotFound)
@@ -35,7 +37,7 @@ pub fn parse_user_output(outputs: &[IdValuePair]) -> Result<ParsedOutput, Error>
                 Err(e) => {
                     debug!("Failed to parse as CallContract: {}", e);
 
-                    // Store the raw payload by directly converting bytes
+                    // Store it as the raw payload by directly converting bytes
                     parsed_output.payload = plaintext.as_bytes().to_vec();
                 }
             }
@@ -43,7 +45,7 @@ pub fn parse_user_output(outputs: &[IdValuePair]) -> Result<ParsedOutput, Error>
     }
 
     // Validate that we parsed something
-    if parsed_output.call_contract == CallContract::default() && parsed_output.payload.is_empty() {
+    if parsed_output.call_contract == CallContract::default() || parsed_output.payload.is_empty() {
         return Err(Report::new(Error::UserCallnotFound)
             .attach_printable("No valid user output found in transaction"));
     }

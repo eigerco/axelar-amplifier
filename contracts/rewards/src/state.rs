@@ -522,8 +522,8 @@ mod test {
         };
         assert_err_contains!(
             PoolId::try_from_msg_pool_id(&api, pool_id),
-            axelar_wasm_std::address::Error,
-            axelar_wasm_std::address::Error::InvalidAddress(_)
+            axelar_wasm_addresses::address::Error,
+            axelar_wasm_addresses::address::Error::InvalidAddress(_)
         );
     }
 
