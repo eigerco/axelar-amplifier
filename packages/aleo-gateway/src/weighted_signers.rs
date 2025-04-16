@@ -1,3 +1,5 @@
+use std::mem::MaybeUninit;
+
 use aleo_types::address::{Address, ZERO_ADDRESS};
 use cosmwasm_std::Uint128;
 use error_stack::Report;
@@ -15,7 +17,7 @@ pub struct WeightedSigners<const GROUP_SIZE: usize = 2, const GROUPS: usize = 2>
     #[serde_as(as = "[[_; GROUP_SIZE]; GROUPS]")]
     pub signers: [[WeightedSigner; GROUP_SIZE]; GROUPS],
     threshold: Uint128,
-    // nonce: [u64; 4], // TODO: this should be included before going to main net
+    // nonce: [u64; 4], // TODO: this should be included before going to mainnet
 }
 
 impl<const GROUP_SIZE: usize, const GROUPS: usize> TryFrom<&VerifierSet>
@@ -73,31 +75,22 @@ impl<const GROUP_SIZE: usize, const GROUPS: usize> TryFrom<&VerifierSet>
         let threshold = value.threshold;
         let _nonce = [0, 0, 0, value.created_at];
 
-        // TODO: make this using 2d array
-        // Distribute signers across groups
-        let mut grouped_signers = Vec::with_capacity(GROUPS);
-        for group_idx in 0..GROUPS {
-            let start = group_idx * GROUP_SIZE;
-            let end = start + GROUP_SIZE;
+        let mut signature: [[MaybeUninit<WeightedSigner>; GROUP_SIZE]; GROUPS] =
+            unsafe { MaybeUninit::uninit().assume_init() };
 
-            let group_vec: Vec<_> = signers[start..end].to_vec();
-            let group_array: [WeightedSigner; GROUP_SIZE] = group_vec.try_into().expect(&format!(
-                "Group {} should have exactly {} elements",
-                group_idx, GROUP_SIZE
-            ));
-
-            grouped_signers.push(group_array);
+        for (group_idx, signer_group) in signers.chunks(GROUP_SIZE).enumerate() {
+            for (signer_idx, weighted_signer) in signer_group.iter().enumerate() {
+                signature[group_idx][signer_idx].write(weighted_signer.clone());
+            }
         }
 
-        // Convert Vec<[WeightedSigner; GROUP_SIZE]> to [[WeightedSigner; GROUP_SIZE]; GROUPS]
-        let signers_array: [[WeightedSigner; GROUP_SIZE]; GROUPS] = grouped_signers
-            .try_into()
-            .unwrap_or_else(|_| panic!("Failed to convert to array of size {}", GROUPS));
+        let signers_array = unsafe {
+            std::ptr::read(&signature as *const _ as *const [[WeightedSigner; GROUP_SIZE]; GROUPS])
+        };
 
         Ok(WeightedSigners {
             signers: signers_array,
             threshold,
-            // nonce,
         })
     }
 }

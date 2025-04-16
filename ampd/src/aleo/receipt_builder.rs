@@ -202,8 +202,7 @@ where
 
     pub fn check_signer_rotation(self) -> Result<Receipt<SignerRotation>, Error> {
         let outputs = self.state.transition.outputs;
-        let signer_rotation =
-            find_in_outputs(&outputs).ok_or(Error::SignerRotationNotFound)?;
+        let signer_rotation = find_in_outputs(&outputs).ok_or(Error::SignerRotationNotFound)?;
         let scm = self.state.transition.scm.as_str();
 
         let signers_rotation_calls = self

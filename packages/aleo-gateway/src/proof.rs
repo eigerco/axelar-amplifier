@@ -25,7 +25,6 @@ impl<const GROUP_SIZE: usize, const GROUPS: usize> Proof<GROUP_SIZE, GROUPS> {
     ) -> Result<Self, Report<Error>> {
         let weighted_signers = WeightedSigners::try_from(&verifier_set)?;
 
-
         let signer_with_signature_len = signer_with_signature.len();
         let address_signature: HashMap<Address, HexBinary> = signer_with_signature
             .into_iter()
@@ -45,7 +44,7 @@ impl<const GROUP_SIZE: usize, const GROUPS: usize> Proof<GROUP_SIZE, GROUPS> {
 
         ensure!(
             address_signature.len() == signer_with_signature_len,
-            Error:: MismatchedSignerCount {
+            Error::MismatchedSignerCount {
                 address_signatures: address_signature.len(),
                 signer_signatures: signer_with_signature_len
             },
