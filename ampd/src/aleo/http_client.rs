@@ -90,6 +90,7 @@ pub mod tests {
     use std::str::FromStr;
 
     use aleo_types::program::Program;
+    use snarkvm_cosmwasm::network::TestnetV0;
 
     use super::*;
     use crate::aleo::ReceiptBuilder;
@@ -172,7 +173,7 @@ pub mod tests {
             .unwrap()
             .get_transition()
             .unwrap()
-            .check_call_contract();
+            .check_call_contract::<TestnetV0>();
         assert!(res.is_ok());
     }
 
@@ -194,7 +195,7 @@ pub mod tests {
             .unwrap()
             .get_transition()
             .unwrap()
-            .check_call_contract();
+            .check_call_contract::<TestnetV0>();
         assert!(res.is_ok());
     }
 }

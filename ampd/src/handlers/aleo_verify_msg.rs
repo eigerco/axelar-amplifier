@@ -1,4 +1,5 @@
 use std::collections::{HashMap, HashSet};
+use std::marker::PhantomData;
 
 use aleo_types::address::Address as AleoAddress;
 use aleo_types::transition::Transition;
@@ -13,13 +14,14 @@ use futures::stream::{self, StreamExt};
 use prost_types::Any;
 use router_api::ChainName;
 use serde::{Deserialize, Serialize};
+use snarkvm_cosmwasm::program::Network;
 use tokio::sync::watch::Receiver;
 use tracing::{debug, info, info_span};
 use valuable::Valuable;
 use voting_verifier::msg::ExecuteMsg;
 
 use crate::aleo::http_client::ClientTrait as AleoClientTrait;
-use crate::aleo::{Receipt, ReceiptBuilder};
+use crate::aleo::{CallContractReceipt, Receipt, ReceiptBuilder};
 use crate::event_processor::EventHandler;
 use crate::handlers::errors::Error;
 use crate::handlers::errors::Error::DeserializeEvent;
@@ -45,18 +47,20 @@ struct PollStartedEvent {
 }
 
 #[derive(Clone)]
-pub struct Handler<C: AleoClientTrait> {
+pub struct Handler<C: AleoClientTrait, N: Network> {
     verifier: TMAddress,
     voting_verifier_contract: TMAddress,
     http_client: C,
     latest_block_height: Receiver<u64>,
     chain: ChainName,
     gateway_contract: String,
+    network: PhantomData<N>,
 }
 
-impl<C> Handler<C>
+impl<C, N> Handler<C, N>
 where
     C: AleoClientTrait + Send + Sync,
+    N: Network,
 {
     pub fn new(
         verifier: TMAddress,
@@ -73,6 +77,7 @@ where
             latest_block_height,
             chain,
             gateway_contract,
+            network: PhantomData,
         }
     }
 
@@ -87,13 +92,14 @@ where
     }
 }
 
-async fn fetch_transition_receipt<C>(
+async fn fetch_transition_receipt<C, N>(
     http_client: &C,
     program: &str,
     id: Transition,
-) -> Result<(Transition, Receipt), Error>
+) -> Result<(Transition, Receipt<CallContractReceipt<N>>), Error>
 where
     C: AleoClientTrait + Send + Sync + 'static,
+    N: Network,
 {
     let receipt = async {
         ReceiptBuilder::new(http_client, &program)?
@@ -114,36 +120,11 @@ where
     Ok(res)
 }
 
-async fn process_transitions<C, I>(
-    http_client: &C,
-    program: &str,
-    transitions: I,
-) -> HashMap<Transition, Receipt>
-where
-    C: AleoClientTrait + Send + Sync + 'static,
-    I: IntoIterator<Item = Transition>,
-{
-    let mut result_map = HashMap::new();
-
-    let results: Vec<_> = stream::iter(transitions)
-        .map(|id| fetch_transition_receipt(http_client, program, id))
-        .buffer_unordered(10)
-        .collect()
-        .await;
-
-    for result in results {
-        if let Ok((transition, receipt)) = result {
-            result_map.insert(transition, receipt);
-        }
-    }
-
-    result_map
-}
-
 #[async_trait]
-impl<C> EventHandler for Handler<C>
+impl<C, N> EventHandler for Handler<C, N>
 where
     C: AleoClientTrait + Send + Sync + 'static,
+    N: Network,
 {
     type Err = Error;
 
@@ -183,12 +164,23 @@ where
         // Transition IDs on Aleo chain
         let transitions: HashSet<Transition> = messages.iter().map(|m| m.tx_id.clone()).collect();
 
-        let transition_receipts = process_transitions(
-            &self.http_client,
-            self.gateway_contract.as_str(),
-            transitions,
-        )
-        .await;
+        let transition_receipts: HashMap<_, _> = stream::iter(transitions)
+            .map(|id| async {
+                match fetch_transition_receipt(
+                    &self.http_client,
+                    self.gateway_contract.as_str(),
+                    id,
+                )
+                .await
+                {
+                    Ok((transition, receipt)) => Some((transition, receipt)),
+                    Err(_) => None,
+                }
+            })
+            .buffer_unordered(10)
+            .filter_map(|item| async { item })
+            .collect()
+            .await;
 
         let poll_id_str: String = poll_id.into();
         let source_chain_str: String = source_chain.into();
@@ -211,7 +203,7 @@ where
                     transition_receipts
                         .get(&msg.tx_id)
                         .map_or(Vote::NotFound, |tx_receipt| {
-                            crate::aleo::verifier::verify_message(tx_receipt, msg)
+                            crate::aleo::verifier::verify_message::<N>(tx_receipt, msg)
                         })
                 })
                 .collect();
@@ -236,6 +228,7 @@ mod tests {
 
     use aleo_types::program::Program;
     use cosmrs::AccountId;
+    use snarkvm_cosmwasm::network::TestnetV0;
 
     use super::*;
     use crate::types::TMAddress;
@@ -314,7 +307,7 @@ mod tests {
         let mock_client = crate::aleo::http_client::tests::mock_client_2();
         let event = poll_started_event();
 
-        let handler = Handler::new(
+        let handler = Handler::<_, TestnetV0>::new(
             TMAddress::from(
                 AccountId::from_str(
                     "axelar1a9d3a3hcykzfa8rn3y7d47ns55x3wdlykchydd8x3f95dtz9qh0q3vnrg0",

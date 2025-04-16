@@ -1,6 +1,7 @@
 use std::collections::HashMap;
+use std::mem::MaybeUninit;
 
-use aleo_types::address::Address;
+use aleo_types::address::{Address, ZERO_ADDRESS};
 use cosmwasm_std::HexBinary;
 use error_stack::Report;
 use multisig::key::{PublicKey, Signature};
@@ -20,34 +21,27 @@ pub struct Proof<const GROUP_SIZE: usize = 2, const GROUPS: usize = 2> {
 impl<const GROUP_SIZE: usize, const GROUPS: usize> Proof<GROUP_SIZE, GROUPS> {
     pub fn new(
         verifier_set: VerifierSet,
-        signer_with_signature: Vec<SignerWithSig>,
+        mut signer_with_signature: Vec<SignerWithSig>,
     ) -> Result<Self, Report<Error>> {
         let weighted_signers = WeightedSigners::try_from(&verifier_set)?;
 
-        let mut signer_with_signature = signer_with_signature;
         signer_with_signature.sort_by(|signer1, signer2| {
-            let PublicKey::AleoSchnorr(pub_key1) = signer1.signer.pub_key.clone() else {
-                todo!();
-            };
-
-            let PublicKey::AleoSchnorr(pub_key2) = signer2.signer.pub_key.clone() else {
-                todo!();
-            };
-
-            let pub_key1 = Address::try_from(&pub_key1).unwrap();
-            let pub_key2 = Address::try_from(&pub_key2).unwrap();
+            let pub_key1 = Address::try_from(signer1.signer.pub_key.inner())
+                .expect("Invalid public key for signer1");
+            let pub_key2 = Address::try_from(signer2.signer.pub_key.inner())
+                .expect("Invalid public key for signer2");
 
             /* give the lowest priority to the default address */
-            if pub_key1 == Address::default() {
+            if pub_key1 == *ZERO_ADDRESS {
                 std::cmp::Ordering::Greater
-            } else if pub_key2 == Address::default() {
+            } else if pub_key2 == *ZERO_ADDRESS {
                 std::cmp::Ordering::Less
             } else {
                 pub_key1.cmp(&pub_key2)
             }
         });
 
-        let my_map: HashMap<Address, HexBinary> = signer_with_signature
+        let address_signature: HashMap<Address, HexBinary> = signer_with_signature
             .iter()
             .filter_map(|signer_with_signature| {
                 // TODO: refactor this to be more efficient
@@ -66,23 +60,28 @@ impl<const GROUP_SIZE: usize, const GROUPS: usize> Proof<GROUP_SIZE, GROUPS> {
             .collect();
 
         // TODO: refactor this to be more efficient
-        let mut signature: [[RawSignature; GROUP_SIZE]; GROUPS] =
-            core::array::from_fn(|_| core::array::from_fn(|_| RawSignature::default()));
+        let mut signature: [[MaybeUninit<RawSignature>; GROUP_SIZE]; GROUPS] =
+            unsafe { MaybeUninit::uninit().assume_init() };
 
         for (group_idx, signer_group) in weighted_signers.signers.iter().enumerate() {
             for (signer_idx, weighted_signer) in signer_group.iter().enumerate() {
-                if weighted_signer.signer == Address::default() {
-                    // TODO: break outer
+                if weighted_signer.signer == *ZERO_ADDRESS {
                     break;
                 }
 
-                if let Some(sig) = my_map.get(&weighted_signer.signer) {
-                    signature[group_idx][signer_idx] = RawSignature {
+                if let Some(sig) = address_signature.get(&weighted_signer.signer) {
+                    signature[group_idx][signer_idx].write(RawSignature {
                         signature: sig.as_slice().to_vec(),
-                    };
+                    });
+                } else {
+                    signature[group_idx][signer_idx].write(RawSignature { signature: vec![] });
                 }
             }
         }
+
+        let signature = unsafe {
+            std::ptr::read(&signature as *const _ as *const [[RawSignature; GROUP_SIZE]; GROUPS])
+        };
 
         Ok(Proof {
             weighted_signers,

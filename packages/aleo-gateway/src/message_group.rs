@@ -1,6 +1,6 @@
 // Match the representation of a message group in the Aleo gateway.
 
-use error_stack::Report;
+use error_stack::{ensure, Report};
 use snarkvm_cosmwasm::program::{Network, Zero};
 use snarkvm_cosmwasm::types::Group;
 
@@ -16,19 +16,17 @@ pub struct MessageGroup<N: Network, const MN: usize = 16, const MG: usize = 3> {
 impl<N: Network, const MN: usize, const MG: usize> MessageGroup<N, MN, MG> {
     pub fn new(messages: Vec<Message>) -> Result<Self, Report<Error>> {
         let max_messages = MN * MG;
-        if messages.len() > max_messages {
-            todo!()
-        }
-
-        let messages = messages
-            .iter()
-            .map(|m| m.bhp::<N>())
-            .collect::<Result<Vec<Group<N>>, Report<Error>>>()?;
+        ensure!(
+            messages.len() <= max_messages,
+            Error::InvalidMessageGroupLength {
+                max: max_messages,
+                actual: messages.len(),
+            }
+        );
 
         let mut message_groups = [[Group::<N>::zero(); MN]; MG];
-
         for (i, message) in messages.iter().enumerate() {
-            message_groups[i / MN][i % MN] = *message;
+            message_groups[i / MN][i % MN] = message.bhp::<N>()?;
         }
 
         Ok(Self {

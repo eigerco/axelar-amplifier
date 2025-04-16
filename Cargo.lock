@@ -213,6 +213,7 @@ dependencies = [
  "cosmwasm-std",
  "error-stack",
  "hex",
+ "lazy_static",
  "serde",
  "serde_json",
  "thiserror 1.0.69",

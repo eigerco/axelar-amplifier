@@ -97,11 +97,9 @@ pub fn encode_execute_data(
                 .change_context(ContractError::Proof)?;
 
             let execute_data =
-                aleo_gateway::ExecuteDataVerifierSet::<2, 2>::new(proof, verifier_set.clone());
-
-            let execute_data = execute_data
-                .to_aleo_string()
-                .map_err(|e| ContractError::AleoError(e.to_string()))?;
+                aleo_gateway::ExecuteDataVerifierSet::<2, 2>::new(proof, verifier_set.clone())
+                    .to_aleo_string()
+                    .map_err(|e| ContractError::AleoError(e.to_string()))?;
 
             Ok(HexBinary::from(execute_data.as_bytes()))
         }

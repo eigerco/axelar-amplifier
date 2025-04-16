@@ -17,7 +17,7 @@ use voting_verifier::msg::ExecuteMsg;
 
 use crate::aleo::http_client::ClientTrait as AleoClientTrait;
 use crate::aleo::verifier::verify_verifier_set;
-use crate::aleo::{Receipt, ReceiptBuilder};
+use crate::aleo::{Receipt, ReceiptBuilder, SignerRotation};
 use crate::event_processor::EventHandler;
 use crate::handlers::errors::Error;
 use crate::handlers::errors::Error::DeserializeEvent;
@@ -93,7 +93,7 @@ async fn fetch_transition_receipt<C>(
     http_client: &C,
     program: &str,
     id: &Transition,
-) -> (Transition, Receipt)
+) -> (Transition, Receipt<SignerRotation>)
 where
     C: AleoClientTrait + Send + Sync + 'static,
 {

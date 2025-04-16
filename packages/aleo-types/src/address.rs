@@ -4,11 +4,15 @@ use std::str::FromStr;
 use axelar_wasm_std::nonempty;
 use cosmwasm_std::HexBinary;
 use error_stack::{ensure, Report, Result};
+use lazy_static::lazy_static;
 use serde::{Deserialize, Serialize};
 
 use crate::{verify_becnh32, Error};
 
 pub const ALEO_ADDRESS_LEN: usize = 63;
+lazy_static! {
+    pub static ref ZERO_ADDRESS: Address = Address::default();
+}
 
 #[derive(Serialize, Deserialize, Debug, PartialEq, Eq, Clone, PartialOrd, Ord, Hash)]
 pub struct Address(pub nonempty::String);
@@ -17,7 +21,7 @@ impl Default for Address {
     fn default() -> Self {
         Self(
             nonempty::String::try_from(
-                "aleo1qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq3ljyzc".to_string(),
+                "aleo1qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq3ljyzc",
             )
             .unwrap(),
         )

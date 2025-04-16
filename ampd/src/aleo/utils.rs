@@ -68,28 +68,21 @@ fn find_in_outputs<T: for<'de> serde::Deserialize<'de>>(outputs: &[IdValuePair])
             _ => None,
         })
         .and_then(|value| {
-            let json = json_like::into_json(value.to_string().as_str()).ok()?;
+            let json = json_like::into_json(value).ok()?;
             serde_json::from_str::<T>(&json).ok()
         })
 }
 
-macro_rules! define_finder {
-    ($name:ident, $type:ty, $doc:expr) => {
-        #[doc = $doc]
-        pub fn $name(outputs: &[IdValuePair]) -> Option<$type> {
-            find_in_outputs(outputs)
-        }
-    };
+/// Find CallContract in the outputs
+pub fn find_call_contract(
+    outputs: &[IdValuePair],
+) -> Option<crate::aleo::receipt_builder::CallContract> {
+    find_in_outputs(outputs)
 }
 
-define_finder!(
-    find_call_contract,
-    crate::aleo::receipt_builder::CallContract,
-    "Find CallContract in the outputs"
-);
-
-define_finder!(
-    find_signer_rotation,
-    crate::aleo::receipt_builder::SignerRotation,
-    "Find SignerRotation in the outputs"
-);
+/// Find SignerRotation in the outputs
+pub fn find_signer_rotation(
+    outputs: &[IdValuePair],
+) -> Option<crate::aleo::receipt_builder::SignerRotation> {
+    find_in_outputs(outputs)
+}

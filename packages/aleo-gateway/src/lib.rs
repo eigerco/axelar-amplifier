@@ -46,6 +46,8 @@ pub enum Error {
     InvalidAscii,
     #[error("StringEncoder: {0}")]
     StringEncoder(#[from] aleo_utils::string_encoder::Error),
+    #[error("InvalidMessageGroupLength: expected: {max}, actual: {actual}")]
+    InvalidMessageGroupLength { max: usize, actual: usize },
 }
 
 pub trait AleoValue {
@@ -74,12 +76,6 @@ pub fn aleo_hash<T: AsRef<str>, N: Network>(input: T) -> Result<Group<N>, Report
                 .attach_printable(format!("input: '{:?}'", input.as_ref().to_owned()))
         })?
         .to_bits_le();
-
-    // TODO: remove the keccak256 hash if not needed
-    // let bits = N::hash_keccak256(&aleo_value).map_err(|e| {
-    //     Report::new(Error::Aleo(e))
-    //         .attach_printable(format!("input2: '{:?}'", input.as_ref().to_owned()))
-    // })?;
 
     let group = N::hash_to_group_bhp256(&aleo_value).map_err(|e| {
         Report::new(Error::Aleo(e)).attach_printable(format!(

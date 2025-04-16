@@ -7,6 +7,7 @@ use aleo_types::transition::Transition;
 use error_stack::{ensure, Report, Result, ResultExt};
 use router_api::ChainName;
 use serde::{Deserialize, Serialize};
+use snarkvm_cosmwasm::program::Network;
 
 use crate::aleo::error::Error;
 use crate::aleo::http_client::ClientTrait;
@@ -17,7 +18,7 @@ mod receipt;
 mod signer_rotation;
 
 pub use call_contract::{CallContract, CallContractReceipt};
-pub use receipt::{FoundReceipt, Receipt};
+pub use receipt::Receipt;
 pub use signer_rotation::SignerRotation;
 
 // State types for the type state pattern
@@ -151,7 +152,7 @@ impl<'a, C> ReceiptBuilder<'a, C, StateTransitionFound>
 where
     C: ClientTrait + Send + Sync + 'static,
 {
-    pub fn check_call_contract(self) -> Result<Receipt, Error> {
+    pub fn check_call_contract<N: Network>(self) -> Result<Receipt<CallContractReceipt<N>>, Error> {
         let outputs = self.state.transition.outputs;
         let call_contract = find_call_contract(&outputs).ok_or(Error::CallContractNotFound)?;
         let scm = self.state.transition.scm.as_str();
@@ -186,23 +187,20 @@ where
             Error::UserCallnotFound
         );
 
-        Ok(Receipt::Found(FoundReceipt::CallContract(
-            CallContractReceipt {
-                transition: Transition::from_str(self.state.transition.id.as_str())
-                    .map_err(|e| Report::new(Error::CalledContractReceipt(e.to_string())))?,
-                destination_address: call_contract
-                    .destination_address()
-                    .map_err(|e| Report::new(Error::FailedToCreateAleoID(e.to_string())))?,
-                destination_chain: ChainName::try_from(call_contract.destination_chain())
-                    .change_context(Error::InvalidChainName)?,
-                source_address: Address::from_str(call_contract.sender.to_string().as_ref())
-                    .change_context(Error::InvalidSourceAddress)?,
-                payload: parsed_output.payload,
-            },
-        )))
+        Ok(Receipt::Found(CallContractReceipt {
+            transition: Transition::from_str(self.state.transition.id.as_str())
+                .map_err(|e| Report::new(Error::CalledContractReceipt(e.to_string())))?,
+            destination_address: call_contract.destination_address(),
+            destination_chain: ChainName::try_from(call_contract.destination_chain())
+                .change_context(Error::InvalidChainName)?,
+            source_address: Address::from_str(call_contract.sender.to_string().as_ref())
+                .change_context(Error::InvalidSourceAddress)?,
+            payload: parsed_output.payload,
+            n: std::marker::PhantomData,
+        }))
     }
 
-    pub fn check_signer_rotation(self) -> Result<Receipt, Error> {
+    pub fn check_signer_rotation(self) -> Result<Receipt<SignerRotation>, Error> {
         let outputs = self.state.transition.outputs;
         let signer_rotation =
             find_signer_rotation(&outputs).ok_or(Error::SignerRotationNotFound)?;
@@ -223,8 +221,6 @@ where
 
         ensure!(signers_rotation_calls == 1, Error::SignerRotationNotFound);
 
-        Ok(Receipt::Found(FoundReceipt::SignerRotation(
-            signer_rotation,
-        )))
+        Ok(Receipt::Found(signer_rotation))
     }
 }

@@ -160,6 +160,16 @@ where
     Ok(pk)
 }
 
+impl PublicKey {
+    pub fn inner(&self) -> &HexBinary {
+        match &self {
+            PublicKey::Ecdsa(hex_binary)
+            | PublicKey::Ed25519(hex_binary)
+            | PublicKey::AleoSchnorr(hex_binary) => hex_binary,
+        }
+    }
+}
+
 pub trait KeyTyped {
     fn matches_type<T>(&self, other: &T) -> bool
     where

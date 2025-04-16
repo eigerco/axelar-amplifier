@@ -1,11 +1,13 @@
+use std::marker::PhantomData;
+
 use aleo_types::address::Address;
 use aleo_types::transition::Transition;
 use aleo_utils::json_like;
 use aleo_utils::string_encoder::StringEncoder;
-use error_stack::Result;
 use router_api::ChainName;
 use serde::{Deserialize, Serialize};
 use sha3::{Digest, Keccak256};
+use snarkvm_cosmwasm::program::Network;
 use tracing::{error, info};
 
 use crate::aleo::error::Error;
@@ -27,25 +29,25 @@ impl CallContract {
         encoded_string.decode()
     }
 
-    pub fn destination_address(&self) -> Result<String, error_stack::Report<Error>> {
+    pub fn destination_address(&self) -> String {
         let encoded_string = StringEncoder {
             buf: self.destination_address.clone(),
         };
-        let ascii_string = encoded_string.decode();
-        Ok(ascii_string)
+        encoded_string.decode()
     }
 }
 
 #[derive(Debug)]
-pub struct CallContractReceipt {
+pub struct CallContractReceipt<N: Network> {
     pub transition: Transition,
     pub destination_address: String,
     pub destination_chain: ChainName,
     pub source_address: Address,
     pub payload: Vec<u8>,
+    pub n: PhantomData<N>,
 }
 
-impl PartialEq<crate::handlers::aleo_verify_msg::Message> for CallContractReceipt {
+impl<N: Network> PartialEq<crate::handlers::aleo_verify_msg::Message> for CallContractReceipt<N> {
     fn eq(&self, message: &crate::handlers::aleo_verify_msg::Message) -> bool {
         info!(
             "transition_id: chain.{} == msg.{} ({})",
@@ -72,7 +74,7 @@ impl PartialEq<crate::handlers::aleo_verify_msg::Message> for CallContractReceip
             self.source_address == message.source_address
         );
 
-        let payload_hash = match payload_hash(&self.payload, self.destination_chain.as_ref()) {
+        let payload_hash = match payload_hash::<N>(&self.payload, self.destination_chain.as_ref()) {
             Ok(hash) => hash,
             Err(e) => {
                 error!("payload_hash: {}", e);
@@ -95,7 +97,10 @@ impl PartialEq<crate::handlers::aleo_verify_msg::Message> for CallContractReceip
     }
 }
 
-fn payload_hash(payload: &[u8], destination_chain: &str) -> std::result::Result<Hash, Error> {
+fn payload_hash<N: Network>(
+    payload: &[u8],
+    destination_chain: &str,
+) -> std::result::Result<Hash, Error> {
     let payload = std::str::from_utf8(payload).map_err(|e| Error::PayloadHash(e.to_string()))?;
     let payload_hash = if destination_chain.starts_with("eth") {
         let payload =
@@ -109,9 +114,8 @@ fn payload_hash(payload: &[u8], destination_chain: &str) -> std::result::Result<
         Hash::from_slice(&payload_hash)
     } else {
         // Keccak + bhp hash
-        let payload_hash =
-            aleo_gateway::hash::<&str, snarkvm_cosmwasm::network::TestnetV0>(payload)
-                .map_err(|e| Error::PayloadHash(e.to_string()))?;
+        let payload_hash = aleo_gateway::hash::<&str, N>(payload)
+            .map_err(|e| Error::PayloadHash(e.to_string()))?;
         Hash::from_slice(&payload_hash)
     };
 

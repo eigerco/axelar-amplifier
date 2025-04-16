@@ -24,8 +24,6 @@ pub enum Error {
     InvalidChainName,
     #[error("Invalid source address")]
     InvalidSourceAddress,
-    #[error("Failed to create AleoID: {0}")]
-    FailedToCreateAleoID(String),
     #[error("Failed to create hash payload: {0}")]
     PayloadHash(String),
     #[error("Failed to find transition '{0}' in transaction")]

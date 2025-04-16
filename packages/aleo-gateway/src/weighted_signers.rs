@@ -1,4 +1,4 @@
-use aleo_types::address::Address;
+use aleo_types::address::{Address, ZERO_ADDRESS};
 use cosmwasm_std::Uint128;
 use error_stack::Report;
 use multisig::key::PublicKey;
@@ -59,12 +59,11 @@ impl<const GROUP_SIZE: usize, const GROUPS: usize> TryFrom<&VerifierSet>
             .take(GROUP_SIZE * GROUPS)
             .collect::<Result<Vec<_>, _>>()?;
 
-        // signers.sort_by(|signer1, signer2| signer1.signer.cmp(&signer2.signer));
         signers.sort_by(|signer1, signer2| {
             /* give the lowest priority to the default address */
-            if signer1.signer == Address::default() {
+            if signer1.signer == *ZERO_ADDRESS {
                 std::cmp::Ordering::Greater
-            } else if signer2.signer == Address::default() {
+            } else if signer2.signer == *ZERO_ADDRESS {
                 std::cmp::Ordering::Less
             } else {
                 signer1.signer.cmp(&signer2.signer)
@@ -133,27 +132,4 @@ impl<const GROUP_SIZE: usize, const GROUPS: usize> AleoValue
 
         Ok(res)
     }
-    // fn to_aleo_string(&self) -> Result<String, Report<Error>> {
-    //     let res = format!(
-    //         r#"{{ signers: [ [{}], [{}] ], threshold: {}u128 }}"#,
-    //         // r#"{{ signers: [ {}, {} ], threshold: {}u128, nonce: [ {}u64, {}u64, {}u64, {}u64 ] }}"#,
-    //         self.signers[0]
-    //             .iter()
-    //             .map(|s| s.to_aleo_string())
-    //             .collect::<Result<Vec<_>, _>>()?
-    //             .join(", "),
-    //         self.signers[1]
-    //             .iter()
-    //             .map(|s| s.to_aleo_string())
-    //             .collect::<Result<Vec<_>, _>>()?
-    //             .join(", "),
-    //         self.threshold,
-    //         // self.nonce[0],
-    //         // self.nonce[1],
-    //         // self.nonce[2],
-    //         // self.nonce[3]
-    //     );
-    //
-    //     Ok(res)
-    // }
 }

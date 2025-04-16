@@ -30,6 +30,7 @@ pub enum Config {
         base_url: Url,
         network: String,
         gateway_contract: String,
+        network_id: u16,
     },
     AleoVerifierSetVerifier {
         cosmwasm_contract: TMAddress,
