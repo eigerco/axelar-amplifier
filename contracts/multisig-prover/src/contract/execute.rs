@@ -71,9 +71,10 @@ pub fn construct_proof(
     // It is placed here because is needed to pass the unit tests
     // To be handle approbriately in the future, the sig verifier should be configured in contract
     // and it should be passed as a parameter to the contract initialized
+    const MULTISIG_ALEO: &str = "axelar1rv940hhxe3288j42zazt7c7fmql4udsgy9cjzmeq646gt7gl02hq54seyr";
     let sig_verifier = (config.chain_name
         == ChainName::from_str("aleo-2").map_err(|_| ContractError::Proof)?)
-    .then(|| "axelar1rv940hhxe3288j42zazt7c7fmql4udsgy9cjzmeq646gt7gl02hq54seyr".to_string());
+    .then(|| MULTISIG_ALEO.to_string());
 
     let start_sig_msg = multisig::msg::ExecuteMsg::StartSigningSession {
         verifier_set_id: verifier_set.id(),

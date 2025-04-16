@@ -144,6 +144,8 @@ mod tests {
     use tofn::aleo_schnorr::keygen;
     use tofn::sdk::api::SecretRecoveryKey;
 
+    // The bellow comments represent the public and private keys of the signer.
+    // They are useful for manually verifying the function.
     // APrivateKey1zkpFMDCJZbRdcBcjnqjRqCrhcWFf4L9FRRSgbLpS6D47Cmo
     // aleo1v7mmux8wkue8zmuxdfks03rh85qchfmms9fkpflgs4dt87n4jy9s8nzfss
     fn aleo_sig(digest: [u8; 32]) -> SignerWithSig {
