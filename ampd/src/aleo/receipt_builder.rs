@@ -177,14 +177,14 @@ where
             .filter(|t| t.scm == scm && t.id != self.state.transition.id)
             .collect();
 
-        ensure!(same_scm.len() == 1, Error::UserCallnotFound);
+        ensure!(same_scm.len() == 1, Error::MoreThanOneSCM);
 
         let parsed_output =
             parse_user_output(&same_scm[0].outputs).change_context(Error::UserCallnotFound)?;
 
         ensure!(
             parsed_output.call_contract == call_contract,
-            Error::UserCallnotFound
+            Error::CallConractDoesNotMatch
         );
 
         Ok(Receipt::Found(CallContractReceipt {

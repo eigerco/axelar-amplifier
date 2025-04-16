@@ -32,4 +32,8 @@ pub enum Error {
     JsonParseError(String),
     #[error("Failed to create CallContract receipt: {0}")]
     CalledContractReceipt(String),
+    #[error("More than one SCM found")]
+    MoreThanOneSCM,
+    #[error("Call contract does not match")]
+    CallConractDoesNotMatch,
 }
