@@ -26,7 +26,7 @@ pub fn parse_user_output(outputs: &[IdValuePair]) -> Result<ParsedOutput, Error>
         if let Some(plaintext) = &output.value {
             // Convert to JSON with proper error handling
             let json = json_like::into_json(plaintext.as_str()).map_err(|_| {
-                Error::JsonParseError(format!("Failed to convert output to JSON: {}", plaintext))
+                Error::JsonParse(format!("Failed to convert output to JSON: {}", plaintext))
             })?;
 
             // Try to parse as CallContract

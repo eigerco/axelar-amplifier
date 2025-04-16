@@ -102,7 +102,7 @@ where
     N: Network,
 {
     let receipt = async {
-        ReceiptBuilder::new(http_client, &program)?
+        ReceiptBuilder::new(http_client, program)?
             .get_transaction_id(&id)
             .await?
             .get_transaction()

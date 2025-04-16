@@ -33,7 +33,7 @@ pub fn verify_verifier_set(
 ) -> Vote {
     let res = match receipt {
         Receipt::Found(signer_rotation) => WeightedSigners::try_from(&msg.verifier_set)
-            .map_or(false, |other| other == signer_rotation.weighted_signers),
+            .is_ok_and(|other| other == signer_rotation.weighted_signers),
         Receipt::NotFound(transition, e) => {
             warn!("AleoMessageId: {:?} is not verified: {:?}", transition, e);
 

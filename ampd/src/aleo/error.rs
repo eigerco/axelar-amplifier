@@ -29,7 +29,7 @@ pub enum Error {
     #[error("Failed to find transition '{0}' in transaction")]
     TransitionNotFoundInTransaction(String),
     #[error("Failed to convert aleo string to json")]
-    JsonParseError(String),
+    JsonParse(String),
     #[error("Failed to create CallContract receipt: {0}")]
     CalledContractReceipt(String),
     #[error("More than one SCM found")]
