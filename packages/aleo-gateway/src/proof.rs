@@ -65,10 +65,6 @@ impl<const GROUP_SIZE: usize, const GROUPS: usize> Proof<GROUP_SIZE, GROUPS> {
 
         for (group_idx, signer_group) in weighted_signers.signers.iter().enumerate() {
             for (signer_idx, weighted_signer) in signer_group.iter().enumerate() {
-                if weighted_signer.signer == *ZERO_ADDRESS {
-                    break;
-                }
-
                 if let Some(sig) = address_signature.get(&weighted_signer.signer) {
                     signature[group_idx][signer_idx].write(RawSignature {
                         signature: sig.as_slice().to_vec(),
