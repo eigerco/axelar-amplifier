@@ -53,6 +53,10 @@ pub enum Error {
         address_signatures: usize,
         signer_signatures: usize,
     },
+    #[error("Checked division failed: {0} / {1}")]
+    CheckedDivision(usize, usize),
+    #[error("Checked remainder failed: {0} % {1}")]
+    CheckedRemainder(usize, usize),
 }
 
 pub trait AleoValue {

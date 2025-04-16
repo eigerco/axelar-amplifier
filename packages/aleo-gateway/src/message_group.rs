@@ -15,7 +15,7 @@ pub struct MessageGroup<N: Network, const MN: usize = 16, const MG: usize = 3> {
 
 impl<N: Network, const MN: usize, const MG: usize> MessageGroup<N, MN, MG> {
     pub fn new(messages: Vec<Message>) -> Result<Self, Report<Error>> {
-        let max_messages = MN * MG;
+        let max_messages = MN.saturating_mul(MG);
         ensure!(
             messages.len() <= max_messages,
             Error::InvalidMessageGroupLength {
@@ -26,7 +26,9 @@ impl<N: Network, const MN: usize, const MG: usize> MessageGroup<N, MN, MG> {
 
         let mut message_groups = [[Group::<N>::zero(); MN]; MG];
         for (i, message) in messages.iter().enumerate() {
-            message_groups[i / MN][i % MN] = message.bhp::<N>()?;
+            let row = i.checked_div(MN).ok_or(Error::CheckedDivision(i, MN))?;
+            let col = i.checked_rem(MN).ok_or(Error::CheckedRemainder(i, MN))?;
+            message_groups[row][col] = message.bhp::<N>()?;
         }
 
         Ok(Self {

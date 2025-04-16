@@ -26,7 +26,7 @@ impl<const GROUP_SIZE: usize, const GROUPS: usize> TryFrom<&VerifierSet>
     type Error = Report<Error>;
 
     fn try_from(value: &VerifierSet) -> Result<Self, Self::Error> {
-        if value.signers.len() > GROUP_SIZE * GROUPS {
+        if value.signers.len() > GROUP_SIZE.saturating_mul(GROUPS) {
             return Err(Report::new(Error::AleoGateway(
                 "Too many signers in the verifier set".to_string(),
             )));
@@ -58,7 +58,7 @@ impl<const GROUP_SIZE: usize, const GROUPS: usize> TryFrom<&VerifierSet>
                     weight: Default::default(),
                 })
             }))
-            .take(GROUP_SIZE * GROUPS)
+            .take(GROUP_SIZE.saturating_mul(GROUPS))
             .collect::<Result<Vec<_>, _>>()?;
 
         signers.sort_by(|signer1, signer2| {
@@ -99,31 +99,25 @@ impl<const GROUP_SIZE: usize, const GROUPS: usize> AleoValue
     for WeightedSigners<GROUP_SIZE, GROUPS>
 {
     fn to_aleo_string(&self) -> Result<String, Report<Error>> {
-        // Start with the opening part of the string
-        let mut res = String::from("{ signers: [ ");
-
         // Add each group's formatted string
-        for (i, group) in self.signers.iter().enumerate() {
-            let group_str = format!(
-                "[{}]",
-                group
+        let signers = self
+            .signers
+            .iter()
+            .map(|group| {
+                let group_str = group
                     .iter()
-                    .map(|s| s.to_aleo_string())
-                    .collect::<Result<Vec<_>, _>>()?
-                    .join(", ")
-            );
+                    // Weighted Signer to_aleo_string does  not produce an error
+                    .map(|s| s.to_aleo_string().unwrap())
+                    .collect::<Vec<_>>()
+                    .join(", ");
+                format!("[{}]", group_str)
+            })
+            .collect::<Vec<_>>()
+            .join(", ");
 
-            res.push_str(&group_str);
-
-            // Add comma if not the last group
-            if i < self.signers.len() - 1 {
-                res.push_str(", ");
-            }
-        }
-
-        // Add the threshold and closing part
-        res.push_str(&format!(" ], quorum: {}u128 }}", self.threshold));
-
-        Ok(res)
+        Ok(format!(
+            "{{ signers: [ {} ], quorum: {}u128 }}",
+            signers, self.threshold
+        ))
     }
 }
