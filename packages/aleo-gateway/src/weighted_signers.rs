@@ -9,20 +9,18 @@ use serde::{Deserialize, Serialize};
 use serde_with::serde_as;
 
 use crate::weighted_signer::WeightedSigner;
-use crate::{AleoValue, Error};
+use crate::{AleoValue, Array2D, Error, GROUPS, GROUP_SIZE};
 
 #[serde_as]
 #[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Eq)]
-pub struct WeightedSigners<const GROUP_SIZE: usize = 2, const GROUPS: usize = 2> {
+pub struct WeightedSigners {
     #[serde_as(as = "[[_; GROUP_SIZE]; GROUPS]")]
-    pub signers: [[WeightedSigner; GROUP_SIZE]; GROUPS],
+    pub signers: Array2D<WeightedSigner>,
     threshold: Uint128,
     // nonce: [u64; 4], // TODO: this should be included before going to mainnet
 }
 
-impl<const GROUP_SIZE: usize, const GROUPS: usize> TryFrom<&VerifierSet>
-    for WeightedSigners<GROUP_SIZE, GROUPS>
-{
+impl TryFrom<&VerifierSet> for WeightedSigners {
     type Error = Report<Error>;
 
     fn try_from(value: &VerifierSet) -> Result<Self, Self::Error> {
@@ -75,7 +73,7 @@ impl<const GROUP_SIZE: usize, const GROUPS: usize> TryFrom<&VerifierSet>
         let threshold = value.threshold;
         let _nonce = [0, 0, 0, value.created_at];
 
-        let mut signature: [[MaybeUninit<WeightedSigner>; GROUP_SIZE]; GROUPS] =
+        let mut signature: Array2D<MaybeUninit<WeightedSigner>> =
             unsafe { MaybeUninit::uninit().assume_init() };
 
         for (group_idx, signer_group) in signers.chunks(GROUP_SIZE).enumerate() {
@@ -84,9 +82,7 @@ impl<const GROUP_SIZE: usize, const GROUPS: usize> TryFrom<&VerifierSet>
             }
         }
 
-        let signers_array = unsafe {
-            std::ptr::read(&signature as *const _ as *const [[WeightedSigner; GROUP_SIZE]; GROUPS])
-        };
+        let signers_array = unsafe { std::mem::transmute::<_, Array2D<WeightedSigner>>(signature) };
 
         Ok(WeightedSigners {
             signers: signers_array,
@@ -95,9 +91,7 @@ impl<const GROUP_SIZE: usize, const GROUPS: usize> TryFrom<&VerifierSet>
     }
 }
 
-impl<const GROUP_SIZE: usize, const GROUPS: usize> AleoValue
-    for WeightedSigners<GROUP_SIZE, GROUPS>
-{
+impl AleoValue for WeightedSigners {
     fn to_aleo_string(&self) -> Result<String, Report<Error>> {
         // Add each group's formatted string
         let signers = self

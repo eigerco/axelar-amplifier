@@ -34,7 +34,7 @@ pub fn payload_digest<N: Network>(
             group.bhp_string::<N>()
         }
         // TODO: make the WeightedSigners configurable from outside
-        Payload::VerifierSet(verifier_set) => WeightedSigners::<2, 2>::try_from(verifier_set)
+        Payload::VerifierSet(verifier_set) => WeightedSigners::try_from(verifier_set)
             .change_context(ContractError::InvalidVerifierSet)?
             .bhp_string::<N>(),
     }
@@ -95,7 +95,7 @@ pub fn encode_execute_data(
                 .change_context(ContractError::Proof)?;
 
             let execute_data =
-                aleo_gateway::ExecuteDataVerifierSet::<2, 2>::new(proof, verifier_set.clone())
+                aleo_gateway::ExecuteDataVerifierSet::new(proof, verifier_set.clone())
                     .to_aleo_string()
                     .map_err(|e| ContractError::AleoError(e.to_string()))?;
 

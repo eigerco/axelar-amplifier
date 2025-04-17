@@ -28,6 +28,15 @@ pub use signer_with_signature::*;
 pub use weighted_signer::*;
 pub use weighted_signers::*;
 
+// Generics are not used in the code becasue of this issue:
+// https://github.com/rust-lang/rust/issues/61956
+// For this we will use this const variables, just to be easy for as to adapt during development.
+// TODO: When our solution is ready, we will need to rethink it.
+pub const GROUP_SIZE: usize = 2;
+pub const GROUPS: usize = 2;
+
+type Array2D<T> = [[T; GROUP_SIZE]; GROUPS];
+
 #[derive(Error, Debug)]
 pub enum Error {
     #[error("AleoGateway: {0}")]

@@ -27,14 +27,14 @@ impl AleoValue for ExecuteDataMessages {
     }
 }
 
-pub struct ExecuteDataVerifierSet<const GROUP_SIZE: usize = 2, const GROUPS: usize = 2> {
+pub struct ExecuteDataVerifierSet {
     proof: Proof,
-    payload: WeightedSigners<GROUP_SIZE, GROUPS>,
+    payload: WeightedSigners,
 }
 
-impl<const GROUP_SIZE: usize, const GROUPS: usize> ExecuteDataVerifierSet<GROUP_SIZE, GROUPS> {
-    pub fn new(proof: Proof, payload: VerifierSet) -> ExecuteDataVerifierSet<GROUP_SIZE, GROUPS> {
-        let payload = WeightedSigners::<GROUP_SIZE, GROUPS>::try_from(&payload).unwrap();
+impl ExecuteDataVerifierSet {
+    pub fn new(proof: Proof, payload: VerifierSet) -> ExecuteDataVerifierSet {
+        let payload = WeightedSigners::try_from(&payload).unwrap();
         ExecuteDataVerifierSet { proof, payload }
     }
 }

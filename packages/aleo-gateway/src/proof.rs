@@ -9,16 +9,17 @@ use multisig::msg::SignerWithSig;
 use multisig::verifier_set::VerifierSet;
 
 use crate::raw_signature::RawSignature;
-use crate::{AleoValue, Error, WeightedSigners};
+use crate::{AleoValue, Array2D, Error, WeightedSigners};
+
 
 #[derive(Clone, Debug)]
-pub struct Proof<const GROUP_SIZE: usize = 2, const GROUPS: usize = 2> {
-    pub weighted_signers: WeightedSigners<GROUP_SIZE, GROUPS>,
-    pub signature: [[RawSignature; GROUP_SIZE]; GROUPS],
+pub struct Proof {
+    pub weighted_signers: WeightedSigners,
+    pub signature: Array2D<RawSignature>,
     // pub nonce: [u128; 2], // TODO: this should be included before going to mainnet
 }
 
-impl<const GROUP_SIZE: usize, const GROUPS: usize> Proof<GROUP_SIZE, GROUPS> {
+impl Proof {
     pub fn new(
         verifier_set: VerifierSet,
         signer_with_signature: Vec<SignerWithSig>,
@@ -50,7 +51,7 @@ impl<const GROUP_SIZE: usize, const GROUPS: usize> Proof<GROUP_SIZE, GROUPS> {
             },
         );
 
-        let mut signature: [[MaybeUninit<RawSignature>; GROUP_SIZE]; GROUPS] =
+        let mut signature: Array2D<MaybeUninit<RawSignature>> =
             unsafe { MaybeUninit::uninit().assume_init() };
 
         for (group_idx, signer_group) in weighted_signers.signers.iter().enumerate() {
@@ -60,14 +61,12 @@ impl<const GROUP_SIZE: usize, const GROUPS: usize> Proof<GROUP_SIZE, GROUPS> {
                         signature: sig.as_slice().to_vec(),
                     });
                 } else {
-                    signature[group_idx][signer_idx].write(RawSignature { signature: vec![] });
+                    signature[group_idx][signer_idx].write(RawSignature::default());
                 }
             }
         }
 
-        let signature = unsafe {
-            std::ptr::read(&signature as *const _ as *const [[RawSignature; GROUP_SIZE]; GROUPS])
-        };
+        let signature = unsafe { std::mem::transmute::<_, Array2D<RawSignature>>(signature) };
 
         Ok(Proof {
             weighted_signers,
@@ -90,7 +89,7 @@ impl AleoValue for Proof {
                         sig.iter()
                             .map(|s| s.to_aleo_string())
                             .collect::<Result<Vec<_>, Report<Error>>>()
-                            .unwrap() // TODO: remove unwrap
+                            .unwrap() // for this to fail signature must have non UTF-8 characters
                             .join(", ")
                     )
                 })
