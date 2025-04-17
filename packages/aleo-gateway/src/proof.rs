@@ -11,7 +11,6 @@ use multisig::verifier_set::VerifierSet;
 use crate::raw_signature::RawSignature;
 use crate::{AleoValue, Array2D, Error, WeightedSigners};
 
-
 #[derive(Clone, Debug)]
 pub struct Proof {
     pub weighted_signers: WeightedSigners,
@@ -27,7 +26,7 @@ impl Proof {
         let weighted_signers = WeightedSigners::try_from(&verifier_set)?;
 
         let signer_with_signature_len = signer_with_signature.len();
-        let address_signature: HashMap<Address, HexBinary> = signer_with_signature
+        let mut address_signature: HashMap<Address, HexBinary> = signer_with_signature
             .into_iter()
             .filter_map(|signer_with_signature| {
                 let (key, sig) = match (
@@ -56,9 +55,9 @@ impl Proof {
 
         for (group_idx, signer_group) in weighted_signers.signers.iter().enumerate() {
             for (signer_idx, weighted_signer) in signer_group.iter().enumerate() {
-                if let Some(sig) = address_signature.get(&weighted_signer.signer) {
+                if let Some(sig) = address_signature.remove(&weighted_signer.signer) {
                     signature[group_idx][signer_idx].write(RawSignature {
-                        signature: sig.as_slice().to_vec(),
+                        signature: sig.into(),
                     });
                 } else {
                     signature[group_idx][signer_idx].write(RawSignature::default());
