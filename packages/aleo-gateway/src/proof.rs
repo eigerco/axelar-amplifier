@@ -15,7 +15,7 @@ use crate::{AleoValue, Error, WeightedSigners};
 pub struct Proof<const GROUP_SIZE: usize = 2, const GROUPS: usize = 2> {
     pub weighted_signers: WeightedSigners<GROUP_SIZE, GROUPS>,
     pub signature: [[RawSignature; GROUP_SIZE]; GROUPS],
-    // pub nonce: [u128; 2],
+    // pub nonce: [u128; 2], // TODO: this should be included before going to mainnet
 }
 
 impl<const GROUP_SIZE: usize, const GROUPS: usize> Proof<GROUP_SIZE, GROUPS> {
@@ -50,7 +50,6 @@ impl<const GROUP_SIZE: usize, const GROUPS: usize> Proof<GROUP_SIZE, GROUPS> {
             },
         );
 
-        // TODO: refactor this to be more efficient
         let mut signature: [[MaybeUninit<RawSignature>; GROUP_SIZE]; GROUPS] =
             unsafe { MaybeUninit::uninit().assume_init() };
 
@@ -82,7 +81,6 @@ impl AleoValue for Proof {
     fn to_aleo_string(&self) -> Result<String, Report<Error>> {
         let res = format!(
             r#"{{ weighted_signer: {}, signatures: [ {} ] }}"#,
-            // r#"{{ weighted_signer: {}, signatures: [ {} ], nonce: [ {}u128, {}u128 ] }}"#,
             self.weighted_signers.to_aleo_string()?,
             self.signature
                 .iter()
@@ -98,8 +96,6 @@ impl AleoValue for Proof {
                 })
                 .collect::<Vec<_>>()
                 .join(", "),
-            // self.nonce[0],
-            // self.nonce[1],
         );
 
         Ok(res)

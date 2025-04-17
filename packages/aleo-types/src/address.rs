@@ -1,18 +1,16 @@
 use std::fmt::Display;
 use std::str::FromStr;
+use std::sync::LazyLock;
 
 use axelar_wasm_std::nonempty;
 use cosmwasm_std::HexBinary;
 use error_stack::{ensure, Report, Result};
-use lazy_static::lazy_static;
 use serde::{Deserialize, Serialize};
 
 use crate::{verify_becnh32, Error};
 
 pub const ALEO_ADDRESS_LEN: usize = 63;
-lazy_static! {
-    pub static ref ZERO_ADDRESS: Address = Address::default();
-}
+pub static ZERO_ADDRESS: LazyLock<Address> = LazyLock::new(|| Address::default());
 
 #[derive(Serialize, Deserialize, Debug, PartialEq, Eq, Clone, PartialOrd, Ord, Hash)]
 pub struct Address(pub nonempty::String);

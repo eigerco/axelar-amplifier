@@ -84,9 +84,7 @@ pub fn encode_execute_data(
             let proof = aleo_gateway::Proof::new(verifier_set.clone(), signatures)
                 .change_context(ContractError::Proof)?;
 
-            let execute_data = aleo_gateway::ExecuteDataMessages::new(proof, gmp_messages);
-
-            let execute_data = execute_data
+            let execute_data = aleo_gateway::ExecuteDataMessages::new(proof, gmp_messages)
                 .to_aleo_string()
                 .map_err(|e| ContractError::AleoError(e.to_string()))?;
 

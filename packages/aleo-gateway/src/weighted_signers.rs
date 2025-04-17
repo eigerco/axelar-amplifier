@@ -106,7 +106,7 @@ impl<const GROUP_SIZE: usize, const GROUPS: usize> AleoValue
             .map(|group| {
                 let group_str = group
                     .iter()
-                    // Weighted Signer to_aleo_string does  not produce an error
+                    // Weighted Signer to_aleo_string does not produce an error
                     .map(|s| s.to_aleo_string().unwrap())
                     .collect::<Vec<_>>()
                     .join(", ");
