@@ -62,7 +62,10 @@ impl PoolId {
     ) -> Result<Self, axelar_wasm_addresses::address::Error> {
         Ok(Self::new(
             pool_id.chain_name,
-            axelar_wasm_addresses::address::validate_cosmwasm_address(api, pool_id.contract.as_str())?,
+            axelar_wasm_addresses::address::validate_cosmwasm_address(
+                api,
+                pool_id.contract.as_str(),
+            )?,
         ))
     }
 }
@@ -519,8 +522,8 @@ mod test {
         };
         assert_err_contains!(
             PoolId::try_from_msg_pool_id(&api, pool_id),
-            axelar_wasm_std::address::Error,
-            axelar_wasm_std::address::Error::InvalidAddress(_)
+            axelar_wasm_addresses::address::Error,
+            axelar_wasm_addresses::address::Error::InvalidAddress(_)
         );
     }
 

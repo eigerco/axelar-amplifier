@@ -34,7 +34,6 @@ fn verifier_should_not_unbond_while_in_active_set() {
 }
 
 #[test]
-#[ignore = "This should be enabled when the functionality of signers rotation is reset"]
 fn claim_stake_after_rotation_success() {
     let chains: Vec<router_api::ChainName> = vec![
         "Ethereum".try_into().unwrap(),
@@ -149,7 +148,6 @@ fn claim_stake_when_in_all_active_verifier_sets_fails() {
 }
 
 #[test]
-#[ignore = "This should be enabled when the functionality of signers rotation is reset"]
 fn claim_stake_when_in_some_active_verifier_sets_fails() {
     let chains: Vec<router_api::ChainName> = vec![
         "Ethereum".try_into().unwrap(),
@@ -244,7 +242,6 @@ fn claim_stake_after_deregistering_before_rotation_fails() {
 }
 
 #[test]
-#[ignore = "this should be enabled when the functionality of signers rotation is reset"]
 fn claim_stake_when_jailed_fails() {
     let chains: Vec<router_api::ChainName> = vec![
         "Ethereum".try_into().unwrap(),

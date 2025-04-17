@@ -23,7 +23,7 @@ impl StringEncoder {
         }
 
         let bytes = input.as_bytes();
-        let mut buf = Vec::with_capacity((bytes.len() + 15) / 16);
+        let mut buf = Vec::with_capacity(bytes.len().div_ceil(16));
         let mut current_value: u128 = 0;
         let mut position = 0;
 

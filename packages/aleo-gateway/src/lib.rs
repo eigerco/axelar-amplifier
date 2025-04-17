@@ -3,10 +3,12 @@ use std::str::FromStr as _;
 use error_stack::Report;
 use snarkvm_cosmwasm::network::Network;
 use snarkvm_cosmwasm::program::ToBits;
+use snarkvm_cosmwasm::types::Group;
 use thiserror::Error;
 
 mod execute_data;
 mod message;
+mod message_group;
 mod messages;
 mod payload_digest;
 mod proof;
@@ -17,6 +19,7 @@ mod weighted_signers;
 
 pub use execute_data::*;
 pub use message::*;
+pub use message_group::*;
 pub use messages::*;
 pub use payload_digest::*;
 pub use proof::*;
@@ -24,6 +27,15 @@ pub use raw_signature::*;
 pub use signer_with_signature::*;
 pub use weighted_signer::*;
 pub use weighted_signers::*;
+
+// Generics are not used in the code becasue of this issue:
+// https://github.com/rust-lang/rust/issues/61956
+// For this we will use this const variables, just to be easy for as to adapt during development.
+// TODO: When our solution is ready, we will need to rethink it.
+pub const GROUP_SIZE: usize = 2;
+pub const GROUPS: usize = 2;
+
+type Array2D<T> = [[T; GROUP_SIZE]; GROUPS];
 
 #[derive(Error, Debug)]
 pub enum Error {
@@ -43,6 +55,17 @@ pub enum Error {
     InvalidAscii,
     #[error("StringEncoder: {0}")]
     StringEncoder(#[from] aleo_utils::string_encoder::Error),
+    #[error("InvalidMessageGroupLength: expected: {max}, actual: {actual}")]
+    InvalidMessageGroupLength { max: usize, actual: usize },
+    #[error("The number of address signatures ({address_signatures}) does not match the number of signer signatures ({signer_signatures}).")]
+    MismatchedSignerCount {
+        address_signatures: usize,
+        signer_signatures: usize,
+    },
+    #[error("Checked division failed: {0} / {1}")]
+    CheckedDivision(usize, usize),
+    #[error("Checked remainder failed: {0} % {1}")]
+    CheckedRemainder(usize, usize),
 }
 
 pub trait AleoValue {
@@ -53,13 +76,18 @@ pub trait AleoValue {
         hash::<std::string::String, N>(input)
     }
 
-    fn bhp<N: Network>(&self) -> Result<String, Report<Error>> {
+    fn bhp<N: Network>(&self) -> Result<Group<N>, Report<Error>> {
         let input = self.to_aleo_string()?;
         aleo_hash::<std::string::String, N>(input)
     }
+
+    fn bhp_string<N: Network>(&self) -> Result<String, Report<Error>> {
+        let input = self.to_aleo_string()?;
+        aleo_hash::<std::string::String, N>(input).map(|g| g.to_string())
+    }
 }
 
-pub fn aleo_hash<T: AsRef<str>, N: Network>(input: T) -> Result<String, Report<Error>> {
+pub fn aleo_hash<T: AsRef<str>, N: Network>(input: T) -> Result<Group<N>, Report<Error>> {
     let aleo_value: Vec<bool> = snarkvm_cosmwasm::program::Value::<N>::from_str(input.as_ref())
         .map_err(|e| {
             Report::new(Error::Aleo(e))
@@ -67,19 +95,14 @@ pub fn aleo_hash<T: AsRef<str>, N: Network>(input: T) -> Result<String, Report<E
         })?
         .to_bits_le();
 
-    let bits = N::hash_keccak256(&aleo_value).map_err(|e| {
-        Report::new(Error::Aleo(e))
-            .attach_printable(format!("input2: '{:?}'", input.as_ref().to_owned()))
-    })?;
-
-    let group = N::hash_to_group_bhp256(&bits).map_err(|e| {
+    let group = N::hash_to_group_bhp256(&aleo_value).map_err(|e| {
         Report::new(Error::Aleo(e)).attach_printable(format!(
             "Failed to get bhp256 hash: '{:?}'",
             input.as_ref().to_owned()
         ))
     })?;
 
-    Ok(group.to_string())
+    Ok(group)
 }
 
 pub fn hash<T: AsRef<str>, N: Network>(input: T) -> Result<[u8; 32], Report<Error>> {

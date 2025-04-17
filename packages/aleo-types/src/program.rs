@@ -1,3 +1,4 @@
+use std::ops::Deref;
 use std::str::FromStr;
 
 use axelar_wasm_std::nonempty;
@@ -14,6 +15,14 @@ impl TryFrom<String> for Program {
 
     fn try_from(name: String) -> Result<Self, Error> {
         Program::from_str(&name)
+    }
+}
+
+impl Deref for Program {
+    type Target = axelar_wasm_std::nonempty::String;
+
+    fn deref(&self) -> &Self::Target {
+        &self.0
     }
 }
 

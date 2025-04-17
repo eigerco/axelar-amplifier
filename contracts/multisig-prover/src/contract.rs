@@ -78,8 +78,8 @@ pub fn execute(
 ) -> Result<Response, axelar_wasm_std::error::ContractError> {
     match msg.ensure_permissions(deps.storage, &info.sender)? {
         ExecuteMsg::ConstructProof(message_ids) => Ok(execute::construct_proof(deps, message_ids)?),
-        ExecuteMsg::UpdateVerifierSet {} => Ok(execute::update_verifier_set(deps, env)?),
-        ExecuteMsg::ConfirmVerifierSet {} => Ok(execute::confirm_verifier_set(deps, info.sender)?),
+        ExecuteMsg::UpdateVerifierSet => Ok(execute::update_verifier_set(deps, env)?),
+        ExecuteMsg::ConfirmVerifierSet => Ok(execute::confirm_verifier_set(deps, info.sender)?),
         ExecuteMsg::UpdateSigningThreshold {
             new_signing_threshold,
         } => Ok(execute::update_signing_threshold(
@@ -115,8 +115,8 @@ pub fn query(
         QueryMsg::Proof {
             multisig_session_id,
         } => to_json_binary(&query::proof(deps, multisig_session_id)?),
-        QueryMsg::CurrentVerifierSet {} => to_json_binary(&query::current_verifier_set(deps)?),
-        QueryMsg::NextVerifierSet {} => to_json_binary(&query::next_verifier_set(deps)?),
+        QueryMsg::CurrentVerifierSet => to_json_binary(&query::current_verifier_set(deps)?),
+        QueryMsg::NextVerifierSet => to_json_binary(&query::next_verifier_set(deps)?),
     }
     .change_context(ContractError::SerializeResponse)
     .map_err(axelar_wasm_std::error::ContractError::from)
@@ -170,6 +170,7 @@ mod tests {
     use crate::contract::execute::should_update_verifier_set;
     use crate::encoding::Encoder;
     use crate::msg::{ProofResponse, ProofStatus, VerifierSetResponse};
+    use crate::test::aleo_test_data;
     use crate::test::test_data::{self, TestOperator};
     use crate::test::test_utils::{
         mock_querier_handler, ADMIN, COORDINATOR_ADDRESS, GATEWAY_ADDRESS, GOVERNANCE,
@@ -212,6 +213,53 @@ mod tests {
         .unwrap();
 
         deps
+    }
+
+    pub fn aleo_setup_test_case() -> OwnedDeps<MockStorage, MockApi, MockQuerier, Empty> {
+        let mut deps = mock_dependencies();
+        let api = deps.api;
+
+        deps.querier.update_wasm(mock_querier_handler(
+            aleo_test_data::operators(),
+            VerificationStatus::SucceededOnSourceChain,
+        ));
+
+        instantiate(
+            deps.as_mut(),
+            mock_env(),
+            message_info(&api.addr_make(ADMIN), &[]),
+            InstantiateMsg {
+                admin_address: api.addr_make(ADMIN).to_string(),
+                governance_address: api.addr_make(GOVERNANCE).to_string(),
+                gateway_address: api.addr_make(GATEWAY_ADDRESS).to_string(),
+                multisig_address: api.addr_make(MULTISIG_ADDRESS).to_string(),
+                coordinator_address: api.addr_make(COORDINATOR_ADDRESS).to_string(),
+                service_registry_address: api.addr_make(SERVICE_REGISTRY_ADDRESS).to_string(),
+                voting_verifier_address: api.addr_make(VOTING_VERIFIER_ADDRESS).to_string(),
+                signing_threshold: test_data::threshold(),
+                service_name: SERVICE_NAME.to_string(),
+                chain_name: "ganache-0".to_string(),
+                verifier_set_diff_threshold: 0,
+                encoder: Encoder::Aleo,
+                key_type: multisig::key::KeyType::AleoSchnorr,
+                domain_separator: [0; 32],
+            },
+        )
+        .unwrap();
+
+        deps
+    }
+
+    fn aleo_execute_update_verifier_set(
+        deps: DepsMut,
+    ) -> Result<Response, axelar_wasm_std::error::ContractError> {
+        let msg = ExecuteMsg::UpdateVerifierSet {};
+        execute(
+            deps,
+            mock_env(),
+            message_info(&MockApi::default().addr_make(ADMIN), &[]),
+            msg,
+        )
     }
 
     fn execute_update_verifier_set(
@@ -462,6 +510,28 @@ mod tests {
     }
 
     #[test]
+    fn aleo_test_update_verifier_set_fresh() {
+        let mut deps = aleo_setup_test_case();
+        let verifier_set = query_verifier_set(deps.as_ref());
+        assert!(verifier_set.is_ok());
+        assert!(verifier_set.unwrap().is_none());
+
+        let res = aleo_execute_update_verifier_set(deps.as_mut());
+
+        assert!(res.is_ok());
+
+        let verifier_set = query_verifier_set(deps.as_ref());
+        assert!(verifier_set.is_ok());
+
+        let verifier_set = verifier_set.unwrap().unwrap();
+
+        let expected_verifier_set =
+            test_operators_to_verifier_set(aleo_test_data::operators(), mock_env().block.height);
+
+        assert_eq!(verifier_set, expected_verifier_set.into());
+    }
+
+    #[test]
     fn test_update_verifier_set_from_non_admin_or_governance_should_fail() {
         let mut deps = setup_test_case();
         let api = deps.api;
@@ -511,7 +581,6 @@ mod tests {
     }
 
     #[test]
-    #[ignore = "this should be enabled when the functionality of signers rotation is reset"]
     fn test_update_verifier_set_remove_one() {
         let mut deps = setup_test_case();
         let res = execute_update_verifier_set(deps.as_mut());
@@ -542,7 +611,36 @@ mod tests {
     }
 
     #[test]
-    #[ignore = "this should be enabled when the functionality of signers rotation is reset"]
+    fn aleo_test_update_verifier_set_remove_one() {
+        let mut deps = aleo_setup_test_case();
+        let res = execute_update_verifier_set(deps.as_mut());
+
+        assert!(res.is_ok());
+
+        let mut new_verifier_set = aleo_test_data::operators();
+        new_verifier_set.pop();
+
+        deps.querier.update_wasm(mock_querier_handler(
+            new_verifier_set,
+            VerificationStatus::SucceededOnSourceChain,
+        ));
+
+        let res = execute_update_verifier_set(deps.as_mut());
+
+        assert!(res.is_ok());
+
+        let verifier_set = query_verifier_set(deps.as_ref());
+        assert!(verifier_set.is_ok());
+
+        let verifier_set = verifier_set.unwrap().unwrap();
+
+        let expected_verifier_set =
+            test_operators_to_verifier_set(aleo_test_data::operators(), mock_env().block.height);
+
+        assert_eq!(verifier_set, expected_verifier_set.into());
+    }
+
+    #[test]
     fn test_update_verifier_set_add_one() {
         let mut deps = setup_test_case();
 
@@ -577,7 +675,6 @@ mod tests {
     }
 
     #[test]
-    #[ignore = "this should be enabled when the functionality of signers rotation is reset"]
     fn test_update_verifier_set_change_public_key() {
         let mut deps = setup_test_case();
         let res = execute_update_verifier_set(deps.as_mut());
@@ -612,7 +709,6 @@ mod tests {
     }
 
     #[test]
-    #[ignore = "this should be enabled when the functionality of signers rotation is reset"]
     fn test_update_verifier_set_unchanged() {
         let mut deps = setup_test_case();
         let res = execute_update_verifier_set(deps.as_mut());
@@ -630,7 +726,6 @@ mod tests {
     }
 
     #[test]
-    #[ignore = "this should be enabled when the functionality of signers rotation is reset"]
     fn test_confirm_verifier_set_unconfirmed() {
         let mut deps = setup_test_case();
         let api = deps.api;
@@ -658,7 +753,6 @@ mod tests {
     }
 
     #[test]
-    #[ignore = "this should be enabled when the functionality of signers rotation is reset"]
     fn test_confirm_verifier_set_wrong_set() {
         let mut deps = setup_test_case();
         let api = deps.api;
@@ -832,7 +926,6 @@ mod tests {
     }
 
     #[test]
-    #[ignore = "this should be enabled when the functionality of signers rotation is reset"]
     fn update_signing_threshold_should_change_future_threshold() {
         let mut deps = setup_test_case();
         let api = deps.api;
@@ -856,7 +949,6 @@ mod tests {
     }
 
     #[test]
-    #[ignore = "this should be enabled when the functionality of signers rotation is reset"]
     fn should_confirm_new_threshold() {
         let mut deps = setup_test_case();
         let api = deps.api;

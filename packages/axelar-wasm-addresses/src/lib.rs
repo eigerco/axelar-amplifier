@@ -79,8 +79,8 @@ pub mod address {
 #[cfg(test)]
 mod tests {
     use assert_ok::assert_ok;
-    use cosmwasm_std::testing::MockApi;
     use axelar_wasm_std::assert_err_contains;
+    use cosmwasm_std::testing::MockApi;
 
     use crate::address;
 
