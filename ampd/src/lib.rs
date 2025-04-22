@@ -14,6 +14,8 @@ use evm::json_rpc::EthereumClient;
 use multiversx_sdk::gateway::GatewayProxy;
 use queue::queued_broadcaster::QueuedBroadcaster;
 use router_api::ChainName;
+use snarkvm_cosmwasm::network::{CanaryV0, MainnetV0, TestnetV0};
+use snarkvm_cosmwasm::program::Network;
 use solana_client::nonblocking::rpc_client::RpcClient;
 use solana_sdk::commitment_config::CommitmentConfig;
 use starknet_providers::jsonrpc::HttpTransport;
@@ -231,6 +233,61 @@ where
                     base_url,
                     network,
                     gateway_contract,
+                    network_id,
+                } => {
+                    let rest_client = reqwest::ClientBuilder::new()
+                        .connect_timeout(timeout.unwrap_or(DEFAULT_RPC_TIMEOUT))
+                        .timeout(timeout.unwrap_or(DEFAULT_RPC_TIMEOUT))
+                        .build()
+                        .change_context(Error::Connection)?;
+
+                    let client = aleo::http_client::Client::new(rest_client, base_url, network);
+                    let label = format!("{}-msg-verifier", chain.name);
+
+                    match network_id {
+                        MainnetV0::ID => {
+                            let handler = handlers::aleo_verify_msg::Handler::<_, MainnetV0>::new(
+                                verifier.clone(),
+                                cosmwasm_contract,
+                                chain.name,
+                                client,
+                                self.block_height_monitor.latest_block_height(),
+                                gateway_contract,
+                            );
+                            self.create_handler_task(label, handler, event_processor_config.clone())
+                        }
+                        TestnetV0::ID => {
+                            let handler = handlers::aleo_verify_msg::Handler::<_, TestnetV0>::new(
+                                verifier.clone(),
+                                cosmwasm_contract,
+                                chain.name,
+                                client,
+                                self.block_height_monitor.latest_block_height(),
+                                gateway_contract,
+                            );
+                            self.create_handler_task(label, handler, event_processor_config.clone())
+                        }
+                        CanaryV0::ID => {
+                            let handler = handlers::aleo_verify_msg::Handler::<_, CanaryV0>::new(
+                                verifier.clone(),
+                                cosmwasm_contract,
+                                chain.name,
+                                client,
+                                self.block_height_monitor.latest_block_height(),
+                                gateway_contract,
+                            );
+                            self.create_handler_task(label, handler, event_processor_config.clone())
+                        }
+                        _ => panic!(),
+                    }
+                }
+                handlers::config::Config::AleoVerifierSetVerifier {
+                    cosmwasm_contract,
+                    chain,
+                    timeout,
+                    base_url,
+                    network,
+                    verifier_contract,
                 } => {
                     let rest_client = reqwest::ClientBuilder::new()
                         .connect_timeout(timeout.unwrap_or(DEFAULT_RPC_TIMEOUT))
@@ -241,19 +298,18 @@ where
                     let client = aleo::http_client::Client::new(rest_client, base_url, network);
 
                     self.create_handler_task(
-                        format!("{}-msg-verifier", chain.name),
-                        handlers::aleo_verify_msg::Handler::new(
+                        format!("{}-verifier-set-verifier", chain.name),
+                        handlers::aleo_verify_verifier_set::Handler::new(
                             verifier.clone(),
                             cosmwasm_contract,
                             chain.name,
                             client,
                             self.block_height_monitor.latest_block_height(),
-                            gateway_contract,
+                            verifier_contract,
                         ),
                         event_processor_config.clone(),
                     )
                 }
-                handlers::config::Config::AleoVerifierSetVerifier {} => todo!(),
                 handlers::config::Config::EvmMsgVerifier {
                     chain,
                     cosmwasm_contract,

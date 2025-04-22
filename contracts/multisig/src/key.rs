@@ -160,6 +160,17 @@ where
     Ok(pk)
 }
 
+impl std::ops::Deref for PublicKey {
+    type Target = HexBinary;
+    fn deref(&self) -> &Self::Target {
+        match &self {
+            PublicKey::Ecdsa(hex_binary)
+            | PublicKey::Ed25519(hex_binary)
+            | PublicKey::AleoSchnorr(hex_binary) => hex_binary,
+        }
+    }
+}
+
 pub trait KeyTyped {
     fn matches_type<T>(&self, other: &T) -> bool
     where
