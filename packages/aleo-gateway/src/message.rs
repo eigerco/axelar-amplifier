@@ -1,10 +1,11 @@
 use aleo_utils::string_encoder::StringEncoder;
 use error_stack::{ensure, Report};
+use serde::Deserialize;
 use snarkvm_cosmwasm::network::Network;
 
 use crate::{AleoValue, Error};
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, Deserialize)]
 pub struct Message {
     pub cc_id: router_api::CrossChainId,
     pub source_address: String,

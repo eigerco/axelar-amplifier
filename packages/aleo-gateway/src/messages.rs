@@ -1,9 +1,10 @@
 use error_stack::Report;
+use serde::Deserialize;
 
 use crate::message::Message;
 use crate::{AleoValue, Error};
 
-#[derive(Debug)]
+#[derive(Debug, Deserialize)]
 pub struct Messages(pub Vec<Message>);
 
 impl From<Vec<Message>> for Messages {
