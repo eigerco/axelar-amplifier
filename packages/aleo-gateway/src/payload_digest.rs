@@ -13,16 +13,24 @@ pub struct PayloadDigest<'a> {
 impl<'a> PayloadDigest<'a> {
     pub fn new(
         domain_separator: &'a [u128; 2],
+        signers: WeightedSigners,
+        data_hash: String,
+    ) -> PayloadDigest<'a> {
+        PayloadDigest {
+            domain_separator,
+            signers,
+            data_hash,
+        }
+    }
+
+    pub fn new_with_verifier_set(
+        domain_separator: &'a [u128; 2],
         verifier_set: &VerifierSet,
         data_hash: String,
     ) -> Result<PayloadDigest<'a>, Report<Error>> {
         let signers = WeightedSigners::try_from(verifier_set)?;
 
-        Ok(PayloadDigest {
-            domain_separator,
-            signers,
-            data_hash,
-        })
+        Ok(Self::new(domain_separator, signers, data_hash))
     }
 }
 

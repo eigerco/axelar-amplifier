@@ -48,7 +48,7 @@ pub fn payload_digest<N: Network>(
     })?);
     let domain_separator: [u128; 2] = [part1, part2];
 
-    let payload_digest = PayloadDigest::new(&domain_separator, verifier_set, data_hash)
+    let payload_digest = PayloadDigest::new_with_verifier_set(&domain_separator, verifier_set, data_hash)
         .map_err(|e| ContractError::AleoError(e.to_string()))?;
 
     let hash = payload_digest
