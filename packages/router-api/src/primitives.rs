@@ -120,7 +120,7 @@ impl std::fmt::Display for Address {
 }
 
 #[cw_serde]
-#[derive(Eq, Hash)]
+#[derive(Eq, PartialOrd, Ord, Hash)]
 pub struct CrossChainId {
     pub source_chain: ChainNameRaw,
     pub message_id: nonempty::String,
@@ -304,7 +304,7 @@ impl AsRef<str> for ChainName {
 /// - Case-sensitivity is preserved
 #[cw_serde]
 #[serde(try_from = "String")]
-#[derive(Eq, Hash)]
+#[derive(Eq, PartialOrd, Ord, Hash)]
 pub struct ChainNameRaw(String);
 
 impl From<ChainName> for ChainNameRaw {

@@ -66,6 +66,7 @@ voting-verifier = { workspace = true, features = ["library"] }
 aleo-gateway = { workspace = true }
 snarkvm-cosmwasm = { workspace = true }
 bincode = "1.3.3"
+interchain-token-service = { workspace = true }
 
 [dev-dependencies]
 anyhow = "1.0"

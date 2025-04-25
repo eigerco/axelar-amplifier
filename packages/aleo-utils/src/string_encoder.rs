@@ -22,7 +22,10 @@ impl StringEncoder {
             return Err(Error::InvalidAscii);
         }
 
-        let bytes = input.as_bytes();
+        Self::encode_bytes(input.as_bytes())
+    }
+
+    pub fn encode_bytes(bytes: &[u8]) -> Result<Self, Error> {
         let mut buf = Vec::with_capacity(bytes.len().div_ceil(16));
         let mut current_value: u128 = 0;
         let mut position = 0;

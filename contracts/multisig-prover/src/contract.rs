@@ -78,6 +78,9 @@ pub fn execute(
 ) -> Result<Response, axelar_wasm_std::error::ContractError> {
     match msg.ensure_permissions(deps.storage, &info.sender)? {
         ExecuteMsg::ConstructProof(message_ids) => Ok(execute::construct_proof(deps, message_ids)?),
+        ExecuteMsg::ConstructProofWithItsPayload(its_messages) => Ok(
+            execute::construct_proof_with_its_payload(deps, its_messages)?,
+        ),
         ExecuteMsg::UpdateVerifierSet => Ok(execute::update_verifier_set(deps, env)?),
         ExecuteMsg::ConfirmVerifierSet => Ok(execute::confirm_verifier_set(deps, info.sender)?),
         ExecuteMsg::UpdateSigningThreshold {
