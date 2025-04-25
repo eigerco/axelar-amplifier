@@ -7,15 +7,16 @@ edition.workspace = true
 [dependencies]
 aleo-types = { workspace = true }
 aleo-utils = { workspace = true }
-router-api = { workspace = true }
-error-stack = { workspace = true }
-thiserror = { workspace = true }
 cosmwasm-std = { workspace = true }
+error-stack = { workspace = true }
+interchain-token-service = { workspace = true }
 hex = { workspace = true }
 multisig = { workspace = true, features = ["library"] }
+router-api = { workspace = true }
 serde = { version = "1.0.147", features = ["derive"] }
 serde_with = "3.12.0"
 snarkvm-cosmwasm = { workspace = true, features = ["program", "network"]}
+thiserror = { workspace = true }
 
 [dev-dependencies]
 rand = "0.8"

@@ -3,7 +3,6 @@ use std::str::FromStr;
 use std::sync::LazyLock;
 
 use axelar_wasm_std::nonempty;
-use cosmwasm_std::HexBinary;
 use error_stack::{ensure, Report, Result};
 use serde::{Deserialize, Serialize};
 
@@ -62,10 +61,20 @@ impl FromStr for Address {
     }
 }
 
-impl TryFrom<&HexBinary> for Address {
+impl TryFrom<&cosmwasm_std::HexBinary> for Address {
     type Error = Report<Error>;
 
-    fn try_from(hex: &HexBinary) -> Result<Self, Error> {
+    fn try_from(hex: &cosmwasm_std::HexBinary) -> Result<Self, Error> {
+        let address =
+            std::str::from_utf8(hex).map_err(|e| Error::InvalidAleoAddress(e.to_string()))?;
+        Address::from_str(address)
+    }
+}
+
+impl TryFrom<&axelar_wasm_std::nonempty::HexBinary> for Address {
+    type Error = Report<Error>;
+
+    fn try_from(hex: &axelar_wasm_std::nonempty::HexBinary) -> Result<Self, Error> {
         let address =
             std::str::from_utf8(hex).map_err(|e| Error::InvalidAleoAddress(e.to_string()))?;
         Address::from_str(address)

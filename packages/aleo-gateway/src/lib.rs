@@ -1,5 +1,7 @@
 use std::str::FromStr as _;
 
+use aleo_types::address::Address;
+use aleo_utils::string_encoder::StringEncoder;
 use error_stack::Report;
 use snarkvm_cosmwasm::network::Network;
 use snarkvm_cosmwasm::program::ToBits;
@@ -130,4 +132,122 @@ pub fn hash<T: AsRef<str>, N: Network>(input: T) -> Result<[u8; 32], Report<Erro
     }
 
     Ok(hash)
+}
+
+impl AleoValue for interchain_token_service::HubMessage {
+    fn to_aleo_string(&self) -> Result<String, Report<Error>> {
+        // We need to support
+        // 1. InterchainTransfer
+        // 2. DeployInterchainToken
+        // 3. LinkToken
+
+        match self {
+            interchain_token_service::HubMessage::SendToHub {
+                destination_chain: _,
+                message,
+            } => match message {
+                interchain_token_service::Message::InterchainTransfer(_) => todo!(),
+
+                interchain_token_service::Message::DeployInterchainToken(_) => todo!(),
+
+                interchain_token_service::Message::LinkToken(_) => todo!(),
+            },
+            interchain_token_service::HubMessage::ReceiveFromHub {
+                source_chain: _,
+                message: _,
+            } => todo!(),
+            interchain_token_service::HubMessage::RegisterTokenMetadata(
+                _register_token_metadata,
+            ) => todo!(),
+        }
+
+        todo!()
+    }
+}
+
+impl AleoValue for interchain_token_service::InterchainTransfer {
+    fn to_aleo_string(&self) -> Result<String, Report<Error>> {
+        let token_id: String = self
+            .token_id
+            .0
+            .iter()
+            .map(|byte| format!("{}u8", byte))
+            .collect::<Vec<_>>()
+            .join(", ");
+
+        let source_address = StringEncoder::encode_bytes(&self.source_address)
+            .map_err(|_| {
+                Report::new(Error::AleoGateway(
+                    "Failed to encode source address".to_string(),
+                ))
+            })?
+            .buf
+            .iter()
+            .map(|byte| format!("{}u128", byte))
+            .take(16)
+            .collect::<Vec<_>>()
+            .join(", ");
+
+        let destination_address = Address::try_from(&self.destination_address).map_err(|_| {
+            Report::new(Error::AleoGateway(
+                "Failed to parse destination address".to_string(),
+            ))
+        })?;
+
+        let amount: u128 = self.amount.to_string().parse().map_err(|_| {
+            Report::new(Error::AleoGateway(
+                "Failed to parse amount into u128".to_string(),
+            ))
+        })?;
+
+        let output = format!(
+            "{{ token_id: [{}], source_address: [{}], destination_address: {}, amount: {} }}",
+            token_id, source_address, destination_address, amount
+        );
+
+        Ok(output)
+    }
+}
+
+impl AleoValue for interchain_token_service::DeployInterchainToken {
+    fn to_aleo_string(&self) -> Result<String, Report<Error>> {
+        let token_id: String = self
+            .token_id
+            .0
+            .iter()
+            .map(|byte| format!("{}u8", byte))
+            .collect::<Vec<_>>()
+            .join(", ");
+
+        let name = StringEncoder::encode_string(&self.name)
+            .map_err(|_| Report::new(Error::AleoGateway("Failed to encode name".to_string())))?
+            .buf
+            .iter()
+            .map(|byte| format!("{}u128", byte))
+            .take(1)
+            .collect::<Vec<_>>()
+            .join(", ");
+
+        let symbol = StringEncoder::encode_string(&self.symbol)
+            .map_err(|_| Report::new(Error::AleoGateway("Failed to encode symbol".to_string())))?
+            .buf
+            .iter()
+            .map(|byte| format!("{}u128", byte))
+            .take(1)
+            .collect::<Vec<_>>()
+            .join(", ");
+
+        let output = format!(
+            "{{ token_id: [{}], name: [{}], symbol: [{}], decimals: {}u8 }}",
+            token_id, name, symbol, self.decimals
+        );
+
+        Ok(output)
+    }
+}
+
+impl AleoValue for interchain_token_service::LinkToken {
+    fn to_aleo_string(&self) -> Result<String, Report<Error>> {
+        todo!("not implemented yet")
+    }
 }

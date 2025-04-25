@@ -4,9 +4,33 @@ use cosmwasm_std::{HexBinary, Uint64};
 use msgs_derive::EnsurePermissions;
 pub use multisig_prover_api::msg::InstantiateMsg;
 use router_api::CrossChainId;
+use sha3::{Digest, Keccak256};
+use axelar_wasm_std::hash::Hash;
 
 pub use crate::contract::MigrateMsg;
 use crate::Payload;
+
+#[cw_serde]
+pub struct ItsPayload {
+    /// The message id of the payload
+    pub message_id: CrossChainId,
+    /// The payload that was sent to the gateway
+    pub payload: HexBinary,
+}
+
+impl ItsPayload {
+    pub fn payload_hash(&self) -> Hash {
+        Keccak256::digest(self.payload.as_slice()).into()
+    }
+}
+
+#[cw_serde]
+pub struct AleoItsPayloadWrapper {
+    /// The message id of the payload
+    pub message_id: CrossChainId,
+    /// The payload that was sent to the gateway
+    pub payload: HexBinary,
+}
 
 #[cw_serde]
 #[derive(EnsurePermissions)]
@@ -15,6 +39,10 @@ pub enum ExecuteMsg {
     // Queries the gateway for actual message contents
     #[permission(Any)]
     ConstructProof(Vec<CrossChainId>),
+
+    #[permission(Any)]
+    ConstructProofWithItsPayload(Vec<ItsPayload>),
+
     #[permission(Elevated)]
     UpdateVerifierSet,
 
