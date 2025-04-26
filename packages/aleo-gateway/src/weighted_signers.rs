@@ -16,7 +16,7 @@ use crate::{AleoValue, Array2D, Error, GROUPS, GROUP_SIZE};
 pub struct WeightedSigners {
     #[serde_as(as = "[[_; GROUP_SIZE]; GROUPS]")]
     pub signers: Array2D<WeightedSigner>,
-    threshold: Uint128,
+    pub threshold: Uint128,
     // nonce: [u64; 4], // TODO: this should be included before going to mainnet
 }
 
