@@ -141,16 +141,20 @@ impl AleoValue for interchain_token_service::HubMessage {
         // 2. DeployInterchainToken
         // 3. LinkToken
 
-        match self {
+        let aleo_string = match self {
             interchain_token_service::HubMessage::SendToHub {
                 destination_chain: _,
                 message,
             } => match message {
-                interchain_token_service::Message::InterchainTransfer(_) => todo!(),
-
-                interchain_token_service::Message::DeployInterchainToken(_) => todo!(),
-
-                interchain_token_service::Message::LinkToken(_) => todo!(),
+                interchain_token_service::Message::InterchainTransfer(interchain_transfer) => {
+                    interchain_transfer.to_aleo_string()
+                }
+                interchain_token_service::Message::DeployInterchainToken(
+                    deploy_interchain_token,
+                ) => deploy_interchain_token.to_aleo_string(),
+                interchain_token_service::Message::LinkToken(link_token) => {
+                    link_token.to_aleo_string()
+                }
             },
             interchain_token_service::HubMessage::ReceiveFromHub {
                 source_chain: _,
@@ -159,9 +163,9 @@ impl AleoValue for interchain_token_service::HubMessage {
             interchain_token_service::HubMessage::RegisterTokenMetadata(
                 _register_token_metadata,
             ) => todo!(),
-        }
+        };
 
-        todo!()
+        aleo_string
     }
 }
 
@@ -201,7 +205,7 @@ impl AleoValue for interchain_token_service::InterchainTransfer {
         })?;
 
         let output = format!(
-            "{{ token_id: [{}], source_address: [{}], destination_address: {}, amount: {} }}",
+            "{{ token_id: [{}], source_address: [{}], destination_address: {}, amount: {}u128 }}",
             token_id, source_address, destination_address, amount
         );
 
@@ -249,5 +253,53 @@ impl AleoValue for interchain_token_service::DeployInterchainToken {
 impl AleoValue for interchain_token_service::LinkToken {
     fn to_aleo_string(&self) -> Result<String, Report<Error>> {
         todo!("not implemented yet")
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    // Note this useful idiom: importing names from outer (for mod tests) scope.
+    use super::*;
+    use axelar_wasm_std::nonempty::HexBinary;
+    use interchain_token_service::TokenId;
+    use snarkvm_cosmwasm::network::TestnetV0;
+
+    #[test]
+    fn translate_deploy_interchain_token() {
+        let deploy_interchain_token = interchain_token_service::DeployInterchainToken {
+            token_id: TokenId([0u8; 32]),
+            name: axelar_wasm_std::nonempty::String::from_str("Test Token").unwrap(),
+            symbol: axelar_wasm_std::nonempty::String::from_str("TT").unwrap(),
+            decimals: 18,
+            minter: None,
+        };
+
+        let aleo_string = deploy_interchain_token.to_aleo_string().unwrap();
+
+        let aleo_value =
+            snarkvm_cosmwasm::program::Value::<TestnetV0>::from_str(aleo_string.as_ref());
+
+        assert!(aleo_value.is_ok(), "aleo_string: {aleo_string:?}\naleo_value: {aleo_value:?}");
+    }
+
+    #[test]
+    fn translate_interchain_transfer() {
+        let aleo_address = aleo_types::address::Address::default();
+        let aleo_address_bytes = aleo_address.to_bytes();
+
+        let amount: cosmwasm_std::Uint256 = cosmwasm_std::Uint256::try_from(100u128).unwrap();
+        let interchain_transfer = interchain_token_service::InterchainTransfer {
+            token_id: TokenId([0u8; 32]),
+            source_address: HexBinary::try_from(vec![1, 2, 3]).unwrap(),
+            destination_address: HexBinary::try_from(aleo_address_bytes).unwrap(),
+            amount: axelar_wasm_std::nonempty::Uint256::try_from(amount).unwrap(),
+            data: None,
+        };
+        let aleo_string = interchain_transfer.to_aleo_string().unwrap();
+
+        let aleo_value =
+            snarkvm_cosmwasm::program::Value::<TestnetV0>::from_str(aleo_string.as_ref());
+
+        assert!(aleo_value.is_ok(), "aleo_string: {aleo_string:?}\naleo_value: {aleo_value:?}");
     }
 }
