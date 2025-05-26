@@ -9,7 +9,7 @@ use crate::{AleoValue, Error, Message};
 /// MN: Number of messages in a message group
 /// MG: Number of message groups
 #[derive(Debug)]
-pub struct MessageGroup<N: Network, const MN: usize = 16, const MG: usize = 3> {
+pub struct MessageGroup<N: Network, const MN: usize = 24, const MG: usize = 2> {
     messages: [[Group<N>; MN]; MG],
 }
 

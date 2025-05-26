@@ -32,7 +32,7 @@ pub use weighted_signers::*;
 // https://github.com/rust-lang/rust/issues/61956
 // For this we will use this const variables, just to be easy for as to adapt during development.
 // TODO: When our solution is ready, we will need to rethink it.
-pub const GROUP_SIZE: usize = 2;
+pub const GROUP_SIZE: usize = 14;
 pub const GROUPS: usize = 2;
 
 type Array2D<T> = [[T; GROUP_SIZE]; GROUPS];
