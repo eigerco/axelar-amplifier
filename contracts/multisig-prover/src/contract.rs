@@ -1,25 +1,20 @@
-use std::str::FromStr;
-
 use axelar_wasm_addresses::address;
 use axelar_wasm_std::permission_control;
 #[cfg(not(feature = "library"))]
 use cosmwasm_std::entry_point;
-use cosmwasm_std::{
-    to_json_binary, Binary, Deps, DepsMut, Empty, Env, MessageInfo, Reply, Response,
-};
+use cosmwasm_std::{to_json_binary, Binary, Deps, DepsMut, Env, MessageInfo, Reply, Response};
 use error_stack::ResultExt;
-use router_api::ChainName;
-use semver::{Version, VersionReq};
 
 use crate::error::ContractError;
 use crate::msg::{ExecuteMsg, InstantiateMsg, QueryMsg};
 use crate::state::{Config, CONFIG};
-use crate::Encoder;
 
 mod execute;
 mod migrations;
 mod query;
 mod reply;
+
+pub use migrations::{migrate, MigrateMsg};
 
 pub const START_MULTISIG_REPLY_ID: u64 = 1;
 
@@ -122,35 +117,6 @@ pub fn query(
     .map_err(axelar_wasm_std::error::ContractError::from)
 }
 
-#[cfg_attr(not(feature = "library"), entry_point)]
-pub fn migrate(
-    deps: DepsMut,
-    _env: Env,
-    _msg: Empty,
-) -> Result<Response, axelar_wasm_std::error::ContractError> {
-    let old_version = Version::parse(&cw2::get_contract_version(deps.storage)?.version)?;
-    let version_requirement = VersionReq::parse(">= 1.1.0, < 1.2.0")?;
-    assert!(version_requirement.matches(&old_version));
-
-    cw2::set_contract_version(deps.storage, CONTRACT_NAME, CONTRACT_VERSION)?;
-
-    let old_config = CONFIG.load(deps.storage)?;
-    let new_config = Config {
-        chain_name: ChainName::from_str("aleo-2").unwrap(),
-        encoder: Encoder::Aleo,
-        key_type: multisig::key::KeyType::AleoSchnorr,
-        multisig: address::validate_cosmwasm_address(
-            deps.api,
-            "axelar1g5vu3hs8g5hq3wy7q2p4c6q0aar08f3n2z73nrxgf56rg7yrzkds5kh89l",
-        )?,
-        ..old_config
-    };
-
-    CONFIG.save(deps.storage, &new_config)?;
-
-    Ok(Response::default())
-}
-
 #[cfg(test)]
 mod tests {
     use axelar_wasm_std::permission_control::Permission;
@@ -163,12 +129,12 @@ mod tests {
     };
     use multisig::msg::Signer;
     use multisig::verifier_set::VerifierSet;
+    use multisig_prover_api::encoding::Encoder;
     use prost::Message;
     use router_api::CrossChainId;
 
     use super::*;
     use crate::contract::execute::should_update_verifier_set;
-    use crate::encoding::Encoder;
     use crate::msg::{ProofResponse, ProofStatus, VerifierSetResponse};
     use crate::test::aleo_test_data;
     use crate::test::test_data::{self, TestOperator};

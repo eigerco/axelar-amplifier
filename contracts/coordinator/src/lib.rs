@@ -2,6 +2,6 @@ mod client;
 pub use client::Client;
 
 pub mod contract;
-pub mod error;
+mod events;
 pub mod msg;
 mod state;
