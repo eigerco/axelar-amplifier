@@ -76,7 +76,7 @@ generic-array = "0.14.7"
 goldie = { workspace = true }
 prost = "0.12.4"
 tofn = { workspace = true, features = ["aleo-schnorr"] }
-snarkvm = "1.2.1"
+snarkvm = "3.7.1"
 
 [lints]
 workspace = true
