@@ -148,7 +148,7 @@ where
     }
 }
 
-impl<'a, C> ReceiptBuilder<'a, C, StateTransitionFound>
+impl<C> ReceiptBuilder<'_, C, StateTransitionFound>
 where
     C: ClientTrait + Send + Sync + 'static,
 {

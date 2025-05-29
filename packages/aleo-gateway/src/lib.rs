@@ -141,7 +141,7 @@ impl AleoValue for interchain_token_service::HubMessage {
         // 2. DeployInterchainToken
         // 3. LinkToken
 
-        let aleo_string = match self {
+        match self {
             interchain_token_service::HubMessage::SendToHub {
                 destination_chain: _,
                 message,
@@ -163,9 +163,7 @@ impl AleoValue for interchain_token_service::HubMessage {
             interchain_token_service::HubMessage::RegisterTokenMetadata(
                 _register_token_metadata,
             ) => todo!(),
-        };
-
-        aleo_string
+        }
     }
 }
 
@@ -287,7 +285,7 @@ mod tests {
         let aleo_address = aleo_types::address::Address::default();
         let aleo_address_bytes = aleo_address.to_bytes();
 
-        let amount: cosmwasm_std::Uint256 = cosmwasm_std::Uint256::try_from(100u128).unwrap();
+        let amount: cosmwasm_std::Uint256 = cosmwasm_std::Uint256::from(100u128);
         let interchain_transfer = interchain_token_service::InterchainTransfer {
             token_id: TokenId([0u8; 32]),
             source_address: HexBinary::try_from(vec![1, 2, 3]).unwrap(),
