@@ -1,5 +1,7 @@
 use std::str::FromStr as _;
 
+use aleo_types::address::Address;
+use aleo_utils::string_encoder::StringEncoder;
 use error_stack::Report;
 use snarkvm_cosmwasm::network::Network;
 use snarkvm_cosmwasm::program::ToBits;
@@ -130,4 +132,174 @@ pub fn hash<T: AsRef<str>, N: Network>(input: T) -> Result<[u8; 32], Report<Erro
     }
 
     Ok(hash)
+}
+
+impl AleoValue for interchain_token_service::HubMessage {
+    fn to_aleo_string(&self) -> Result<String, Report<Error>> {
+        // We need to support
+        // 1. InterchainTransfer
+        // 2. DeployInterchainToken
+        // 3. LinkToken
+
+        let aleo_string = match self {
+            interchain_token_service::HubMessage::SendToHub {
+                destination_chain: _,
+                message,
+            } => match message {
+                interchain_token_service::Message::InterchainTransfer(interchain_transfer) => {
+                    interchain_transfer.to_aleo_string()
+                }
+                interchain_token_service::Message::DeployInterchainToken(
+                    deploy_interchain_token,
+                ) => deploy_interchain_token.to_aleo_string(),
+                interchain_token_service::Message::LinkToken(link_token) => {
+                    link_token.to_aleo_string()
+                }
+            },
+            interchain_token_service::HubMessage::ReceiveFromHub {
+                source_chain: _,
+                message: _,
+            } => todo!(),
+            interchain_token_service::HubMessage::RegisterTokenMetadata(
+                _register_token_metadata,
+            ) => todo!(),
+        };
+
+        aleo_string
+    }
+}
+
+impl AleoValue for interchain_token_service::InterchainTransfer {
+    fn to_aleo_string(&self) -> Result<String, Report<Error>> {
+        let token_id: String = self
+            .token_id
+            .0
+            .iter()
+            .map(|byte| format!("{}u8", byte))
+            .collect::<Vec<_>>()
+            .join(", ");
+
+        let source_address = StringEncoder::encode_bytes(&self.source_address)
+            .map_err(|_| {
+                Report::new(Error::AleoGateway(
+                    "Failed to encode source address".to_string(),
+                ))
+            })?
+            .buf
+            .iter()
+            .map(|byte| format!("{}u128", byte))
+            .take(16)
+            .collect::<Vec<_>>()
+            .join(", ");
+
+        let destination_address = Address::try_from(&self.destination_address).map_err(|_| {
+            Report::new(Error::AleoGateway(
+                "Failed to parse destination address".to_string(),
+            ))
+        })?;
+
+        let amount: u128 = self.amount.to_string().parse().map_err(|_| {
+            Report::new(Error::AleoGateway(
+                "Failed to parse amount into u128".to_string(),
+            ))
+        })?;
+
+        let output = format!(
+            "{{ token_id: [{}], source_address: [{}], destination_address: {}, amount: {}u128 }}",
+            token_id, source_address, destination_address, amount
+        );
+
+        Ok(output)
+    }
+}
+
+impl AleoValue for interchain_token_service::DeployInterchainToken {
+    fn to_aleo_string(&self) -> Result<String, Report<Error>> {
+        let token_id: String = self
+            .token_id
+            .0
+            .iter()
+            .map(|byte| format!("{}u8", byte))
+            .collect::<Vec<_>>()
+            .join(", ");
+
+        let name = StringEncoder::encode_string(&self.name)
+            .map_err(|_| Report::new(Error::AleoGateway("Failed to encode name".to_string())))?
+            .buf
+            .iter()
+            .map(|byte| format!("{}u128", byte))
+            .take(1)
+            .collect::<Vec<_>>()
+            .join(", ");
+
+        let symbol = StringEncoder::encode_string(&self.symbol)
+            .map_err(|_| Report::new(Error::AleoGateway("Failed to encode symbol".to_string())))?
+            .buf
+            .iter()
+            .map(|byte| format!("{}u128", byte))
+            .take(1)
+            .collect::<Vec<_>>()
+            .join(", ");
+
+        let output = format!(
+            "{{ token_id: [{}], name: [{}], symbol: [{}], decimals: {}u8 }}",
+            token_id, name, symbol, self.decimals
+        );
+
+        Ok(output)
+    }
+}
+
+impl AleoValue for interchain_token_service::LinkToken {
+    fn to_aleo_string(&self) -> Result<String, Report<Error>> {
+        todo!("not implemented yet")
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    // Note this useful idiom: importing names from outer (for mod tests) scope.
+    use super::*;
+    use axelar_wasm_std::nonempty::HexBinary;
+    use interchain_token_service::TokenId;
+    use snarkvm_cosmwasm::network::TestnetV0;
+
+    #[test]
+    fn translate_deploy_interchain_token() {
+        let deploy_interchain_token = interchain_token_service::DeployInterchainToken {
+            token_id: TokenId([0u8; 32]),
+            name: axelar_wasm_std::nonempty::String::from_str("Test Token").unwrap(),
+            symbol: axelar_wasm_std::nonempty::String::from_str("TT").unwrap(),
+            decimals: 18,
+            minter: None,
+        };
+
+        let aleo_string = deploy_interchain_token.to_aleo_string().unwrap();
+
+        let aleo_value =
+            snarkvm_cosmwasm::program::Value::<TestnetV0>::from_str(aleo_string.as_ref());
+
+        assert!(aleo_value.is_ok(), "aleo_string: {aleo_string:?}\naleo_value: {aleo_value:?}");
+    }
+
+    #[test]
+    fn translate_interchain_transfer() {
+        let aleo_address = aleo_types::address::Address::default();
+        let aleo_address_bytes = aleo_address.to_bytes();
+
+        let amount: cosmwasm_std::Uint256 = cosmwasm_std::Uint256::try_from(100u128).unwrap();
+        let interchain_transfer = interchain_token_service::InterchainTransfer {
+            token_id: TokenId([0u8; 32]),
+            source_address: HexBinary::try_from(vec![1, 2, 3]).unwrap(),
+            destination_address: HexBinary::try_from(aleo_address_bytes).unwrap(),
+            amount: axelar_wasm_std::nonempty::Uint256::try_from(amount).unwrap(),
+            data: None,
+        };
+        let aleo_string = interchain_transfer.to_aleo_string().unwrap();
+
+        let aleo_value =
+            snarkvm_cosmwasm::program::Value::<TestnetV0>::from_str(aleo_string.as_ref());
+
+        assert!(aleo_value.is_ok(), "aleo_string: {aleo_string:?}\naleo_value: {aleo_value:?}");
+    }
 }
