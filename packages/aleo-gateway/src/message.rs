@@ -60,7 +60,7 @@ impl AleoValue for Message {
             }
         );
 
-        const SOURCE_ADDRESS_LEN: usize = 4;
+        const SOURCE_ADDRESS_LEN: usize = 6;
         let source_address = StringEncoder::encode_string(self.source_address.as_str())
             .map_err(|e| Report::new(Error::from(e)))?;
 
@@ -73,7 +73,7 @@ impl AleoValue for Message {
             }
         );
 
-        const CONTRACT_ADDRESS_LEN: usize = 4;
+        const CONTRACT_ADDRESS_LEN: usize = 6;
         let contract_address = StringEncoder::encode_string(self.destination_address.as_str())
             .map_err(|e| Report::new(Error::from(e)))?;
 
