@@ -95,6 +95,8 @@ pub mod tests {
     use super::*;
     use crate::aleo::ReceiptBuilder;
 
+    // TODO: reduce code duplication in tests
+
     pub fn mock_client_1() -> MockClientTrait {
         let mut mock_client = MockClientTrait::new();
 
@@ -155,6 +157,36 @@ pub mod tests {
         mock_client
     }
 
+    pub fn mock_client_3() -> MockClientTrait {
+        let mut mock_client = MockClientTrait::new();
+
+        let transaction_id = "at16nqk09h4fyh83v0ayc44kvyz5y27ynhsw0v4qezc95t8hl5sas9s2enmlw";
+        let mut expected_transitions: HashMap<
+            Transaction,
+            aleo_utils::block_processor::Transaction,
+        > = HashMap::new();
+        let transaction_one = include_str!(
+            "../tests/at16nqk09h4fyh83v0ayc44kvyz5y27ynhsw0v4qezc95t8hl5sas9s2enmlw.json"
+        );
+        let snark_tansaction: aleo_utils::block_processor::Transaction =
+            serde_json::from_str(transaction_one).unwrap();
+        let transaction = Transaction::from_str(transaction_id).unwrap();
+        expected_transitions.insert(transaction, snark_tansaction);
+
+        mock_client
+            .expect_get_transaction()
+            .returning(move |transaction| {
+                Ok(expected_transitions.get(transaction).unwrap().clone())
+            });
+
+        mock_client.expect_find_transaction().returning(move |_| {
+            let transaction_id = "at16nqk09h4fyh83v0ayc44kvyz5y27ynhsw0v4qezc95t8hl5sas9s2enmlw";
+            Ok(transaction_id.to_string())
+        });
+
+        mock_client
+    }
+
     #[tokio::test]
     async fn sanity_test1() {
         let client = mock_client_1();
@@ -196,6 +228,29 @@ pub mod tests {
             .get_transition()
             .unwrap()
             .check_call_contract::<TestnetV0>();
+        assert!(res.is_ok());
+    }
+
+    #[tokio::test]
+    async fn sanity_test3() {
+        let client = mock_client_3();
+        let transision_id = "au193ysmau9rpcyvp4ax2vjc0029q4n2mgjjwd4rfrghzsts5x09v8s9xxwdx";
+        let transition = Transition::from_str(transision_id).unwrap();
+        let gateway_contract = "gateway_frontend.aleo";
+        let program = Program::from_str(gateway_contract).unwrap();
+
+        let res = ReceiptBuilder::new(&client, &program)
+            .unwrap()
+            .get_transaction_id(&transition)
+            .await
+            .unwrap()
+            .get_transaction()
+            .await
+            .unwrap()
+            .get_transition()
+            .unwrap()
+            .check_call_contract::<TestnetV0>();
+        println!("res: {:?}", res);
         assert!(res.is_ok());
     }
 }
