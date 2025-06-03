@@ -27,9 +27,8 @@ pub fn payload_digest<N: Network>(
                 .then(Messages::from);
 
             // TODO: make the MessageGroup configurable from outside
-            let group: aleo_gateway::MessageGroup<N> =
-                aleo_gateway::MessageGroup::new(messages.0)
-                    .change_context(ContractError::InvalidMessage)?;
+            let group: aleo_gateway::MessageGroup<N> = aleo_gateway::MessageGroup::new(messages.0)
+                .change_context(ContractError::InvalidMessage)?;
 
             group.bhp_string::<N>()
         }
@@ -48,8 +47,9 @@ pub fn payload_digest<N: Network>(
     })?);
     let domain_separator: [u128; 2] = [part1, part2];
 
-    let payload_digest = PayloadDigest::new_with_verifier_set(&domain_separator, verifier_set, data_hash)
-        .map_err(|e| ContractError::AleoError(e.to_string()))?;
+    let payload_digest =
+        PayloadDigest::new_with_verifier_set(&domain_separator, verifier_set, data_hash)
+            .map_err(|e| ContractError::AleoError(e.to_string()))?;
 
     let hash = payload_digest
         .bhp_string::<N>()

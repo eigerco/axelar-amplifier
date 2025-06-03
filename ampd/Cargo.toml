@@ -6,6 +6,7 @@ rust-version = { workspace = true }
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+aleo-utils = { workspace = true }
 aleo-types = { workspace = true }
 async-trait = "0.1.59"
 axelar-solana-encoding = { workspace = true }
@@ -37,6 +38,7 @@ gateway-event-stack = { workspace = true }
 hex = { version = "0.4.3", features = ["serde"] }
 humantime-serde = "1.1.1"
 itertools = { workspace = true }
+interchain-token-service = { workspace = true }
 k256 = { workspace = true }
 mockall = "0.11.3"
 move-core-types = { git = "https://github.com/mystenlabs/sui", tag = "testnet-v1.39.1" }
@@ -93,8 +95,7 @@ valuable = { version = "0.1.0", features = ["derive"] }
 valuable-serde = { version = "0.1.0", features = ["std"] }
 voting-verifier = { workspace = true }
 aleo-gateway = { workspace = true }
-snarkvm-cosmwasm = { workspace = true, features = [ "network" ] }
-aleo-utils = { workspace = true }
+snarkvm-cosmwasm = { workspace = true, features = ["network"] }
 xrpl-types = { workspace = true }
 xrpl_http_client = { version = "0.15.0" }
 

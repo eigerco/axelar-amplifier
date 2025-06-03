@@ -102,15 +102,25 @@ fn payload_hash<N: Network>(
     destination_chain: &str,
 ) -> std::result::Result<Hash, Error> {
     let payload = std::str::from_utf8(payload).map_err(|e| Error::PayloadHash(e.to_string()))?;
+    // TODO: We need to figure out how to handle the payload hash for different chains.
+    // At least for EVM chains we can group them instead of using the 'eth' prefix at chain name.
     let payload_hash = if destination_chain.starts_with("eth") {
-        let payload =
-            json_like::into_json(payload).map_err(|e| Error::PayloadHash(e.to_string()))?;
+        let payload = json_like::into_json(payload).map_err(Error::PayloadHash)?;
         let payload: Vec<u8> =
             serde_json::from_str(&payload).map_err(|e| Error::PayloadHash(e.to_string()))?;
         let payload =
             std::str::from_utf8(&payload).map_err(|e| Error::PayloadHash(e.to_string()))?;
         let payload = solabi::encode(&payload);
         let payload_hash = keccak256(&payload).to_vec();
+        Hash::from_slice(&payload_hash)
+    } else if destination_chain == "axelar" {
+        let payload = its_message_abi(payload)
+            .map_err(|_| Error::PayloadHash("Failed to parse ITS message ABI".to_string()))?;
+        // TODO: check if the payload is ITS payload
+
+        let payload_hash = keccak256(payload).to_vec();
+        println!("---------------------->Payload hash: >{:?}<", payload_hash);
+
         Hash::from_slice(&payload_hash)
     } else {
         // Keccak + bhp hash
@@ -126,4 +136,49 @@ fn keccak256(payload: impl AsRef<[u8]>) -> [u8; 32] {
     let mut hasher = Keccak256::new();
     hasher.update(payload);
     hasher.finalize().into()
+}
+
+use aleo_utils::aleo_json::{AleoJson, RemoteDeployInterchainToken};
+// use aleo_utils::serde_plaintext;
+use cosmwasm_std::{HexBinary, Uint256};
+use interchain_token_service::{HubMessage, TokenId};
+
+fn its_message_abi(payload: &str) -> Result<HexBinary, ()> {
+    let r: RemoteDeployInterchainToken = aleo_utils::serde_plaintext::from_str(&payload).unwrap();
+
+    // Convert token id to u256
+    // we know that token_id can be stored at u256
+    // First we will convert this string to u256
+    let bytes = r.token_id[1]
+        .to_le_bytes()
+        .iter()
+        .chain(r.token_id[0].to_le_bytes().iter())
+        .cloned()
+        .collect::<Vec<u8>>();
+    let token_id: Uint256 = Uint256::new(bytes.try_into().unwrap());
+
+    // Then we will store it at [u8; 32]
+    let token_id: [u8; 32] = token_id.to_le_bytes();
+    // let name = todo!();
+    let name = aleo_utils::string_encoder::StringEncoder::from_array(&[r.info.name]);
+    let symbol = aleo_utils::string_encoder::StringEncoder::from_array(&[r.info.symbol]);
+    let destination_chain =
+        aleo_utils::string_encoder::StringEncoder::from_array(&r.destination_chain);
+
+    let msg = interchain_token_service::DeployInterchainToken {
+        token_id: TokenId::from(token_id),
+        name: axelar_wasm_std::nonempty::String::try_from(name.decode()).unwrap(),
+        symbol: axelar_wasm_std::nonempty::String::try_from(symbol.decode()).unwrap(),
+        decimals: r.info.decimals,
+        minter: None,
+    };
+
+    let message_hub = HubMessage::SendToHub {
+        destination_chain: router_api::ChainNameRaw::try_from(destination_chain.decode()).unwrap(),
+        message: msg.into(),
+    };
+
+    println!("--->Parsed RemoteDeployInterchainToken: {:?}", message_hub);
+    let bytes = message_hub.abi_encode();
+    Ok(bytes)
 }

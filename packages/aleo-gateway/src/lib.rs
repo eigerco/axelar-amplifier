@@ -30,7 +30,7 @@ pub use signer_with_signature::*;
 pub use weighted_signer::*;
 pub use weighted_signers::*;
 
-// Generics are not used in the code becasue of this issue:
+// Generics are not used in the code because of this issue:
 // https://github.com/rust-lang/rust/issues/61956
 // For this we will use this const variables, just to be easy for as to adapt during development.
 // TODO: When our solution is ready, we will need to rethink it.
@@ -257,10 +257,11 @@ impl AleoValue for interchain_token_service::LinkToken {
 #[cfg(test)]
 mod tests {
     // Note this useful idiom: importing names from outer (for mod tests) scope.
-    use super::*;
     use axelar_wasm_std::nonempty::HexBinary;
     use interchain_token_service::TokenId;
     use snarkvm_cosmwasm::network::TestnetV0;
+
+    use super::*;
 
     #[test]
     fn translate_deploy_interchain_token() {
@@ -277,7 +278,10 @@ mod tests {
         let aleo_value =
             snarkvm_cosmwasm::program::Value::<TestnetV0>::from_str(aleo_string.as_ref());
 
-        assert!(aleo_value.is_ok(), "aleo_string: {aleo_string:?}\naleo_value: {aleo_value:?}");
+        assert!(
+            aleo_value.is_ok(),
+            "aleo_string: {aleo_string:?}\naleo_value: {aleo_value:?}"
+        );
     }
 
     #[test]
@@ -298,6 +302,9 @@ mod tests {
         let aleo_value =
             snarkvm_cosmwasm::program::Value::<TestnetV0>::from_str(aleo_string.as_ref());
 
-        assert!(aleo_value.is_ok(), "aleo_string: {aleo_string:?}\naleo_value: {aleo_value:?}");
+        assert!(
+            aleo_value.is_ok(),
+            "aleo_string: {aleo_string:?}\naleo_value: {aleo_value:?}"
+        );
     }
 }

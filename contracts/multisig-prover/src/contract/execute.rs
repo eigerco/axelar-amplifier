@@ -1,4 +1,5 @@
 use std::collections::{BTreeMap, HashSet};
+use std::hash::Hash;
 use std::str::FromStr;
 
 use aleo_gateway::AleoValue as _;
@@ -73,6 +74,9 @@ pub fn construct_proof(
     // It is placed here because is needed to pass the unit tests
     // To be handle approbriately in the future, the sig verifier should be configured in contract
     // and it should be passed as a parameter to the contract initialized
+
+    // test
+
     const MULTISIG_ALEO: &str = "axelar1rv940hhxe3288j42zazt7c7fmql4udsgy9cjzmeq646gt7gl02hq54seyr";
     let sig_verifier = (config.chain_name
         == ChainName::from_str("aleo-2").map_err(|_| ContractError::Proof)?)
@@ -108,28 +112,83 @@ pub fn construct_proof_with_its_payload(
     )?;
 
     messages.sort_by(|lhs, rhs| lhs.cc_id.cmp(&rhs.cc_id));
+    let messages_bk = messages.clone();
 
     its_messages.sort_by(|lhs, rhs| lhs.message_id.cmp(&rhs.message_id));
 
-    let _res = messages
-        .iter()
+    let messages = messages
+        .into_iter()
         .zip(its_messages.iter())
         .filter_map(|(message, its_payload)| {
             if message.cc_id != its_payload.message_id {
-                return None;
+                panic!(
+                    "violated invariant: message ids mismatch, expected {}, got {}",
+                    message.cc_id,
+                    its_payload.message_id
+                );
             }
 
-            if its_payload.payload_hash() != message.payload_hash {
-                return None;
-            }
+            // if its_payload.payload_hash() != message.payload_hash {
+            //     panic!(
+            //         "payload hash mismatch: expected {:?}, got {:?}",
+            //         its_payload.payload_hash(),
+            //         message.payload_hash
+            //     );
+            // }
 
             let its_message =
                 interchain_token_service::HubMessage::abi_decode(&its_payload.payload).ok()?;
-            its_message.to_aleo_string().ok()
+
+            Some((message, its_message))
+        })
+        .filter(|(_, its_message)| {
+            let res = matches!(
+                its_message,
+                interchain_token_service::HubMessage::ReceiveFromHub {
+                    source_chain: _,
+                    message: interchain_token_service::Message::InterchainTransfer(_)
+                        | interchain_token_service::Message::DeployInterchainToken(_)
+                }
+            );
+
+            let res2 = matches!(
+                its_message,
+                interchain_token_service::HubMessage::SendToHub {
+                    destination_chain: _,
+                    message: interchain_token_service::Message::InterchainTransfer(_)
+                        | interchain_token_service::Message::DeployInterchainToken(_)
+                }
+            );
+
+            if res == false && res2 == false {
+                panic!(
+                    "violated invariant: its message is not a ReceiveFromHub with InterchainTransfer or DeployInterchainToken, got {:?}",
+                    its_message
+                );
+            }
+
+            res
+        })
+        .map(|(message, its_message)| {
+            let payload = its_message.to_aleo_string().ok().unwrap();
+            let hash =
+                aleo_gateway::hash::<&str, snarkvm_cosmwasm::network::TestnetV0>(&payload).unwrap();
+            (
+                payload,
+                Message {
+                    cc_id: message.cc_id,
+                    source_address: message.source_address,
+                    destination_chain: message.destination_chain,
+                    destination_address: message.destination_address,
+                    payload_hash: hash,
+                },
+            )
         })
         .collect::<Vec<_>>();
 
-    let payload = Payload::Messages(messages);
+    let (payloads, messages): (Vec<_>, Vec<Message>) = messages.into_iter().unzip();
+
+    let payload = Payload::Messages(messages.clone());
     let payload_id = payload.id();
 
     match PAYLOAD
@@ -167,6 +226,9 @@ pub fn construct_proof_with_its_payload(
     // It is placed here because is needed to pass the unit tests
     // To be handle approbriately in the future, the sig verifier should be configured in contract
     // and it should be passed as a parameter to the contract initialized
+
+    // todo
+
     const MULTISIG_ALEO: &str = "axelar1rv940hhxe3288j42zazt7c7fmql4udsgy9cjzmeq646gt7gl02hq54seyr";
     let sig_verifier = (config.chain_name
         == ChainName::from_str("aleo-2").map_err(|_| ContractError::Proof)?)
@@ -182,7 +244,12 @@ pub fn construct_proof_with_its_payload(
     let wasm_msg =
         wasm_execute(config.multisig, &start_sig_msg, vec![]).map_err(ContractError::from)?;
 
-    Ok(Response::new().add_submessage(SubMsg::reply_on_success(wasm_msg, START_MULTISIG_REPLY_ID)))
+    Ok(Response::new()
+        .add_event(crate::events::Event::DebugMessages {
+            messages: messages_bk,
+        })
+        .add_submessage(SubMsg::reply_on_success(wasm_msg, START_MULTISIG_REPLY_ID))
+        .add_event(crate::events::Event::ItsHubDebugPayload { messages, payloads }))
 }
 
 fn messages(
