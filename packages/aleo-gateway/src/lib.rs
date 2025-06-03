@@ -158,8 +158,18 @@ impl AleoValue for interchain_token_service::HubMessage {
             },
             interchain_token_service::HubMessage::ReceiveFromHub {
                 source_chain: _,
-                message: _,
-            } => todo!(),
+                message,
+            } => match message {
+                interchain_token_service::Message::InterchainTransfer(interchain_transfer) => {
+                    interchain_transfer.to_aleo_string()
+                }
+                interchain_token_service::Message::DeployInterchainToken(
+                    deploy_interchain_token,
+                ) => deploy_interchain_token.to_aleo_string(),
+                interchain_token_service::Message::LinkToken(link_token) => {
+                    link_token.to_aleo_string()
+                }
+            },
             interchain_token_service::HubMessage::RegisterTokenMetadata(
                 _register_token_metadata,
             ) => todo!(),
@@ -259,6 +269,7 @@ mod tests {
     // Note this useful idiom: importing names from outer (for mod tests) scope.
     use axelar_wasm_std::nonempty::HexBinary;
     use interchain_token_service::TokenId;
+    use sha3::Digest as _;
     use snarkvm_cosmwasm::network::TestnetV0;
 
     use super::*;
@@ -306,5 +317,60 @@ mod tests {
             aleo_value.is_ok(),
             "aleo_string: {aleo_string:?}\naleo_value: {aleo_value:?}"
         );
+    }
+
+    #[test]
+    fn foo() {
+        let payload = "0000000000000000000000000000000000000000000000000000000000000004000000000000000000000000000000000000000000000000000000000000006000000000000000000000000000000000000000000000000000000000000000a0000000000000000000000000000000000000000000000000000000000000000e6176616c616e6368652d66756a6900000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001600000000000000000000000000000000000000000000000000000000000000001d1029f450ce147882104b0e4e1af4d5b9bd9fb71b806b353d4919fb1fa88637500000000000000000000000000000000000000000000000000000000000000c0000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000000060000000000000000000000000000000000000000000000000000000000000140000000000000000000000000000000000000000000000000000000000000000a536f6d65546f6b656e35000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000003534d3500000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000";
+
+        let payload_bytes = hex::decode(payload).unwrap();
+        let its_message = interchain_token_service::HubMessage::abi_decode(&payload_bytes).unwrap();
+
+        let aleo_string = its_message.to_aleo_string().unwrap();
+
+        let aleo_value =
+            snarkvm_cosmwasm::program::Value::<TestnetV0>::from_str(aleo_string.as_ref());
+
+        assert!(
+            aleo_value.is_ok(),
+            "aleo_string: {aleo_string:?}\naleo_value: {aleo_value:?}"
+        );
+
+        println!("aleo_string: {aleo_string}");
+        println!("aleo_value: {aleo_value:?}");
+        let hash =
+            crate::aleo_hash::<&str, snarkvm_cosmwasm::network::TestnetV0>(&aleo_string).unwrap();
+        println!("aleo payload hash: {hash:?}");
+
+        let payload_hash: [u8; 32] = sha3::Keccak256::digest(payload_bytes).into();
+        let s: String = hex::encode(payload_hash);
+        println!("abi payload hash: {s}");
+
+        let error_hash: [u8; 32] = [
+            56, 57, 163, 74, 223, 238, 74, 184, 131, 74, 146, 110, 120, 95, 70, 89, 89, 39, 196,
+            17, 198, 105, 70, 136, 173, 145, 116, 45, 183, 138, 123, 191,
+        ];
+        let s: String = hex::encode(error_hash);
+        println!("error hash: {s:?}");
+
+        let payload = "0000000000000000000000000000000000000000000000000000000000000003000000000000000000000000000000000000000000000000000000000000006000000000000000000000000000000000000000000000000000000000000000a00000000000000000000000000000000000000000000000000000000000000006616c656f2d32000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001600000000000000000000000000000000000000000000000000000000000000001d1029f450ce147882104b0e4e1af4d5b9bd9fb71b806b353d4919fb1fa88637500000000000000000000000000000000000000000000000000000000000000c0000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000000120000000000000000000000000000000000000000000000000000000000000140000000000000000000000000000000000000000000000000000000000000000a536f6d65546f6b656e35000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000003534d3500000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000";
+        let payload_bytes = hex::decode(payload).unwrap();
+        let payload_hash: [u8; 32] = sha3::Keccak256::digest(payload_bytes).into();
+        let s: String = hex::encode(payload_hash);
+        println!("abi payload hash: {s}");
+
+        let error_hash: [u8; 32] = [
+            56, 57, 163, 74, 223, 238, 74, 184, 131, 74, 146, 110, 120, 95, 70, 89, 89, 39, 196,
+            17, 198, 105, 70, 136, 173, 145, 116, 45, 183, 138, 123, 191,
+        ];
+        let s: String = hex::encode(error_hash);
+        println!("expected: {s:?}");
+
+        let error_hash: [u8; 32] = [
+            47, 220, 191, 195, 133, 63, 113, 38, 42, 145, 238, 155, 131, 124, 24, 164, 167, 223,
+            113, 30, 181, 99, 238, 163, 142, 93, 63, 80, 31, 65, 87, 190,
+        ];
+        let s: String = hex::encode(error_hash);
+        println!("found: {s:?}");
     }
 }

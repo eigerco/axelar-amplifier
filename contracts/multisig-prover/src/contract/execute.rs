@@ -95,18 +95,26 @@ pub fn construct_proof(
     Ok(Response::new().add_submessage(SubMsg::reply_on_success(wasm_msg, START_MULTISIG_REPLY_ID)))
 }
 
+#[cosmwasm_schema::cw_serde]
+#[derive(Eq, Hash)]
+struct MessageForAleo {
+    message: Message,
+    aleo_payload_hash: [u8; 32],
+}
+
 pub fn construct_proof_with_its_payload(
     deps: DepsMut,
     mut its_messages: Vec<ItsPayload>,
 ) -> error_stack::Result<Response, ContractError> {
     let config = CONFIG.load(deps.storage).map_err(ContractError::from)?;
 
+    let messages_ids = its_messages
+        .iter()
+        .map(|its_payload| its_payload.message_id.clone())
+        .collect::<Vec<_>>();
     let mut messages = messages(
         deps.querier,
-        its_messages
-            .iter()
-            .map(|its_payload| its_payload.message_id.clone())
-            .collect(),
+        messages_ids.clone(),
         config.gateway.clone(),
         config.chain_name.clone(),
     )?;
@@ -128,13 +136,13 @@ pub fn construct_proof_with_its_payload(
                 );
             }
 
-            // if its_payload.payload_hash() != message.payload_hash {
-            //     panic!(
-            //         "payload hash mismatch: expected {:?}, got {:?}",
-            //         its_payload.payload_hash(),
-            //         message.payload_hash
-            //     );
-            // }
+            if its_payload.payload_hash() != message.payload_hash {
+                panic!(
+                    "payload hash mismatch: expected {:?}, found {:?}",
+                    its_payload.payload_hash(),
+                    message.payload_hash
+                );
+            }
 
             let its_message =
                 interchain_token_service::HubMessage::abi_decode(&its_payload.payload).ok()?;
@@ -151,16 +159,7 @@ pub fn construct_proof_with_its_payload(
                 }
             );
 
-            let res2 = matches!(
-                its_message,
-                interchain_token_service::HubMessage::SendToHub {
-                    destination_chain: _,
-                    message: interchain_token_service::Message::InterchainTransfer(_)
-                        | interchain_token_service::Message::DeployInterchainToken(_)
-                }
-            );
-
-            if res == false && res2 == false {
+            if res == false {
                 panic!(
                     "violated invariant: its message is not a ReceiveFromHub with InterchainTransfer or DeployInterchainToken, got {:?}",
                     its_message
@@ -169,26 +168,34 @@ pub fn construct_proof_with_its_payload(
 
             res
         })
+        .collect::<Vec<_>>();
+
+    let middle = messages.clone();
+    let messages = messages
+        .into_iter()
         .map(|(message, its_message)| {
             let payload = its_message.to_aleo_string().ok().unwrap();
             let hash =
                 aleo_gateway::hash::<&str, snarkvm_cosmwasm::network::TestnetV0>(&payload).unwrap();
             (
                 payload,
-                Message {
-                    cc_id: message.cc_id,
-                    source_address: message.source_address,
-                    destination_chain: message.destination_chain,
-                    destination_address: message.destination_address,
-                    payload_hash: hash,
+                MessageForAleo {
+                    message: Message {
+                        cc_id: message.cc_id,
+                        source_address: message.source_address,
+                        destination_chain: message.destination_chain,
+                        destination_address: message.destination_address,
+                        payload_hash: message.payload_hash,
+                    },
+                    aleo_payload_hash: hash,
                 },
             )
         })
         .collect::<Vec<_>>();
 
-    let (payloads, messages): (Vec<_>, Vec<Message>) = messages.into_iter().unzip();
+    let (payloads, messages): (Vec<_>, Vec<MessageForAleo>) = messages.into_iter().unzip();
 
-    let payload = Payload::Messages(messages.clone());
+    let payload = Payload::Messages(messages.iter().map(|msg| msg.message.clone()).collect());
     let payload_id = payload.id();
 
     match PAYLOAD
@@ -248,8 +255,12 @@ pub fn construct_proof_with_its_payload(
         .add_event(crate::events::Event::DebugMessages {
             messages: messages_bk,
         })
-        .add_submessage(SubMsg::reply_on_success(wasm_msg, START_MULTISIG_REPLY_ID))
-        .add_event(crate::events::Event::ItsHubDebugPayload { messages, payloads }))
+        .add_event(crate::events::Event::DebugMessagesIds {
+            messages: messages_ids,
+        })
+        .add_event(crate::events::Event::DebugString { messages: payloads })
+        .add_event(crate::events::Event::DebugMiddle { messages: middle })
+        .add_submessage(SubMsg::reply_on_success(wasm_msg, START_MULTISIG_REPLY_ID)))
 }
 
 fn messages(

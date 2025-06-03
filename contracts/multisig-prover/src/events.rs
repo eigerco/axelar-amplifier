@@ -1,5 +1,6 @@
 use axelar_wasm_std::IntoEvent;
 use cosmwasm_std::Uint64;
+use interchain_token_service::HubMessage;
 use router_api::{ChainName, CrossChainId};
 
 use crate::payload::PayloadId;
@@ -12,13 +13,22 @@ pub enum Event {
         multisig_session_id: Uint64,
         msg_ids: Vec<CrossChainId>,
     },
-    ItsHubDebugPayload {
+    DebugItsHubDebugPayload {
         messages: Vec<router_api::Message>,
         payloads: Vec<String>,
     },
     DebugMessages {
         messages: Vec<router_api::Message>,
     },
+    DebugMessagesIds {
+        messages: Vec<CrossChainId>,
+    },
+    DebugString {
+        messages: Vec<String>,
+    },
+    DebugMiddle {
+        messages: Vec<(router_api::Message, HubMessage)>,
+    }
 }
 
 #[cfg(test)]
