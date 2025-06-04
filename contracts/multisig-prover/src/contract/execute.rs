@@ -106,22 +106,54 @@ pub fn construct_proof_with_its_payload(
     deps: DepsMut,
     mut its_messages: Vec<ItsPayload>,
 ) -> error_stack::Result<Response, ContractError> {
-    let config = CONFIG.load(deps.storage).map_err(ContractError::from)?;
-
     let messages_ids = its_messages
         .iter()
         .map(|its_payload| its_payload.message_id.clone())
         .collect::<Vec<_>>();
-    let mut messages = messages(
+
+    let config = CONFIG.load(deps.storage).map_err(ContractError::from)?;
+
+    let messages = messages(
         deps.querier,
         messages_ids.clone(),
         config.gateway.clone(),
         config.chain_name.clone(),
     )?;
 
-    messages.sort_by(|lhs, rhs| lhs.cc_id.cmp(&rhs.cc_id));
-    let messages_bk = messages.clone();
+    let payload = Payload::Messages(messages);
+    let payload_id = payload.id();
 
+    match PAYLOAD
+        .may_load(deps.storage, &payload_id)
+        .map_err(ContractError::from)?
+    {
+        Some(stored_payload) => {
+            if stored_payload != payload {
+                return Err(report!(ContractError::PayloadMismatch))
+                    .attach_printable_lazy(|| format!("{:?}", stored_payload));
+            }
+        }
+        None => {
+            PAYLOAD
+                .save(deps.storage, &payload_id, &payload)
+                .map_err(ContractError::from)?;
+        }
+    };
+
+    // keep track of the payload id to use during submessage reply
+    REPLY_TRACKER
+        .save(deps.storage, &payload_id)
+        .map_err(ContractError::from)?;
+
+    let verifier_set = CURRENT_VERIFIER_SET
+        .may_load(deps.storage)
+        .map_err(ContractError::from)?
+        .ok_or(ContractError::NoVerifierSet)?;
+
+    let Payload::Messages(mut messages) = payload else {
+        panic!("set error")
+    };
+    messages.sort_by(|lhs, rhs| lhs.cc_id.cmp(&rhs.cc_id));
     its_messages.sort_by(|lhs, rhs| lhs.message_id.cmp(&rhs.message_id));
 
     let messages = messages
@@ -168,62 +200,24 @@ pub fn construct_proof_with_its_payload(
 
             res
         })
-        .collect::<Vec<_>>();
-
-    let middle = messages.clone();
-    let messages = messages
-        .into_iter()
         .map(|(message, its_message)| {
             let payload = its_message.to_aleo_string().ok().unwrap();
             let hash =
                 aleo_gateway::hash::<&str, snarkvm_cosmwasm::network::TestnetV0>(&payload).unwrap();
-            (
-                payload,
-                MessageForAleo {
-                    message: Message {
-                        cc_id: message.cc_id,
-                        source_address: message.source_address,
-                        destination_chain: message.destination_chain,
-                        destination_address: message.destination_address,
-                        payload_hash: message.payload_hash,
-                    },
-                    aleo_payload_hash: hash,
-                },
-            )
+            // we override the payload hash with the hash of the aleo data
+            // this will not be reflected in the get proof query.
+            // At get proof query we will need to reconstruct the payload hash
+            Message {
+                    cc_id: message.cc_id,
+                    source_address: message.source_address,
+                    destination_chain: message.destination_chain,
+                    destination_address: message.destination_address,
+                    payload_hash: hash,
+            }
         })
         .collect::<Vec<_>>();
 
-    let (payloads, messages): (Vec<_>, Vec<MessageForAleo>) = messages.into_iter().unzip();
-
-    let payload = Payload::Messages(messages.iter().map(|msg| msg.message.clone()).collect());
-    let payload_id = payload.id();
-
-    match PAYLOAD
-        .may_load(deps.storage, &payload_id)
-        .map_err(ContractError::from)?
-    {
-        Some(stored_payload) => {
-            if stored_payload != payload {
-                return Err(report!(ContractError::PayloadMismatch))
-                    .attach_printable_lazy(|| format!("{:?}", stored_payload));
-            }
-        }
-        None => {
-            PAYLOAD
-                .save(deps.storage, &payload_id, &payload)
-                .map_err(ContractError::from)?;
-        }
-    };
-
-    // keep track of the payload id to use during submessage reply
-    REPLY_TRACKER
-        .save(deps.storage, &payload_id)
-        .map_err(ContractError::from)?;
-
-    let verifier_set = CURRENT_VERIFIER_SET
-        .may_load(deps.storage)
-        .map_err(ContractError::from)?
-        .ok_or(ContractError::NoVerifierSet)?;
+    let payload = Payload::Messages(messages.clone());
 
     let digest = config
         .encoder
@@ -234,7 +228,7 @@ pub fn construct_proof_with_its_payload(
     // To be handle approbriately in the future, the sig verifier should be configured in contract
     // and it should be passed as a parameter to the contract initialized
 
-    // todo
+    // test
 
     const MULTISIG_ALEO: &str = "axelar1rv940hhxe3288j42zazt7c7fmql4udsgy9cjzmeq646gt7gl02hq54seyr";
     let sig_verifier = (config.chain_name
@@ -251,16 +245,7 @@ pub fn construct_proof_with_its_payload(
     let wasm_msg =
         wasm_execute(config.multisig, &start_sig_msg, vec![]).map_err(ContractError::from)?;
 
-    Ok(Response::new()
-        .add_event(crate::events::Event::DebugMessages {
-            messages: messages_bk,
-        })
-        .add_event(crate::events::Event::DebugMessagesIds {
-            messages: messages_ids,
-        })
-        .add_event(crate::events::Event::DebugString { messages: payloads })
-        .add_event(crate::events::Event::DebugMiddle { messages: middle })
-        .add_submessage(SubMsg::reply_on_success(wasm_msg, START_MULTISIG_REPLY_ID)))
+    Ok(Response::new().add_submessage(SubMsg::reply_on_success(wasm_msg, START_MULTISIG_REPLY_ID)))
 }
 
 fn messages(

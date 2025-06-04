@@ -13,22 +13,6 @@ pub enum Event {
         multisig_session_id: Uint64,
         msg_ids: Vec<CrossChainId>,
     },
-    DebugItsHubDebugPayload {
-        messages: Vec<router_api::Message>,
-        payloads: Vec<String>,
-    },
-    DebugMessages {
-        messages: Vec<router_api::Message>,
-    },
-    DebugMessagesIds {
-        messages: Vec<CrossChainId>,
-    },
-    DebugString {
-        messages: Vec<String>,
-    },
-    DebugMiddle {
-        messages: Vec<(router_api::Message, HubMessage)>,
-    }
 }
 
 #[cfg(test)]
