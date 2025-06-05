@@ -8,7 +8,7 @@ use events::Error::EventTypeMismatch;
 use events::Event;
 use events_derive::try_from;
 use multisig::verifier_set::VerifierSet;
-use prost_types::Any;
+use cosmrs::Any;
 use router_api::ChainName;
 use serde::Deserialize;
 use tokio::sync::watch::Receiver;
