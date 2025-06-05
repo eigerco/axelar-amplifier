@@ -10,7 +10,7 @@ use serde::{Deserialize, Serialize};
 use crate::{verify_becnh32, Error};
 
 pub const ALEO_ADDRESS_LEN: usize = 63;
-pub static ZERO_ADDRESS: LazyLock<Address> = LazyLock::new(|| Address::default());
+pub static ZERO_ADDRESS: LazyLock<Address> = LazyLock::new(Address::default);
 
 #[derive(Serialize, Deserialize, Debug, PartialEq, Eq, Clone, PartialOrd, Ord, Hash)]
 pub struct Address(pub nonempty::String);

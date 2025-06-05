@@ -89,11 +89,10 @@ pub mod tests {
     use std::collections::HashMap;
     use std::str::FromStr;
 
-    use aleo_types::program::Program;
-    use snarkvm_cosmwasm::network::TestnetV0;
-
     use super::*;
     use crate::aleo::ReceiptBuilder;
+
+    type CurrentNetwork = snarkvm::prelude::TestnetV0;
 
     pub fn mock_client_1() -> MockClientTrait {
         let mut mock_client = MockClientTrait::new();
@@ -161,9 +160,8 @@ pub mod tests {
         let transision_id = "au1zn24gzpgkr936qv49g466vfccg8aykcv05rk39s239hjxwrtsu8sltpsd8";
         let transition = Transition::from_str(transision_id).unwrap();
         let gateway_contract = "gateway_base.aleo";
-        let program = Program::from_str(gateway_contract).unwrap();
 
-        let res = ReceiptBuilder::new(&client, &program)
+        let res = ReceiptBuilder::<_, _, CurrentNetwork>::new(&client, gateway_contract)
             .unwrap()
             .get_transaction_id(&transition)
             .await
@@ -173,7 +171,7 @@ pub mod tests {
             .unwrap()
             .get_transition()
             .unwrap()
-            .check_call_contract::<TestnetV0>();
+            .check_call_contract();
         assert!(res.is_ok());
     }
 
@@ -183,9 +181,8 @@ pub mod tests {
         let transision_id = "au17kdp7a7p6xuq6h0z3qrdydn4f6fjaufvzvlgkdd6vzpr87lgcgrq8qx6st";
         let transition = Transition::from_str(transision_id).unwrap();
         let gateway_contract = "ac64caccf8221554ec3f89bf.aleo";
-        let program = Program::from_str(gateway_contract).unwrap();
 
-        let res = ReceiptBuilder::new(&client, &program)
+        let res = ReceiptBuilder::<_, _, CurrentNetwork>::new(&client, gateway_contract)
             .unwrap()
             .get_transaction_id(&transition)
             .await
@@ -195,7 +192,7 @@ pub mod tests {
             .unwrap()
             .get_transition()
             .unwrap()
-            .check_call_contract::<TestnetV0>();
+            .check_call_contract();
         assert!(res.is_ok());
     }
 }

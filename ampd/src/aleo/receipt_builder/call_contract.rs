@@ -1,13 +1,12 @@
 use std::marker::PhantomData;
 
-use aleo_types::address::Address;
 use aleo_types::transition::Transition;
 use aleo_utils::json_like;
 use aleo_utils::string_encoder::StringEncoder;
 use router_api::ChainName;
 use serde::{Deserialize, Serialize};
 use sha3::{Digest, Keccak256};
-use snarkvm_cosmwasm::program::Network;
+use snarkvm::prelude::{Address, Network};
 use tracing::{error, info};
 
 use crate::aleo::error::Error;
@@ -42,13 +41,15 @@ pub struct CallContractReceipt<N: Network> {
     pub transition: Transition,
     pub destination_address: String,
     pub destination_chain: ChainName,
-    pub source_address: Address,
+    pub source_address: Address<N>,
     pub payload: Vec<u8>,
     pub n: PhantomData<N>,
 }
 
-impl<N: Network> PartialEq<crate::handlers::aleo_verify_msg::Message> for CallContractReceipt<N> {
-    fn eq(&self, message: &crate::handlers::aleo_verify_msg::Message) -> bool {
+impl<N: Network> PartialEq<crate::handlers::aleo_verify_msg::Message<N>>
+    for CallContractReceipt<N>
+{
+    fn eq(&self, message: &crate::handlers::aleo_verify_msg::Message<N>) -> bool {
         info!(
             "transition_id: chain.{} == msg.{} ({})",
             self.transition,

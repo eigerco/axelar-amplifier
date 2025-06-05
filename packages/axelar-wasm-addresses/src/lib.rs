@@ -1,11 +1,13 @@
 pub mod address {
     use std::str::FromStr;
 
-    use aleo_types::address::Address as AleoAddress;
     use alloy_primitives::Address;
     use cosmwasm_schema::cw_serde;
     use cosmwasm_std::{Addr, Api};
     use error_stack::{bail, Result, ResultExt};
+    use snarkvm_cosmwasm::network::TestnetV0;
+    use snarkvm_cosmwasm::program::ProgramID;
+    use snarkvm_cosmwasm::types::Address as AleoAddress;
     use starknet_checked_felt::CheckedFelt;
     use stellar_xdr::curr::ScAddress;
     use sui_types::SuiAddress;
@@ -31,8 +33,8 @@ pub mod address {
     pub fn validate_contract_address(address: &str, format: &AddressFormat) -> Result<(), Error> {
         match format {
             AddressFormat::Aleo => {
-                aleo_types::program::Program::from_str(address)
-                    .change_context(Error::InvalidAddress(address.to_string()))?;
+                ProgramID::<TestnetV0>::from_str(address).unwrap();
+                // .change_context(Error::InvalidAddress(address.to_string()))?;
 
                 Ok(())
             }
@@ -58,8 +60,8 @@ pub mod address {
                     .change_context(Error::InvalidAddress(address.to_string()))?;
             }
             AddressFormat::Aleo => {
-                AleoAddress::from_str(address)
-                    .change_context(Error::InvalidAddress(address.to_string()))?;
+                AleoAddress::<TestnetV0>::from_str(address).unwrap();
+                // .change_context(Error::InvalidAddress(address.to_string()))?;
             }
             AddressFormat::Starknet => {
                 CheckedFelt::from_str(address)
