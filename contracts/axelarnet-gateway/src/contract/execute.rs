@@ -1,9 +1,8 @@
 use std::str::FromStr;
 
 use axelar_core_std::nexus;
-use axelar_wasm_std::address;
 use axelar_wasm_std::msg_id::HexTxHashAndEventIndex;
-use axelar_wasm_std::{FnExt, IntoContractError};
+use axelar_wasm_std::{address, FnExt, IntoContractError};
 use cosmwasm_schema::cw_serde;
 use cosmwasm_std::{
     Addr, CosmosMsg, DepsMut, Event, HexBinary, MessageInfo, QuerierWrapper, Response, Storage,

@@ -1,7 +1,6 @@
 use std::str::FromStr;
 
-use axelar_wasm_std::address;
-use axelar_wasm_std::permission_control;
+use axelar_wasm_std::{address, permission_control};
 #[cfg(not(feature = "library"))]
 use cosmwasm_std::entry_point;
 use cosmwasm_std::{to_json_binary, Binary, Deps, DepsMut, Env, MessageInfo, Reply, Response};
@@ -78,8 +77,8 @@ pub fn execute(
 ) -> Result<Response, axelar_wasm_std::error::ContractError> {
     match msg.ensure_permissions(deps.storage, &info.sender)? {
         ExecuteMsg::ConstructProof(message_ids) => Ok(execute::construct_proof(deps, message_ids)?),
-        ExecuteMsg::UpdateVerifierSet => Ok(execute::update_verifier_set(deps, env)?),
-        ExecuteMsg::ConfirmVerifierSet => Ok(execute::confirm_verifier_set(deps, info.sender)?),
+        ExecuteMsg::UpdateVerifierSet {} => Ok(execute::update_verifier_set(deps, env)?),
+        ExecuteMsg::ConfirmVerifierSet {} => Ok(execute::confirm_verifier_set(deps, info.sender)?),
         ExecuteMsg::UpdateSigningThreshold {
             new_signing_threshold,
         } => Ok(execute::update_signing_threshold(
@@ -115,8 +114,8 @@ pub fn query(
         QueryMsg::Proof {
             multisig_session_id,
         } => to_json_binary(&query::proof(deps, multisig_session_id)?),
-        QueryMsg::CurrentVerifierSet => to_json_binary(&query::current_verifier_set(deps)?),
-        QueryMsg::NextVerifierSet => to_json_binary(&query::next_verifier_set(deps)?),
+        QueryMsg::CurrentVerifierSet {} => to_json_binary(&query::current_verifier_set(deps)?),
+        QueryMsg::NextVerifierSet {} => to_json_binary(&query::next_verifier_set(deps)?),
     }
     .change_context(ContractError::SerializeResponse)
     .map_err(axelar_wasm_std::error::ContractError::from)

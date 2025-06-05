@@ -204,7 +204,7 @@ mod test {
         Two,
     }
 
-    // Can't use IntoContractError to derive this since axelar_wasm_std crate can't be referenced from within without a self dependency
+    // Can't use IntoContractError to derive this since axelar-wasm-std crate can't be referenced from within without a self dependency
     impl From<TestError> for ContractError {
         fn from(err: TestError) -> Self {
             ContractError {

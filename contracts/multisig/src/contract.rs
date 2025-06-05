@@ -1,8 +1,7 @@
 use std::collections::HashMap;
 use std::str::FromStr;
 
-use axelar_wasm_std::address;
-use axelar_wasm_std::{killswitch, permission_control, FnExt};
+use axelar_wasm_std::{address, killswitch, permission_control, FnExt};
 #[cfg(not(feature = "library"))]
 use cosmwasm_std::entry_point;
 use cosmwasm_std::{

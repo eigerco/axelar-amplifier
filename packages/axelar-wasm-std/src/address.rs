@@ -79,10 +79,9 @@ pub fn validate_cosmwasm_address(api: &dyn Api, addr: &str) -> Result<Addr, Erro
 #[cfg(test)]
 mod tests {
     use assert_ok::assert_ok;
-    use axelar_wasm_std::assert_err_contains;
     use cosmwasm_std::testing::MockApi;
 
-    use crate::address;
+    use crate::{address, assert_err_contains};
 
     #[test]
     fn validate_eip55_address() {
