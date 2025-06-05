@@ -1,6 +1,6 @@
 use std::fmt::Debug;
 
-use axelar_wasm_addresses::address;
+use axelar_wasm_std::address;
 use axelar_wasm_std::error::ContractError;
 use axelar_wasm_std::{killswitch, permission_control, FnExt, IntoContractError};
 use axelarnet_gateway::AxelarExecutableMsg;

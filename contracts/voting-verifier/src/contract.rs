@@ -1,5 +1,5 @@
-use axelar_wasm_addresses::address;
-use axelar_wasm_addresses::address::validate_contract_address;
+use axelar_wasm_std::address;
+use axelar_wasm_std::address::validate_contract_address;
 use axelar_wasm_std::{permission_control, FnExt};
 #[cfg(not(feature = "library"))]
 use cosmwasm_std::entry_point;
@@ -110,7 +110,7 @@ pub fn query(
 #[cfg(test)]
 mod test {
     use assert_ok::assert_ok;
-    use axelar_wasm_addresses::address::AddressFormat;
+    use axelar_wasm_std::address::AddressFormat;
     use axelar_wasm_std::msg_id::{
         Base58SolanaTxSignatureAndEventIndex, Base58TxDigestAndEventIndex,
         FieldElementAndEventIndex, HexTxHash, HexTxHashAndEventIndex, MessageIdFormat,

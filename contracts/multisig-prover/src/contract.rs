@@ -1,6 +1,6 @@
 use std::str::FromStr;
 
-use axelar_wasm_addresses::address;
+use axelar_wasm_std::address;
 use axelar_wasm_std::permission_control;
 #[cfg(not(feature = "library"))]
 use cosmwasm_std::entry_point;

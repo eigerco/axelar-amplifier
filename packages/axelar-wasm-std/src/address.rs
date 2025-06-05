@@ -1,81 +1,79 @@
-pub mod address {
-    use std::str::FromStr;
+use std::str::FromStr;
 
-    use alloy_primitives::Address;
-    use cosmwasm_schema::cw_serde;
-    use cosmwasm_std::{Addr, Api};
-    use error_stack::{bail, Result, ResultExt};
-    use snarkvm_cosmwasm::network::TestnetV0;
-    use snarkvm_cosmwasm::program::ProgramID;
-    use snarkvm_cosmwasm::types::Address as AleoAddress;
-    use starknet_checked_felt::CheckedFelt;
-    use stellar_xdr::curr::ScAddress;
-    use sui_types::SuiAddress;
+use alloy_primitives::Address;
+use cosmwasm_schema::cw_serde;
+use cosmwasm_std::{Addr, Api};
+use error_stack::{bail, Report, Result, ResultExt};
+use snarkvm_cosmwasm::network::TestnetV0;
+use snarkvm_cosmwasm::program::ProgramID;
+use snarkvm_cosmwasm::types::Address as AleoAddress;
+use starknet_checked_felt::CheckedFelt;
+use stellar_xdr::curr::ScAddress;
+use sui_types::SuiAddress;
 
-    #[derive(thiserror::Error)]
-    #[cw_serde]
-    pub enum Error {
-        #[error("invalid address '{0}'")]
-        InvalidAddress(String),
+#[derive(thiserror::Error)]
+#[cw_serde]
+pub enum Error {
+    #[error("invalid address '{0}'")]
+    InvalidAddress(String),
+}
+
+#[cw_serde]
+pub enum AddressFormat {
+    Eip55,
+    Sui,
+    Stellar,
+    Starknet,
+    Aleo,
+}
+
+/// Aleo has different id for programs
+/// Each program has an associated Aleo address, but the program name is used as the program id when is needed to find the program.
+pub fn validate_contract_address(address: &str, format: &AddressFormat) -> Result<(), Error> {
+    match format {
+        AddressFormat::Aleo => {
+            ProgramID::<TestnetV0>::from_str(address)
+                .map_err(|_| Report::new(Error::InvalidAddress(address.to_string())))?;
+
+            Ok(())
+        }
+        _ => validate_address(address, format),
     }
+}
 
-    #[cw_serde]
-    pub enum AddressFormat {
-        Eip55,
-        Sui,
-        Stellar,
-        Starknet,
-        Aleo,
-    }
-
-    /// Aleo has different id for programs
-    /// Each program has an associated Aleo address, but the program name is used as the program id when is needed to find the program.
-    pub fn validate_contract_address(address: &str, format: &AddressFormat) -> Result<(), Error> {
-        match format {
-            AddressFormat::Aleo => {
-                ProgramID::<TestnetV0>::from_str(address).unwrap();
-                // .change_context(Error::InvalidAddress(address.to_string()))?;
-
-                Ok(())
+pub fn validate_address(address: &str, format: &AddressFormat) -> Result<(), Error> {
+    match format {
+        AddressFormat::Eip55 => {
+            Address::parse_checksummed(address, None)
+                .change_context(Error::InvalidAddress(address.to_string()))?;
+        }
+        AddressFormat::Sui => {
+            SuiAddress::from_str(address)
+                .change_context(Error::InvalidAddress(address.to_string()))?;
+        }
+        AddressFormat::Stellar => {
+            if address != address.to_uppercase() {
+                bail!(Error::InvalidAddress(address.to_string()))
             }
-            _ => validate_address(address, format),
+            ScAddress::from_str(address)
+                .change_context(Error::InvalidAddress(address.to_string()))?;
+        }
+        AddressFormat::Aleo => {
+            AleoAddress::<TestnetV0>::from_str(address)
+                .map_err(|_| Report::new(Error::InvalidAddress(address.to_string())))?;
+        }
+        AddressFormat::Starknet => {
+            CheckedFelt::from_str(address)
+                .change_context(Error::InvalidAddress(address.to_string()))?;
         }
     }
 
-    pub fn validate_address(address: &str, format: &AddressFormat) -> Result<(), Error> {
-        match format {
-            AddressFormat::Eip55 => {
-                Address::parse_checksummed(address, None)
-                    .change_context(Error::InvalidAddress(address.to_string()))?;
-            }
-            AddressFormat::Sui => {
-                SuiAddress::from_str(address)
-                    .change_context(Error::InvalidAddress(address.to_string()))?;
-            }
-            AddressFormat::Stellar => {
-                if address != address.to_uppercase() {
-                    bail!(Error::InvalidAddress(address.to_string()))
-                }
-                ScAddress::from_str(address)
-                    .change_context(Error::InvalidAddress(address.to_string()))?;
-            }
-            AddressFormat::Aleo => {
-                AleoAddress::<TestnetV0>::from_str(address).unwrap();
-                // .change_context(Error::InvalidAddress(address.to_string()))?;
-            }
-            AddressFormat::Starknet => {
-                CheckedFelt::from_str(address)
-                    .change_context(Error::InvalidAddress(address.to_string()))?;
-            }
-        }
+    Ok(())
+}
 
-        Ok(())
-    }
-
-    pub fn validate_cosmwasm_address(api: &dyn Api, addr: &str) -> Result<Addr, Error> {
-        api.addr_validate(addr)
-            .change_context(Error::InvalidAddress(addr.to_string()))
-    }
+pub fn validate_cosmwasm_address(api: &dyn Api, addr: &str) -> Result<Addr, Error> {
+    api.addr_validate(addr)
+        .change_context(Error::InvalidAddress(addr.to_string()))
 }
 
 #[cfg(test)]

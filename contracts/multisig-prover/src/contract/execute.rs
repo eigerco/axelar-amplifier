@@ -1,7 +1,7 @@
 use std::collections::{BTreeMap, HashSet};
 use std::str::FromStr;
 
-use axelar_wasm_addresses::address;
+use axelar_wasm_std::address;
 use axelar_wasm_std::permission_control::Permission;
 use axelar_wasm_std::snapshot::{Participant, Snapshot};
 use axelar_wasm_std::{nonempty, permission_control, FnExt, MajorityThreshold, VerificationStatus};

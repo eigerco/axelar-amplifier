@@ -1151,26 +1151,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "axelar-wasm-addresses"
-version = "0.1.0"
-dependencies = [
- "aleo-types",
- "alloy-primitives",
- "assert_ok",
- "axelar-wasm-std",
- "cosmwasm-schema",
- "cosmwasm-std",
- "cw-multi-test",
- "error-stack",
- "snarkvm-cosmwasm",
- "starknet-checked-felt",
- "stellar-xdr",
- "sui-types 1.0.0",
- "thiserror 1.0.69",
- "valuable",
-]
-
-[[package]]
 name = "axelar-wasm-std"
 version = "1.0.0"
 dependencies = [
@@ -1201,6 +1181,7 @@ dependencies = [
  "serde_json",
  "serde_with",
  "sha3",
+ "snarkvm-cosmwasm",
  "starknet-checked-felt",
  "stellar-xdr",
  "strum 0.25.0",
@@ -1236,7 +1217,6 @@ version = "1.0.0"
 dependencies = [
  "assert_ok",
  "axelar-core-std",
- "axelar-wasm-addresses",
  "axelar-wasm-std",
  "client",
  "cosmwasm-schema",
@@ -2415,7 +2395,6 @@ dependencies = [
 name = "coordinator"
 version = "1.1.0"
 dependencies = [
- "axelar-wasm-addresses",
  "axelar-wasm-std",
  "client",
  "cosmwasm-schema",
@@ -4374,7 +4353,6 @@ name = "gateway"
 version = "1.1.1"
 dependencies = [
  "assert_ok",
- "axelar-wasm-addresses",
  "axelar-wasm-std",
  "client",
  "cosmwasm-schema",
@@ -5353,7 +5331,6 @@ version = "1.0.0"
 dependencies = [
  "anyhow",
  "axelar-core-std",
- "axelar-wasm-addresses",
  "axelar-wasm-std",
  "coordinator",
  "cosmwasm-std",
@@ -5393,7 +5370,6 @@ dependencies = [
  "alloy-sol-types",
  "assert_ok",
  "axelar-core-std",
- "axelar-wasm-addresses",
  "axelar-wasm-std",
  "axelarnet-gateway",
  "client",
@@ -6678,7 +6654,6 @@ version = "2.1.0"
 dependencies = [
  "aleo-types",
  "assert_ok",
- "axelar-wasm-addresses",
  "axelar-wasm-std",
  "client",
  "cosmwasm-crypto",
@@ -6739,7 +6714,6 @@ dependencies = [
  "aleo-gateway",
  "anyhow",
  "assert_ok",
- "axelar-wasm-addresses",
  "axelar-wasm-std",
  "bcs",
  "bincode",
@@ -8788,7 +8762,6 @@ name = "rewards"
 version = "1.2.0"
 dependencies = [
  "assert_ok",
- "axelar-wasm-addresses",
  "axelar-wasm-std",
  "cosmwasm-schema",
  "cosmwasm-std",
@@ -8975,7 +8948,6 @@ version = "1.2.0"
 dependencies = [
  "assert_ok",
  "axelar-core-std",
- "axelar-wasm-addresses",
  "axelar-wasm-std",
  "client",
  "cosmwasm-schema",
@@ -9812,7 +9784,6 @@ dependencies = [
 name = "service-registry"
 version = "1.1.0"
 dependencies = [
- "axelar-wasm-addresses",
  "axelar-wasm-std",
  "client",
  "coordinator",
@@ -16365,7 +16336,6 @@ version = "1.1.0"
 dependencies = [
  "alloy-primitives",
  "assert_ok",
- "axelar-wasm-addresses",
  "axelar-wasm-std",
  "bech32 0.11.0",
  "client",
@@ -16398,7 +16368,6 @@ dependencies = [
 name = "voting-verifier-api"
 version = "1.0.0"
 dependencies = [
- "axelar-wasm-addresses",
  "axelar-wasm-std",
  "cosmwasm-schema",
  "router-api",

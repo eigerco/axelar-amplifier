@@ -35,7 +35,7 @@ const NEW_CHAIN_CONFIGS: Map<&ChainNameRaw, state::ChainConfig> = Map::new("chai
 
 pub fn migrate(deps: DepsMut, msg: MigrateMsg) -> Result<(), ContractError> {
     let operator =
-        axelar_wasm_addresses::address::validate_cosmwasm_address(deps.api, &msg.operator_address)?;
+        axelar_wasm_std::address::validate_cosmwasm_address(deps.api, &msg.operator_address)?;
     let old_config = OLD_CONFIG.load(deps.storage)?;
     state::save_config(
         deps.storage,

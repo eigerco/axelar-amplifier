@@ -1,6 +1,6 @@
 use std::fmt::Debug;
 
-use axelar_wasm_addresses::address;
+use axelar_wasm_std::address;
 use axelar_wasm_std::FnExt;
 #[cfg(not(feature = "library"))]
 use cosmwasm_std::entry_point;

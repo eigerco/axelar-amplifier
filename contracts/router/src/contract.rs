@@ -1,4 +1,4 @@
-use axelar_wasm_addresses::address;
+use axelar_wasm_std::address;
 use axelar_wasm_std::{killswitch, permission_control, FnExt};
 #[cfg(not(feature = "library"))]
 use cosmwasm_std::entry_point;

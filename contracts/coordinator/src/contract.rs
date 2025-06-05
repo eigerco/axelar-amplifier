@@ -4,8 +4,8 @@ mod migrations;
 mod query;
 
 use axelar_wasm_std::error::ContractError;
-use axelar_wasm_addresses::address;
-use axelar_wasm_addresses::address::validate_cosmwasm_address;
+use axelar_wasm_std::address;
+use axelar_wasm_std::address::validate_cosmwasm_address;
 use axelar_wasm_std::{permission_control, FnExt};
 
 #[cfg(not(feature = "library"))]

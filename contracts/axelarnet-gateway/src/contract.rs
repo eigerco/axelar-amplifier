@@ -1,5 +1,5 @@
 use axelar_core_std::nexus;
-use axelar_wasm_addresses::address;
+use axelar_wasm_std::address;
 use axelar_wasm_std::error::ContractError;
 use axelar_wasm_std::{FnExt, IntoContractError};
 #[cfg(not(feature = "library"))]

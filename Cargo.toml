@@ -42,7 +42,6 @@ axelar-solana-encoding = { git = "https://github.com/eigerco/solana-axelar.git",
 axelar-solana-gateway = { git = "https://github.com/eigerco/solana-axelar.git", rev = "f167d2b" }
 axelar-wasm-std = { version = "^1.0.0", path = "packages/axelar-wasm-std" }
 axelar-wasm-std-derive = { version = "^1.0.0", path = "packages/axelar-wasm-std-derive" }
-axelar-wasm-addresses = { path = "packages/axelar-wasm-addresses" }
 axelarnet-gateway = { version = "^1.0.0", path = "contracts/axelarnet-gateway" }
 bcs = "0.1.5"
 bech32 = "0.11.0"

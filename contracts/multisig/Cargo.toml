@@ -37,7 +37,6 @@ test = []
 [dependencies]
 aleo-types = { workspace = true }
 axelar-wasm-std = { workspace = true, features = ["derive"] }
-axelar-wasm-addresses = { workspace = true }
 client = { workspace = true }
 cosmwasm-crypto = { workspace = true }
 cosmwasm-schema = { workspace = true }
