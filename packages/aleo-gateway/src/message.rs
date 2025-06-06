@@ -5,6 +5,7 @@ use error_stack::{ensure, Report};
 use serde::Deserialize;
 use snarkvm_cosmwasm::network::{Network, TestnetV0};
 use snarkvm_cosmwasm::program::ProgramID;
+use snarkvm_cosmwasm::types::Address;
 
 use crate::{AleoValue, Error};
 
@@ -77,21 +78,30 @@ impl AleoValue for Message {
             }
         );
 
-        let program_id =
-            ProgramID::<TestnetV0>::from_str(&self.destination_address).map_err(|e| {
-                Report::new(Error::InvalidProgramID {
-                    program_id: self.destination_address.clone(),
-                    error: e,
-                })
-            })?;
+        let contract_address = match self.destination_address.as_str() {
+            "aleo1ymrcwun5g9z0un8dqgdln7l3q77asqr98p7wh03dwgk4yfltpqgq9efvfz" => {
+                Address::from_str("aleo1ymrcwun5g9z0un8dqgdln7l3q77asqr98p7wh03dwgk4yfltpqgq9efvfz")
+                    .map_err(|e| Report::new(Error::InvalidAleoAddress {
+                        address: self.destination_address.clone(),
+                        error: e,
+                    }))?
+            }
+            str => {
+                let program_id = ProgramID::<TestnetV0>::from_str(str).map_err(|e| {
+                    Report::new(Error::InvalidProgramID {
+                        program_id: self.destination_address.clone(),
+                        error: e,
+                    })
+                })?;
 
-        let contract_address: snarkvm_cosmwasm::types::Address<TestnetV0> =
-            program_id.to_address().map_err(|e| {
-                Report::new(Error::ProgramIDToAleoAddress {
-                    program_id: self.destination_address.clone(),
-                    error: e,
-                })
-            })?;
+                program_id.to_address().map_err(|e| {
+                    Report::new(Error::ProgramIDToAleoAddress {
+                        program_id: self.destination_address.clone(),
+                        error: e,
+                    })
+                })?
+            }
+        };
 
         // The payload hash is a 32 byte array, which is a 256 bit hash.
         // (for messages from Aleo this will happen in the relayer)

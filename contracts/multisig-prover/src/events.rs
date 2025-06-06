@@ -1,6 +1,5 @@
 use axelar_wasm_std::IntoEvent;
 use cosmwasm_std::Uint64;
-use interchain_token_service::HubMessage;
 use router_api::{ChainName, CrossChainId};
 
 use crate::payload::PayloadId;
