@@ -1,7 +1,8 @@
 [package]
 name = "interchain-token-service"
-version = "1.1.0"
+version = "1.2.1"
 rust-version = { workspace = true }
+license = "MIT OR Apache-2.0"
 edition = { workspace = true }
 
 exclude = [
@@ -9,6 +10,13 @@ exclude = [
     "contract.wasm",
     "hash.txt",
 ]
+
+[package.metadata.scripts]
+optimize = """docker run --rm -v "$(pwd)":/code \
+  --mount type=volume,source="$(basename "$(pwd)")_cache",target=/code/target \
+  --mount type=volume,source=registry_cache,target=/usr/local/cargo/registry \
+  cosmwasm/optimizer:0.16.1
+"""
 
 [lib]
 crate-type = ["cdylib", "rlib"]
@@ -21,19 +29,11 @@ path = "src/bin/schema.rs"
 # use library feature to disable all instantiate/execute/query exports
 library = []
 
-[package.metadata.scripts]
-optimize = """docker run --rm -v "$(pwd)":/code \
-  --mount type=volume,source="$(basename "$(pwd)")_cache",target=/code/target \
-  --mount type=volume,source=registry_cache,target=/usr/local/cargo/registry \
-  cosmwasm/optimizer:0.16.1
-"""
-
 [dependencies]
 alloy-primitives = { workspace = true }
 alloy-sol-types = { workspace = true }
 axelar-core-std = { workspace = true }
 axelar-wasm-std = { workspace = true, features = ["derive"] }
-axelar-wasm-addresses = { workspace = true }
 axelarnet-gateway = { workspace = true, features = ["library"] }
 client = { workspace = true }
 cosmwasm-schema = { workspace = true }

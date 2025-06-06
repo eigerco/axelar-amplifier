@@ -1,0 +1,98 @@
+{ 
+    proof: { 
+        weighted_signer: { 
+            signers: [ 
+                [   
+                    {addr: aleo145tj9hqrnv3hqylrem6p7zjyxc2kryyp3hdm4ht48ntj3e5ttuxs9xs9ak, weight: 1u128},
+                    {addr: aleo1qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq3ljyzc, weight: 0u128},
+                    {addr: aleo1qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq3ljyzc, weight: 0u128},
+                    {addr: aleo1qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq3ljyzc, weight: 0u128},
+                    {addr: aleo1qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq3ljyzc, weight: 0u128},
+                    {addr: aleo1qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq3ljyzc, weight: 0u128},
+                    {addr: aleo1qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq3ljyzc, weight: 0u128},
+                    {addr: aleo1qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq3ljyzc, weight: 0u128},
+                    {addr: aleo1qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq3ljyzc, weight: 0u128},
+                    {addr: aleo1qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq3ljyzc, weight: 0u128},
+                    {addr: aleo1qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq3ljyzc, weight: 0u128},
+                    {addr: aleo1qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq3ljyzc, weight: 0u128},
+                    {addr: aleo1qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq3ljyzc, weight: 0u128},
+                    {addr: aleo1qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq3ljyzc, weight: 0u128}
+                ],
+                [
+                    {addr: aleo1qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq3ljyzc, weight: 0u128},
+                    {addr: aleo1qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq3ljyzc, weight: 0u128},
+                    {addr: aleo1qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq3ljyzc, weight: 0u128},
+                    {addr: aleo1qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq3ljyzc, weight: 0u128},
+                    {addr: aleo1qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq3ljyzc, weight: 0u128},
+                    {addr: aleo1qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq3ljyzc, weight: 0u128},
+                    {addr: aleo1qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq3ljyzc, weight: 0u128},
+                    {addr: aleo1qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq3ljyzc, weight: 0u128},
+                    {addr: aleo1qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq3ljyzc, weight: 0u128},
+                    {addr: aleo1qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq3ljyzc, weight: 0u128},
+                    {addr: aleo1qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq3ljyzc, weight: 0u128},
+                    {addr: aleo1qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq3ljyzc, weight: 0u128},
+                    {addr: aleo1qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq3ljyzc, weight: 0u128},
+                    {addr: aleo1qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq3ljyzc, weight: 0u128}
+                ] 
+            ],
+            quorum: 1u128 
+        }, 
+        signatures: [ 
+            [
+                sign14jtzy97tktas4mhcm3hx6qynzw38t0sf8uz8p9zng63rtygvtupfwuru9mk7ykjeurkt9x0xrpy9q05qnaa0dgpymc7mkaw2recqjqvpxp6apcrgnzaw3gfdywla9m4vxywvhnsuewd38alswp3pxmu8zt6pj54ng8w2txvnzjp5c3pyu9lt54f6hlgxuln98jgzrwnpsqassdml9ya,
+                sign1tg9nwza05k89vyspuemc8r5vkz54f3v3gl4s6x05atqtgwnyyvq8ccamwql5txztuevplttghu5eyprlmth6ysgvsz9mgzjslf8guq5r22qjwn4zc0pzv87twjygsz9m7ekljmuw4jpzf68rwuq99r0tp735vs6220q7tp60nr7llkwstcvu49wdhydx5x2s3sftjskzawhqvnvcgml,
+                sign1tg9nwza05k89vyspuemc8r5vkz54f3v3gl4s6x05atqtgwnyyvq8ccamwql5txztuevplttghu5eyprlmth6ysgvsz9mgzjslf8guq5r22qjwn4zc0pzv87twjygsz9m7ekljmuw4jpzf68rwuq99r0tp735vs6220q7tp60nr7llkwstcvu49wdhydx5x2s3sftjskzawhqvnvcgml,
+                sign1tg9nwza05k89vyspuemc8r5vkz54f3v3gl4s6x05atqtgwnyyvq8ccamwql5txztuevplttghu5eyprlmth6ysgvsz9mgzjslf8guq5r22qjwn4zc0pzv87twjygsz9m7ekljmuw4jpzf68rwuq99r0tp735vs6220q7tp60nr7llkwstcvu49wdhydx5x2s3sftjskzawhqvnvcgml,
+                sign1tg9nwza05k89vyspuemc8r5vkz54f3v3gl4s6x05atqtgwnyyvq8ccamwql5txztuevplttghu5eyprlmth6ysgvsz9mgzjslf8guq5r22qjwn4zc0pzv87twjygsz9m7ekljmuw4jpzf68rwuq99r0tp735vs6220q7tp60nr7llkwstcvu49wdhydx5x2s3sftjskzawhqvnvcgml,
+                sign1tg9nwza05k89vyspuemc8r5vkz54f3v3gl4s6x05atqtgwnyyvq8ccamwql5txztuevplttghu5eyprlmth6ysgvsz9mgzjslf8guq5r22qjwn4zc0pzv87twjygsz9m7ekljmuw4jpzf68rwuq99r0tp735vs6220q7tp60nr7llkwstcvu49wdhydx5x2s3sftjskzawhqvnvcgml,
+                sign1tg9nwza05k89vyspuemc8r5vkz54f3v3gl4s6x05atqtgwnyyvq8ccamwql5txztuevplttghu5eyprlmth6ysgvsz9mgzjslf8guq5r22qjwn4zc0pzv87twjygsz9m7ekljmuw4jpzf68rwuq99r0tp735vs6220q7tp60nr7llkwstcvu49wdhydx5x2s3sftjskzawhqvnvcgml,
+                sign1tg9nwza05k89vyspuemc8r5vkz54f3v3gl4s6x05atqtgwnyyvq8ccamwql5txztuevplttghu5eyprlmth6ysgvsz9mgzjslf8guq5r22qjwn4zc0pzv87twjygsz9m7ekljmuw4jpzf68rwuq99r0tp735vs6220q7tp60nr7llkwstcvu49wdhydx5x2s3sftjskzawhqvnvcgml,
+                sign1tg9nwza05k89vyspuemc8r5vkz54f3v3gl4s6x05atqtgwnyyvq8ccamwql5txztuevplttghu5eyprlmth6ysgvsz9mgzjslf8guq5r22qjwn4zc0pzv87twjygsz9m7ekljmuw4jpzf68rwuq99r0tp735vs6220q7tp60nr7llkwstcvu49wdhydx5x2s3sftjskzawhqvnvcgml,
+                sign1tg9nwza05k89vyspuemc8r5vkz54f3v3gl4s6x05atqtgwnyyvq8ccamwql5txztuevplttghu5eyprlmth6ysgvsz9mgzjslf8guq5r22qjwn4zc0pzv87twjygsz9m7ekljmuw4jpzf68rwuq99r0tp735vs6220q7tp60nr7llkwstcvu49wdhydx5x2s3sftjskzawhqvnvcgml,
+                sign1tg9nwza05k89vyspuemc8r5vkz54f3v3gl4s6x05atqtgwnyyvq8ccamwql5txztuevplttghu5eyprlmth6ysgvsz9mgzjslf8guq5r22qjwn4zc0pzv87twjygsz9m7ekljmuw4jpzf68rwuq99r0tp735vs6220q7tp60nr7llkwstcvu49wdhydx5x2s3sftjskzawhqvnvcgml,
+                sign1tg9nwza05k89vyspuemc8r5vkz54f3v3gl4s6x05atqtgwnyyvq8ccamwql5txztuevplttghu5eyprlmth6ysgvsz9mgzjslf8guq5r22qjwn4zc0pzv87twjygsz9m7ekljmuw4jpzf68rwuq99r0tp735vs6220q7tp60nr7llkwstcvu49wdhydx5x2s3sftjskzawhqvnvcgml,
+                sign1tg9nwza05k89vyspuemc8r5vkz54f3v3gl4s6x05atqtgwnyyvq8ccamwql5txztuevplttghu5eyprlmth6ysgvsz9mgzjslf8guq5r22qjwn4zc0pzv87twjygsz9m7ekljmuw4jpzf68rwuq99r0tp735vs6220q7tp60nr7llkwstcvu49wdhydx5x2s3sftjskzawhqvnvcgml,
+                sign1tg9nwza05k89vyspuemc8r5vkz54f3v3gl4s6x05atqtgwnyyvq8ccamwql5txztuevplttghu5eyprlmth6ysgvsz9mgzjslf8guq5r22qjwn4zc0pzv87twjygsz9m7ekljmuw4jpzf68rwuq99r0tp735vs6220q7tp60nr7llkwstcvu49wdhydx5x2s3sftjskzawhqvnvcgml],
+            [
+                sign1tg9nwza05k89vyspuemc8r5vkz54f3v3gl4s6x05atqtgwnyyvq8ccamwql5txztuevplttghu5eyprlmth6ysgvsz9mgzjslf8guq5r22qjwn4zc0pzv87twjygsz9m7ekljmuw4jpzf68rwuq99r0tp735vs6220q7tp60nr7llkwstcvu49wdhydx5x2s3sftjskzawhqvnvcgml,
+                sign1tg9nwza05k89vyspuemc8r5vkz54f3v3gl4s6x05atqtgwnyyvq8ccamwql5txztuevplttghu5eyprlmth6ysgvsz9mgzjslf8guq5r22qjwn4zc0pzv87twjygsz9m7ekljmuw4jpzf68rwuq99r0tp735vs6220q7tp60nr7llkwstcvu49wdhydx5x2s3sftjskzawhqvnvcgml,
+                sign1tg9nwza05k89vyspuemc8r5vkz54f3v3gl4s6x05atqtgwnyyvq8ccamwql5txztuevplttghu5eyprlmth6ysgvsz9mgzjslf8guq5r22qjwn4zc0pzv87twjygsz9m7ekljmuw4jpzf68rwuq99r0tp735vs6220q7tp60nr7llkwstcvu49wdhydx5x2s3sftjskzawhqvnvcgml,
+                sign1tg9nwza05k89vyspuemc8r5vkz54f3v3gl4s6x05atqtgwnyyvq8ccamwql5txztuevplttghu5eyprlmth6ysgvsz9mgzjslf8guq5r22qjwn4zc0pzv87twjygsz9m7ekljmuw4jpzf68rwuq99r0tp735vs6220q7tp60nr7llkwstcvu49wdhydx5x2s3sftjskzawhqvnvcgml,
+                sign1tg9nwza05k89vyspuemc8r5vkz54f3v3gl4s6x05atqtgwnyyvq8ccamwql5txztuevplttghu5eyprlmth6ysgvsz9mgzjslf8guq5r22qjwn4zc0pzv87twjygsz9m7ekljmuw4jpzf68rwuq99r0tp735vs6220q7tp60nr7llkwstcvu49wdhydx5x2s3sftjskzawhqvnvcgml,
+                sign1tg9nwza05k89vyspuemc8r5vkz54f3v3gl4s6x05atqtgwnyyvq8ccamwql5txztuevplttghu5eyprlmth6ysgvsz9mgzjslf8guq5r22qjwn4zc0pzv87twjygsz9m7ekljmuw4jpzf68rwuq99r0tp735vs6220q7tp60nr7llkwstcvu49wdhydx5x2s3sftjskzawhqvnvcgml,
+                sign1tg9nwza05k89vyspuemc8r5vkz54f3v3gl4s6x05atqtgwnyyvq8ccamwql5txztuevplttghu5eyprlmth6ysgvsz9mgzjslf8guq5r22qjwn4zc0pzv87twjygsz9m7ekljmuw4jpzf68rwuq99r0tp735vs6220q7tp60nr7llkwstcvu49wdhydx5x2s3sftjskzawhqvnvcgml,
+                sign1tg9nwza05k89vyspuemc8r5vkz54f3v3gl4s6x05atqtgwnyyvq8ccamwql5txztuevplttghu5eyprlmth6ysgvsz9mgzjslf8guq5r22qjwn4zc0pzv87twjygsz9m7ekljmuw4jpzf68rwuq99r0tp735vs6220q7tp60nr7llkwstcvu49wdhydx5x2s3sftjskzawhqvnvcgml,
+                sign1tg9nwza05k89vyspuemc8r5vkz54f3v3gl4s6x05atqtgwnyyvq8ccamwql5txztuevplttghu5eyprlmth6ysgvsz9mgzjslf8guq5r22qjwn4zc0pzv87twjygsz9m7ekljmuw4jpzf68rwuq99r0tp735vs6220q7tp60nr7llkwstcvu49wdhydx5x2s3sftjskzawhqvnvcgml,
+                sign1tg9nwza05k89vyspuemc8r5vkz54f3v3gl4s6x05atqtgwnyyvq8ccamwql5txztuevplttghu5eyprlmth6ysgvsz9mgzjslf8guq5r22qjwn4zc0pzv87twjygsz9m7ekljmuw4jpzf68rwuq99r0tp735vs6220q7tp60nr7llkwstcvu49wdhydx5x2s3sftjskzawhqvnvcgml,
+                sign1tg9nwza05k89vyspuemc8r5vkz54f3v3gl4s6x05atqtgwnyyvq8ccamwql5txztuevplttghu5eyprlmth6ysgvsz9mgzjslf8guq5r22qjwn4zc0pzv87twjygsz9m7ekljmuw4jpzf68rwuq99r0tp735vs6220q7tp60nr7llkwstcvu49wdhydx5x2s3sftjskzawhqvnvcgml,
+                sign1tg9nwza05k89vyspuemc8r5vkz54f3v3gl4s6x05atqtgwnyyvq8ccamwql5txztuevplttghu5eyprlmth6ysgvsz9mgzjslf8guq5r22qjwn4zc0pzv87twjygsz9m7ekljmuw4jpzf68rwuq99r0tp735vs6220q7tp60nr7llkwstcvu49wdhydx5x2s3sftjskzawhqvnvcgml,
+                sign1tg9nwza05k89vyspuemc8r5vkz54f3v3gl4s6x05atqtgwnyyvq8ccamwql5txztuevplttghu5eyprlmth6ysgvsz9mgzjslf8guq5r22qjwn4zc0pzv87twjygsz9m7ekljmuw4jpzf68rwuq99r0tp735vs6220q7tp60nr7llkwstcvu49wdhydx5x2s3sftjskzawhqvnvcgml,
+                sign1tg9nwza05k89vyspuemc8r5vkz54f3v3gl4s6x05atqtgwnyyvq8ccamwql5txztuevplttghu5eyprlmth6ysgvsz9mgzjslf8guq5r22qjwn4zc0pzv87twjygsz9m7ekljmuw4jpzf68rwuq99r0tp735vs6220q7tp60nr7llkwstcvu49wdhydx5x2s3sftjskzawhqvnvcgml
+            ]
+        ] 
+    },
+    message: { 
+        messages: [{
+            source_chain: [129497940983541880690546129557858025472u128, 0u128],
+            message_id: [
+                129543616418537684110010247973178472295u128, 
+                146813217023299466576067115680920779129u128, 
+                154488831008045460057537329038304032872u128, 
+                69646294136802280241651158794438180864u128, 0u128,
+                0u128,
+                0u128,
+                0u128
+            ],
+            source_address: [
+                129497940984858643952261301375189137254u128,
+                141528452179676227430456616297872650616u128,
+                151824918195357812520057881859406328177u128,
+                158438911409234173347848527060049097728u128,
+                0u128,
+                0u128
+            ],
+            contract_address: aleo1lklakkgnjv6a9m0kyjhm33f66xql8n2pj4lgsd2emhep0cwe8uqqqcdups,
+            payload_hash: 4063574237844910514730141909505057216530945707718220555768700040578731323345group 
+        }] 
+    } 
+}

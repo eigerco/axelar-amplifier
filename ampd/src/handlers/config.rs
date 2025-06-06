@@ -40,6 +40,7 @@ pub enum Config {
         base_url: Url,
         network: String,
         verifier_contract: String,
+        network_id: u16,
     },
     EvmMsgVerifier {
         cosmwasm_contract: TMAddress,
@@ -74,8 +75,8 @@ pub enum Config {
         rpc_timeout: Option<Duration>,
     },
     XRPLMultisigSigner {
-        multisig_prover_contract: TMAddress,
-        multisig_contract: TMAddress,
+        cosmwasm_contract: TMAddress,
+        chain_name: ChainName,
     },
     MvxMsgVerifier {
         cosmwasm_contract: TMAddress,

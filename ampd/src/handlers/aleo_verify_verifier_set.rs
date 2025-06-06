@@ -1,23 +1,25 @@
-use aleo_types::program::Program;
+use std::marker::PhantomData;
+
 use aleo_types::transition::Transition;
 use async_trait::async_trait;
 use axelar_wasm_std::voting::{PollId, Vote};
 use cosmrs::cosmwasm::MsgExecuteContract;
 use cosmrs::tx::Msg;
+use cosmrs::Any;
 use events::Error::EventTypeMismatch;
 use events::Event;
 use events_derive::try_from;
 use multisig::verifier_set::VerifierSet;
-use prost_types::Any;
 use router_api::ChainName;
 use serde::Deserialize;
+use snarkvm::prelude::Network;
 use tokio::sync::watch::Receiver;
 use tracing::{debug, info, info_span};
 use voting_verifier::msg::ExecuteMsg;
 
 use crate::aleo::http_client::ClientTrait as AleoClientTrait;
 use crate::aleo::verifier::verify_verifier_set;
-use crate::aleo::{Receipt, ReceiptBuilder, SignerRotation};
+use crate::aleo::{Initial, Receipt, ReceiptBuilder, SignerRotation};
 use crate::event_processor::EventHandler;
 use crate::handlers::errors::Error;
 use crate::handlers::errors::Error::DeserializeEvent;
@@ -29,6 +31,8 @@ pub struct VerifierSetConfirmation {
     pub verifier_set: VerifierSet,
 }
 
+type AleoProgram = String;
+
 #[derive(Deserialize, Debug)]
 #[try_from("wasm-verifier_set_poll_started")]
 struct PollStartedEvent {
@@ -36,7 +40,7 @@ struct PollStartedEvent {
     poll_id: PollId,
     source_chain: ChainName,
     #[allow(dead_code)]
-    source_gateway_address: Program,
+    source_gateway_address: AleoProgram,
     expires_at: u64,
     #[allow(dead_code)]
     confirmation_height: u64,
@@ -44,18 +48,20 @@ struct PollStartedEvent {
 }
 
 #[derive(Clone)]
-pub struct Handler<C: AleoClientTrait> {
+pub struct Handler<C: AleoClientTrait, N: Network> {
     verifier: TMAddress,
     voting_verifier_contract: TMAddress,
     http_client: C,
     latest_block_height: Receiver<u64>,
     chain: ChainName,
     verifier_set_contract: String,
+    network: PhantomData<N>,
 }
 
-impl<C> Handler<C>
+impl<C, N> Handler<C, N>
 where
     C: AleoClientTrait + Send + Sync,
+    N: Network,
 {
     pub fn new(
         verifier: TMAddress,
@@ -72,6 +78,7 @@ where
             latest_block_height,
             chain,
             verifier_set_contract,
+            network: PhantomData,
         }
     }
 
@@ -89,16 +96,17 @@ where
     }
 }
 
-async fn fetch_transition_receipt<C>(
+async fn fetch_transition_receipt<C, N>(
     http_client: &C,
     program: &str,
     id: &Transition,
 ) -> (Transition, Receipt<SignerRotation>)
 where
     C: AleoClientTrait + Send + Sync + 'static,
+    N: Network,
 {
     let receipt = async {
-        ReceiptBuilder::new(http_client, program)?
+        ReceiptBuilder::<C, Initial, N>::new(http_client, program)?
             .get_transaction_id(id)
             .await?
             .get_transaction()
@@ -115,9 +123,10 @@ where
 }
 
 #[async_trait]
-impl<C> EventHandler for Handler<C>
+impl<C, N> EventHandler for Handler<C, N>
 where
     C: AleoClientTrait + Send + Sync + 'static,
+    N: Network,
 {
     type Err = Error;
 
@@ -160,7 +169,7 @@ where
         // Transition IDs on Aleo chain
         let transition = &verifier_set.message_id;
 
-        let (_, receipt) = fetch_transition_receipt(
+        let (_, receipt) = fetch_transition_receipt::<C, N>(
             &self.http_client,
             self.verifier_set_contract.as_str(),
             transition,

@@ -1,13 +1,11 @@
 use std::str::FromStr;
 
-use aleo_types::address::Address;
-use aleo_types::program::Program;
 use aleo_types::transaction::Transaction;
 use aleo_types::transition::Transition;
 use error_stack::{ensure, Report, Result, ResultExt};
 use router_api::ChainName;
 use serde::{Deserialize, Serialize};
-use snarkvm_cosmwasm::program::Network;
+use snarkvm::prelude::{Address, Network, ProgramID};
 
 use crate::aleo::error::Error;
 use crate::aleo::http_client::ClientTrait;
@@ -52,19 +50,21 @@ pub struct StateTransitionFound {
 /// 2. StateTransactionId → Retrieve transaction
 /// 3. StateTransactionFound → Find target transition
 /// 4. StateTransitionFound → Verify receipt (CallContract or SignerRotation)
-pub struct ReceiptBuilder<'a, C: ClientTrait, S> {
+pub struct ReceiptBuilder<'a, C: ClientTrait, S, N: Network> {
     client: &'a C,
-    target_contract: Program, // The target program can be the CallContract or the
+    target_contract: ProgramID<N>,
     state: S,
 }
 
-impl<'a, C> ReceiptBuilder<'a, C, Initial>
+impl<'a, C, N> ReceiptBuilder<'a, C, Initial, N>
 where
     C: ClientTrait + Send + Sync + 'static,
+    N: Network,
 {
     pub fn new(client: &'a C, target_contract: &'a str) -> Result<Self, Error> {
-        let target_contract = Program::from_str(target_contract)
-            .change_context(Error::InvalidProgramName(target_contract.to_string()))?;
+        let target_contract = ProgramID::from_str(target_contract).map_err(|e| {
+            Report::new(Error::InvalidProgramName(target_contract.to_string())).attach_printable(e)
+        })?;
 
         Ok(Self {
             client,
@@ -76,7 +76,7 @@ where
     pub async fn get_transaction_id(
         self,
         transition_id: &Transition,
-    ) -> Result<ReceiptBuilder<'a, C, StateTransactionId>, Error> {
+    ) -> Result<ReceiptBuilder<'a, C, StateTransactionId, N>, Error> {
         let transaction_id = self
             .client
             .find_transaction(transition_id)
@@ -96,14 +96,15 @@ where
     }
 }
 
-impl<'a, C> ReceiptBuilder<'a, C, StateTransactionId>
+impl<'a, C, N> ReceiptBuilder<'a, C, StateTransactionId, N>
 where
     C: ClientTrait + Send + Sync + 'static,
+    N: Network,
 {
     /// Retrieve the transaction from the transaction ID and transition to the next state
     pub async fn get_transaction(
         self,
-    ) -> Result<ReceiptBuilder<'a, C, StateTransactionFound>, Error> {
+    ) -> Result<ReceiptBuilder<'a, C, StateTransactionFound, N>, Error> {
         let transaction = self
             .client
             .get_transaction(&self.state.transaction_id)
@@ -120,18 +121,19 @@ where
     }
 }
 
-impl<'a, C> ReceiptBuilder<'a, C, StateTransactionFound>
+impl<'a, C, N> ReceiptBuilder<'a, C, StateTransactionFound, N>
 where
     C: ClientTrait + Send + Sync + 'static,
+    N: Network,
 {
-    pub fn get_transition(self) -> Result<ReceiptBuilder<'a, C, StateTransitionFound>, Error> {
+    pub fn get_transition(self) -> Result<ReceiptBuilder<'a, C, StateTransitionFound, N>, Error> {
         let transition = self
             .state
             .transaction
             .execution
             .transitions
             .iter()
-            .find(|t| t.program.as_str() == self.target_contract.as_str())
+            .find(|t| t.program == self.target_contract.to_string())
             .ok_or(Error::TransitionNotFoundInTransaction(
                 self.target_contract.to_string(),
             ))?
@@ -148,11 +150,12 @@ where
     }
 }
 
-impl<C> ReceiptBuilder<'_, C, StateTransitionFound>
+impl<C, N> ReceiptBuilder<'_, C, StateTransitionFound, N>
 where
     C: ClientTrait + Send + Sync + 'static,
+    N: Network,
 {
-    pub fn check_call_contract<N: Network>(self) -> Result<Receipt<CallContractReceipt<N>>, Error> {
+    pub fn check_call_contract(self) -> Result<Receipt<CallContractReceipt<N>>, Error> {
         let outputs = self.state.transition.outputs;
         let call_contract = find_in_outputs(&outputs).ok_or(Error::CallContractNotFound)?;
         let scm = self.state.transition.scm.as_str();
@@ -163,7 +166,7 @@ where
             .execution
             .transitions
             .iter()
-            .filter(|t| t.scm == scm && t.program == self.target_contract.as_str())
+            .filter(|t| t.scm == scm && t.program == self.target_contract.to_string())
             .count();
 
         ensure!(gateway_calls_count == 1, Error::CallContractNotFound);
@@ -193,8 +196,8 @@ where
             destination_address: call_contract.destination_address(),
             destination_chain: ChainName::try_from(call_contract.destination_chain())
                 .change_context(Error::InvalidChainName)?,
-            source_address: Address::from_str(call_contract.sender.to_string().as_ref())
-                .change_context(Error::InvalidSourceAddress)?,
+            source_address: Address::<N>::from_str(call_contract.sender.to_string().as_ref())
+                .map_err(|e| Report::new(Error::InvalidSourceAddress).attach_printable(e))?,
             payload: parsed_output.payload,
             n: std::marker::PhantomData,
         }))
@@ -213,7 +216,7 @@ where
             .iter()
             .filter(|t| {
                 t.scm == scm
-                    && t.program == self.target_contract.as_str()
+                    && t.program == self.target_contract.to_string()
                     && t.id != self.state.transition.id
             })
             .count();

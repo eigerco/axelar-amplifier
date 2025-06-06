@@ -1,20 +1,20 @@
 use std::collections::{HashMap, HashSet};
 use std::marker::PhantomData;
 
-use aleo_types::address::Address as AleoAddress;
 use aleo_types::transition::Transition;
 use async_trait::async_trait;
 use axelar_wasm_std::voting::{PollId, Vote};
 use cosmrs::cosmwasm::MsgExecuteContract;
 use cosmrs::tx::Msg;
+use cosmrs::Any;
+use error_stack::ResultExt;
 use events::Error::EventTypeMismatch;
 use events::Event;
 use events_derive::try_from;
 use futures::stream::{self, StreamExt};
-use prost_types::Any;
 use router_api::ChainName;
 use serde::{Deserialize, Serialize};
-use snarkvm_cosmwasm::program::Network;
+use snarkvm::prelude::{Address, Network};
 use tokio::sync::watch::Receiver;
 use tracing::{debug, info, info_span};
 use valuable::Valuable;
@@ -28,22 +28,30 @@ use crate::handlers::errors::Error::DeserializeEvent;
 use crate::types::{Hash, TMAddress};
 
 #[derive(Serialize, Deserialize, Debug)]
-pub struct Message {
+#[serde(bound = "Address<N>: Serialize + for<'a> Deserialize<'a>")]
+pub struct Message<N>
+where
+    N: Network,
+{
     pub tx_id: Transition,
     pub destination_address: String,
     pub destination_chain: ChainName,
-    pub source_address: AleoAddress,
+    pub source_address: Address<N>,
     pub payload_hash: Hash,
 }
 
 #[derive(Deserialize, Debug)]
+#[serde(bound = "Vec<Message<N>>: Serialize + for<'a> Deserialize<'a>")]
 #[try_from("wasm-messages_poll_started")]
-struct PollStartedEvent {
+struct PollStartedEvent<N>
+where
+    N: Network,
+{
     poll_id: PollId,
     source_chain: ChainName,
     expires_at: u64,
     participants: Vec<TMAddress>,
-    messages: Vec<Message>,
+    messages: Vec<Message<N>>,
 }
 
 #[derive(Clone)]
@@ -226,9 +234,8 @@ where
 mod tests {
     use std::str::FromStr;
 
-    use aleo_types::program::Program;
     use cosmrs::AccountId;
-    use snarkvm_cosmwasm::network::TestnetV0;
+    use snarkvm::prelude::TestnetV0;
 
     use super::*;
     use crate::types::TMAddress;
@@ -240,14 +247,14 @@ mod tests {
         )
         .unwrap()
         .into()];
-        let messages: Vec<Message> = vec![Message {
+        let messages: Vec<Message<TestnetV0>> = vec![Message {
             tx_id: Transition::from_str(
                 "au17kdp7a7p6xuq6h0z3qrdydn4f6fjaufvzvlgkdd6vzpr87lgcgrq8qx6st",
             )
             .unwrap(),
             destination_address: "dapp20250123exec.aleo".to_string(),
             destination_chain: ChainName::from_str("aleo-2").unwrap(),
-            source_address: AleoAddress::from_str(
+            source_address: Address::<TestnetV0>::from_str(
                 "aleo1ejcm4cpwcjtenxlg37utj8dn7s88xs5asvl5u25w4udkd7e7dcpqvaeyaz",
             )
             .unwrap(),
@@ -275,7 +282,7 @@ mod tests {
             ),
             (
                 "source_gateway_address".to_string(),
-                serde_json::to_value(Program::from_str("vzevxifdoj.aleo").unwrap()).unwrap(),
+                serde_json::to_value("vzevxifdoj.aleo").unwrap(),
             ),
             (
                 "expires_at".to_string(),

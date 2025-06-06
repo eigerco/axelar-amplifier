@@ -68,7 +68,7 @@ mod test {
         pub source_chain: [u128; 2],
         pub message_id: [u128; 8],
         pub source_address: [u128; 6],
-        pub contract_address: [u128; 6],
+        pub contract_address: String,
         pub payload_hash: String,
     }
 
@@ -169,14 +169,7 @@ mod test {
                         0,
                         0,
                     ],
-                    contract_address: [
-                        138766332635629816062928850583320028527,
-                        0,
-                        0,
-                        0,
-                        0,
-                        0,
-                    ],
+                    contract_address: "aleo1lklakkgnjv6a9m0kyjhm33f66xql8n2pj4lgsd2emhep0cwe8uqqqcdups".into(),
                     payload_hash: "4063574237844910514730141909505057216530945707718220555768700040578731323345group".into()
                 }],
             },

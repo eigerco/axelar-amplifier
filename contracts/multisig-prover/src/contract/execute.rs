@@ -3,10 +3,11 @@ use std::hash::Hash;
 use std::str::FromStr;
 
 use aleo_gateway::AleoValue as _;
-use axelar_wasm_addresses::address;
 use axelar_wasm_std::permission_control::Permission;
 use axelar_wasm_std::snapshot::{Participant, Snapshot};
-use axelar_wasm_std::{nonempty, permission_control, FnExt, MajorityThreshold, VerificationStatus};
+use axelar_wasm_std::{
+    address, nonempty, permission_control, FnExt, MajorityThreshold, VerificationStatus,
+};
 use cosmwasm_std::{wasm_execute, Addr, DepsMut, Env, QuerierWrapper, Response, Storage, SubMsg};
 use error_stack::{report, Result, ResultExt};
 use itertools::Itertools;
@@ -16,6 +17,7 @@ use router_api::{ChainName, CrossChainId, Message};
 use service_registry_api::WeightedVerifier;
 
 use crate::contract::START_MULTISIG_REPLY_ID;
+use crate::encoding::EncoderExt;
 use crate::error::ContractError;
 use crate::msg::ItsPayload;
 use crate::payload::Payload;
@@ -591,6 +593,7 @@ mod tests {
 
     use axelar_wasm_std::Threshold;
     use cosmwasm_std::testing::{mock_dependencies, mock_env, MockApi};
+    use multisig_prover_api::encoding::Encoder;
     use router_api::ChainName;
 
     use super::{different_set_in_progress, next_verifier_set, should_update_verifier_set};
@@ -723,7 +726,7 @@ mod tests {
             service_name: "validators".to_string(),
             chain_name: ChainName::try_from("ethereum".to_owned()).unwrap(),
             verifier_set_diff_threshold: 0,
-            encoder: crate::encoding::Encoder::Abi,
+            encoder: Encoder::Abi,
             key_type: multisig::key::KeyType::Ecdsa,
             domain_separator: [0; 32],
         }

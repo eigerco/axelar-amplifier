@@ -68,6 +68,16 @@ pub enum Error {
     CheckedDivision(usize, usize),
     #[error("Checked remainder failed: {0} % {1}")]
     CheckedRemainder(usize, usize),
+    #[error("Invalid ProgramID: {program_id}, fail to create program id with error '{error}'")]
+    InvalidProgramID {
+        program_id: String,
+        error: snarkvm_cosmwasm::account::Error,
+    },
+    #[error("ProgramID to aleo address faild: {program_id}, fail to create program id with error '{error}'")]
+    ProgramIDToAleoAddress {
+        program_id: String,
+        error: snarkvm_cosmwasm::account::Error,
+    },
 }
 
 pub trait AleoValue {
