@@ -27,9 +27,8 @@ pub fn payload_digest<N: Network>(
                 .then(Messages::from);
 
             // TODO: make the MessageGroup configurable from outside
-            let group: aleo_gateway::MessageGroup<N> =
-                aleo_gateway::MessageGroup::new(messages.0)
-                    .change_context(ContractError::InvalidMessage)?;
+            let group: aleo_gateway::MessageGroup<N> = aleo_gateway::MessageGroup::new(messages.0)
+                .change_context(ContractError::InvalidMessage)?;
 
             group.bhp_string::<N>()
         }

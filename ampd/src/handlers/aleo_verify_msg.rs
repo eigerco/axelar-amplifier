@@ -7,6 +7,7 @@ use axelar_wasm_std::voting::{PollId, Vote};
 use cosmrs::cosmwasm::MsgExecuteContract;
 use cosmrs::tx::Msg;
 use cosmrs::Any;
+use error_stack::ResultExt;
 use events::Error::EventTypeMismatch;
 use events::Event;
 use events_derive::try_from;
@@ -18,7 +19,6 @@ use tokio::sync::watch::Receiver;
 use tracing::{debug, info, info_span};
 use valuable::Valuable;
 use voting_verifier::msg::ExecuteMsg;
-use error_stack::ResultExt;
 
 use crate::aleo::http_client::ClientTrait as AleoClientTrait;
 use crate::aleo::{CallContractReceipt, Receipt, ReceiptBuilder};

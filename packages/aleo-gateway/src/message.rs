@@ -2,10 +2,8 @@ use std::str::FromStr as _;
 
 use aleo_utils::string_encoder::StringEncoder;
 use error_stack::{ensure, Report};
-use snarkvm_cosmwasm::{
-    network::{Network, TestnetV0},
-    program::ProgramID,
-};
+use snarkvm_cosmwasm::network::{Network, TestnetV0};
+use snarkvm_cosmwasm::program::ProgramID;
 
 use crate::{AleoValue, Error};
 
