@@ -81,10 +81,12 @@ impl AleoValue for Message {
         let contract_address = match self.destination_address.as_str() {
             "aleo1ymrcwun5g9z0un8dqgdln7l3q77asqr98p7wh03dwgk4yfltpqgq9efvfz" => {
                 Address::from_str("aleo1ymrcwun5g9z0un8dqgdln7l3q77asqr98p7wh03dwgk4yfltpqgq9efvfz")
-                    .map_err(|e| Report::new(Error::InvalidAleoAddress {
-                        address: self.destination_address.clone(),
-                        error: e,
-                    }))?
+                    .map_err(|e| {
+                        Report::new(Error::InvalidAleoAddress {
+                            address: self.destination_address.clone(),
+                            error: e,
+                        })
+                    })?
             }
             str => {
                 let program_id = ProgramID::<TestnetV0>::from_str(str).map_err(|e| {

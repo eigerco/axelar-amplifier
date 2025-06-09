@@ -1,7 +1,7 @@
 use std::str::FromStr as _;
 
-use aleo_types::address::Address;
 use aleo_string_encoder::string_encoder::StringEncoder;
+use aleo_types::address::Address;
 use error_stack::Report;
 use snarkvm_cosmwasm::network::Network;
 use snarkvm_cosmwasm::program::ToBits;

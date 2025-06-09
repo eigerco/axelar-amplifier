@@ -1,5 +1,5 @@
-use axelar_wasm_std::MajorityThreshold;
 use axelar_wasm_std::hash::Hash;
+use axelar_wasm_std::MajorityThreshold;
 use cosmwasm_schema::{cw_serde, QueryResponses};
 use cosmwasm_std::{HexBinary, Uint64};
 use msgs_derive::EnsurePermissions;
