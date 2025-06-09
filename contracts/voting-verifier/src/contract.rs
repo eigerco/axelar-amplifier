@@ -1,11 +1,10 @@
 use axelar_wasm_addresses::address;
 use axelar_wasm_addresses::address::validate_contract_address;
-use axelar_wasm_std::nonempty::Uint64;
-use axelar_wasm_std::{permission_control, FnExt, MajorityThreshold, Threshold};
+use axelar_wasm_std::{permission_control, FnExt};
 #[cfg(not(feature = "library"))]
 use cosmwasm_std::entry_point;
 use cosmwasm_std::{
-    to_json_binary, Attribute, Binary, Deps, DepsMut, Empty, Env, Event, MessageInfo, Response,
+    to_json_binary, Attribute, Binary, Deps, DepsMut, Env, Event, MessageInfo, Response,
 };
 use error_stack::ResultExt;
 
@@ -16,6 +15,8 @@ use crate::state::{Config, CONFIG};
 mod execute;
 mod migrations;
 mod query;
+
+pub use migrations::{migrate, MigrateMsg};
 
 const CONTRACT_NAME: &str = env!("CARGO_PKG_NAME");
 const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
@@ -106,41 +107,6 @@ pub fn query(
     .then(Ok)
 }
 
-#[cfg_attr(not(feature = "library"), entry_point)]
-pub fn migrate(
-    deps: DepsMut,
-    _env: Env,
-    _msg: Empty,
-) -> Result<Response, axelar_wasm_std::error::ContractError> {
-    // TODO: THIS FUNCTION SHOULD BE REVERTED, AND THE CODE ADDED BELOW SHOULD BE DELETED BEFORE MERGING TO AXELAR-AMPLIFIER
-    cw2::set_contract_version(deps.storage, CONTRACT_NAME, CONTRACT_VERSION)?;
-
-    let config = Config {
-        service_name: "validators".parse().unwrap(),
-        service_registry_contract: cosmwasm_std::Addr::unchecked(
-            "axelar1c9fkszt5lq34vvvlat3fxj6yv7ejtqapz04e97vtc9m5z9cwnamq8zjlhz",
-        ),
-        source_gateway_address: "vzevxifdoj.aleo".parse().unwrap(),
-        voting_threshold: MajorityThreshold::try_from(Threshold::try_from((1, 1)).unwrap())
-            .unwrap(),
-        block_expiry: Uint64::try_from(10u64).unwrap(),
-        confirmation_height: 1,
-        source_chain: "aleo-2".parse().unwrap(),
-        rewards_contract: cosmwasm_std::Addr::unchecked(
-            "axelar1vaj9sfzc3z0gpel90wu4ljutncutv0wuhvvwfsh30rqxq422z89qnd989l",
-        ),
-        msg_id_format: axelar_wasm_std::msg_id::MessageIdFormat::Bech32m {
-            prefix: "au".to_string().try_into().unwrap(),
-            length: 61,
-        },
-        address_format: address::AddressFormat::Aleo,
-    };
-
-    CONFIG.save(deps.storage, &config)?;
-
-    Ok(Response::default())
-}
-
 #[cfg(test)]
 mod test {
     use assert_ok::assert_ok;
@@ -162,9 +128,7 @@ mod test {
     use multisig::key::KeyType;
     use multisig::test::common::{build_verifier_set, ecdsa_test_data};
     use router_api::{ChainName, CrossChainId, Message};
-    use service_registry::{
-        AuthorizationState, BondingState, Verifier, WeightedVerifier, VERIFIER_WEIGHT,
-    };
+    use service_registry::{AuthorizationState, BondingState, Verifier, WeightedVerifier};
     use sha3::{Digest, Keccak256, Keccak512};
     use starknet_checked_felt::CheckedFelt;
 
@@ -210,6 +174,7 @@ mod test {
         verifiers
     }
 
+    // TODO: this makes explicit assumptions about the weight distribution strategy of the service registry, it's probably better to change it into an integration test
     fn setup(
         verifiers: Vec<Verifier>,
         msg_id_format: &MessageIdFormat,
@@ -250,7 +215,7 @@ mod test {
                         .into_iter()
                         .map(|v| WeightedVerifier {
                             verifier_info: v,
-                            weight: VERIFIER_WEIGHT,
+                            weight: nonempty::Uint128::one(),
                         })
                         .collect::<Vec<WeightedVerifier>>(),
                 )
