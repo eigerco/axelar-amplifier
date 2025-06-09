@@ -6,7 +6,7 @@ edition.workspace = true
 
 [dependencies]
 aleo-types = { workspace = true }
-aleo-utils = { workspace = true }
+aleo-string-encoder = { workspace = true }
 cosmwasm-std = { workspace = true }
 error-stack = { workspace = true }
 interchain-token-service = { workspace = true }

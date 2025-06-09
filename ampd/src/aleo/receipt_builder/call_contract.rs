@@ -1,8 +1,8 @@
 use std::marker::PhantomData;
 
+use aleo_string_encoder::string_encoder::StringEncoder;
 use aleo_types::transition::Transition;
 use aleo_utils::json_like;
-use aleo_utils::string_encoder::StringEncoder;
 use router_api::ChainName;
 use serde::{Deserialize, Serialize};
 use sha3::{Digest, Keccak256};
@@ -139,7 +139,7 @@ fn keccak256(payload: impl AsRef<[u8]>) -> [u8; 32] {
     hasher.finalize().into()
 }
 
-use aleo_utils::aleo_json::{AleoJson, RemoteDeployInterchainToken};
+use aleo_utils::aleo_json::RemoteDeployInterchainToken;
 // use aleo_utils::serde_plaintext;
 use cosmwasm_std::{HexBinary, Uint256};
 use interchain_token_service::{HubMessage, TokenId};
@@ -161,10 +161,9 @@ fn its_message_abi(payload: &str) -> Result<HexBinary, ()> {
     // Then we will store it at [u8; 32]
     let token_id: [u8; 32] = token_id.to_le_bytes();
     // let name = todo!();
-    let name = aleo_utils::string_encoder::StringEncoder::from_array(&[r.info.name]);
-    let symbol = aleo_utils::string_encoder::StringEncoder::from_array(&[r.info.symbol]);
-    let destination_chain =
-        aleo_utils::string_encoder::StringEncoder::from_array(&r.destination_chain);
+    let name = StringEncoder::from_array(&[r.info.name]);
+    let symbol = StringEncoder::from_array(&[r.info.symbol]);
+    let destination_chain = StringEncoder::from_array(&r.destination_chain);
 
     let msg = interchain_token_service::DeployInterchainToken {
         token_id: TokenId::from(token_id),

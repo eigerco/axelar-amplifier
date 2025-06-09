@@ -125,8 +125,8 @@ dependencies = [
 name = "aleo-gateway"
 version = "0.1.0"
 dependencies = [
+ "aleo-string-encoder",
  "aleo-types",
- "aleo-utils",
  "axelar-wasm-std",
  "cosmwasm-std",
  "error-stack",
@@ -206,6 +206,13 @@ name = "aleo-std-timer"
 version = "1.0.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "14edf4007a98323f763701688bcbe3bc6ecf33e20c3a81b3eb8d6661ff01b217"
+
+[[package]]
+name = "aleo-string-encoder"
+version = "0.1.0"
+dependencies = [
+ "thiserror 1.0.69",
+]
 
 [[package]]
 name = "aleo-types"
@@ -360,6 +367,7 @@ name = "ampd"
 version = "1.9.0"
 dependencies = [
  "aleo-gateway",
+ "aleo-string-encoder",
  "aleo-types",
  "aleo-utils",
  "ampd-proto",

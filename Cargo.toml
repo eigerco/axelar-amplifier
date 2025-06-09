@@ -24,9 +24,10 @@ optimize = """docker run --rm -v "$(pwd)":/code \
 
 [workspace.dependencies]
 arbtest = { version = "0.3.2" }
-aleo-utils = { path = "packages/aleo-utils" }
 aleo-types = { path = "packages/aleo-types" }
 aleo-gateway = { path = "packages/aleo-gateway" }
+aleo-string-encoder = { path = "packages/aleo-string-encoder" }
+aleo-utils = { path = "packages/aleo-utils" }
 alloy-primitives = { version = "0.7.6", default-features = false, features = [
   "std",
 ] }

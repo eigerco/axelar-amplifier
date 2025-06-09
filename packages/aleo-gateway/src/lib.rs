@@ -1,7 +1,7 @@
 use std::str::FromStr as _;
 
 use aleo_types::address::Address;
-use aleo_utils::string_encoder::StringEncoder;
+use aleo_string_encoder::string_encoder::StringEncoder;
 use error_stack::Report;
 use snarkvm_cosmwasm::network::Network;
 use snarkvm_cosmwasm::program::ToBits;
@@ -56,7 +56,7 @@ pub enum Error {
     #[error("Invalid ascii character")]
     InvalidAscii,
     #[error("StringEncoder: {0}")]
-    StringEncoder(#[from] aleo_utils::string_encoder::Error),
+    StringEncoder(#[from] aleo_string_encoder::string_encoder::Error),
     #[error("InvalidMessageGroupLength: expected: {max}, actual: {actual}")]
     InvalidMessageGroupLength { max: usize, actual: usize },
     #[error("The number of address signatures ({address_signatures}) does not match the number of signer signatures ({signer_signatures}).")]
