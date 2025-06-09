@@ -146,6 +146,7 @@ impl StringEncoder {
 ///
 /// The ASCII-only invariant is enforced at creation time in the [`Self::new`] method,
 /// which returns an error if any non-ASCII characters are present in the input string.
+#[warn(dead_code)]
 pub struct EncodableString(String);
 
 impl EncodableString {

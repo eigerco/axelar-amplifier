@@ -126,6 +126,10 @@ snarkvm = { git = "https://github.com/eigerco/snarkVM", branch = "cosmwasm-2" }
 voting-verifier-api = { version = "1.0.0", path = "packages/voting-verifier-api" }
 xrpl-types = { version = "^1.0.0", path = "packages/xrpl-types" }
 
+# This is for multisig-prover tests
+[patch.crates-io]
+snarkvm = { git = "https://github.com/eigerco/snarkVM", branch = "cosmwasm-2" }
+
 [workspace.lints.clippy]
 arithmetic_side_effects = "deny"
 cast_possible_truncation = "deny"

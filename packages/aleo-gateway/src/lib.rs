@@ -172,7 +172,7 @@ impl AleoValue for interchain_token_service::HubMessage {
                 }
             },
             interchain_token_service::HubMessage::ReceiveFromHub {
-                source_chain: _,
+                source_chain,
                 message,
             } => match message {
                 interchain_token_service::Message::InterchainTransfer(interchain_transfer) => {
@@ -180,7 +180,34 @@ impl AleoValue for interchain_token_service::HubMessage {
                 }
                 interchain_token_service::Message::DeployInterchainToken(
                     deploy_interchain_token,
-                ) => deploy_interchain_token.to_aleo_string(),
+                ) => {
+                    const SOURCE_CHAIN_LEN: usize = 2;
+                    let source_chain = StringEncoder::encode_string(source_chain.as_ref())
+                        .map_err(|e| Report::new(Error::from(e)))?;
+                    let source_chain_len = source_chain.u128_len();
+                    error_stack::ensure!(
+                        source_chain_len <= SOURCE_CHAIN_LEN,
+                        Error::InvalidEncodedStringLength {
+                            expected: SOURCE_CHAIN_LEN,
+                            actual: source_chain.u128_len()
+                        }
+                    );
+                    let source_chain = source_chain
+                        .consume()
+                        .into_iter()
+                        .map(|c| format!("{}u128", c))
+                        .chain(
+                            std::iter::repeat("0u128".to_string())
+                                .take(SOURCE_CHAIN_LEN.saturating_sub(source_chain_len)),
+                        )
+                        .collect::<Vec<_>>()
+                        .join(", ");
+
+                    let inner_message = deploy_interchain_token.to_aleo_string()?;
+                    Ok(format!(
+                        "{{ inner_message: {inner_message}, source_chain: [{source_chain}] }}"
+                    ))
+                }
                 interchain_token_service::Message::LinkToken(link_token) => {
                     link_token.to_aleo_string()
                 }
@@ -238,22 +265,19 @@ impl AleoValue for interchain_token_service::InterchainTransfer {
 
 impl AleoValue for interchain_token_service::DeployInterchainToken {
     fn to_aleo_string(&self) -> Result<String, Report<Error>> {
-        let token_id: String = self
-            .token_id
-            .0
-            .iter()
-            .map(|byte| format!("{}u8", byte))
-            .collect::<Vec<_>>()
-            .join(", ");
+        let token_id = [
+            u128::from_le_bytes(self.token_id.0[0..16].try_into().unwrap()),
+            u128::from_le_bytes(self.token_id.0[16..32].try_into().unwrap()),
+        ];
 
+        // TODO: use less strings
         let name = StringEncoder::encode_string(&self.name)
             .map_err(|_| Report::new(Error::AleoGateway("Failed to encode name".to_string())))?
             .buf
             .iter()
             .map(|byte| format!("{}u128", byte))
             .take(1)
-            .collect::<Vec<_>>()
-            .join(", ");
+            .collect::<String>();
 
         let symbol = StringEncoder::encode_string(&self.symbol)
             .map_err(|_| Report::new(Error::AleoGateway("Failed to encode symbol".to_string())))?
@@ -261,12 +285,11 @@ impl AleoValue for interchain_token_service::DeployInterchainToken {
             .iter()
             .map(|byte| format!("{}u128", byte))
             .take(1)
-            .collect::<Vec<_>>()
-            .join(", ");
+            .collect::<String>();
 
         let output = format!(
-            "{{ token_id: [{}], name: [{}], symbol: [{}], decimals: {}u8 }}",
-            token_id, name, symbol, self.decimals
+            "{{ its_token_id: [{}u128, {}u128], name: {}, symbol: {}, decimals: {}u8 }}",
+            token_id[0], token_id[1], name, symbol, self.decimals
         );
 
         Ok(output)
@@ -370,14 +393,12 @@ mod tests {
     }
 
     fn translate_hash(hash_bytes: &[u8; 32]) {
-        // let hash = "2fdcbfc3853f71262a91ee9b837c18a4a7df711eb563eea38e5d3f501f4157be";
-        // let hash_bytes = hex::decode(hash).unwrap();
-
         let reverse_hash: Vec<u8> = hash_bytes.iter().map(|b| b.reverse_bits()).collect();
         let keccak_bits: Vec<bool> = bytes_to_bits(&reverse_hash);
 
         let group = <snarkvm_cosmwasm::network::TestnetV0>::hash_to_group_bhp256(&keccak_bits)
-            .map_err(|e| Report::new(Error::from(e))).unwrap();
+            .map_err(|e| Report::new(Error::from(e)))
+            .unwrap();
 
         let payload_hash = format!("{group}");
         println!("Payload hash: {payload_hash}");
@@ -392,12 +413,13 @@ mod tests {
 
         let aleo_string = its_message.to_aleo_string().unwrap();
 
-        println!("aleo_string: {aleo_string}");
+        println!("aleo_string: '{aleo_string}'");
 
         let hash = crate::hash::<&str, snarkvm_cosmwasm::network::TestnetV0>(&aleo_string).unwrap();
         println!("hash: {hash:?}");
         translate_hash(&hash);
 
+        // let message =
     }
 
     #[test]

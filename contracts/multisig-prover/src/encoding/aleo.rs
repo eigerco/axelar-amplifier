@@ -128,7 +128,7 @@ mod tests {
                 .parse()
                 .unwrap(),
             destination_chain: "aleo-2".parse().unwrap(),
-            destination_address: "foo".parse().unwrap(),
+            destination_address: "foo.aleo".parse().unwrap(),
             payload_hash: [
                 0xa4, 0x32, 0xdc, 0x98, 0x3d, 0xfe, 0x6f, 0xc4, 0x8b, 0xb4, 0x7a, 0x90, 0x91, 0x54,
                 0x65, 0xd9, 0xc8, 0x18, 0x5b, 0x1c, 0x2a, 0xea, 0x5c, 0x87, 0xf8, 0x58, 0x18, 0xcb,
@@ -147,37 +147,29 @@ mod tests {
     // APrivateKey1zkpFMDCJZbRdcBcjnqjRqCrhcWFf4L9FRRSgbLpS6D47Cmo
     // aleo1v7mmux8wkue8zmuxdfks03rh85qchfmms9fkpflgs4dt87n4jy9s8nzfss
     fn aleo_sig(digest: [u8; 32]) -> SignerWithSig {
-        // TODO: This needs to be reverted.
-        // To revert this we need to remove snarkos-account from tofn
-        // and replace it with code from our snarkvm-cosmwasm crate.
-        // This is needed because the Network type we are using is consitered to
-        // be different from the one in snarkos-account because they are coming
-        // from different source code of snarkvm.
-        todo!()
-        // let arr = [0; 64];
-        // let k = SecretRecoveryKey::try_from(&arr[..]).unwrap();
-        // let key_pair = keygen::<Curr>(&k, b"tofn nonce").unwrap();
-        // let msg = tofn::sdk::api::MessageDigest::from(digest);
-        // let signature = tofn::aleo_schnorr::sign(&key_pair, &msg).unwrap();
-        //
-        // let _signature_str = String::from_utf8(signature.clone()).unwrap();
-        // let verify_key = key_pair.encoded_verifying_key();
-        //
-        // let signer = Signer {
-        //     address: Addr::unchecked("aleo-validator".to_string()),
-        //     weight: 1u128.into(),
-        //     pub_key: PublicKey::AleoSchnorr(HexBinary::from(verify_key.as_bytes())),
-        // };
-        //
-        // let signature = multisig::key::Signature::AleoSchnorr(HexBinary::from(&signature[..]));
-        //
-        // SignerWithSig { signer, signature }
+        let arr = [0; 64];
+        let k = SecretRecoveryKey::try_from(&arr[..]).unwrap();
+        let key_pair = keygen::<Curr>(&k, b"tofn nonce").unwrap();
+        let msg = tofn::sdk::api::MessageDigest::from(digest);
+        let signature = tofn::aleo_schnorr::sign(&key_pair, &msg).unwrap();
+
+        let _signature_str = String::from_utf8(signature.clone()).unwrap();
+        let verify_key = key_pair.encoded_verifying_key();
+
+        let signer = Signer {
+            address: Addr::unchecked("aleo-validator".to_string()),
+            weight: 1u128.into(),
+            pub_key: PublicKey::AleoSchnorr(HexBinary::from(verify_key.as_bytes())),
+        };
+
+        let signature = multisig::key::Signature::AleoSchnorr(HexBinary::from(&signature[..]));
+
+        SignerWithSig { signer, signature }
     }
 
     use std::convert::TryFrom;
 
     #[test]
-    #[ignore = "This test requires a valid Aleo private key to run"]
     fn aleo_execute_data() {
         let domain_separator = [
             105u8, 115u8, 199u8, 41u8, 53u8, 96u8, 68u8, 100u8, 178u8, 136u8, 39u8, 20u8, 27u8,
