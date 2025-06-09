@@ -1,10 +1,26 @@
-FROM rust:1.81-bookworm as builder
+FROM rust:1.81-bookworm AS builder
+RUN apt-get update && apt-get install -y clang protobuf-compiler cmake
 
-WORKDIR /ampd-handlers
+WORKDIR /app
 COPY . .
-RUN cargo build --release --bin ampd_handler
 
-FROM debian:bullseye-slim
-RUN apt-get update && apt-get install -y --no-install-recommends ca-certificates && rm -rf /var/lib/apt/lists/*
-COPY --from=builder /app/target/release/ampd_handler /usr/local/bin/
+# Build the ampd-handlers binary
+RUN cargo build --release --bin ampd-handlers
+
+FROM debian:bookworm-slim AS runner
+ARG GRPCURL_VERSION=1.9.3
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    ca-certificates \
+    wget \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
+
+RUN wget https://github.com/fullstorydev/grpcurl/releases/download/v${GRPCURL_VERSION}/grpcurl_${GRPCURL_VERSION}_linux_x86_64.tar.gz \
+    && tar -xvf grpcurl_${GRPCURL_VERSION}_linux_x86_64.tar.gz \
+    && mv grpcurl /usr/local/bin/grpcurl \
+    && chmod +x /usr/local/bin/grpcurl \
+    && rm grpcurl_${GRPCURL_VERSION}_linux_x86_64.tar.gz
+
+COPY --from=builder /app/target/release/ampd-handlers /usr/local/bin/ampd_handler
 ENTRYPOINT ["ampd_handler"]

@@ -6,8 +6,8 @@ use axelar_wasm_std::{killswitch, permission_control, FnExt};
 #[cfg(not(feature = "library"))]
 use cosmwasm_std::entry_point;
 use cosmwasm_std::{
-    to_json_binary, Addr, Binary, Deps, DepsMut, Empty, Env, HexBinary, MessageInfo, Response,
-    StdResult, Storage, Uint64,
+    to_json_binary, Addr, Binary, Deps, DepsMut, Env, HexBinary, MessageInfo, Response, StdResult,
+    Storage, Uint64,
 };
 use error_stack::{report, Report, ResultExt};
 use itertools::Itertools;
@@ -26,17 +26,10 @@ mod execute;
 mod migrations;
 mod query;
 
+pub use migrations::{migrate, MigrateMsg};
+
 const CONTRACT_NAME: &str = env!("CARGO_PKG_NAME");
 const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
-
-#[cfg_attr(not(feature = "library"), entry_point)]
-pub fn migrate(
-    _deps: DepsMut,
-    _env: Env,
-    _msg: Empty,
-) -> Result<Response, axelar_wasm_std::error::ContractError> {
-    Ok(Response::default())
-}
 
 #[cfg_attr(not(feature = "library"), entry_point)]
 pub fn instantiate(
@@ -95,8 +88,7 @@ pub fn execute(
                 deps,
                 env,
                 verifier_set_id,
-                msg.try_into()
-                    .map_err(axelar_wasm_std::error::ContractError::from)?,
+                msg.into(),
                 chain_name,
                 sig_verifier,
             )
@@ -541,7 +533,7 @@ mod tests {
 
             assert_eq!(session.id, Uint64::from(i as u64 + 1));
             assert_eq!(session.verifier_set_id, verifier_set_id);
-            assert_eq!(session.msg, message.clone().try_into().unwrap());
+            assert_eq!(session.msg, message.clone().into());
             assert!(signatures.is_empty());
             assert_eq!(session.state, MultisigState::Pending);
 
