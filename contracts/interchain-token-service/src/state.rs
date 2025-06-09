@@ -32,6 +32,7 @@ pub enum Error {
 #[cw_serde]
 pub struct Config {
     pub axelarnet_gateway: Addr,
+    pub operator: Addr,
 }
 
 #[cw_serde]
@@ -67,6 +68,15 @@ pub enum TokenSupply {
     Tracked(Uint256),
     /// The token supply bridged to this chain is not tracked.
     Untracked,
+}
+
+impl From<msg::TokenSupply> for TokenSupply {
+    fn from(supply: msg::TokenSupply) -> Self {
+        match supply {
+            msg::TokenSupply::Tracked(amount) => TokenSupply::Tracked(amount),
+            msg::TokenSupply::Untracked => TokenSupply::Untracked,
+        }
+    }
 }
 
 impl TokenSupply {
@@ -338,6 +348,7 @@ mod tests {
 
         let config = Config {
             axelarnet_gateway: MockApi::default().addr_make("gateway-address"),
+            operator: MockApi::default().addr_make("operator-address"),
         };
 
         assert_ok!(save_config(deps.as_mut().storage, &config));
@@ -410,5 +421,18 @@ mod tests {
                 .into_iter()
                 .collect::<HashMap<_, _>>()
         );
+    }
+
+    #[test]
+    fn supply_from_msg_type_conversion_succeeds() {
+        let tracked_msg_supply: msg::TokenSupply = msg::TokenSupply::Tracked(Uint256::MAX);
+        let tracked_supply: TokenSupply = tracked_msg_supply.into();
+
+        assert_eq!(tracked_supply, TokenSupply::Tracked(Uint256::MAX));
+
+        let untracked_msg_supply: msg::TokenSupply = msg::TokenSupply::Untracked;
+        let untracked_supply: TokenSupply = untracked_msg_supply.into();
+
+        assert_eq!(untracked_supply, TokenSupply::Untracked);
     }
 }

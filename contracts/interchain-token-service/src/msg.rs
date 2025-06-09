@@ -3,13 +3,13 @@ use std::collections::HashMap;
 use axelar_wasm_std::nonempty;
 use axelarnet_gateway::AxelarExecutableMsg;
 use cosmwasm_schema::{cw_serde, QueryResponses};
+use cosmwasm_std::Uint256;
 use msgs_derive::EnsurePermissions;
 use router_api::{Address, ChainNameRaw};
 
 pub use crate::contract::MigrateMsg;
 use crate::shared::NumBits;
-use crate::state::{TokenConfig, TokenInstance};
-use crate::{TokenId, TokenSupply};
+use crate::TokenId;
 
 pub const DEFAULT_PAGINATION_LIMIT: u32 = 30;
 
@@ -18,9 +18,31 @@ const fn default_pagination_limit() -> u32 {
 }
 
 #[cw_serde]
+pub enum TokenSupply {
+    /// The total token supply bridged to this chain.
+    /// ITS Hub will not allow bridging back more than this amount of the token from the corresponding chain.
+    Tracked(Uint256),
+    /// The token supply bridged to this chain is not tracked.
+    Untracked,
+}
+
+/// Information about a token on a specific chain.
+#[cw_serde]
+pub struct TokenInstance {
+    pub supply: TokenSupply,
+    pub decimals: u8,
+}
+
+#[cw_serde]
+pub struct TokenConfig {
+    pub origin_chain: ChainNameRaw,
+}
+
+#[cw_serde]
 pub struct InstantiateMsg {
     pub governance_address: String,
     pub admin_address: String,
+    pub operator_address: String,
     /// The address of the axelarnet-gateway contract on Amplifier
     pub axelarnet_gateway_address: String,
 }
@@ -35,7 +57,7 @@ pub enum ExecuteMsg {
     /// Registers an existing ITS token with the hub. This is useful for tokens that were deployed
     /// before the hub existed and have operated in p2p mode. Both instance_chain and origin_chain
     /// must be registered with the hub.
-    #[permission(Elevated)]
+    #[permission(Elevated, Specific(operator))]
     RegisterP2pTokenInstance {
         chain: ChainNameRaw,
         token_id: TokenId,
@@ -55,7 +77,7 @@ pub enum ExecuteMsg {
     // If the supply is untracked, this command will attempt to set it.
     // Errors if the token is not deployed to the specified chain, or if
     // the supply modification overflows or underflows
-    #[permission(Elevated)]
+    #[permission(Elevated, Specific(operator))]
     ModifySupply {
         chain: ChainNameRaw,
         token_id: TokenId,

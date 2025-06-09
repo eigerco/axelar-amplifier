@@ -2,8 +2,10 @@ use thiserror::Error;
 
 #[derive(Error, Debug)]
 pub enum Error {
-    #[error("grpc failed")]
-    Grpc,
+    #[error(transparent)]
+    GrpcConnection(#[from] tonic::transport::Error),
+    #[error(transparent)]
+    GrpcRequest(#[from] tonic::Status),
     #[error("keygen failed")]
     KeygenFailed,
     #[error("sign failed")]
