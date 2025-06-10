@@ -17,6 +17,7 @@ mod parser;
 mod ser;
 
 pub use de::from_str;
+pub use error::Error;
 pub use ser::to_string;
 
 #[cfg(test)]
