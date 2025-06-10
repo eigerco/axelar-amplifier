@@ -139,9 +139,24 @@ fn keccak256(payload: impl AsRef<[u8]>) -> [u8; 32] {
     hasher.finalize().into()
 }
 
-use aleo_utils::aleo_json::RemoteDeployInterchainToken;
 use cosmwasm_std::{HexBinary, Uint256};
 use interchain_token_service::{HubMessage, TokenId};
+
+#[derive(Deserialize, Debug, Clone)]
+pub struct DeployInterchainToken {
+    pub name: u128,
+    pub symbol: u128,
+    pub decimals: u8,
+}
+
+#[derive(Deserialize, Debug, Clone)]
+pub struct RemoteDeployInterchainToken {
+    pub info: DeployInterchainToken,
+    pub token_id: [u128; 2],
+    pub destination_chain: [u128; 2],
+    pub has_minter: bool,
+    pub minter: [u128; 6],
+}
 
 fn its_message_abi(payload: &str) -> Result<HexBinary, ()> {
     let r: RemoteDeployInterchainToken = aleo_utils::serde_plaintext::from_str(&payload).unwrap();
