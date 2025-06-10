@@ -318,7 +318,7 @@ where
                             );
                             self.create_handler_task(label, handler, event_processor_config.clone())
                         }
-                        _ => panic!("Unknown network ID: {}", network_id),
+                        _ => return Err(Error::AleoNetworkId.into())
                     }
                 }
                 handlers::config::Config::AleoVerifierSetVerifier {
@@ -376,7 +376,7 @@ where
                                 );
                             self.create_handler_task(label, handler, event_processor_config.clone())
                         }
-                        _ => panic!("Unknown network ID: {}", network_id),
+                        _ => return Err(Error::AleoNetworkId.into())
                     }
                 }
                 handlers::config::Config::EvmMsgVerifier {
@@ -813,4 +813,6 @@ pub enum Error {
     HealthCheck,
     #[error("gRPC server failed")]
     GrpcServer,
+    #[error("failed to find aleo network ID")]
+    AleoNetworkId,
 }

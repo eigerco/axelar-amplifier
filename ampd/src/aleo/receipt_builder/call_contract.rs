@@ -140,7 +140,6 @@ fn keccak256(payload: impl AsRef<[u8]>) -> [u8; 32] {
 }
 
 use aleo_utils::aleo_json::RemoteDeployInterchainToken;
-// use aleo_utils::serde_plaintext;
 use cosmwasm_std::{HexBinary, Uint256};
 use interchain_token_service::{HubMessage, TokenId};
 
@@ -160,7 +159,6 @@ fn its_message_abi(payload: &str) -> Result<HexBinary, ()> {
 
     // Then we will store it at [u8; 32]
     let token_id: [u8; 32] = token_id.to_le_bytes();
-    // let name = todo!();
     let name = StringEncoder::from_array(&[r.info.name]);
     let symbol = StringEncoder::from_array(&[r.info.symbol]);
     let destination_chain = StringEncoder::from_array(&r.destination_chain);
