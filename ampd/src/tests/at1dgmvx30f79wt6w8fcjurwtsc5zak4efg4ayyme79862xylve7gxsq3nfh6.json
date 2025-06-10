@@ -23,7 +23,7 @@
           {
             "type": "public",
             "id": "5716136157043597981935575283493176988384748355542483128578055405375962864291field",
-            "value": "{\n  caller: aleo1d4vxwgfempkqy9qmxlxc6a2qu4vptyaxyllpwlqhwwj22tjn3u9s405jsz,\n  sender: aleo10fmsqwh059uqm74x6t6zgj93wfxtep0avevcxz0n4w9uawymkv9s7whsau,\n  destination_chain: [\n    129497940983541880690546129557858025472u128,\n    0u128\n  ],\n  destination_address: [\n    72059799150973012437864881636927078400u128,\n    0u128,\n    0u128,\n    0u128\n  ]\n}"
+            "value": "{\n  caller: aleo1d4vxwgfempkqy9qmxlxc6a2qu4vptyaxyllpwlqhwwj22tjn3u9s405jsz,\n  sender: aleo10fmsqwh059uqm74x6t6zgj93wfxtep0avevcxz0n4w9uawymkv9s7whsau,\n  destination_chain: [\n    129497940983541880690546129557858025472u128,\n    0u128\n  ],\n  destination_address: [\n    72059799150973012437864881636927078400u128,\n    0u128,\n    0u128,\n    0u128\n,   0u128,\n    0u128\n  ]\n}"
           }
         ],
         "tpk": "2378426162045410681183408163975351431583363524060976165966443931060754647450group",
@@ -39,7 +39,7 @@
           {
             "type": "public",
             "id": "498728416888798206540363447056413969945850586697856359703993606559315403792field",
-            "value": "{\n  caller: aleo1d4vxwgfempkqy9qmxlxc6a2qu4vptyaxyllpwlqhwwj22tjn3u9s405jsz,\n  sender: aleo10fmsqwh059uqm74x6t6zgj93wfxtep0avevcxz0n4w9uawymkv9s7whsau,\n  destination_chain: [\n    129497940983541880690546129557858025472u128,\n    0u128\n  ],\n  destination_address: [\n    72059799150973012437864881636927078400u128,\n    0u128,\n    0u128,\n    0u128\n  ]\n}"
+            "value": "{\n  caller: aleo1d4vxwgfempkqy9qmxlxc6a2qu4vptyaxyllpwlqhwwj22tjn3u9s405jsz,\n  sender: aleo10fmsqwh059uqm74x6t6zgj93wfxtep0avevcxz0n4w9uawymkv9s7whsau,\n  destination_chain: [\n    129497940983541880690546129557858025472u128,\n    0u128\n  ],\n  destination_address: [\n    72059799150973012437864881636927078400u128,\n    0u128,\n    0u128,\n    0u128\n,   0u128,\n    0u128\n  ]\n}"
           },
           {
             "type": "public",

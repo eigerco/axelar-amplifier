@@ -1,5 +1,5 @@
 // use plaintext_trait::ToPlaintext;
-// use snarkvm_cosmwasm::prelude::{Literal, Network, Plaintext, U128};
+// use snarkvm::prelude::{Literal, Network, Plaintext, U128};
 use thiserror::Error;
 
 #[derive(Error, Debug)]
@@ -10,51 +10,39 @@ pub enum Error {
     InvalidEncodedStringLength { expected: usize, actual: usize },
     #[error("Invalid ascii character")]
     InvalidAscii,
+    #[error("serde_aleo: {0}")]
+    SerdeAleo(#[from] serde_aleo::Error),
+    #[error("Invalid length: expected {expected}, actual {actual}")]
+    InvalidLength { expected: usize, actual: usize },
+    #[error("Conversion failed")]
+    ConverFailed,
 }
-
-// TODO: use array, and [core::mem::MaybeUninit::<u8>::uninit(); SIZE];
 
 pub struct StringEncoder {
     pub buf: Vec<u128>,
 }
 
 impl StringEncoder {
-    /// Creates a new StringEncoder from an ASCII string
+    pub fn from_array(aleo_value: &[u128]) -> Self {
+        Self {
+            buf: aleo_value.to_vec(),
+        }
+    }
+
     pub fn encode_string(input: &str) -> Result<Self, Error> {
+        Self::encode_bytes(input)
+    }
+
+    /// Creates a new StringEncoder from an ASCII string
+    pub fn encode_bytes<T: AsRef<[u8]>>(input: T) -> Result<Self, Error> {
+        let bytes = input.as_ref();
+
         // Verify the input is ASCII
-        if !input.is_ascii() {
+        if !bytes.is_ascii() {
             return Err(Error::InvalidAscii);
         }
 
-        let bytes = input.as_bytes();
-        let mut buf = Vec::with_capacity(bytes.len().div_ceil(16));
-        let mut current_value: u128 = 0;
-        let mut position = 0;
-
-        for &byte in bytes {
-            // Shift left by 8 and add new byte
-            current_value = (current_value << 8) | u128::from(byte);
-            position += 1;
-
-            // When we have 16 bytes, push to result
-            if position == 16 {
-                buf.push(current_value);
-                current_value = 0;
-                position = 0;
-            }
-        }
-
-        // Handle any remaining bytes
-        if position > 0 {
-            // Left shift remaining bytes to maintain consistency
-            current_value <<= 8 * (16 - position);
-            buf.push(current_value);
-        }
-
-        Ok(Self { buf })
-    }
-
-    pub fn encode_bytes(bytes: &[u8]) -> Result<Self, Error> {
+        // let bytes = input.as_bytes();
         let mut buf = Vec::with_capacity(bytes.len().div_ceil(16));
         let mut current_value: u128 = 0;
         let mut position = 0;
@@ -86,22 +74,8 @@ impl StringEncoder {
     /// example: "1234567890u128, 9876543210u128"
     pub fn from_aleo_value(aleo_value: &str) -> Result<Self, Error> {
         Ok(Self {
-            buf: aleo_value
-                .split(", ")
-                .map(|s| s.replace("u128", "").parse::<u128>())
-                .collect::<Result<Vec<_>, _>>()
-                .map_err(|e| Error::AleoGateway(format!("Failed to parse u128: {e:?}")))?,
+            buf: serde_aleo::from_str(aleo_value)?,
         })
-    }
-
-    pub fn from_array(aleo_value: &[u128]) -> Self {
-        let mut buf = Vec::new(); // TODO: use capacity
-
-        for &v in aleo_value {
-            buf.push(v);
-        }
-
-        Self { buf }
     }
 
     pub fn u128_len(&self) -> usize {
@@ -110,6 +84,33 @@ impl StringEncoder {
 
     pub fn consume(self) -> Vec<u128> {
         self.buf
+    }
+
+    pub fn to_array<const N: usize>(self) -> Result<[u128; N], Error> {
+        if N < self.buf.len() {
+            return Err(Error::InvalidLength {
+                expected: N,
+                actual: self.buf.len(),
+            });
+        }
+
+        let mut buf = self.buf;
+        buf.resize(N, 0);
+        buf.try_into().map_err(|_| Error::ConverFailed)
+    }
+
+    pub fn as_array_ref<const N: usize>(&self) -> Result<&[u128; N], Error> {
+        if N == self.buf.len() {
+            return Err(Error::InvalidLength {
+                expected: N,
+                actual: self.buf.len(),
+            });
+        }
+
+        self.buf
+            .as_slice()
+            .try_into()
+            .map_err(|_| Error::ConverFailed)
     }
 
     /// Decodes the StringEncoder, returning the original ASCII string
@@ -138,6 +139,7 @@ impl StringEncoder {
     }
 }
 
+/*
 /// Represents a string that can be encoded by `StringEncoder` without errors.
 ///
 /// This is a newtype wrapper around `String` that guarantees all contained characters are
@@ -146,7 +148,6 @@ impl StringEncoder {
 ///
 /// The ASCII-only invariant is enforced at creation time in the [`Self::new`] method,
 /// which returns an error if any non-ASCII characters are present in the input string.
-#[warn(dead_code)]
 pub struct EncodableString(String);
 
 impl EncodableString {
@@ -163,35 +164,37 @@ impl EncodableString {
     }
 }
 
-// impl<N: Network> ToPlaintext<N> for EncodableString {
-//     /// Converts the `EncodableString` into a `Plaintext` array of `U128` literals.
-//     ///
-//     /// This implementation ensures that strings can be safely represented in the circuit.
-//     /// Each character in the string is encoded as a numeric value and converted to a `U128` literal.
-//     ///
-//     /// # Returns a `Plaintext::Array` `U128` literals representing the encoded string.
-//     ///
-//     /// # Panics
-//     ///
-//     /// This function should never panic since `EncodableString` guarantees that its contents are valid ASCII,
-//     /// but it includes a panic message as a safety measure in case the invariant is somehow broken.
-//     fn to_plaintext(self) -> snarkvm::prelude::Plaintext<N> {
-//         let integers = StringEncoder::encode_string(&self.0)
-//             .expect("Unexpected non-ASCII character found in EncodableString")
-//             .buf;
-//         let mut pt_integers = Vec::with_capacity(integers.len());
-//         pt_integers.extend(integers.into_iter().map(|integer| {
-//             Plaintext::Literal(Literal::U128(U128::new(integer)), Default::default())
-//         }));
-//         Plaintext::Array(pt_integers, Default::default())
-//     }
-// }
+impl<N: Network> ToPlaintext<N> for EncodableString {
+    /// Converts the `EncodableString` into a `Plaintext` array of `U128` literals.
+    ///
+    /// This implementation ensures that strings can be safely represented in the circuit.
+    /// Each character in the string is encoded as a numeric value and converted to a `U128` literal.
+    ///
+    /// # Returns a `Plaintext::Array` `U128` literals representing the encoded string.
+    ///
+    /// # Panics
+    ///
+    /// This function should never panic since `EncodableString` guarantees that its contents are valid ASCII,
+    /// but it includes a panic message as a safety measure in case the invariant is somehow broken.
+    fn to_plaintext(self) -> snarkvm::prelude::Plaintext<N> {
+        let integers = StringEncoder::encode_string(&self.0)
+            .expect("Unexpected non-ASCII character found in EncodableString")
+            .buf;
+        let mut pt_integers = Vec::with_capacity(integers.len());
+        pt_integers.extend(integers.into_iter().map(|integer| {
+            Plaintext::Literal(Literal::U128(U128::new(integer)), Default::default())
+        }));
+        Plaintext::Array(pt_integers, Default::default())
+    }
+}
+*/
+
 #[cfg(test)]
 mod tests {
     use super::*;
 
     #[test]
-    fn test_encode_decode() {
+    fn encode_decode() {
         let test_str = "foo";
         let encoded = StringEncoder::encode_string(test_str).unwrap();
         let decoded = encoded.decode();
@@ -199,7 +202,7 @@ mod tests {
     }
 
     #[test]
-    fn test_long_string() {
+    fn long_string() {
         let test_str = "This is a longer test string that will span multiple u128 values!";
         let encoded = StringEncoder::encode_string(test_str).unwrap();
         let decoded = encoded.decode();
@@ -207,10 +210,35 @@ mod tests {
     }
 
     #[test]
-    fn test_empty_string() {
+    fn empty_string() {
         let test_str = "";
         let encoded = StringEncoder::encode_string(test_str).unwrap();
         let decoded = encoded.decode();
         assert_eq!(test_str, decoded);
     }
+
+    #[test]
+    fn from_aleo_value() {
+        let aleo_value = "[135867890890980515948416416879465410871u128, 64053233263744786339002611897128269156u128, 135858420114893597535581992180921663488u128]";
+        let encoder = StringEncoder::from_aleo_value(aleo_value).unwrap();
+        let decoded = encoder.decode();
+        assert_eq!(decoded, "f746a117cf5d131700492Bad9f9ba15df5aDa4C4");
+    }
+
+    #[test]
+    fn adjust_result_size() {
+        let encoded =
+            StringEncoder::encode_string("f746a117cf5d131700492Bad9f9ba15df5aDa4C4").unwrap();
+
+        assert_eq!(encoded.u128_len(), 3);
+
+        let d: [u128; 3] = encoded.to_array().unwrap();
+        assert_eq!(d.len(), 3);
+
+        let encoded =
+            StringEncoder::encode_string("f746a117cf5d131700492Bad9f9ba15df5aDa4C4").unwrap();
+        let d: [u128; 6] = encoded.to_array().unwrap();
+        assert_eq!(d.len(), 6);
+    }
 }
+

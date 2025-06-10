@@ -36,4 +36,10 @@ pub enum Error {
     MoreThanOneSCM,
     #[error("Call contract does not match")]
     CallConractDoesNotMatch,
+    #[error("Deseirialization error: {0}")]
+    DeserializationError(#[from] serde_aleo::Error),
+    #[error("Axelar nonempty error: {0}")]
+    NonemptyError(#[from] axelar_wasm_std::nonempty::Error),
+    #[error("Router API error: {0}")]
+    RouterApiError(#[from] router_api::error::Error),
 }

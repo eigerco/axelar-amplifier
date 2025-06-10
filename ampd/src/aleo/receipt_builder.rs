@@ -157,36 +157,57 @@ where
 {
     pub fn check_call_contract(self) -> Result<Receipt<CallContractReceipt<N>>, Error> {
         let outputs = self.state.transition.outputs;
-        let call_contract = find_in_outputs(&outputs).ok_or(Error::CallContractNotFound)?;
-        let scm = self.state.transition.scm.as_str();
+        ensure!(outputs.len() == 1, Error::CallContractNotFound); // TODO: fix error
 
-        let gateway_calls_count = self
+        // the call contract from call contract call
+        let call_contract: CallContract = outputs
+            .first()
+            .map(read_call_contract)
+            .ok_or(Error::CallContractNotFound)??;
+        println!("CallContract: {:?}", call_contract);
+
+        let (transition_with_payload, call_contract_index) = self
             .state
             .transaction
             .execution
             .transitions
             .iter()
-            .filter(|t| t.scm == scm && t.program == self.target_contract.to_string())
-            .count();
+            .find_map(|t| {
+                if t.id != self.state.transition.id && t.program != self.target_contract.to_string()
+                {
+                    let index = find_call_contract_in_outputs(&t.outputs, &call_contract)?;
+                    Some((t, index))
+                } else {
+                    None
+                }
+            })
+            .ok_or(Error::CallContractNotFound)?;
 
-        ensure!(gateway_calls_count == 1, Error::CallContractNotFound);
+        let call_contract_with_payload = transition_with_payload
+            .outputs
+            .get(call_contract_index)
+            .ok_or(Error::CallContractNotFound)
+            .change_context(Error::CallContractNotFound)?
+            .value
+            .as_ref()
+            .ok_or(Error::CallContractNotFound)
+            .change_context(Error::CallContractNotFound)?;
 
-        let same_scm: Vec<_> = self
-            .state
-            .transaction
-            .execution
-            .transitions
-            .iter()
-            .filter(|t| t.scm == scm && t.id != self.state.transition.id)
-            .collect();
+        let call_contract_with_payload: CallContract =
+            serde_aleo::from_str(call_contract_with_payload).unwrap();
 
-        ensure!(same_scm.len() == 1, Error::MoreThanOneSCM);
-
-        let parsed_output =
-            parse_user_output(&same_scm[0].outputs).change_context(Error::UserCallnotFound)?;
+        let payload = transition_with_payload
+            .outputs
+            .get(call_contract_index + 1)
+            .ok_or(Error::CallContractNotFound)
+            .change_context(Error::CallContractNotFound)?
+            .value
+            .as_ref()
+            .ok_or(Error::CallContractNotFound)
+            .change_context(Error::CallContractNotFound)?;
 
         ensure!(
-            parsed_output.call_contract == call_contract,
+            call_contract_with_payload == call_contract,
             Error::CallConractDoesNotMatch
         );
 
@@ -198,7 +219,7 @@ where
                 .change_context(Error::InvalidChainName)?,
             source_address: Address::<N>::from_str(call_contract.sender.to_string().as_ref())
                 .map_err(|e| Report::new(Error::InvalidSourceAddress).attach_printable(e))?,
-            payload: parsed_output.payload,
+            payload: payload.as_bytes().to_vec(),
             n: std::marker::PhantomData,
         }))
     }

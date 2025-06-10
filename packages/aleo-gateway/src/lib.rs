@@ -149,6 +149,31 @@ pub fn hash<T: AsRef<str>, N: Network>(input: T) -> Result<[u8; 32], Report<Erro
     Ok(hash)
 }
 
+fn aleo_source_chain(name: &str) -> Result<String, Report<Error>> {
+    const SOURCE_CHAIN_LEN: usize = 2;
+    let source_chain =
+        StringEncoder::encode_string(name).map_err(|e| Report::new(Error::from(e)))?;
+    let source_chain_len = source_chain.u128_len();
+    error_stack::ensure!(
+        source_chain_len <= SOURCE_CHAIN_LEN,
+        Error::InvalidEncodedStringLength {
+            expected: SOURCE_CHAIN_LEN,
+            actual: source_chain.u128_len()
+        }
+    );
+    let source_chain = source_chain
+        .consume()
+        .into_iter()
+        .map(|c| format!("{}u128", c))
+        .chain(
+            std::iter::repeat("0u128".to_string())
+                .take(SOURCE_CHAIN_LEN.saturating_sub(source_chain_len)),
+        )
+        .collect::<Vec<_>>()
+        .join(", ");
+    Ok(source_chain)
+}
+
 impl AleoValue for interchain_token_service::HubMessage {
     fn to_aleo_string(&self) -> Result<String, Report<Error>> {
         // We need to support
@@ -159,51 +184,28 @@ impl AleoValue for interchain_token_service::HubMessage {
         match self {
             interchain_token_service::HubMessage::SendToHub {
                 destination_chain: _,
-                message,
-            } => match message {
-                interchain_token_service::Message::InterchainTransfer(interchain_transfer) => {
-                    interchain_transfer.to_aleo_string()
-                }
-                interchain_token_service::Message::DeployInterchainToken(
-                    deploy_interchain_token,
-                ) => deploy_interchain_token.to_aleo_string(),
-                interchain_token_service::Message::LinkToken(link_token) => {
-                    link_token.to_aleo_string()
-                }
-            },
+                message: _,
+            } => todo!(),
             interchain_token_service::HubMessage::ReceiveFromHub {
                 source_chain,
                 message,
             } => match message {
                 interchain_token_service::Message::InterchainTransfer(interchain_transfer) => {
-                    interchain_transfer.to_aleo_string()
+                    // translate to ItsIncomingInterchainTransfer
+                    let inner_message = interchain_transfer.to_aleo_string()?;
+                    let source_chain = aleo_source_chain(source_chain.as_ref())?;
+
+                    Ok(format!(
+                        "{{ inner_message: {inner_message}, source_chain: [{source_chain}] }}"
+                    ))
                 }
                 interchain_token_service::Message::DeployInterchainToken(
                     deploy_interchain_token,
                 ) => {
-                    const SOURCE_CHAIN_LEN: usize = 2;
-                    let source_chain = StringEncoder::encode_string(source_chain.as_ref())
-                        .map_err(|e| Report::new(Error::from(e)))?;
-                    let source_chain_len = source_chain.u128_len();
-                    error_stack::ensure!(
-                        source_chain_len <= SOURCE_CHAIN_LEN,
-                        Error::InvalidEncodedStringLength {
-                            expected: SOURCE_CHAIN_LEN,
-                            actual: source_chain.u128_len()
-                        }
-                    );
-                    let source_chain = source_chain
-                        .consume()
-                        .into_iter()
-                        .map(|c| format!("{}u128", c))
-                        .chain(
-                            std::iter::repeat("0u128".to_string())
-                                .take(SOURCE_CHAIN_LEN.saturating_sub(source_chain_len)),
-                        )
-                        .collect::<Vec<_>>()
-                        .join(", ");
+                    let source_chain = aleo_source_chain(source_chain.as_ref())?;
 
                     let inner_message = deploy_interchain_token.to_aleo_string()?;
+
                     Ok(format!(
                         "{{ inner_message: {inner_message}, source_chain: [{source_chain}] }}"
                     ))
@@ -229,7 +231,7 @@ impl AleoValue for interchain_token_service::InterchainTransfer {
             .collect::<Vec<_>>()
             .join(", ");
 
-        let source_address = StringEncoder::encode_bytes(&self.source_address)
+        let source_address = StringEncoder::encode_bytes(self.source_address.as_slice())
             .map_err(|_| {
                 Report::new(Error::AleoGateway(
                     "Failed to encode source address".to_string(),
@@ -265,7 +267,7 @@ impl AleoValue for interchain_token_service::InterchainTransfer {
 
 impl AleoValue for interchain_token_service::DeployInterchainToken {
     fn to_aleo_string(&self) -> Result<String, Report<Error>> {
-        let token_id = [
+        let its_token_id = [
             u128::from_le_bytes(self.token_id.0[0..16].try_into().unwrap()),
             u128::from_le_bytes(self.token_id.0[16..32].try_into().unwrap()),
         ];
@@ -287,9 +289,19 @@ impl AleoValue for interchain_token_service::DeployInterchainToken {
             .take(1)
             .collect::<String>();
 
+        let minter = self
+            .minter
+            .as_ref()
+            .map_or(Ok(Address::default()), Address::try_from)
+            .map_err(|_| {
+                Report::new(Error::AleoGateway(
+                    "Failed to parse minter address".to_string(),
+                ))
+            })?;
+
         let output = format!(
-            "{{ its_token_id: [{}u128, {}u128], name: {}, symbol: {}, decimals: {}u8 }}",
-            token_id[0], token_id[1], name, symbol, self.decimals
+            "{{ its_token_id: [{}u128, {}u128], name: {name}, symbol: {symbol}, decimals: {}u8, minter: {minter} }}",
+            its_token_id[0], its_token_id[1], self.decimals
         );
 
         Ok(output)
@@ -406,7 +418,7 @@ mod tests {
 
     #[test]
     fn foobar() {
-        let payload = "0000000000000000000000000000000000000000000000000000000000000004000000000000000000000000000000000000000000000000000000000000006000000000000000000000000000000000000000000000000000000000000000a0000000000000000000000000000000000000000000000000000000000000000e6176616c616e6368652d66756a6900000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001600000000000000000000000000000000000000000000000000000000000000001efcc58108973de6489782e9aca7dc9412e970b6f62fe09dc0853e1530a07414c00000000000000000000000000000000000000000000000000000000000000c0000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000000060000000000000000000000000000000000000000000000000000000000000140000000000000000000000000000000000000000000000000000000000000000a536f6d65546f6b656e39000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000003534d3900000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000";
+        let payload = "0000000000000000000000000000000000000000000000000000000000000004000000000000000000000000000000000000000000000000000000000000006000000000000000000000000000000000000000000000000000000000000000a0000000000000000000000000000000000000000000000000000000000000000e6176616c616e6368652d66756a6900000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001600000000000000000000000000000000000000000000000000000000000000001d5b4c31c3126e88cff2ef165346fbb9103050fb81184f82d3abb2b9b78e3fdbf00000000000000000000000000000000000000000000000000000000000000c0000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000000060000000000000000000000000000000000000000000000000000000000000140000000000000000000000000000000000000000000000000000000000000000b536f6d65546f6b656e31320000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000004534d3132000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000";
 
         let payload_bytes = hex::decode(payload).unwrap();
         let its_message = interchain_token_service::HubMessage::abi_decode(&payload_bytes).unwrap();

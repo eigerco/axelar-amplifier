@@ -191,7 +191,7 @@ pub mod tests {
         let transition = Transition::from_str(transision_id).unwrap();
         let gateway_contract = "gateway_base.aleo";
 
-        let res = ReceiptBuilder::<_, _, CurrentNetwork>::new(&client, gateway_contract)
+        ReceiptBuilder::<_, _, CurrentNetwork>::new(&client, gateway_contract)
             .unwrap()
             .get_transaction_id(&transition)
             .await
@@ -201,8 +201,8 @@ pub mod tests {
             .unwrap()
             .get_transition()
             .unwrap()
-            .check_call_contract();
-        assert!(res.is_ok());
+            .check_call_contract()
+            .unwrap();
     }
 
     #[tokio::test]
@@ -212,7 +212,7 @@ pub mod tests {
         let transition = Transition::from_str(transision_id).unwrap();
         let gateway_contract = "ac64caccf8221554ec3f89bf.aleo";
 
-        let res = ReceiptBuilder::<_, _, CurrentNetwork>::new(&client, gateway_contract)
+        ReceiptBuilder::<_, _, CurrentNetwork>::new(&client, gateway_contract)
             .unwrap()
             .get_transaction_id(&transition)
             .await
@@ -222,8 +222,8 @@ pub mod tests {
             .unwrap()
             .get_transition()
             .unwrap()
-            .check_call_contract();
-        assert!(res.is_ok());
+            .check_call_contract()
+            .unwrap();
     }
 
     #[tokio::test]
@@ -244,7 +244,67 @@ pub mod tests {
             .get_transition()
             .unwrap()
             .check_call_contract();
-        println!("res: {:?}", res);
         assert!(res.is_ok());
+    }
+
+    pub fn mock_client_4() -> MockClientTrait {
+        let mut mock_client = MockClientTrait::new();
+
+        let transaction_id = "at1xesr6k7h4plwhfyw9jfehhq5zjg9d9pq3s9qtz9qrz85v757xqgqakhspd";
+        let mut expected_transitions: HashMap<
+            Transaction,
+            aleo_utils::block_processor::Transaction,
+        > = HashMap::new();
+        let transaction_one = include_str!(
+            "../tests/at1xesr6k7h4plwhfyw9jfehhq5zjg9d9pq3s9qtz9qrz85v757xqgqakhspd.json"
+        );
+        let snark_tansaction: aleo_utils::block_processor::Transaction =
+            serde_json::from_str(transaction_one).unwrap();
+        let transaction = Transaction::from_str(transaction_id).unwrap();
+        expected_transitions.insert(transaction, snark_tansaction);
+
+        mock_client
+            .expect_get_transaction()
+            .returning(move |transaction| {
+                Ok(expected_transitions.get(transaction).unwrap().clone())
+            });
+
+        mock_client.expect_find_transaction().returning(move |_| {
+            let transaction_id = "at1xesr6k7h4plwhfyw9jfehhq5zjg9d9pq3s9qtz9qrz85v757xqgqakhspd";
+            Ok(transaction_id.to_string())
+        });
+
+        mock_client
+    }
+
+    #[tokio::test]
+    async fn aleo_verify_msg_transfer() {
+        tracing_subscriber::fmt()
+            .json()
+            .flatten_event(true)
+            .with_env_filter(
+                tracing_subscriber::EnvFilter::builder()
+                    .with_default_directive(tracing_core::LevelFilter::DEBUG.into())
+                    .from_env_lossy(),
+            )
+            .init();
+
+        let client = mock_client_4();
+        let transision_id = "au1738ps3lp4ayrfykyngxt99d9gn53wayleaed48j9l52wa9djvqyspu2ns0";
+        let transition = Transition::from_str(transision_id).unwrap();
+        let gateway_contract = "gateway_frontend.aleo";
+
+        let res = ReceiptBuilder::<_, _, CurrentNetwork>::new(&client, &gateway_contract)
+            .unwrap()
+            .get_transaction_id(&transition)
+            .await
+            .unwrap()
+            .get_transaction()
+            .await
+            .unwrap()
+            .get_transition()
+            .unwrap()
+            .check_call_contract();
+        res.unwrap();
     }
 }

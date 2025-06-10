@@ -78,7 +78,7 @@ impl Proof {
 impl AleoValue for Proof {
     fn to_aleo_string(&self) -> Result<String, Report<Error>> {
         let res = format!(
-            r#"{{ weighted_signer: {}, signatures: [ {} ] }}"#,
+            r#"{{ weighted_signers: {}, signatures: [ {} ] }}"#,
             self.weighted_signers.to_aleo_string()?,
             self.signature
                 .iter()

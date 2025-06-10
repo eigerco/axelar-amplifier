@@ -211,6 +211,7 @@ checksum = "14edf4007a98323f763701688bcbe3bc6ecf33e20c3a81b3eb8d6661ff01b217"
 name = "aleo-string-encoder"
 version = "0.1.0"
 dependencies = [
+ "serde-aleo",
  "thiserror 1.0.69",
 ]
 
@@ -423,6 +424,7 @@ dependencies = [
  "router-api",
  "schemars",
  "serde",
+ "serde-aleo",
  "serde_json",
  "serde_with",
  "service-registry-api",
@@ -9596,6 +9598,14 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "5f0e2c6ed6606019b4e29e69dbaba95b11854410e5347d525002456dbbb786b6"
 dependencies = [
  "serde_derive",
+]
+
+[[package]]
+name = "serde-aleo"
+version = "0.1.0"
+dependencies = [
+ "nom 8.0.0",
+ "serde",
 ]
 
 [[package]]
