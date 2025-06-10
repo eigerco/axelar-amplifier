@@ -326,7 +326,7 @@ mod test {
             source_chain: "source-chain".parse().unwrap(),
             rewards_address: api.addr_make("rewards").to_string().try_into().unwrap(),
             msg_id_format: axelar_wasm_std::msg_id::MessageIdFormat::HexTxHashAndEventIndex,
-            address_format: axelar_wasm_addresses::address::AddressFormat::Eip55,
+            address_format: axelar_wasm_std::address::AddressFormat::Eip55,
         };
 
         instantiate(deps, env, info.clone(), msg.clone()).unwrap();

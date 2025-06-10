@@ -1,6 +1,6 @@
 use aleo_gateway::WeightedSigners;
 use axelar_wasm_std::voting::Vote;
-use snarkvm_cosmwasm::program::Network;
+use snarkvm::prelude::Network;
 use tracing::warn;
 
 use super::{CallContractReceipt, SignerRotation};
@@ -10,7 +10,7 @@ use crate::handlers::aleo_verify_verifier_set::VerifierSetConfirmation;
 
 pub fn verify_message<N: Network>(
     receipt: &Receipt<CallContractReceipt<N>>,
-    msg: &Message,
+    msg: &Message<N>,
 ) -> Vote {
     let res = match receipt {
         Receipt::Found(transition_receipt) => transition_receipt == msg,

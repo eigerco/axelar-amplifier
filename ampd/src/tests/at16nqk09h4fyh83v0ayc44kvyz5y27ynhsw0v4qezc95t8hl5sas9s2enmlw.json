@@ -1,0 +1,125 @@
+{
+  "type": "execute",
+  "id": "at16nqk09h4fyh83v0ayc44kvyz5y27ynhsw0v4qezc95t8hl5sas9s2enmlw",
+  "execution": {
+    "transitions": [
+      {
+        "id": "au193ysmau9rpcyvp4ax2vjc0029q4n2mgjjwd4rfrghzsts5x09v8s9xxwdx",
+        "program": "gateway_frontend.aleo",
+        "function": "callContract",
+        "inputs": [
+          {
+            "type": "public",
+            "id": "2554054120649324359908791610939485953696062331096515984543710470254669353580field",
+            "value": "[\n  129560248324330402842460762574046625792u128,\n  0u128\n]"
+          },
+          {
+            "type": "public",
+            "id": "4656204916032752716360782591351602470615241142961894281336591365462223966422field",
+            "value": "[\n  129560248324330635220088419148146701675u128,\n  146767682061739132652181577970743343734u128,\n  67091725296194228626838386705843189365u128,\n  141160062220609416535136629668810482795u128,\n  69119855780815625390997967134577917952u128,\n  0u128\n]"
+          }
+        ],
+        "outputs": [
+          {
+            "type": "public",
+            "id": "8294744059144598782301241572460953925328196560113957950936567183001056798261field",
+            "value": "{\n  caller: aleo1ymrcwun5g9z0un8dqgdln7l3q77asqr98p7wh03dwgk4yfltpqgq9efvfz,\n  sender: aleo1s3ws5tra87fjycnjrwsjcrnw2qxr8jfqqdugnf0xzqqw29q9m5pqem2u4t,\n  destination_chain: [\n    129560248324330402842460762574046625792u128,\n    0u128\n  ],\n  destination_address: [\n    129560248324330635220088419148146701675u128,\n    146767682061739132652181577970743343734u128,\n    67091725296194228626838386705843189365u128,\n    141160062220609416535136629668810482795u128,\n    69119855780815625390997967134577917952u128,\n    0u128\n  ]\n}"
+          }
+        ],
+        "tpk": "1106021953774441191917376206083966461846626747341012332574386744343391307889group",
+        "tcm": "495472414768380345435009921992352918311199318392203661931056942460035510782field",
+        "scm": "8044735457076582126001599371416108083226265822830787208781812191187877733931field"
+      },
+      {
+        "id": "au1qrs9p029l4u20dm3qx65twe6wpgy6ladvu7fkjs57hh7pp0s8vzqg2l627",
+        "program": "axelarinterchaintokenhub.aleo",
+        "function": "deploy_to_remote_chain",
+        "inputs": [
+          {
+            "type": "public",
+            "id": "2839870509318757703768690274720020774486650924929590729471230155035839651558field",
+            "value": "{\n  token_id: 7828770893174421034426815773897723730830971667273708535574193647092745559638field,\n  name: 112233674851240411241919795483029536768u128,\n  symbol: 112086112285191324017087824258874212352u128,\n  decimals: 10u8,\n  supply: 0u128,\n  max_supply: 1000000000u128,\n  admin: aleo1ymrcwun5g9z0un8dqgdln7l3q77asqr98p7wh03dwgk4yfltpqgq9efvfz,\n  external_authorization_required: false,\n  external_authorization_party: aleo1qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq3ljyzc\n}"
+          },
+          {
+            "type": "public",
+            "id": "2927526620025215863606314015754935957010503804884491394817627596710547001922field",
+            "value": "[\n  0u128,\n  1u128\n]"
+          },
+          {
+            "type": "public",
+            "id": "226617816287321362212307540757762703801819539109841812489203884669957749727field",
+            "value": "[\n  0u128,\n  0u128\n]"
+          },
+          {
+            "type": "public",
+            "id": "8182788853435868009459073448712539888724360467517503941385430468148942690915field",
+            "value": "false"
+          },
+          {
+            "type": "public",
+            "id": "1179147765307211109164069086740892001109181826421805154172651041802742311955field",
+            "value": "[\n  0u128,\n  0u128,\n  0u128,\n  0u128,\n  0u128,\n  0u128\n]"
+          }
+        ],
+        "outputs": [
+          {
+            "type": "public",
+            "id": "4789084051484292293968205254935100059765833624484491926124396265143236344813field",
+            "value": "{\n  caller: aleo1ymrcwun5g9z0un8dqgdln7l3q77asqr98p7wh03dwgk4yfltpqgq9efvfz,\n  sender: aleo1s3ws5tra87fjycnjrwsjcrnw2qxr8jfqqdugnf0xzqqw29q9m5pqem2u4t,\n  destination_chain: [\n    129560248324330402842460762574046625792u128,\n    0u128\n  ],\n  destination_address: [\n    129560248324330635220088419148146701675u128,\n    146767682061739132652181577970743343734u128,\n    67091725296194228626838386705843189365u128,\n    141160062220609416535136629668810482795u128,\n    69119855780815625390997967134577917952u128,\n    0u128\n  ]\n}"
+          },
+          {
+            "type": "public",
+            "id": "4984440401782481626869257166278536490033759796081903177303506920110532684796field",
+            "value": "{\n  info: {\n    name: 112233674851240411241919795483029536768u128,\n    symbol: 112086112285191324017087824258874212352u128,\n    decimals: 10u8\n  },\n  token_id: [\n    0u128,\n    1u128\n  ],\n  destination_chain: [\n    0u128,\n    0u128\n  ],\n  has_minter: false,\n  minter: [\n    0u128,\n    0u128,\n    0u128,\n    0u128,\n    0u128,\n    0u128\n  ]\n}"
+          },
+          {
+            "type": "future",
+            "id": "5008438731836141247691735368770173608023110481041271560369314541756559782567field",
+            "value": "{\n  program_id: axelarinterchaintokenhub.aleo,\n  function_name: deploy_to_remote_chain,\n  arguments: [\n    {\n  token_id: 7828770893174421034426815773897723730830971667273708535574193647092745559638field,\n  name: 112233674851240411241919795483029536768u128,\n  symbol: 112086112285191324017087824258874212352u128,\n  decimals: 10u8,\n  supply: 0u128,\n  max_supply: 1000000000u128,\n  admin: aleo1ymrcwun5g9z0un8dqgdln7l3q77asqr98p7wh03dwgk4yfltpqgq9efvfz,\n  external_authorization_required: false,\n  external_authorization_party: aleo1qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq3ljyzc\n},\n    [\n  0u128,\n  1u128\n]\n  ]\n}"
+          }
+        ],
+        "tpk": "7099257351798273475675067583930879764673460409953895391472167307049213299646group",
+        "tcm": "183542123045576667735341254955517665036832442056412849474118416497680858883field",
+        "scm": "8044735457076582126001599371416108083226265822830787208781812191187877733931field"
+      }
+    ],
+    "global_state_root": "sr12zug0d60clgmhdu9p63qrsvud3tvtqrphawcyg6q9fn5xl5xvq9s4pyngk",
+    "proof": "proof1qypqqqqqqqqqqqqpqqqqqqqqqqqqzqqqqqqqqqqqg5lfrd8q4k6y2uc6d3y5jevjsjwpan5sseje46a7hy08egat23enm2nkq0tp4j27tupzgzr64gvcqelfpwxjd7w6tvt98gwt29ppsrelre8w8uasensx7g8ecmt58n4sd3v927fktw0npehjcxr5x7gzsyqaxs5wr7mxdvqwqhnh9z6l43ngu7ffg6pd325203q9yveglgcwh7sg8s8mm635aj66l4e9ueq6cgupjmhzswd6vhwa80m0ufdgg94nca4jfvm0f4tv0uul69hxew52akcjqnz03hfzu6e8dzdtqa5ds44crqc5955ahhxrha7vxtvuasn49rywvamaagk2amytltj54wa4xzr0x9568sarczsfvfe7l74d3luuq9q48ztj572x7cu4xlt6ljnech7f3n95t2ryp7gpukhpvc25yydn6edmd98sppn24j5xx347c934mq2xmuwl7yun22732u7cu0h220jwelwrp9vtg9v6jaw6ujhheu02ks4aqjzxcj68g3rqsr0l65e2rxqxd3jgx625z69a8h606x9ll00xm495xfjkxm0c4ftetxjatuah8qj84rl7mpwry6nfejtzwzvtnhgq94w6cr20xed2mzqjr87jckx6seglntym834mq8f69vdrnfhsq570w7theawxv9zv00wrf2tk9erqz5qsfmtzknqrp232rq2twljalld5rfvfd30t5np8njmtkxcvanmg4xm60c6ldytgmn2jjkacdcarqyd95wcrcl6epza04n6yj8pdkj33gp4mrae8a0nqregs9qfs40p6u55tl6swgs03t98dj572yvqdhq9s2axt67mnhn2fln2et5fwexxtkjven7nhgeq90se8zkzaxz3c9223e6zhhh9m4sr0qucvky4s85qq22pvkjde0ptpf2dksrzp4xjpflm726f50yl228vfqj8rcsa4qsgz2d3suf73a4ywzmn7yy4jthvqyvxjwfw38yka9deuthvqk0z4dml4wuje3m63xygrct0yxefv3ypyca274exlwxe06qhdnx0e7487m5wpa6cpmmnsqzu6fyn46dxf7yx0n45xxj7j442kwzjjp8te23pklgg2xrxw9xf2w2zfaey7rz0vqaarp2afx8q5rke6rhq70ydwf6ctuy76qj4jj4mh0u65eqv6dk6q25py6t7j9ypwpwuw0tpknnccqj9k8a7eaw5x76qf6s4dulnr5dqsyrrxrlrrw7lnqdfammwqu0nd4gs7jzzntelj9s9g57tzv36pxqppumvse3vdp90mats35y8psrldsx389llu8g9x4shmhxswzj56yzrgks2qx6fgqchxqzzu003tnm56u32j28ryxz9dlw0l3ygk4hrnpqajhxp7p4l2xgh4naz47g9cfnhkyjgnpgeylpc08jjkh3cxhdksuqfe3fysmwq9jcfzsc7seynxncfqfx0zk3njdl67wh9ctngwsscp2gs6hcewrrn3zlxlgcsl40t5tcf8lg9e8rg7pka329qx3h8jhggsed9e6ween464m7reuw95fcewl5l4u4gzctrdjkmruycsx6ekxpp85jtq3z8vnnvpduj8h2d5p4wjh7226tyk93evleg7shcfldegqp2z7wmwc02kqp8ea2m33p96ad0alqhv65ed4z2unlq0qvaywrlsh4p5c8x54ygyq7lrqd7ll0wd0ercstge8dq798zvk5l8vxgahpqxn8r4rtnmxq3fpa7zv0da7pt8wth3ah4lxjzlv52vm8cpv2ta0grkv3qjeq4ed4t2r9pjtf4mj50xwdejqpanj6jjfdhmcy8hsau45pqjavzp229ccfnlsj3qmpfxzfedt9xlpydsfx84hp8jy28u9s93p8qtf78ravh4xr2z98vmke0h5qzr54m0edrk2w4h6lnwy5xplrcs2qcqqqqqqqqqqp0yflc72fc0ewtmx07r399a556ral7ghnnl995x0ycaphx8s63knanlhkcc243wdc4tg4e7lpr9sqqqxvn75sv408vkmzw8lkeuqkrmu7zwg87m4awf36nxdsugdjh97g5scmns6ywely6w7zc9qqrgs7dqzqfdzfn6rl4u5jxrld29e8xd9vljdm5934keucmcy56cv7d9u99apuje57m5fn3kcl5xgs3y24v8enyvp2lrjzgafdh8v0z55tuusy6tsvaat9wedgt6zr9wnpx79zwdsqqq2nwqa4"
+  },
+  "fee": {
+    "transition": {
+      "id": "au17erlrjsv5xz94y08n70jup44fpwt3rmhm7jutv8ttg775ypmnufq9zzv5s",
+      "program": "credits.aleo",
+      "function": "fee_public",
+      "inputs": [
+        {
+          "type": "public",
+          "id": "3580031609658420322763392132857579437013367318400988018830133791399569519950field",
+          "value": "32988u64"
+        },
+        {
+          "type": "public",
+          "id": "4531192909247401816088617447336642561717075036923308098132808107837095522517field",
+          "value": "0u64"
+        },
+        {
+          "type": "public",
+          "id": "1517780691852320858538791826122020732804157991005466748375339051512387619319field",
+          "value": "4766650572063780639169396409331309876903119378809972711822595718201121214525field"
+        }
+      ],
+      "outputs": [
+        {
+          "type": "future",
+          "id": "2664780283576138091638209550400225343018478879626452534668543488427466643386field",
+          "value": "{\n  program_id: credits.aleo,\n  function_name: fee_public,\n  arguments: [\n    aleo1s3ws5tra87fjycnjrwsjcrnw2qxr8jfqqdugnf0xzqqw29q9m5pqem2u4t,\n    32988u64\n  ]\n}"
+        }
+      ],
+      "tpk": "719214138126072827100512353935815367847221790541248374032789720729981171699group",
+      "tcm": "939400319824144876779497913209989274463792714534562487009130767800282232629field",
+      "scm": "3864135689575550776430365201512710448608868186508953601339273300316196282062field"
+    },
+    "global_state_root": "sr1er5428l9lkxu9lshkz20fttd3uzzchvtr0kkx3j5fzm0yhe5usxss2vqgh",
+    "proof": "proof1qyqsqqqqqqqqqqqpqqqqqqqqqqqt432enrp2z8a6p7gjp4lxs4l43y6n5x4eszt6sglv5w0ev9f80gah8w92t02q092q7cyvze7fsxgqq9tj3fsgehvupsyj7q75d2jzuqfjlv8s687sxjs59tp3e7a274y48vjpt6xssm9gshwur80unytjmqrvcyh0yd3kqrlwq8589d6w5482kgwe9zatv2s6gnuc033vqfwqv762x5799n6y092rq02xn963vwqjrtchpcjs9hmh8cusf9qq2rlxras5xmf9zvyljrnfyemwhz552y9p94ear3nrwgs5yamghazu8uyqd0catpranmt47swmfuwvl46t7w64qnsw4hmhulzl5fcqatph4vy35kc57ggqpq2lajke7089vqwqrayskkq2mes0gjdcfpwdklvw7w5r4ggv6gp2hgsvyacw9gyc8yhs4f4ctla0nv8a9t0r2yv4unsrqrx9r9zegfel74gy6nsd4l4n2phzktpae2k3d9a6snm4dqlzjfqeqsgw0mqqrd0w57xzl8y8u50hdqvysedssqkucqew222gmhje2kfg8xavywgzk2mx5m9xs425q0mw2rjd3dd6thlm3p9h692lvpdw3sqa4d25v4h5yemwxnu5wurfg577m5sr05fr55regkzwf9p8auyt8du7qhnw8y2jmc8v0lv9y4j4ldgqc2vzc5clgy07kfm0dllqxs0yuzmnhflrxkslf8zu47tt7nyqjc9z8w5n7hlgllucdwx6lgfakkugqtsskvznjz529tjhu7z2gm6ruy2djv67x33jmsxgtu7ldplkuqylz3c330juz3f2u7k7uvzutl38qhsux4cw3dmeq73lcdnp3ey94zev4sm0p29f20fj45s37fdhdx9qe9u4hf5ksmhg9jf0elpj4jzlx5pphfztqzu87dky22927rnc5mcxm72ng600u6c9s80zng6hva0tg5qdd80znpnh5zm7q6ds94vvuqrf5mthetrm4cs9ltuqgygf0395np24udlxr0cv8ucmj5mxd6xhcpj2xe9t7pylyacj4tvh78susqx264z5yvdeva03m5jqve6w75srzxng8vyxcykzptzf7u4xcw7nsqw0f05tu4j3gr8sgwncc9p4duusmxsw9z9nlay4nd8le8j7n0vce99xcy443v4x42kasl2gphzptcs8qvqqqqqqqqqqqgg49r3v9mmx2ghy7s5ty0hujnx8xcl62sjf20k0ktg2un7tpjnmgcqrla0k4fkfc80ml2drwxd8qqq80rj9sw7ye7spvkan87xtf3fqjhc3yx68hkn0ykqvje4w254txe46neycdq3v6e35salfe0p2wwgpqynrurtdk0z7mrkjhh75sdhj0a5y6zk5a09tpltaq497re2dz3es0a4x6hw0vphxwtlhumwwsmgzc3mgr6g6yedsngr9pdnfm89psrkhxp0kwd59vkjfjul6rjhzsdr7qyqq4he29m"
+  }
+}

@@ -33,11 +33,7 @@ PollStartedEvent {
     source_chain: ChainName(
         "aleo-2",
     ),
-    source_gateway_address: Program(
-        String(
-            "mygateway.aleo",
-        ),
-    ),
+    source_gateway_address: "mygateway.aleo",
     expires_at: 100,
     confirmation_height: 15,
     participants: [

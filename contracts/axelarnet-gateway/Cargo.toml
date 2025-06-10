@@ -44,7 +44,6 @@ serde = { workspace = true }
 serde_json = { workspace = true }
 sha3 = { workspace = true }
 thiserror = { workspace = true }
-axelar-wasm-addresses = { workspace = true }
 
 [dev-dependencies]
 assert_ok = { workspace = true }

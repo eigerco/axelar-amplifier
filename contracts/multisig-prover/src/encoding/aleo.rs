@@ -47,8 +47,9 @@ pub fn payload_digest<N: Network>(
     })?);
     let domain_separator: [u128; 2] = [part1, part2];
 
-    let payload_digest = PayloadDigest::new(&domain_separator, verifier_set, data_hash)
-        .map_err(|e| ContractError::AleoError(e.to_string()))?;
+    let payload_digest =
+        PayloadDigest::new_with_verifier_set(&domain_separator, verifier_set, data_hash)
+            .map_err(|e| ContractError::AleoError(e.to_string()))?;
 
     let hash = payload_digest
         .bhp_string::<N>()
@@ -127,7 +128,7 @@ mod tests {
                 .parse()
                 .unwrap(),
             destination_chain: "aleo-2".parse().unwrap(),
-            destination_address: "foo".parse().unwrap(),
+            destination_address: "foo.aleo".parse().unwrap(),
             payload_hash: [
                 0xa4, 0x32, 0xdc, 0x98, 0x3d, 0xfe, 0x6f, 0xc4, 0x8b, 0xb4, 0x7a, 0x90, 0x91, 0x54,
                 0x65, 0xd9, 0xc8, 0x18, 0x5b, 0x1c, 0x2a, 0xea, 0x5c, 0x87, 0xf8, 0x58, 0x18, 0xcb,

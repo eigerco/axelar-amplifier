@@ -17,11 +17,8 @@ pub fn new_verifier_set() -> VerifierSet {
             weight: Uint128::from(10u128),
             pub_key: multisig::key::PublicKey::AleoSchnorr(
                 HexBinary::from_hex(
-                    hex::encode(
-                        "aleo1rhgdu77hgyqd3xjj8ucu3jj9r2krwz6mnzyd80gncr5fxcwlh5rsvzp9px"
-                            .to_string(),
-                    )
-                    .as_str(),
+                    hex::encode("aleo1rhgdu77hgyqd3xjj8ucu3jj9r2krwz6mnzyd80gncr5fxcwlh5rsvzp9px")
+                        .as_str(),
                 )
                 .unwrap(),
             ),
@@ -31,11 +28,8 @@ pub fn new_verifier_set() -> VerifierSet {
             weight: Uint128::from(10u128),
             pub_key: multisig::key::PublicKey::AleoSchnorr(
                 HexBinary::from_hex(
-                    hex::encode(
-                        "aleo1s3ws5tra87fjycnjrwsjcrnw2qxr8jfqqdugnf0xzqqw29q9m5pqem2u4t"
-                            .to_string(),
-                    )
-                    .as_str(),
+                    hex::encode("aleo1s3ws5tra87fjycnjrwsjcrnw2qxr8jfqqdugnf0xzqqw29q9m5pqem2u4t")
+                        .as_str(),
                 )
                 .unwrap(),
             ),
@@ -45,11 +39,8 @@ pub fn new_verifier_set() -> VerifierSet {
             weight: Uint128::from(10u128),
             pub_key: multisig::key::PublicKey::AleoSchnorr(
                 HexBinary::from_hex(
-                    hex::encode(
-                        "aleo1ashyu96tjwe63u0gtnnv8z5lhapdu4l5pjsl2kha7fv7hvz2eqxs5dz0rg"
-                            .to_string(),
-                    )
-                    .as_str(),
+                    hex::encode("aleo1ashyu96tjwe63u0gtnnv8z5lhapdu4l5pjsl2kha7fv7hvz2eqxs5dz0rg")
+                        .as_str(),
                 )
                 .unwrap(),
             ),
@@ -121,7 +112,6 @@ pub fn operators() -> Vec<TestOperator> {
             "axelar1up3vvhxg4swh2lfeh8n84dat86j6hmgz20d6d3",
             hex::encode(
                         "aleo1rhgdu77hgyqd3xjj8ucu3jj9r2krwz6mnzyd80gncr5fxcwlh5rsvzp9px"
-                            .to_string(),
                     )
                     .as_str(),
             "6C51eec96bf0a8ec799cdD0Bbcb4512f8334Afe8",
@@ -132,7 +122,6 @@ pub fn operators() -> Vec<TestOperator> {
             "axelar10ad5vqhuw2jgp8x6hf59qjjejlna2nh4sfsklc",
             hex::encode(
                         "aleo1s3ws5tra87fjycnjrwsjcrnw2qxr8jfqqdugnf0xzqqw29q9m5pqem2u4t"
-                            .to_string(),
                     )
                     .as_str(),
             "7aeB4EEbf1E8DCDE3016d4e1dcA52B4538Cf7aAf",
@@ -143,7 +132,6 @@ pub fn operators() -> Vec<TestOperator> {
             "axelar14g0tmk5ldxxdqtl0utl69ck43cpcvd0ay4lfyt",
             hex::encode(
                         "aleo1ashyu96tjwe63u0gtnnv8z5lhapdu4l5pjsl2kha7fv7hvz2eqxs5dz0rg"
-                            .to_string(),
                     )
                     .as_str(),
             "c5b95c99D883c3204CFc2E73669CE3aa7437f4A6",
@@ -154,7 +142,6 @@ pub fn operators() -> Vec<TestOperator> {
             "axelar1gwd8wd3qkapk8pnwdu4cchah2sjjws6lx694r6",
             hex::encode(
                         "aleo12ux3gdauck0v60westgcpqj7v8rrcr3v346e4jtq04q7kkt22czsh808v2"
-                            .to_string(),
                     )
                     .as_str(),
             "ffFfDe829096DfE8b833997E939865FF57422Ea9",

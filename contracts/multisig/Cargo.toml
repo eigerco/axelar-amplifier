@@ -37,7 +37,6 @@ test = []
 [dependencies]
 aleo-types = { workspace = true }
 axelar-wasm-std = { workspace = true, features = ["derive"] }
-axelar-wasm-addresses = { workspace = true }
 client = { workspace = true }
 cosmwasm-crypto = { workspace = true }
 cosmwasm-schema = { workspace = true }
@@ -63,7 +62,7 @@ signature-verifier-api = { workspace = true }
 thiserror = { workspace = true }
 
 multisig-aleo = { path = "../multisig-aleo" }
-snarkvm-cosmwasm = { workspace = true }
+snarkvm-cosmwasm = { workspace = true, features = ["types", "program"] }
 rand_chacha = "0.3"
 
 [dev-dependencies]

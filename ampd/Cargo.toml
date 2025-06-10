@@ -7,6 +7,9 @@ license = "MIT OR Apache-2.0"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+aleo-gateway = { workspace = true }
+aleo-utils = { workspace = true }
+aleo-string-encoder = { workspace = true }
 aleo-types = { workspace = true }
 ampd-proto = { workspace = true }
 async-trait = { workspace = true }
@@ -39,6 +42,7 @@ gateway-event-stack = { workspace = true }
 hex = { version = "0.4.3", features = ["serde"] }
 humantime-serde = "1.1.1"
 itertools = { workspace = true }
+interchain-token-service = { workspace = true }
 k256 = { workspace = true }
 mockall = "0.11.3"
 move-core-types = { git = "https://github.com/mystenlabs/sui", tag = "testnet-v1.39.1" }
@@ -97,9 +101,7 @@ url = "2.3.1"
 valuable = { version = "0.1.0", features = ["derive"] }
 valuable-serde = { version = "0.1.0", features = ["std"] }
 voting-verifier = { workspace = true }
-aleo-gateway = { workspace = true }
-snarkvm-cosmwasm = { workspace = true, features = [ "network" ] }
-aleo-utils = { workspace = true }
+snarkvm = { workspace = true }
 xrpl-types = { workspace = true }
 xrpl_http_client = { version = "0.15.0" }
 

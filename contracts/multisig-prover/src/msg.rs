@@ -1,3 +1,4 @@
+use axelar_wasm_std::hash::Hash;
 use axelar_wasm_std::MajorityThreshold;
 use cosmwasm_schema::{cw_serde, QueryResponses};
 use cosmwasm_std::{HexBinary, Uint64};
@@ -15,6 +16,10 @@ pub enum ExecuteMsg {
     // Queries the gateway for actual message contents
     #[permission(Any)]
     ConstructProof(Vec<CrossChainId>),
+
+    #[permission(Any)]
+    ConstructProofWithItsPayload(Vec<ItsPayload>),
+
     #[permission(Elevated)]
     UpdateVerifierSet,
 
@@ -72,4 +77,28 @@ impl From<multisig::verifier_set::VerifierSet> for VerifierSetResponse {
             verifier_set: set,
         }
     }
+}
+
+use sha3::{Digest, Keccak256};
+
+#[cw_serde]
+pub struct ItsPayload {
+    /// The message id of the payload
+    pub message_id: CrossChainId,
+    /// The payload that was sent to the gateway
+    pub payload: HexBinary,
+}
+
+impl ItsPayload {
+    pub fn payload_hash(&self) -> Hash {
+        Keccak256::digest(self.payload.as_slice()).into()
+    }
+}
+
+#[cw_serde]
+pub struct AleoItsPayloadWrapper {
+    /// The message id of the payload
+    pub message_id: CrossChainId,
+    /// The payload that was sent to the gateway
+    pub payload: HexBinary,
 }

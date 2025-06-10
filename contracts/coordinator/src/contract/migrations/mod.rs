@@ -1,5 +1,4 @@
-use axelar_wasm_addresses::address;
-use axelar_wasm_std::migrate_from_version;
+use axelar_wasm_std::{address, migrate_from_version};
 use cosmwasm_schema::cw_serde;
 #[cfg(not(feature = "library"))]
 use cosmwasm_std::entry_point;

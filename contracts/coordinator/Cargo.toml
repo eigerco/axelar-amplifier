@@ -29,7 +29,6 @@ library = []
 
 [dependencies]
 axelar-wasm-std = { workspace = true, features = ["derive"] }
-axelar-wasm-addresses = { workspace = true }
 client = { workspace = true }
 cosmwasm-schema = { workspace = true }
 cosmwasm-std = { workspace = true, features = ["cosmwasm_1_2"] }

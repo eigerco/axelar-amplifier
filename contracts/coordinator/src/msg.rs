@@ -1,6 +1,6 @@
 use std::collections::HashSet;
 
-use axelar_wasm_addresses::address::AddressFormat;
+use axelar_wasm_std::address::AddressFormat;
 use axelar_wasm_std::hash::Hash;
 use axelar_wasm_std::msg_id::MessageIdFormat;
 use axelar_wasm_std::{nonempty, MajorityThreshold};

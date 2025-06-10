@@ -15,14 +15,18 @@ pub struct ParsedOutput {
 /// Find the call contract from outputs.
 /// CallContract consist of the CallContract data and the raw payload.
 pub fn parse_user_output(outputs: &[IdValuePair]) -> Result<ParsedOutput, Error> {
-    if outputs.len() != 2 {
+    // When there are only 2 outputs, the first is the CallContract and the second is the raw payload.
+    // When there are 3 outputs, the first is the CallContract, the second is the raw payload, and the third is a future.
+    // TODO: enforce the above comments
+    if !(outputs.len() == 2 || outputs.len() == 3) {
         return Err(Report::new(Error::UserCallnotFound)
             .attach_printable(format!("Expected exactly 2 outputs, got {}", outputs.len())));
     }
 
     let mut parsed_output = ParsedOutput::default();
 
-    for output in outputs {
+    // TODO: handle: we are using take 2 here because if the third output is a future, we fail to parse it.
+    for output in outputs.iter().take(2) {
         if let Some(plaintext) = &output.value {
             // Convert to JSON with proper error handling
             let json = json_like::into_json(plaintext.as_str()).map_err(|_| {
