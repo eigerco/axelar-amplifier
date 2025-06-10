@@ -40,6 +40,7 @@ pub enum Config {
         base_url: Url,
         network: String,
         verifier_contract: String,
+        network_id: u16,
     },
     EvmMsgVerifier {
         cosmwasm_contract: TMAddress,

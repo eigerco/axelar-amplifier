@@ -1,10 +1,13 @@
 use std::collections::{BTreeMap, HashSet};
+use std::hash::Hash;
 use std::str::FromStr;
 
-use axelar_wasm_addresses::address;
+use aleo_gateway::AleoValue as _;
 use axelar_wasm_std::permission_control::Permission;
 use axelar_wasm_std::snapshot::{Participant, Snapshot};
-use axelar_wasm_std::{nonempty, permission_control, FnExt, MajorityThreshold, VerificationStatus};
+use axelar_wasm_std::{
+    address, nonempty, permission_control, FnExt, MajorityThreshold, VerificationStatus,
+};
 use cosmwasm_std::{wasm_execute, Addr, DepsMut, Env, QuerierWrapper, Response, Storage, SubMsg};
 use error_stack::{report, Result, ResultExt};
 use itertools::Itertools;
@@ -16,10 +19,11 @@ use service_registry_api::WeightedVerifier;
 use crate::contract::START_MULTISIG_REPLY_ID;
 use crate::encoding::EncoderExt;
 use crate::error::ContractError;
+use crate::msg::ItsPayload;
+use crate::payload::Payload;
 use crate::state::{
     Config, CONFIG, CURRENT_VERIFIER_SET, NEXT_VERIFIER_SET, PAYLOAD, REPLY_TRACKER,
 };
-use crate::Payload;
 
 pub fn construct_proof(
     deps: DepsMut,
@@ -72,6 +76,162 @@ pub fn construct_proof(
     // It is placed here because is needed to pass the unit tests
     // To be handle approbriately in the future, the sig verifier should be configured in contract
     // and it should be passed as a parameter to the contract initialized
+
+    // test
+
+    const MULTISIG_ALEO: &str = "axelar1rv940hhxe3288j42zazt7c7fmql4udsgy9cjzmeq646gt7gl02hq54seyr";
+    let sig_verifier = (config.chain_name
+        == ChainName::from_str("aleo-2").map_err(|_| ContractError::Proof)?)
+    .then(|| MULTISIG_ALEO.to_string());
+
+    let start_sig_msg = multisig::msg::ExecuteMsg::StartSigningSession {
+        verifier_set_id: verifier_set.id(),
+        msg: digest.into(),
+        chain_name: config.chain_name,
+        sig_verifier,
+    };
+
+    let wasm_msg =
+        wasm_execute(config.multisig, &start_sig_msg, vec![]).map_err(ContractError::from)?;
+
+    Ok(Response::new().add_submessage(SubMsg::reply_on_success(wasm_msg, START_MULTISIG_REPLY_ID)))
+}
+
+#[cosmwasm_schema::cw_serde]
+#[derive(Eq, Hash)]
+struct MessageForAleo {
+    message: Message,
+    aleo_payload_hash: [u8; 32],
+}
+
+pub fn construct_proof_with_its_payload(
+    deps: DepsMut,
+    mut its_messages: Vec<ItsPayload>,
+) -> error_stack::Result<Response, ContractError> {
+    let messages_ids = its_messages
+        .iter()
+        .map(|its_payload| its_payload.message_id.clone())
+        .collect::<Vec<_>>();
+
+    let config = CONFIG.load(deps.storage).map_err(ContractError::from)?;
+
+    let messages = messages(
+        deps.querier,
+        messages_ids.clone(),
+        config.gateway.clone(),
+        config.chain_name.clone(),
+    )?;
+
+    let payload = Payload::Messages(messages);
+    let payload_id = payload.id();
+
+    match PAYLOAD
+        .may_load(deps.storage, &payload_id)
+        .map_err(ContractError::from)?
+    {
+        Some(stored_payload) => {
+            if stored_payload != payload {
+                return Err(report!(ContractError::PayloadMismatch))
+                    .attach_printable_lazy(|| format!("{:?}", stored_payload));
+            }
+        }
+        None => {
+            PAYLOAD
+                .save(deps.storage, &payload_id, &payload)
+                .map_err(ContractError::from)?;
+        }
+    };
+
+    // keep track of the payload id to use during submessage reply
+    REPLY_TRACKER
+        .save(deps.storage, &payload_id)
+        .map_err(ContractError::from)?;
+
+    let verifier_set = CURRENT_VERIFIER_SET
+        .may_load(deps.storage)
+        .map_err(ContractError::from)?
+        .ok_or(ContractError::NoVerifierSet)?;
+
+    let Payload::Messages(mut messages) = payload else {
+        panic!("set error")
+    };
+    messages.sort_by(|lhs, rhs| lhs.cc_id.cmp(&rhs.cc_id));
+    its_messages.sort_by(|lhs, rhs| lhs.message_id.cmp(&rhs.message_id));
+
+    let messages = messages
+        .into_iter()
+        .zip(its_messages.iter())
+        .filter_map(|(message, its_payload)| {
+            if message.cc_id != its_payload.message_id {
+                panic!(
+                    "violated invariant: message ids mismatch, expected {}, got {}",
+                    message.cc_id,
+                    its_payload.message_id
+                );
+            }
+
+            if its_payload.payload_hash() != message.payload_hash {
+                panic!(
+                    "payload hash mismatch: expected {:?}, found {:?}",
+                    its_payload.payload_hash(),
+                    message.payload_hash
+                );
+            }
+
+            let its_message =
+                interchain_token_service::HubMessage::abi_decode(&its_payload.payload).ok()?;
+
+            Some((message, its_message))
+        })
+        .filter(|(_, its_message)| {
+            let res = matches!(
+                its_message,
+                interchain_token_service::HubMessage::ReceiveFromHub {
+                    source_chain: _,
+                    message: interchain_token_service::Message::InterchainTransfer(_)
+                        | interchain_token_service::Message::DeployInterchainToken(_)
+                }
+            );
+
+            if res == false {
+                panic!(
+                    "violated invariant: its message is not a ReceiveFromHub with InterchainTransfer or DeployInterchainToken, got {:?}",
+                    its_message
+                );
+            }
+
+            res
+        })
+        .map(|(message, its_message)| {
+            let payload = its_message.to_aleo_string().ok().unwrap();
+            let hash =
+                aleo_gateway::hash::<&str, snarkvm_cosmwasm::network::TestnetV0>(&payload).unwrap();
+            // we override the payload hash with the hash of the aleo data
+            // this will not be reflected in the get proof query.
+            // At get proof query we will need to reconstruct the payload hash
+            Message {
+                    cc_id: message.cc_id,
+                    source_address: message.source_address,
+                    destination_chain: message.destination_chain,
+                    destination_address: message.destination_address,
+                    payload_hash: hash,
+            }
+        })
+        .collect::<Vec<_>>();
+
+    let payload = Payload::Messages(messages.clone());
+
+    let digest = config
+        .encoder
+        .digest(&config.domain_separator, &verifier_set, &payload)?;
+
+    // This is not needed because we know that we will always use the sig_verifier
+    // It is placed here because is needed to pass the unit tests
+    // To be handle approbriately in the future, the sig verifier should be configured in contract
+    // and it should be passed as a parameter to the contract initialized
+
+    // test
+
     const MULTISIG_ALEO: &str = "axelar1rv940hhxe3288j42zazt7c7fmql4udsgy9cjzmeq646gt7gl02hq54seyr";
     let sig_verifier = (config.chain_name
         == ChainName::from_str("aleo-2").map_err(|_| ContractError::Proof)?)

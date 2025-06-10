@@ -1,5 +1,4 @@
-use axelar_wasm_addresses::address;
-use axelar_wasm_std::{nonempty, permission_control};
+use axelar_wasm_std::{address, nonempty, permission_control};
 #[cfg(not(feature = "library"))]
 use cosmwasm_std::entry_point;
 use cosmwasm_std::{

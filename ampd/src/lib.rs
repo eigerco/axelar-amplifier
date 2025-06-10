@@ -14,8 +14,7 @@ use evm::json_rpc::EthereumClient;
 use multiversx_sdk::gateway::GatewayProxy;
 use queue::queued_broadcaster::QueuedBroadcaster;
 use router_api::ChainName;
-use snarkvm_cosmwasm::network::{CanaryV0, MainnetV0, TestnetV0};
-use snarkvm_cosmwasm::program::Network;
+use snarkvm::prelude::{CanaryV0, MainnetV0, Network, TestnetV0};
 use solana_client::nonblocking::rpc_client::RpcClient;
 use solana_sdk::commitment_config::CommitmentConfig;
 use starknet_providers::jsonrpc::HttpTransport;
@@ -319,7 +318,7 @@ where
                             );
                             self.create_handler_task(label, handler, event_processor_config.clone())
                         }
-                        _ => panic!(),
+                        _ => panic!("Unknown network ID: {}", network_id),
                     }
                 }
                 handlers::config::Config::AleoVerifierSetVerifier {
@@ -329,6 +328,7 @@ where
                     base_url,
                     network,
                     verifier_contract,
+                    network_id,
                 } => {
                     let rest_client = reqwest::ClientBuilder::new()
                         .connect_timeout(timeout.unwrap_or(DEFAULT_RPC_TIMEOUT))
@@ -337,19 +337,47 @@ where
                         .change_context(Error::Connection)?;
 
                     let client = aleo::http_client::Client::new(rest_client, base_url, network);
+                    let label = format!("{}-verifier-set-verifier", chain.name);
 
-                    self.create_handler_task(
-                        format!("{}-verifier-set-verifier", chain.name),
-                        handlers::aleo_verify_verifier_set::Handler::new(
-                            verifier.clone(),
-                            cosmwasm_contract,
-                            chain.name,
-                            client,
-                            self.block_height_monitor.latest_block_height(),
-                            verifier_contract,
-                        ),
-                        event_processor_config.clone(),
-                    )
+                    match network_id {
+                        MainnetV0::ID => {
+                            let handler =
+                                handlers::aleo_verify_verifier_set::Handler::<_, MainnetV0>::new(
+                                    verifier.clone(),
+                                    cosmwasm_contract,
+                                    chain.name,
+                                    client,
+                                    self.block_height_monitor.latest_block_height(),
+                                    verifier_contract,
+                                );
+                            self.create_handler_task(label, handler, event_processor_config.clone())
+                        }
+                        TestnetV0::ID => {
+                            let handler =
+                                handlers::aleo_verify_verifier_set::Handler::<_, TestnetV0>::new(
+                                    verifier.clone(),
+                                    cosmwasm_contract,
+                                    chain.name,
+                                    client,
+                                    self.block_height_monitor.latest_block_height(),
+                                    verifier_contract,
+                                );
+                            self.create_handler_task(label, handler, event_processor_config.clone())
+                        }
+                        CanaryV0::ID => {
+                            let handler =
+                                handlers::aleo_verify_verifier_set::Handler::<_, CanaryV0>::new(
+                                    verifier.clone(),
+                                    cosmwasm_contract,
+                                    chain.name,
+                                    client,
+                                    self.block_height_monitor.latest_block_height(),
+                                    verifier_contract,
+                                );
+                            self.create_handler_task(label, handler, event_processor_config.clone())
+                        }
+                        _ => panic!("Unknown network ID: {}", network_id),
+                    }
                 }
                 handlers::config::Config::EvmMsgVerifier {
                     chain,

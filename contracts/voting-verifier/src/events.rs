@@ -338,7 +338,7 @@ where
 mod test {
     use std::collections::BTreeMap;
 
-    use axelar_wasm_addresses::address::AddressFormat;
+    use axelar_wasm_std::address::AddressFormat;
     use axelar_wasm_std::msg_id::{
         Base58TxDigestAndEventIndex, HexTxHash, HexTxHashAndEventIndex, MessageIdFormat,
     };

@@ -1,8 +1,9 @@
 pub mod address;
-pub mod program;
+// pub mod program;
 pub mod transaction;
 pub mod transition;
 
+use snarkvm_cosmwasm::network::TestnetV0;
 use thiserror::Error;
 
 #[derive(Error, Debug)]
@@ -40,4 +41,14 @@ fn verify_becnh32(input: &str, prefix: &str) -> Result<(), Report<Error>> {
     }
 
     Ok(())
+}
+
+use std::str::FromStr;
+
+use cosmwasm_std::HexBinary;
+use snarkvm_cosmwasm::types::Address;
+
+pub fn hexbinary_to_address(hex: &HexBinary) -> Result<Address<TestnetV0>, Report<Error>> {
+    let address = std::str::from_utf8(hex).map_err(|e| Error::InvalidAleoAddress(e.to_string()))?;
+    Ok(snarkvm_cosmwasm::types::Address::<TestnetV0>::from_str(address).unwrap())
 }

@@ -1,10 +1,15 @@
-use aleo_utils::string_encoder::StringEncoder;
+use std::str::FromStr as _;
+
+use aleo_string_encoder::string_encoder::StringEncoder;
 use error_stack::{ensure, Report};
-use snarkvm_cosmwasm::network::Network;
+use serde::Deserialize;
+use snarkvm_cosmwasm::network::{Network, TestnetV0};
+use snarkvm_cosmwasm::program::ProgramID;
+use snarkvm_cosmwasm::types::Address;
 
 use crate::{AleoValue, Error};
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, Deserialize)]
 pub struct Message {
     pub cc_id: router_api::CrossChainId,
     pub source_address: String,
@@ -73,18 +78,32 @@ impl AleoValue for Message {
             }
         );
 
-        const CONTRACT_ADDRESS_LEN: usize = 6;
-        let contract_address = StringEncoder::encode_string(self.destination_address.as_str())
-            .map_err(|e| Report::new(Error::from(e)))?;
-
-        let contract_address_len = contract_address.u128_len();
-        ensure!(
-            contract_address_len <= CONTRACT_ADDRESS_LEN,
-            Error::InvalidEncodedStringLength {
-                expected: CONTRACT_ADDRESS_LEN,
-                actual: contract_address.u128_len()
+        let contract_address = match self.destination_address.as_str() {
+            "aleo1ymrcwun5g9z0un8dqgdln7l3q77asqr98p7wh03dwgk4yfltpqgq9efvfz" => {
+                Address::from_str("aleo1ymrcwun5g9z0un8dqgdln7l3q77asqr98p7wh03dwgk4yfltpqgq9efvfz")
+                    .map_err(|e| {
+                        Report::new(Error::InvalidAleoAddress {
+                            address: self.destination_address.clone(),
+                            error: e,
+                        })
+                    })?
             }
-        );
+            str => {
+                let program_id = ProgramID::<TestnetV0>::from_str(str).map_err(|e| {
+                    Report::new(Error::InvalidProgramID {
+                        program_id: self.destination_address.clone(),
+                        error: e,
+                    })
+                })?;
+
+                program_id.to_address().map_err(|e| {
+                    Report::new(Error::ProgramIDToAleoAddress {
+                        program_id: self.destination_address.clone(),
+                        error: e,
+                    })
+                })?
+            }
+        };
 
         // The payload hash is a 32 byte array, which is a 256 bit hash.
         // (for messages from Aleo this will happen in the relayer)
@@ -100,7 +119,7 @@ impl AleoValue for Message {
         let payload_hash = format!("{group}");
 
         let res = format!(
-            r#"{{source_chain: [{}], message_id: [{}], source_address: [{}], contract_address: [{}], payload_hash: {} }}"#,
+            r#"{{source_chain: [{}], message_id: [{}], source_address: [{}], contract_address: {}, payload_hash: {} }}"#,
             source_chain
                 .consume()
                 .into_iter()
@@ -131,16 +150,7 @@ impl AleoValue for Message {
                 )
                 .collect::<Vec<_>>()
                 .join(", "),
-            contract_address
-                .consume()
-                .into_iter()
-                .map(|c| format!("{}u128", c))
-                .chain(
-                    std::iter::repeat("0u128".to_string())
-                        .take(CONTRACT_ADDRESS_LEN.saturating_sub(contract_address_len))
-                )
-                .collect::<Vec<_>>()
-                .join(", "),
+            contract_address,
             payload_hash
         );
 

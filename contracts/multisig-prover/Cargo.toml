@@ -29,7 +29,6 @@ library = []
 
 [dependencies]
 axelar-wasm-std = { workspace = true, features = ["derive"] }
-axelar-wasm-addresses = { workspace = true }
 bcs = "0.1.5"
 client = { workspace = true }
 coordinator = { workspace = true }
@@ -64,7 +63,7 @@ thiserror = { workspace = true }
 voting-verifier = { workspace = true, features = ["library"] }
 aleo-gateway = { workspace = true }
 snarkvm-cosmwasm = { workspace = true }
-bincode = "1.3.3"
+interchain-token-service = { workspace = true }
 
 [dev-dependencies]
 anyhow = "1.0"
@@ -75,7 +74,7 @@ generic-array = "0.14.7"
 goldie = { workspace = true }
 prost = "0.12.4"
 tofn = { workspace = true, features = ["aleo-schnorr"] }
-snarkvm = "1.2.1"
+snarkvm = { workspace = true }
 
 [lints]
 workspace = true

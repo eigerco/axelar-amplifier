@@ -1,4 +1,4 @@
-mod primitives;
+pub mod primitives;
 
 pub mod error;
 pub mod msg;

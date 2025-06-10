@@ -7,7 +7,6 @@ edition = { workspace = true }
 
 [dependencies]
 axelar-wasm-std = { workspace = true, features = ["derive"] }
-axelar-wasm-addresses = { workspace = true }
 cosmwasm-schema = { workspace = true }
 router-api = { workspace = true }
 serde_json = { workspace = true }

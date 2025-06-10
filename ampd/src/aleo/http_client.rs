@@ -89,11 +89,10 @@ pub mod tests {
     use std::collections::HashMap;
     use std::str::FromStr;
 
-    use aleo_types::program::Program;
-    use snarkvm_cosmwasm::network::TestnetV0;
-
     use super::*;
     use crate::aleo::ReceiptBuilder;
+
+    type CurrentNetwork = snarkvm::prelude::TestnetV0;
 
     pub fn mock_client_1() -> MockClientTrait {
         let mut mock_client = MockClientTrait::new();
@@ -155,15 +154,44 @@ pub mod tests {
         mock_client
     }
 
+    pub fn mock_client_3() -> MockClientTrait {
+        let mut mock_client = MockClientTrait::new();
+
+        let transaction_id = "at16nqk09h4fyh83v0ayc44kvyz5y27ynhsw0v4qezc95t8hl5sas9s2enmlw";
+        let mut expected_transitions: HashMap<
+            Transaction,
+            aleo_utils::block_processor::Transaction,
+        > = HashMap::new();
+        let transaction_one = include_str!(
+            "../tests/at16nqk09h4fyh83v0ayc44kvyz5y27ynhsw0v4qezc95t8hl5sas9s2enmlw.json"
+        );
+        let snark_tansaction: aleo_utils::block_processor::Transaction =
+            serde_json::from_str(transaction_one).unwrap();
+        let transaction = Transaction::from_str(transaction_id).unwrap();
+        expected_transitions.insert(transaction, snark_tansaction);
+
+        mock_client
+            .expect_get_transaction()
+            .returning(move |transaction| {
+                Ok(expected_transitions.get(transaction).unwrap().clone())
+            });
+
+        mock_client.expect_find_transaction().returning(move |_| {
+            let transaction_id = "at16nqk09h4fyh83v0ayc44kvyz5y27ynhsw0v4qezc95t8hl5sas9s2enmlw";
+            Ok(transaction_id.to_string())
+        });
+
+        mock_client
+    }
+
     #[tokio::test]
     async fn sanity_test1() {
         let client = mock_client_1();
         let transision_id = "au1zn24gzpgkr936qv49g466vfccg8aykcv05rk39s239hjxwrtsu8sltpsd8";
         let transition = Transition::from_str(transision_id).unwrap();
         let gateway_contract = "gateway_base.aleo";
-        let program = Program::from_str(gateway_contract).unwrap();
 
-        let res = ReceiptBuilder::new(&client, &program)
+        let res = ReceiptBuilder::<_, _, CurrentNetwork>::new(&client, gateway_contract)
             .unwrap()
             .get_transaction_id(&transition)
             .await
@@ -173,7 +201,7 @@ pub mod tests {
             .unwrap()
             .get_transition()
             .unwrap()
-            .check_call_contract::<TestnetV0>();
+            .check_call_contract();
         assert!(res.is_ok());
     }
 
@@ -183,9 +211,8 @@ pub mod tests {
         let transision_id = "au17kdp7a7p6xuq6h0z3qrdydn4f6fjaufvzvlgkdd6vzpr87lgcgrq8qx6st";
         let transition = Transition::from_str(transision_id).unwrap();
         let gateway_contract = "ac64caccf8221554ec3f89bf.aleo";
-        let program = Program::from_str(gateway_contract).unwrap();
 
-        let res = ReceiptBuilder::new(&client, &program)
+        let res = ReceiptBuilder::<_, _, CurrentNetwork>::new(&client, gateway_contract)
             .unwrap()
             .get_transaction_id(&transition)
             .await
@@ -195,7 +222,29 @@ pub mod tests {
             .unwrap()
             .get_transition()
             .unwrap()
-            .check_call_contract::<TestnetV0>();
+            .check_call_contract();
+        assert!(res.is_ok());
+    }
+
+    #[tokio::test]
+    async fn sanity_test3() {
+        let client = mock_client_3();
+        let transision_id = "au193ysmau9rpcyvp4ax2vjc0029q4n2mgjjwd4rfrghzsts5x09v8s9xxwdx";
+        let transition = Transition::from_str(transision_id).unwrap();
+        let gateway_contract = "gateway_frontend.aleo";
+
+        let res = ReceiptBuilder::<_, _, CurrentNetwork>::new(&client, &gateway_contract)
+            .unwrap()
+            .get_transaction_id(&transition)
+            .await
+            .unwrap()
+            .get_transaction()
+            .await
+            .unwrap()
+            .get_transition()
+            .unwrap()
+            .check_call_contract();
+        println!("res: {:?}", res);
         assert!(res.is_ok());
     }
 }

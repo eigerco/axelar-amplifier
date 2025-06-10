@@ -1,17 +1,17 @@
 [workspace]
 members = [
-  "ampd",
-  "ampd-handlers",
-  "contracts/*",
-  "external-gateways/*",
-  "integration-tests",
-  "packages/*",
-  "tools/*",
+    "ampd",
+    "ampd-handlers",
+    "contracts/*",
+    "external-gateways/*",
+    "integration-tests",
+    "packages/*",
+    "tools/*",
 ]
 resolver = "2"
 
 [workspace.package]
-rust-version = "1.81.0"       # be sure there is an optimizer release supporting this version before updating. See https://github.com/CosmWasm/optimizer
+rust-version = "1.81.0" # be sure there is an optimizer release supporting this version before updating. See https://github.com/CosmWasm/optimizer
 edition = "2021"
 license = "MIT OR Apache-2.0"
 
@@ -23,9 +23,11 @@ optimize = """docker run --rm -v "$(pwd)":/code \
 """
 
 [workspace.dependencies]
-aleo-utils = { path = "packages/aleo-utils" }
+arbtest = { version = "0.3.2" }
 aleo-types = { path = "packages/aleo-types" }
 aleo-gateway = { path = "packages/aleo-gateway" }
+aleo-string-encoder = { path = "packages/aleo-string-encoder" }
+aleo-utils = { path = "packages/aleo-utils" }
 alloy-primitives = { version = "0.7.6", default-features = false, features = [
   "std",
 ] }
@@ -42,7 +44,6 @@ axelar-solana-encoding = { git = "https://github.com/eigerco/solana-axelar.git",
 axelar-solana-gateway = { git = "https://github.com/eigerco/solana-axelar.git", rev = "f167d2b" }
 axelar-wasm-std = { version = "^1.0.0", path = "packages/axelar-wasm-std" }
 axelar-wasm-std-derive = { version = "^1.0.0", path = "packages/axelar-wasm-std-derive" }
-axelar-wasm-addresses = { path = "packages/axelar-wasm-addresses" }
 axelarnet-gateway = { version = "^1.0.0", path = "contracts/axelarnet-gateway" }
 bcs = "0.1.5"
 bech32 = "0.11.0"
@@ -122,8 +123,13 @@ typed-builder = "0.18.2"
 valuable = "0.1.1"
 voting-verifier = { version = "^1.1.0", path = "contracts/voting-verifier" }
 snarkvm-cosmwasm = { git = "https://github.com/eigerco/snarkVM", branch = "cosmwasm-2" }
+snarkvm = { git = "https://github.com/eigerco/snarkVM", branch = "cosmwasm-2" }
 voting-verifier-api = { version = "1.0.0", path = "packages/voting-verifier-api" }
 xrpl-types = { version = "^1.0.0", path = "packages/xrpl-types" }
+
+# This is for multisig-prover tests
+[patch.crates-io]
+snarkvm = { git = "https://github.com/eigerco/snarkVM", branch = "cosmwasm-2" }
 
 [workspace.lints.clippy]
 arithmetic_side_effects = "deny"
