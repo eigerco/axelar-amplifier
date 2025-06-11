@@ -28,6 +28,7 @@ path = "src/bin/schema.rs"
 library = []
 
 [dependencies]
+axelar-solana-encoding = { workspace = true }
 axelar-wasm-std = { workspace = true, features = ["derive"] }
 bcs = "0.1.5"
 client = { workspace = true }

@@ -1,5 +1,6 @@
 mod abi;
 mod bcs;
+mod solana;
 mod stellar_xdr;
 
 use axelar_wasm_std::hash::Hash;
@@ -42,6 +43,7 @@ impl EncoderExt for Encoder {
             Encoder::StellarXdr => {
                 stellar_xdr::payload_digest(domain_separator, verifier_set, payload)
             }
+            Encoder::Solana => solana::payload_digest(domain_separator, verifier_set, payload),
         }
     }
 
@@ -56,6 +58,9 @@ impl EncoderExt for Encoder {
             Encoder::Abi => abi::encode_execute_data(domain_separator, verifier_set, sigs, payload),
             Encoder::Bcs => bcs::encode_execute_data(domain_separator, verifier_set, sigs, payload),
             Encoder::StellarXdr => stellar_xdr::encode_execute_data(verifier_set, sigs, payload),
+            Encoder::Solana => {
+                solana::encode_execute_data(sigs, verifier_set, payload, domain_separator)
+            }
         }
     }
 }
