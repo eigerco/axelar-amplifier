@@ -1,6 +1,15 @@
+use std::str::FromStr as _;
+
 use aleo_utils::block_processor::IdValuePair;
-use error_stack::ResultExt;
 use error_stack::Result;
+use error_stack::ResultExt;
+use snarkvm::prelude::CastLossy;
+use snarkvm::prelude::Field;
+use snarkvm::prelude::Group;
+use snarkvm::prelude::Literal;
+use snarkvm::prelude::LiteralType;
+use snarkvm::prelude::Network;
+use snarkvm::prelude::TestnetV0;
 
 use crate::aleo::error::Error;
 use crate::aleo::receipt_builder::CallContract;
@@ -20,23 +29,34 @@ pub fn find_call_contract(outputs: &[IdValuePair]) -> Option<CallContract> {
 }
 
 pub fn read_call_contract(outputs: &IdValuePair) -> Result<CallContract, Error> {
-    let value = outputs
-        .value
-        .as_ref()
-        .ok_or(Error::CallContractNotFound)?;
+    let value = outputs.value.as_ref().ok_or(Error::CallContractNotFound)?;
 
-    serde_aleo::from_str::<CallContract>(value)
-        .change_context(Error::CallContractNotFound)
+    serde_aleo::from_str::<CallContract>(value).change_context(Error::CallContractNotFound)
 }
 
-pub fn find_call_contract_in_outputs(
+pub fn find_call_contract_in_outputs<N: Network>(
     outputs: &[IdValuePair],
-    target_call_contract: &CallContract,
-) -> Option<usize> {
-    outputs.iter().position(|output| {
-        read_call_contract(output).map_or(false, |call_contract| {
-            call_contract == *target_call_contract
-        })
+    payload_hash: Field<N>,
+) -> Option<String> {
+    outputs.iter().find_map(|output| {
+        let output_hash = output.value.as_ref().and_then(|value| {
+            let group: Group<N> = aleo_gateway::aleo_hash(value).ok()?;
+            let literal = Literal::Group(group);
+            let literal = literal.cast_lossy(LiteralType::Field).ok()?;
+            let Literal::Field(field) = literal else {
+                return None;
+            };
+            Some(field)
+        });
+        if let Some(output_hash) = output_hash {
+            if output_hash == payload_hash {
+                output.value.clone()
+            } else {
+                None
+            }
+        } else {
+            None
+        }
     })
 }
 

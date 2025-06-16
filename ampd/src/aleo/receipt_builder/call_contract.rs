@@ -18,6 +18,7 @@ pub struct CallContract {
     pub(crate) sender: String,
     pub(crate) destination_chain: [u128; 2],
     pub(crate) destination_address: [u128; 6],
+    pub(crate) payload_hash: String, // Field
 }
 
 impl CallContract {

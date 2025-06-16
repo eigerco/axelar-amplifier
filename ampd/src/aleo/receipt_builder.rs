@@ -5,7 +5,7 @@ use aleo_types::transition::Transition;
 use error_stack::{ensure, Report, Result, ResultExt};
 use router_api::ChainName;
 use serde::{Deserialize, Serialize};
-use snarkvm::prelude::{Address, Network, ProgramID};
+use snarkvm::prelude::{Address, Field, Group, Network, ProgramID};
 
 use crate::aleo::error::Error;
 use crate::aleo::http_client::ClientTrait;
@@ -164,9 +164,11 @@ where
             .first()
             .map(read_call_contract)
             .ok_or(Error::CallContractNotFound)??;
+
+        let payload_hash = Field::<N>::from_str(&call_contract.payload_hash).unwrap();
         println!("CallContract: {:?}", call_contract);
 
-        let (transition_with_payload, call_contract_index) = self
+        let payload = self
             .state
             .transaction
             .execution
@@ -175,41 +177,27 @@ where
             .find_map(|t| {
                 if t.id != self.state.transition.id && t.program != self.target_contract.to_string()
                 {
-                    let index = find_call_contract_in_outputs(&t.outputs, &call_contract)?;
-                    Some((t, index))
+                    find_call_contract_in_outputs::<N>(&t.outputs, payload_hash)
                 } else {
                     None
                 }
             })
             .ok_or(Error::CallContractNotFound)?;
 
-        let call_contract_with_payload = transition_with_payload
-            .outputs
-            .get(call_contract_index)
-            .ok_or(Error::CallContractNotFound)
-            .change_context(Error::CallContractNotFound)?
-            .value
-            .as_ref()
-            .ok_or(Error::CallContractNotFound)
-            .change_context(Error::CallContractNotFound)?;
+        // let payload = transition_with_payload
+        //     .outputs
+        //     .get(call_contract_index + 1)
+        //     .ok_or(Error::CallContractNotFound)
+        //     .change_context(Error::CallContractNotFound)?
+        //     .value
+        //     .as_ref()
+        //     .ok_or(Error::CallContractNotFound)
+        //     .change_context(Error::CallContractNotFound)?;
 
-        let call_contract_with_payload: CallContract =
-            serde_aleo::from_str(call_contract_with_payload).unwrap();
-
-        let payload = transition_with_payload
-            .outputs
-            .get(call_contract_index + 1)
-            .ok_or(Error::CallContractNotFound)
-            .change_context(Error::CallContractNotFound)?
-            .value
-            .as_ref()
-            .ok_or(Error::CallContractNotFound)
-            .change_context(Error::CallContractNotFound)?;
-
-        ensure!(
-            call_contract_with_payload == call_contract,
-            Error::CallConractDoesNotMatch
-        );
+        // ensure!(
+        //     call_contract_with_payload == call_contract,
+        //     Error::CallConractDoesNotMatch
+        // );
 
         Ok(Receipt::Found(CallContractReceipt {
             transition: Transition::from_str(self.state.transition.id.as_str())
