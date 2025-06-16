@@ -1,32 +1,14 @@
-use std::str::FromStr as _;
-
 use aleo_utils::block_processor::IdValuePair;
 use error_stack::Result;
 use error_stack::ResultExt;
-use snarkvm::prelude::CastLossy;
 use snarkvm::prelude::Field;
 use snarkvm::prelude::Group;
 use snarkvm::prelude::Literal;
 use snarkvm::prelude::LiteralType;
 use snarkvm::prelude::Network;
-use snarkvm::prelude::TestnetV0;
 
 use crate::aleo::error::Error;
 use crate::aleo::receipt_builder::CallContract;
-
-pub fn find_call_contract(outputs: &[IdValuePair]) -> Option<CallContract> {
-    // Only proceed if there's exactly one output
-    if outputs.len() != 1 {
-        return None;
-    }
-
-    outputs
-        .first()?
-        .value
-        .as_ref()
-        .and_then(|value| serde_aleo::from_str::<CallContract>(value).ok())
-    // TODO: is it ok to hide the error here?
-}
 
 pub fn read_call_contract(outputs: &IdValuePair) -> Result<CallContract, Error> {
     let value = outputs.value.as_ref().ok_or(Error::CallContractNotFound)?;
