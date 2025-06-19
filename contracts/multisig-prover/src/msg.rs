@@ -2,7 +2,7 @@ use axelar_wasm_std::MajorityThreshold;
 use cosmwasm_schema::{cw_serde, QueryResponses};
 use cosmwasm_std::{HexBinary, Uint64};
 use msgs_derive::EnsurePermissions;
-pub use multisig_prover_api::msg::InstantiateMsg;
+pub use solana_multisig_prover_api::msg::InstantiateMsg;
 use router_api::CrossChainId;
 
 pub use crate::contract::MigrateMsg;

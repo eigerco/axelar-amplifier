@@ -1,10 +1,10 @@
 [package]
-name = "multisig-prover"
-version = "1.1.1"
+name = "solana-multisig-prover"
+version = "0.1.0"
 rust-version = { workspace = true }
 license = "MIT OR Apache-2.0"
 edition = { workspace = true }
-description = "Multisig prover contract"
+description = "Solana Multisig prover contract"
 
 exclude = ["contract.wasm", "hash.txt"]
 
@@ -20,7 +20,7 @@ optimize = """docker run --rm -v "$(pwd)":/code \
 crate-type = ["cdylib", "rlib"]
 
 [[bin]]
-name = "multisig-prover-schema"
+name = "solana-multisig-prover-schema"
 path = "src/bin/schema.rs"
 
 [features]
@@ -49,7 +49,7 @@ itertools = "0.11.0"
 k256 = { workspace = true }
 msgs-derive = { workspace = true }
 multisig = { workspace = true, features = ["library"] }
-multisig-prover-api = { workspace = true }
+solana-multisig-prover-api = { workspace = true }
 report = { workspace = true }
 router-api = { workspace = true }
 semver = { workspace = true }

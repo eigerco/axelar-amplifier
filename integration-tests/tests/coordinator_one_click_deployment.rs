@@ -19,7 +19,7 @@ use integration_tests::multisig_prover_contract::MultisigProverContract;
 use integration_tests::protocol::Protocol;
 use integration_tests::voting_verifier_contract::VotingVerifierContract;
 use multisig::key::KeyType;
-use multisig_prover_api::encoding::Encoder;
+use solana_multisig_prover_api::encoding::Encoder;
 use router_api::{Address, ChainName, CrossChainId, Message};
 use serde::de::{DeserializeOwned, Error};
 use serde::{Deserialize, Deserializer};
@@ -558,7 +558,7 @@ fn coordinator_one_click_message_verification_and_routing_succeeds() {
         .execute(
             &mut protocol.app,
             protocol.governance_address.clone(),
-            &multisig_prover::msg::ExecuteMsg::UpdateVerifierSet {}
+            &solana_multisig_prover::msg::ExecuteMsg::UpdateVerifierSet {}
         )
         .is_ok());
 
@@ -568,7 +568,7 @@ fn coordinator_one_click_message_verification_and_routing_succeeds() {
         .execute(
             &mut protocol.app,
             protocol.governance_address.clone(),
-            &multisig_prover::msg::ExecuteMsg::ConstructProof(vec![CrossChainId::new(
+            &solana_multisig_prover::msg::ExecuteMsg::ConstructProof(vec![CrossChainId::new(
                 chain1.chain_name.clone(),
                 "0x88d7956fd7b6fcec846548d83bd25727f2585b4be3add21438ae9fbb34625924-3",
             )
