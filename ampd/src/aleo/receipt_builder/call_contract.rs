@@ -204,7 +204,7 @@ fn its_outgoing_transfer_abi(transfer: &ItsOutgoingInterchainTransfer) -> HexBin
 
     let d = transfer.inner_message.destination_address;
     let s = format!(
-        "{}u128, {}u128, {}u128, {}u128, {}u128, {}u128",
+        "[{}u128, {}u128, {}u128, {}u128, {}u128, {}u128]",
         d[0], d[1], d[2], d[3], d[4], d[5]
     );
     println!("decoded Destination address: '{}'", s);

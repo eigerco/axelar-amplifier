@@ -71,7 +71,9 @@ impl AleoValue for Message {
 
         let source_address_len = source_address.u128_len();
         ensure!(
-            source_address_len <= SOURCE_ADDRESS_LEN,
+            source_address_len <= SOURCE_ADDRESS_LEN, // If its less we will pad with 0s. The
+            // problem is if the length is more than SOURCE_ADDRESS_LEN because we will not be able to
+            // reconstruct the original address
             Error::InvalidEncodedStringLength {
                 expected: SOURCE_ADDRESS_LEN,
                 actual: source_address.u128_len()

@@ -77,6 +77,8 @@ pub fn construct_proof(
     // To be handle approbriately in the future, the sig verifier should be configured in contract
     // and it should be passed as a parameter to the contract initialized
 
+    // asdf w
+
     const MULTISIG_ALEO: &str = "axelar1rv940hhxe3288j42zazt7c7fmql4udsgy9cjzmeq646gt7gl02hq54seyr";
     let sig_verifier = (config.chain_name
         == ChainName::from_str("aleo-2").map_err(|_| ContractError::Proof)?)
@@ -204,7 +206,7 @@ pub fn construct_proof_with_its_payload(
             let payload = its_message.to_aleo_string().ok().unwrap();
             let hash =
                 aleo_gateway::hash::<&str, snarkvm_cosmwasm::network::TestnetV0>(&payload).unwrap();
-            // we override the payload hash with the hash of the aleo data
+            // We override the payload hash with the hash of the aleo data
             // this will not be reflected in the get proof query.
             // At get proof query we will need to reconstruct the payload hash
             Message {
