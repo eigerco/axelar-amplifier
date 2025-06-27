@@ -26,14 +26,11 @@ pub fn find_call_contract_in_outputs<N: Network>(
             Some(field)
         });
 
-        if let Some(output_hash) = output_hash {
-            if output_hash == payload_hash {
+        match output_hash {
+            Some(output_hash) if output_hash == payload_hash => {
                 output.value.clone()
-            } else {
-                None
-            }
-        } else {
-            None
+            },
+            _ => None,
         }
     })
 }

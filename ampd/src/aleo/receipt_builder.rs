@@ -165,8 +165,6 @@ where
             .map(read_call_contract)
             .ok_or(Error::CallContractNotFound)??;
 
-        let payload_hash = call_contract.payload_hash;
-
         let payload = self
             .state
             .transaction
@@ -176,7 +174,7 @@ where
             .find_map(|t| {
                 if t.id != self.state.transition.id && t.program != self.target_contract.to_string()
                 {
-                    find_call_contract_in_outputs::<N>(&t.outputs, payload_hash)
+                    find_call_contract_in_outputs::<N>(&t.outputs, call_contract.payload_hash)
                 } else {
                     None
                 }
