@@ -5,7 +5,7 @@ use aleo_types::transition::Transition;
 use router_api::ChainName;
 use serde::{Deserialize, Serialize};
 use sha3::{Digest, Keccak256};
-use snarkvm::prelude::{Address, Network, Field};
+use snarkvm::prelude::{Address, Field, Network};
 use tracing::{debug, error, info};
 
 use crate::aleo::error::Error;
@@ -18,7 +18,7 @@ pub struct CallContract<N: Network> {
     pub(crate) sender: Address<N>,
     pub(crate) destination_chain: [u128; 2],
     pub(crate) destination_address: [u128; 6],
-    pub(crate) payload_hash: Field<N>
+    pub(crate) payload_hash: Field<N>,
 }
 
 impl<N: Network> CallContract<N> {
@@ -86,7 +86,7 @@ impl<N: Network> PartialEq<crate::handlers::aleo_verify_msg::Message<N>>
         );
 
         self.transition == message.tx_id
-            && self.destination_address== message.destination_address
+            && self.destination_address == message.destination_address
             && self.destination_chain == message.destination_chain
             && self.source_address == message.source_address
             && payload_hash == message.payload_hash
@@ -111,19 +111,16 @@ fn payload_hash<N: Network>(
         let payload_hash = keccak256(&payload).to_vec();
         Hash::from_slice(&payload_hash)
     } else if destination_chain == "axelar" {
-        let payload =
-            aleo_program_driver::its::axelarinterchaintokenhub::abi_translate(payload);
+        let payload = aleo_program_driver::its::axelarinterchaintokenhub::abi_translate(payload);
 
         if let Ok(payload) = payload {
             debug!(?payload, "Receive axelar payload is an ITS message");
             let payload_hash = keccak256(&payload).to_vec();
 
             Hash::from_slice(&payload_hash)
-        }
-        else {
+        } else {
             todo!("Handle axelar payload hash for non-ITS messages")
         }
-
     } else {
         // Keccak + bhp hash
         let payload_hash = aleo_gateway::hash::<&str, N>(payload)

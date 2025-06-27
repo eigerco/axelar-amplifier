@@ -318,7 +318,7 @@ where
                             );
                             self.create_handler_task(label, handler, event_processor_config.clone())
                         }
-                        _ => return Err(Error::AleoNetworkId.into())
+                        _ => return Err(Error::AleoNetworkId.into()),
                     }
                 }
                 handlers::config::Config::AleoVerifierSetVerifier {
@@ -376,7 +376,7 @@ where
                                 );
                             self.create_handler_task(label, handler, event_processor_config.clone())
                         }
-                        _ => return Err(Error::AleoNetworkId.into())
+                        _ => return Err(Error::AleoNetworkId.into()),
                     }
                 }
                 handlers::config::Config::EvmMsgVerifier {

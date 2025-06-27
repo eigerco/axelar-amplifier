@@ -271,9 +271,7 @@ dependencies = [
  "bech32 0.11.0",
  "cosmwasm-std",
  "error-stack",
- "hex",
  "serde",
- "serde_json",
  "snarkvm-cosmwasm",
  "thiserror 1.0.69",
 ]
@@ -299,12 +297,9 @@ dependencies = [
 name = "aleo-utils-temp"
 version = "0.1.0"
 dependencies = [
- "arbtest",
  "nom 8.0.0",
  "serde",
  "serde_json",
- "snarkvm-cosmwasm",
- "thiserror 1.0.69",
 ]
 
 [[package]]
@@ -689,21 +684,6 @@ name = "anyhow"
 version = "1.0.98"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "e16d2d3311acee920a9eb8d33b8cbc1787ce4a264e85f964c2404b969bdcd487"
-
-[[package]]
-name = "arbitrary"
-version = "1.4.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "dde20b3d026af13f561bdd0f15edf01fc734f0dafcedbaf42bba506a9517f223"
-
-[[package]]
-name = "arbtest"
-version = "0.3.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "2a3be567977128c0f71ad1462d9624ccda712193d124e944252f0c5789a06d46"
-dependencies = [
- "arbitrary",
-]
 
 [[package]]
 name = "ark-bls12-381"
@@ -7159,7 +7139,6 @@ dependencies = [
  "itertools 0.11.0",
  "k256",
  "msgs-derive 1.0.0",
- "multisig-aleo",
  "rand_chacha 0.3.1",
  "report 1.0.0",
  "rewards",
@@ -7180,15 +7159,9 @@ dependencies = [
  "axelar-wasm-std 1.0.0",
  "cosmwasm-schema",
  "cosmwasm-std",
- "cw-utils",
- "enum-display-derive",
  "error-stack",
  "getrandom 0.2.16",
  "hex",
- "msgs-derive 1.0.0",
- "report 1.0.0",
- "serde",
- "serde_json",
  "snarkvm-cosmwasm",
  "thiserror 1.0.69",
 ]

@@ -239,4 +239,3 @@ mod tests {
         assert_eq!(d.len(), 6);
     }
 }
-

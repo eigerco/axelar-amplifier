@@ -61,7 +61,6 @@ sha3 = { workspace = true }
 signature-verifier-api = { workspace = true }
 thiserror = { workspace = true }
 
-multisig-aleo = { path = "../multisig-aleo" }
 snarkvm-cosmwasm = { workspace = true, features = ["types", "program"] }
 rand_chacha = "0.3"
 

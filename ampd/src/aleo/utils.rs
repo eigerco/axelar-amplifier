@@ -1,11 +1,6 @@
 use aleo_utils_temp::block_processor::IdValuePair;
-use error_stack::Result;
-use error_stack::ResultExt;
-use snarkvm::prelude::Field;
-use snarkvm::prelude::Group;
-use snarkvm::prelude::Literal;
-use snarkvm::prelude::LiteralType;
-use snarkvm::prelude::Network;
+use error_stack::{Result, ResultExt};
+use snarkvm::prelude::{Field, Group, Literal, LiteralType, Network};
 
 use crate::aleo::error::Error;
 use crate::aleo::receipt_builder::CallContract;
