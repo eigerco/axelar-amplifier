@@ -311,7 +311,7 @@ mod tests {
 
     #[tokio::test]
     async fn aleo_verify_msg() {
-        let mock_client = crate::aleo::http_client::tests::mock_client_2();
+        let mock_client = crate::aleo::http_client::tests::mock_client();
         let event = poll_started_event();
 
         let handler = Handler::<_, TestnetV0>::new(

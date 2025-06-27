@@ -94,16 +94,16 @@ pub mod tests {
 
     type CurrentNetwork = snarkvm::prelude::TestnetV0;
 
-    pub fn mock_client_1() -> MockClientTrait {
+    pub fn mock_client() -> MockClientTrait {
         let mut mock_client = MockClientTrait::new();
 
-        let transaction_id = "at1dgmvx30f79wt6w8fcjurwtsc5zak4efg4ayyme79862xylve7gxsq3nfh6";
+        let transaction_id = "at1pmfmnh50055ml9h4p4895uwumnts92a5v8syw26ydkkvm5vdlqrqqmw4m3";
         let mut expected_transitions: HashMap<
             Transaction,
             aleo_utils_temp::block_processor::Transaction,
         > = HashMap::new();
         let transaction_one = include_str!(
-            "../tests/at1dgmvx30f79wt6w8fcjurwtsc5zak4efg4ayyme79862xylve7gxsq3nfh6.json"
+            "../tests/at1pmfmnh50055ml9h4p4895uwumnts92a5v8syw26ydkkvm5vdlqrqqmw4m3.json"
         );
         let snark_tansaction: aleo_utils_temp::block_processor::Transaction =
             serde_json::from_str(transaction_one).unwrap();
@@ -117,160 +117,6 @@ pub mod tests {
             });
 
         mock_client.expect_find_transaction().returning(move |_| {
-            let transaction_id = "at1dgmvx30f79wt6w8fcjurwtsc5zak4efg4ayyme79862xylve7gxsq3nfh6";
-            Ok(transaction_id.to_string())
-        });
-
-        mock_client
-    }
-
-    pub fn mock_client_2() -> MockClientTrait {
-        let mut mock_client = MockClientTrait::new();
-
-        let transaction_id = "at14gry4nauteg5sp00p6d2pj93dhpsm5857ml8y3xg57nkpszhav9qk0tgvd";
-        let mut expected_transitions: HashMap<
-            Transaction,
-            aleo_utils_temp::block_processor::Transaction,
-        > = HashMap::new();
-        let transaction_one = include_str!(
-            "../tests/at14gry4nauteg5sp00p6d2pj93dhpsm5857ml8y3xg57nkpszhav9qk0tgvd.json"
-        );
-        let snark_tansaction: aleo_utils_temp::block_processor::Transaction =
-            serde_json::from_str(transaction_one).unwrap();
-        let transaction = Transaction::from_str(transaction_id).unwrap();
-        expected_transitions.insert(transaction, snark_tansaction);
-
-        mock_client
-            .expect_get_transaction()
-            .returning(move |transaction| {
-                Ok(expected_transitions.get(transaction).unwrap().clone())
-            });
-
-        mock_client.expect_find_transaction().returning(move |_| {
-            let transaction_id = "at14gry4nauteg5sp00p6d2pj93dhpsm5857ml8y3xg57nkpszhav9qk0tgvd";
-            Ok(transaction_id.to_string())
-        });
-
-        mock_client
-    }
-
-    pub fn mock_client_3() -> MockClientTrait {
-        let mut mock_client = MockClientTrait::new();
-
-        let transaction_id = "at16nqk09h4fyh83v0ayc44kvyz5y27ynhsw0v4qezc95t8hl5sas9s2enmlw";
-        let mut expected_transitions: HashMap<
-            Transaction,
-            aleo_utils_temp::block_processor::Transaction,
-        > = HashMap::new();
-        let transaction_one = include_str!(
-            "../tests/at16nqk09h4fyh83v0ayc44kvyz5y27ynhsw0v4qezc95t8hl5sas9s2enmlw.json"
-        );
-        let snark_tansaction: aleo_utils_temp::block_processor::Transaction =
-            serde_json::from_str(transaction_one).unwrap();
-        let transaction = Transaction::from_str(transaction_id).unwrap();
-        expected_transitions.insert(transaction, snark_tansaction);
-
-        mock_client
-            .expect_get_transaction()
-            .returning(move |transaction| {
-                Ok(expected_transitions.get(transaction).unwrap().clone())
-            });
-
-        mock_client.expect_find_transaction().returning(move |_| {
-            let transaction_id = "at16nqk09h4fyh83v0ayc44kvyz5y27ynhsw0v4qezc95t8hl5sas9s2enmlw";
-            Ok(transaction_id.to_string())
-        });
-
-        mock_client
-    }
-
-    #[tokio::test]
-    async fn sanity_test1() {
-        let client = mock_client_1();
-        let transision_id = "au1zn24gzpgkr936qv49g466vfccg8aykcv05rk39s239hjxwrtsu8sltpsd8";
-        let transition = Transition::from_str(transision_id).unwrap();
-        let gateway_contract = "gateway_base.aleo";
-
-        ReceiptBuilder::<_, _, CurrentNetwork>::new(&client, gateway_contract)
-            .unwrap()
-            .get_transaction_id(&transition)
-            .await
-            .unwrap()
-            .get_transaction()
-            .await
-            .unwrap()
-            .get_transition()
-            .unwrap()
-            .check_call_contract()
-            .unwrap();
-    }
-
-    #[tokio::test]
-    async fn sanity_test2() {
-        let client = mock_client_2();
-        let transision_id = "au17kdp7a7p6xuq6h0z3qrdydn4f6fjaufvzvlgkdd6vzpr87lgcgrq8qx6st";
-        let transition = Transition::from_str(transision_id).unwrap();
-        let gateway_contract = "ac64caccf8221554ec3f89bf.aleo";
-
-        ReceiptBuilder::<_, _, CurrentNetwork>::new(&client, gateway_contract)
-            .unwrap()
-            .get_transaction_id(&transition)
-            .await
-            .unwrap()
-            .get_transaction()
-            .await
-            .unwrap()
-            .get_transition()
-            .unwrap()
-            .check_call_contract()
-            .unwrap();
-    }
-
-    #[tokio::test]
-    async fn sanity_test3() {
-        let client = mock_client_3();
-        let transision_id = "au193ysmau9rpcyvp4ax2vjc0029q4n2mgjjwd4rfrghzsts5x09v8s9xxwdx";
-        let transition = Transition::from_str(transision_id).unwrap();
-        let gateway_contract = "gateway_frontend.aleo";
-
-        let res = ReceiptBuilder::<_, _, CurrentNetwork>::new(&client, &gateway_contract)
-            .unwrap()
-            .get_transaction_id(&transition)
-            .await
-            .unwrap()
-            .get_transaction()
-            .await
-            .unwrap()
-            .get_transition()
-            .unwrap()
-            .check_call_contract();
-        assert!(res.is_ok());
-    }
-
-    pub fn mock_client_4() -> MockClientTrait {
-        let mut mock_client = MockClientTrait::new();
-
-        let transaction_id = "at1xesr6k7h4plwhfyw9jfehhq5zjg9d9pq3s9qtz9qrz85v757xqgqakhspd";
-        let mut expected_transitions: HashMap<
-            Transaction,
-            aleo_utils_temp::block_processor::Transaction,
-        > = HashMap::new();
-        let transaction_one = include_str!(
-            "../tests/at1xesr6k7h4plwhfyw9jfehhq5zjg9d9pq3s9qtz9qrz85v757xqgqakhspd.json"
-        );
-        let snark_tansaction: aleo_utils_temp::block_processor::Transaction =
-            serde_json::from_str(transaction_one).unwrap();
-        let transaction = Transaction::from_str(transaction_id).unwrap();
-        expected_transitions.insert(transaction, snark_tansaction);
-
-        mock_client
-            .expect_get_transaction()
-            .returning(move |transaction| {
-                Ok(expected_transitions.get(transaction).unwrap().clone())
-            });
-
-        mock_client.expect_find_transaction().returning(move |_| {
-            let transaction_id = "at1xesr6k7h4plwhfyw9jfehhq5zjg9d9pq3s9qtz9qrz85v757xqgqakhspd";
             Ok(transaction_id.to_string())
         });
 
@@ -279,22 +125,12 @@ pub mod tests {
 
     #[tokio::test]
     async fn aleo_verify_msg_transfer() {
-        tracing_subscriber::fmt()
-            .json()
-            .flatten_event(true)
-            .with_env_filter(
-                tracing_subscriber::EnvFilter::builder()
-                    .with_default_directive(tracing_core::LevelFilter::DEBUG.into())
-                    .from_env_lossy(),
-            )
-            .init();
-
-        let client = mock_client_4();
-        let transision_id = "au1738ps3lp4ayrfykyngxt99d9gn53wayleaed48j9l52wa9djvqyspu2ns0";
+        let client = mock_client();
+        let transision_id = "au10yyqs2ucva9phs55qycajtssmu43pz3thl5zvyrqjg62jak4zvxq2spwhp";
         let transition = Transition::from_str(transision_id).unwrap();
         let gateway_contract = "gateway_frontend.aleo";
 
-        let res = ReceiptBuilder::<_, _, CurrentNetwork>::new(&client, &gateway_contract)
+        ReceiptBuilder::<_, _, CurrentNetwork>::new(&client, gateway_contract)
             .unwrap()
             .get_transaction_id(&transition)
             .await
@@ -304,7 +140,7 @@ pub mod tests {
             .unwrap()
             .get_transition()
             .unwrap()
-            .check_call_contract();
-        res.unwrap();
+            .check_call_contract()
+            .unwrap();
     }
 }
