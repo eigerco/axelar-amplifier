@@ -15,7 +15,6 @@ use crate::{AleoValue, Array2D, Error, WeightedSigners};
 pub struct Proof {
     pub weighted_signers: WeightedSigners,
     pub signature: Array2D<RawSignature>,
-    // pub nonce: [u128; 2], // TODO: this should be included before going to mainnet
 }
 
 impl Proof {
@@ -70,7 +69,6 @@ impl Proof {
         Ok(Proof {
             weighted_signers,
             signature,
-            // nonce: [3, 1],
         })
     }
 }

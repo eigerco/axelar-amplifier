@@ -17,7 +17,7 @@ pub struct WeightedSigners {
     #[serde_as(as = "[[_; GROUP_SIZE]; GROUPS]")]
     pub signers: Array2D<WeightedSigner>,
     pub threshold: Uint128,
-    // nonce: [u64; 4], // TODO: this should be included before going to mainnet
+    pub nonce: u64, // Other chains are using 256bits nonce, but this is initialized from VerifierSet::created_at, which is a u64.
 }
 
 impl TryFrom<&VerifierSet> for WeightedSigners {
@@ -71,7 +71,6 @@ impl TryFrom<&VerifierSet> for WeightedSigners {
         });
 
         let threshold = value.threshold;
-        let _nonce = [0, 0, 0, value.created_at];
 
         let mut signature: Array2D<MaybeUninit<WeightedSigner>> =
             unsafe { MaybeUninit::uninit().assume_init() };
@@ -87,6 +86,7 @@ impl TryFrom<&VerifierSet> for WeightedSigners {
         Ok(WeightedSigners {
             signers: signers_array,
             threshold,
+            nonce: value.created_at,
         })
     }
 }
@@ -110,8 +110,8 @@ impl AleoValue for WeightedSigners {
             .join(", ");
 
         Ok(format!(
-            "{{ signers: [ {} ], quorum: {}u128 }}",
-            signers, self.threshold
+            "{{ signers: [ {} ], quorum: {}u128, nonce: {}u64 }}",
+            signers, self.threshold, self.nonce
         ))
     }
 }
