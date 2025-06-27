@@ -11,7 +11,7 @@ aleo-gateway = { workspace = true }
 aleo-utils-temp = { workspace = true }
 aleo-string-encoder = { workspace = true }
 aleo-types = { workspace = true }
-aleo-program-driver = { path = "../../dev/crates/aleo-program-driver" }
+aleo-program-driver = { workspace = true }
 ampd-proto = { workspace = true }
 async-trait = { workspace = true }
 axelar-solana-encoding = { workspace = true }

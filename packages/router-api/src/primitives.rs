@@ -190,7 +190,7 @@ impl Display for CrossChainId {
 #[cw_serde]
 #[serde(try_from = "String")]
 #[derive(Eq, Hash, Valuable)]
-pub struct ChainName(pub String);
+pub struct ChainName(String);
 
 impl FromStr for ChainName {
     type Err = Error;

@@ -5,7 +5,7 @@ use aleo_types::transition::Transition;
 use error_stack::{ensure, Report, Result, ResultExt};
 use router_api::ChainName;
 use serde::{Deserialize, Serialize};
-use snarkvm::prelude::{Address, Field, Network, ProgramID};
+use snarkvm::prelude::{Address, Network, ProgramID};
 
 use crate::aleo::error::Error;
 use crate::aleo::http_client::ClientTrait;
@@ -160,12 +160,12 @@ where
         ensure!(outputs.len() == 1, Error::CallContractNotFound);
 
         // The call contract from call contract call
-        let call_contract: CallContract = outputs
+        let call_contract: CallContract<N> = outputs
             .first()
             .map(read_call_contract)
             .ok_or(Error::CallContractNotFound)??;
 
-        let payload_hash = Field::<N>::from_str(&call_contract.payload_hash).unwrap();
+        let payload_hash = call_contract.payload_hash;
 
         let payload = self
             .state

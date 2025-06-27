@@ -34,4 +34,6 @@ pub enum Error {
     NonemptyError(#[from] axelar_wasm_std::nonempty::Error),
     #[error("Router API error: {0}")]
     RouterApiError(#[from] router_api::error::Error),
+    #[error("SnarkVM error: {0}")]
+    SnarkVMError(#[from] snarkvm::prelude::Error),
 }

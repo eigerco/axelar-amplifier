@@ -10,10 +10,10 @@ use snarkvm::prelude::Network;
 use crate::aleo::error::Error;
 use crate::aleo::receipt_builder::CallContract;
 
-pub fn read_call_contract(outputs: &IdValuePair) -> Result<CallContract, Error> {
+pub fn read_call_contract<N: Network>(outputs: &IdValuePair) -> Result<CallContract<N>, Error> {
     let value = outputs.value.as_ref().ok_or(Error::CallContractNotFound)?;
 
-    serde_aleo::from_str::<CallContract>(value).change_context(Error::CallContractNotFound)
+    serde_aleo::from_str(value).change_context(Error::CallContractNotFound)
 }
 
 pub fn find_call_contract_in_outputs<N: Network>(
@@ -30,6 +30,7 @@ pub fn find_call_contract_in_outputs<N: Network>(
             };
             Some(field)
         });
+
         if let Some(output_hash) = output_hash {
             if output_hash == payload_hash {
                 output.value.clone()

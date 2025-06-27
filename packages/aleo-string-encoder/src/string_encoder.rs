@@ -1,5 +1,3 @@
-// use plaintext_trait::ToPlaintext;
-// use snarkvm::prelude::{Literal, Network, Plaintext, U128};
 use thiserror::Error;
 
 #[derive(Error, Debug)]

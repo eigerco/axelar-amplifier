@@ -223,9 +223,10 @@ impl AleoValue for interchain_token_service::HubMessage {
 
 impl AleoValue for interchain_token_service::InterchainTransfer {
     fn to_aleo_string(&self) -> Result<String, Report<Error>> {
+        let token_id: [u8; 32] = self.token_id.into();
         let its_token_id = [
-            u128::from_be_bytes(self.token_id.0[0..16].try_into().unwrap()),
-            u128::from_be_bytes(self.token_id.0[16..32].try_into().unwrap()),
+            u128::from_be_bytes(token_id[0..16].try_into().unwrap()),
+            u128::from_be_bytes(token_id[16..32].try_into().unwrap()),
         ];
 
         let source_address =
@@ -266,9 +267,10 @@ impl AleoValue for interchain_token_service::InterchainTransfer {
 
 impl AleoValue for interchain_token_service::DeployInterchainToken {
     fn to_aleo_string(&self) -> Result<String, Report<Error>> {
+        let token_id: [u8; 32] = self.token_id.into();
         let its_token_id = [
-            u128::from_be_bytes(self.token_id.0[0..16].try_into().unwrap()),
-            u128::from_be_bytes(self.token_id.0[16..32].try_into().unwrap()),
+            u128::from_be_bytes(token_id[0..16].try_into().unwrap()),
+            u128::from_be_bytes(token_id[16..32].try_into().unwrap()),
         ];
 
         // TODO: use less strings

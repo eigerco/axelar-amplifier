@@ -12,7 +12,7 @@ use router_api::ChainNameRaw;
 pub struct TokenId(
     #[serde(with = "axelar_wasm_std::hex")]
     #[schemars(with = "String")]
-    pub [u8; 32],
+    [u8; 32],
 );
 
 impl Display for TokenId {

@@ -7,9 +7,7 @@ license.workspace = true
 
 [dependencies]
 thiserror = { workspace = true }
-# snarkvm = { workspace = true }
 serde-aleo = { workspace = true }
-# plaintext-trait = { path = "../../../its-pr/crates/plaintext-trait" }
 
 [lints]
 workspace = true
