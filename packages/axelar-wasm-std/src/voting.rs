@@ -123,13 +123,13 @@ impl PrimaryKey<'_> for PollId {
     type Suffix = Self;
     type SuperSuffix = Self;
 
-    fn key(&self) -> Vec<Key> {
+    fn key(&self) -> Vec<Key<'_>> {
         vec![Key::Val64(self.0.to_be_bytes())]
     }
 }
 
 impl Prefixer<'_> for PollId {
-    fn prefix(&self) -> Vec<Key> {
+    fn prefix(&self) -> Vec<Key<'_>> {
         vec![Key::Val64(self.0.to_be_bytes())]
     }
 }
