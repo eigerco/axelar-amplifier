@@ -33,14 +33,14 @@ pub struct StateTransactionId {
 /// State after retrieving the transaction
 #[derive(Debug, Deserialize)]
 pub struct StateTransactionFound {
-    transaction: aleo_utils::block_processor::Transaction,
+    transaction: aleo_utils_temp::block_processor::Transaction,
 }
 
 /// State after finding the transition in the transaction
 #[derive(Debug, Deserialize)]
 pub struct StateTransitionFound {
-    transaction: aleo_utils::block_processor::Transaction,
-    transition: aleo_utils::block_processor::Transition,
+    transaction: aleo_utils_temp::block_processor::Transaction,
+    transition: aleo_utils_temp::block_processor::Transition,
 }
 
 /// Builder for verifying Aleo receipts using a type-state pattern

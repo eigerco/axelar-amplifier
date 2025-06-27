@@ -18,7 +18,6 @@ snarkvm-cosmwasm = { workspace = true, features = ["types", "program"] }
 [dev-dependencies]
 axelar-wasm-std = { workspace = true }
 assert_ok = { workspace = true }
-aleo-utils = { workspace = true }
 
 [lints]
 workspace = true

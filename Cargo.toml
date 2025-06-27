@@ -27,7 +27,7 @@ arbtest = { version = "0.3.2" }
 aleo-types = { path = "packages/aleo-types" }
 aleo-gateway = { path = "packages/aleo-gateway" }
 aleo-string-encoder = { path = "packages/aleo-string-encoder" }
-aleo-utils = { path = "packages/aleo-utils" }
+aleo-utils-temp = { path = "packages/aleo-utils-temp" }
 alloy-primitives = { version = "0.7.6", default-features = false, features = [
   "std",
 ] }
@@ -99,7 +99,7 @@ schemars = "0.8.10"
 semver = "1.0"
 serde = { version = "1.0.145", default-features = false, features = ["derive"] }
 serde_json = "1.0.134"
-serde-aleo = { path = "../its-pr/crates/serde-aleo" }
+serde-aleo = { path = "../dev/crates/serde-aleo" }
 service-registry = { version = "^1.1.0", path = "contracts/service-registry" }
 service-registry-api = { version = "^1.0.0", path = "packages/service-registry-api" }
 sha3 = { version = "0.10.8", default-features = false, features = [] }
@@ -124,14 +124,14 @@ tracing = { version = "0.1.37", features = ["valuable", "log"] }
 typed-builder = "0.18.2"
 valuable = "0.1.1"
 voting-verifier = { version = "^1.1.0", path = "contracts/voting-verifier" }
-snarkvm-cosmwasm = { git = "https://github.com/eigerco/snarkVM", branch = "cosmwasm-2" }
-snarkvm = { git = "https://github.com/eigerco/snarkVM", branch = "cosmwasm-2" }
+snarkvm-cosmwasm = { git = "https://github.com/eigerco/snarkVM", branch = "cosmwasm-3" }
+snarkvm = { git = "https://github.com/eigerco/snarkVM", branch = "cosmwasm-3" }
 voting-verifier-api = { version = "1.0.0", path = "packages/voting-verifier-api" }
 xrpl-types = { version = "^1.0.0", path = "packages/xrpl-types" }
 
 # This is for multisig-prover tests
 [patch.crates-io]
-snarkvm = { git = "https://github.com/eigerco/snarkVM", branch = "cosmwasm-2" }
+snarkvm = { git = "https://github.com/eigerco/snarkVM", branch = "cosmwasm-3" }
 
 [workspace.lints.clippy]
 arithmetic_side_effects = "deny"

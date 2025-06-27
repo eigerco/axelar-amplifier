@@ -1,4 +1,4 @@
-use aleo_utils::block_processor::IdValuePair;
+use aleo_utils_temp::block_processor::IdValuePair;
 use error_stack::Result;
 use error_stack::ResultExt;
 use snarkvm::prelude::Field;
@@ -50,6 +50,6 @@ pub fn find_in_outputs<T: for<'de> serde::Deserialize<'de>>(outputs: &[IdValuePa
     }
 
     let value = &outputs.first()?.value;
-    let json = aleo_utils::json_like::into_json(value.as_ref()?).ok()?;
+    let json = aleo_utils_temp::json_like::into_json(value.as_ref()?).ok()?;
     serde_json::from_str(&json).ok()
 }

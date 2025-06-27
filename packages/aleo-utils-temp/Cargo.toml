@@ -1,5 +1,5 @@
 [package]
-name = "aleo-utils"
+name = "aleo-utils-temp"
 version = "0.1.0"
 edition = { workspace = true }
 

@@ -9,7 +9,6 @@ use snarkvm_cosmwasm::types::Group;
 use thiserror::Error;
 
 mod execute_data;
-mod interchain_token_types;
 mod message;
 mod message_group;
 mod messages;

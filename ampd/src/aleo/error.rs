@@ -16,8 +16,6 @@ pub enum Error {
     CallContractNotFound,
     #[error("Failed to find signerRotation")]
     SignerRotationNotFound,
-    #[error("Failed to find user call")]
-    UserCallnotFound,
     #[error("The program name is invalid: {0}")]
     InvalidProgramName(String),
     #[error("The provided chain name is invalid")]
@@ -28,14 +26,8 @@ pub enum Error {
     PayloadHash(String),
     #[error("Failed to find transition '{0}' in transaction")]
     TransitionNotFoundInTransaction(String),
-    #[error("Failed to convert aleo string to json")]
-    JsonParse(String),
     #[error("Failed to create CallContract receipt: {0}")]
     CalledContractReceipt(String),
-    #[error("More than one SCM found")]
-    MoreThanOneSCM,
-    #[error("Call contract does not match")]
-    CallConractDoesNotMatch,
     #[error("Deseirialization error: {0}")]
     DeserializationError(#[from] serde_aleo::Error),
     #[error("Axelar nonempty error: {0}")]
