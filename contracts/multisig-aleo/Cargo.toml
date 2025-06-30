@@ -37,10 +37,6 @@ cosmwasm-schema = { workspace = true }
 cosmwasm-std = { workspace = true }
 error-stack = { workspace = true }
 getrandom = { version = "0.2", default-features = false, features = ["custom"] }
-# msgs-derive = { workspace = true }
-# report = { workspace = true }
-# serde = { version = "1.0.145", default-features = false, features = ["derive"] }
-# serde_json = "1.0.89"
 thiserror = { workspace = true }
 snarkvm-cosmwasm = { workspace = true, features = ["account", "types", "program", "network"] }
 

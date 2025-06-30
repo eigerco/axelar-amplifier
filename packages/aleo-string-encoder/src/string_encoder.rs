@@ -137,56 +137,6 @@ impl StringEncoder {
     }
 }
 
-/*
-/// Represents a string that can be encoded by `StringEncoder` without errors.
-///
-/// This is a newtype wrapper around `String` that guarantees all contained characters are
-/// valid ASCII, ensuring they can be safely encoded without errors by
-/// [`StringEncoder::encode_string`].
-///
-/// The ASCII-only invariant is enforced at creation time in the [`Self::new`] method,
-/// which returns an error if any non-ASCII characters are present in the input string.
-pub struct EncodableString(String);
-
-impl EncodableString {
-    /// Creates a new `EncodableString` from a regular `String`.
-    ///
-    /// Returns [`Error::InvalidAscii`] if non-ASCII characters are present in the input
-    /// string.
-    pub fn new(input: String) -> Result<Self, Error> {
-        if input.is_ascii() {
-            Ok(EncodableString(input))
-        } else {
-            Err(Error::InvalidAscii)
-        }
-    }
-}
-
-impl<N: Network> ToPlaintext<N> for EncodableString {
-    /// Converts the `EncodableString` into a `Plaintext` array of `U128` literals.
-    ///
-    /// This implementation ensures that strings can be safely represented in the circuit.
-    /// Each character in the string is encoded as a numeric value and converted to a `U128` literal.
-    ///
-    /// # Returns a `Plaintext::Array` `U128` literals representing the encoded string.
-    ///
-    /// # Panics
-    ///
-    /// This function should never panic since `EncodableString` guarantees that its contents are valid ASCII,
-    /// but it includes a panic message as a safety measure in case the invariant is somehow broken.
-    fn to_plaintext(self) -> snarkvm::prelude::Plaintext<N> {
-        let integers = StringEncoder::encode_string(&self.0)
-            .expect("Unexpected non-ASCII character found in EncodableString")
-            .buf;
-        let mut pt_integers = Vec::with_capacity(integers.len());
-        pt_integers.extend(integers.into_iter().map(|integer| {
-            Plaintext::Literal(Literal::U128(U128::new(integer)), Default::default())
-        }));
-        Plaintext::Array(pt_integers, Default::default())
-    }
-}
-*/
-
 #[cfg(test)]
 mod tests {
     use super::*;
