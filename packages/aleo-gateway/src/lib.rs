@@ -320,7 +320,6 @@ mod tests {
     // Note this useful idiom: importing names from outer (for mod tests) scope.
     use axelar_wasm_std::nonempty::HexBinary;
     use interchain_token_service::TokenId;
-    use sha3::Digest as _;
     use snarkvm_cosmwasm::network::TestnetV0;
 
     use super::*;
@@ -328,7 +327,7 @@ mod tests {
     #[test]
     fn translate_deploy_interchain_token() {
         let deploy_interchain_token = interchain_token_service::DeployInterchainToken {
-            token_id: TokenId([0u8; 32]),
+            token_id: TokenId::new([0u8; 32]),
             name: axelar_wasm_std::nonempty::String::from_str("Test Token").unwrap(),
             symbol: axelar_wasm_std::nonempty::String::from_str("TT").unwrap(),
             decimals: 18,
@@ -353,7 +352,7 @@ mod tests {
 
         let amount: cosmwasm_std::Uint256 = cosmwasm_std::Uint256::from(100u128);
         let interchain_transfer = interchain_token_service::InterchainTransfer {
-            token_id: TokenId([0u8; 32]),
+            token_id: TokenId::new([0u8; 32]),
             source_address: HexBinary::try_from(vec![1, 2, 3]).unwrap(),
             destination_address: HexBinary::try_from(aleo_address_bytes).unwrap(),
             amount: axelar_wasm_std::nonempty::Uint256::try_from(amount).unwrap(),
