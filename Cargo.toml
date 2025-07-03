@@ -26,7 +26,10 @@ optimize = """docker run --rm -v "$(pwd)":/code \
 arbtest = { version = "0.3.2" }
 aleo-types = { path = "packages/aleo-types" }
 aleo-gateway = { path = "packages/aleo-gateway" }
-aleo-program-driver = { git = "ssh://git@github.com/eigerco/axelar-aleo.git", branch = "its-pr" }
+# aleo-string-encoder = { git = "ssh://git@github.com/eigerco/axelar-aleo.git", branch = "its-pr" }
+# aleo-program-driver = { git = "ssh://git@github.com/eigerco/axelar-aleo.git", branch = "its-pr" }
+aleo-string-encoder = { path = "../its-pr/crates/aleo-string-encoder" }
+aleo-program-driver = { path = "../its-pr/crates/aleo-program-driver" }
 aleo-utils-temp = { path = "packages/aleo-utils-temp" }
 alloy-primitives = { version = "0.7.6", default-features = false, features = [
   "std",
