@@ -184,8 +184,8 @@ where
         Ok(Receipt::Found(CallContractReceipt {
             transition: Transition::from_str(self.state.transition.id.as_str())
                 .map_err(|e| Report::new(Error::CalledContractReceipt(e.to_string())))?,
-            destination_address: call_contract.destination_address(),
-            destination_chain: ChainName::try_from(call_contract.destination_chain())
+            destination_address: call_contract.destination_address()?,
+            destination_chain: ChainName::try_from(call_contract.destination_chain()?)
                 .change_context(Error::InvalidChainName)?,
             source_address: Address::<N>::from_str(call_contract.sender.to_string().as_ref())
                 .map_err(|e| Report::new(Error::InvalidSourceAddress).attach_printable(e))?,

@@ -1,6 +1,6 @@
 use std::str::FromStr as _;
 
-use aleo_string_encoder::string_encoder::StringEncoder;
+use aleo_string_encoder::StringEncoder;
 use error_stack::{ensure, Report};
 use serde::Deserialize;
 use snarkvm_cosmwasm::console::network::{Network, TestnetV0};

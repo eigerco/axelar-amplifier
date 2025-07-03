@@ -36,4 +36,6 @@ pub enum Error {
     RouterApiError(#[from] router_api::error::Error),
     #[error("SnarkVM error: {0}")]
     SnarkVMError(#[from] snarkvm::prelude::Error),
+    #[error("Aleo string encoder error: {0}")]
+    AleoStringEncoderError(#[from] aleo_string_encoder::Error),
 }

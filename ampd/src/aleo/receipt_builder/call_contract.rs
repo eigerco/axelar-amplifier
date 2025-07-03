@@ -1,6 +1,6 @@
 use std::marker::PhantomData;
 
-use aleo_string_encoder::string_encoder::StringEncoder;
+use aleo_string_encoder::StringEncoder;
 use aleo_types::transition::Transition;
 use router_api::ChainName;
 use serde::{Deserialize, Serialize};
@@ -22,12 +22,12 @@ pub struct CallContract<N: Network> {
 }
 
 impl<N: Network> CallContract<N> {
-    pub fn destination_chain(&self) -> String {
-        StringEncoder::from_array(&self.destination_chain).decode()
+    pub fn destination_chain(&self) -> Result<String, Error> {
+        Ok(StringEncoder::from_array(&self.destination_chain).decode()?)
     }
 
-    pub fn destination_address(&self) -> String {
-        StringEncoder::from_array(&self.destination_address).decode()
+    pub fn destination_address(&self) -> Result<String, Error> {
+        Ok(StringEncoder::from_array(&self.destination_address).decode()?)
     }
 }
 

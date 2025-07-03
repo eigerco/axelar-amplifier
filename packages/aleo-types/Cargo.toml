@@ -11,7 +11,12 @@ error-stack = { workspace = true }
 serde = { workspace = true }
 thiserror = { workspace = true }
 bech32 = { workspace = true }
-snarkvm-cosmwasm = { workspace = true, features = ["console"] }
+
+[target.'cfg(target_family = "wasm")'.dependencies]
+snarkvm-cosmwasm = { workspace = true, features = ["cosmwasm"] }
+
+[target.'cfg(not(target_family = "wasm"))'.dependencies]
+snarkvm-cosmwasm = { workspace = true }
 
 [dev-dependencies]
 axelar-wasm-std = { workspace = true }
