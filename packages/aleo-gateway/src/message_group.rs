@@ -1,8 +1,8 @@
 // Match the representation of a message group in the Aleo gateway.
 
 use error_stack::{ensure, Report};
-use snarkvm_cosmwasm::program::{Network, Zero};
-use snarkvm_cosmwasm::types::Group;
+use snarkvm_cosmwasm::console::program::{Network, Zero};
+use snarkvm_cosmwasm::console::types::Group;
 
 use crate::{AleoValue, Error, Message};
 

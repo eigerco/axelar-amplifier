@@ -205,7 +205,7 @@ pub fn construct_proof_with_its_payload(
         .map(|(message, its_message)| {
             let payload = its_message.to_aleo_string().ok().unwrap();
             let hash =
-                aleo_gateway::hash::<&str, snarkvm_cosmwasm::network::TestnetV0>(&payload).unwrap();
+                aleo_gateway::hash::<&str, snarkvm_cosmwasm::console::network::TestnetV0>(&payload).unwrap();
             // We override the payload hash with the hash of the aleo data
             // this will not be reflected in the get proof query.
             // At get proof query we will need to reconstruct the payload hash

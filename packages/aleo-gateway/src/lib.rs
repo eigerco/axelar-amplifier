@@ -3,9 +3,9 @@ use std::str::FromStr as _;
 use aleo_string_encoder::string_encoder::StringEncoder;
 use aleo_types::address::Address;
 use error_stack::Report;
-use snarkvm_cosmwasm::network::Network;
-use snarkvm_cosmwasm::program::ToBits;
-use snarkvm_cosmwasm::types::Group;
+use snarkvm_cosmwasm::console::network::Network;
+use snarkvm_cosmwasm::console::program::ToBits;
+use snarkvm_cosmwasm::console::types::Group;
 use thiserror::Error;
 
 mod execute_data;
@@ -46,7 +46,7 @@ pub enum Error {
     #[error("Unsupported Public Key: {0}")]
     UnsupportedPublicKey(String),
     #[error("Aleo: {0}")]
-    Aleo(#[from] snarkvm_cosmwasm::program::Error),
+    Aleo(#[from] snarkvm_cosmwasm::console::program::Error),
     #[error("Hex: {0}")]
     Hex(#[from] hex::FromHexError),
     #[error("AleoTypes: {0}")]
@@ -71,17 +71,17 @@ pub enum Error {
     #[error("Invalid ProgramID: {program_id}, fail to create program id with error '{error}'")]
     InvalidProgramID {
         program_id: String,
-        error: snarkvm_cosmwasm::account::Error,
+        error: snarkvm_cosmwasm::console::account::Error,
     },
     #[error("ProgramID to aleo address faild: {program_id}, fail to create program id with error '{error}'")]
     ProgramIDToAleoAddress {
         program_id: String,
-        error: snarkvm_cosmwasm::account::Error,
+        error: snarkvm_cosmwasm::console::account::Error,
     },
     #[error("Invalid aleo address: {address}, fail to create program id with error '{error}'")]
     InvalidAleoAddress {
         address: String,
-        error: snarkvm_cosmwasm::account::Error,
+        error: snarkvm_cosmwasm::console::account::Error,
     },
 }
 
@@ -105,12 +105,13 @@ pub trait AleoValue {
 }
 
 pub fn aleo_hash<T: AsRef<str>, N: Network>(input: T) -> Result<Group<N>, Report<Error>> {
-    let aleo_value: Vec<bool> = snarkvm_cosmwasm::program::Value::<N>::from_str(input.as_ref())
-        .map_err(|e| {
-            Report::new(Error::Aleo(e))
-                .attach_printable(format!("input: '{:?}'", input.as_ref().to_owned()))
-        })?
-        .to_bits_le();
+    let aleo_value: Vec<bool> =
+        snarkvm_cosmwasm::console::program::Value::<N>::from_str(input.as_ref())
+            .map_err(|e| {
+                Report::new(Error::Aleo(e))
+                    .attach_printable(format!("input: '{:?}'", input.as_ref().to_owned()))
+            })?
+            .to_bits_le();
 
     let group = N::hash_to_group_bhp256(&aleo_value).map_err(|e| {
         Report::new(Error::Aleo(e)).attach_printable(format!(
@@ -123,12 +124,13 @@ pub fn aleo_hash<T: AsRef<str>, N: Network>(input: T) -> Result<Group<N>, Report
 }
 
 pub fn hash<T: AsRef<str>, N: Network>(input: T) -> Result<[u8; 32], Report<Error>> {
-    let aleo_value: Vec<bool> = snarkvm_cosmwasm::program::Value::<N>::from_str(input.as_ref())
-        .map_err(|e| {
-            Report::new(Error::Aleo(e))
-                .attach_printable(format!("input: '{:?}'", input.as_ref().to_owned()))
-        })?
-        .to_bits_le();
+    let aleo_value: Vec<bool> =
+        snarkvm_cosmwasm::console::program::Value::<N>::from_str(input.as_ref())
+            .map_err(|e| {
+                Report::new(Error::Aleo(e))
+                    .attach_printable(format!("input: '{:?}'", input.as_ref().to_owned()))
+            })?
+            .to_bits_le();
 
     let bits = N::hash_keccak256(&aleo_value).map_err(|e| {
         Report::new(Error::Aleo(e))

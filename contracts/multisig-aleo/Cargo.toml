@@ -38,7 +38,7 @@ cosmwasm-std = { workspace = true }
 error-stack = { workspace = true }
 getrandom = { version = "0.2", default-features = false, features = ["custom"] }
 thiserror = { workspace = true }
-snarkvm-cosmwasm = { workspace = true, features = ["account", "types", "program", "network"] }
+snarkvm-cosmwasm = { workspace = true, features = ["console"] }
 
 [dev-dependencies]
 hex = "0.4.3"

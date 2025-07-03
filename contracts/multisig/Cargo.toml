@@ -61,7 +61,7 @@ sha3 = { workspace = true }
 signature-verifier-api = { workspace = true }
 thiserror = { workspace = true }
 
-snarkvm-cosmwasm = { workspace = true, features = ["types", "program"] }
+snarkvm-cosmwasm = { workspace = true, features = ["console"] }
 rand_chacha = "0.3"
 
 [dev-dependencies]

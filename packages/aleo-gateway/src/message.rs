@@ -3,9 +3,9 @@ use std::str::FromStr as _;
 use aleo_string_encoder::string_encoder::StringEncoder;
 use error_stack::{ensure, Report};
 use serde::Deserialize;
-use snarkvm_cosmwasm::network::{Network, TestnetV0};
-use snarkvm_cosmwasm::program::ProgramID;
-use snarkvm_cosmwasm::types::Address;
+use snarkvm_cosmwasm::console::network::{Network, TestnetV0};
+use snarkvm_cosmwasm::console::program::ProgramID;
+use snarkvm_cosmwasm::console::types::Address;
 
 use crate::{AleoValue, Error};
 
@@ -115,8 +115,9 @@ impl AleoValue for Message {
         let reverse_hash: Vec<u8> = self.payload_hash.iter().map(|b| b.reverse_bits()).collect();
         let keccak_bits: Vec<bool> = bytes_to_bits(&reverse_hash);
 
-        let group = <snarkvm_cosmwasm::network::TestnetV0>::hash_to_group_bhp256(&keccak_bits)
-            .map_err(|e| Report::new(Error::from(e)))?;
+        let group =
+            <snarkvm_cosmwasm::console::network::TestnetV0>::hash_to_group_bhp256(&keccak_bits)
+                .map_err(|e| Report::new(Error::from(e)))?;
 
         let payload_hash = format!("{group}");
 

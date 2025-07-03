@@ -40,7 +40,7 @@ pub fn query(
             signer_address: _,
             session_id: _,
         } => to_json_binary(&query::verify_signature::<
-            snarkvm_cosmwasm::network::TestnetV0,
+            snarkvm_cosmwasm::console::network::TestnetV0,
         >(signature, message, public_key)?)?,
     }
     .then(Ok)

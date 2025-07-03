@@ -62,7 +62,7 @@ sui-gateway = { workspace = true }
 thiserror = { workspace = true }
 voting-verifier = { workspace = true, features = ["library"] }
 aleo-gateway = { workspace = true }
-snarkvm-cosmwasm = { workspace = true }
+snarkvm-cosmwasm = { workspace = true, features = ["console"] }
 interchain-token-service = { workspace = true }
 
 [dev-dependencies]

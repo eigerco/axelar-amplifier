@@ -1,9 +1,9 @@
 use std::str::FromStr as _;
 
 use cosmwasm_std::{HexBinary, StdResult};
-use snarkvm_cosmwasm::account::ToFields;
-use snarkvm_cosmwasm::program::{Network, Signature, Value};
-use snarkvm_cosmwasm::types::{Address, Field};
+use snarkvm_cosmwasm::console::account::ToFields;
+use snarkvm_cosmwasm::console::program::{Network, Signature, Value};
+use snarkvm_cosmwasm::console::types::{Address, Field};
 
 pub fn verify_signature<N: Network>(
     signature: HexBinary,
@@ -63,7 +63,9 @@ mod tests {
         let address = HexBinary::from(address.as_bytes());
 
         assert_eq!(
-            verify_signature::<snarkvm_cosmwasm::network::TestnetV0>(signature, msg, address),
+            verify_signature::<snarkvm_cosmwasm::console::network::TestnetV0>(
+                signature, msg, address
+            ),
             Ok(true)
         );
     }

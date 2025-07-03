@@ -116,9 +116,9 @@ pub mod tests {
                 Ok(expected_transitions.get(transaction).unwrap().clone())
             });
 
-        mock_client.expect_find_transaction().returning(move |_| {
-            Ok(transaction_id.to_string())
-        });
+        mock_client
+            .expect_find_transaction()
+            .returning(move |_| Ok(transaction_id.to_string()));
 
         mock_client
     }

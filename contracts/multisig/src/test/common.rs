@@ -140,16 +140,17 @@ pub mod aleo_schnorr_test_data {
 
     use cosmwasm_std::testing::MockApi;
     use rand_chacha::rand_core::SeedableRng;
-    use snarkvm_cosmwasm::account::PrivateKey;
+    use snarkvm_cosmwasm::console::account::PrivateKey;
 
     use super::*;
 
     pub fn new(
         address: Addr,
-        private_key: PrivateKey<snarkvm_cosmwasm::network::TestnetV0>,
+        private_key: PrivateKey<snarkvm_cosmwasm::console::network::TestnetV0>,
     ) -> TestSigner {
-        let verifying_key = snarkvm_cosmwasm::account::Address::try_from(&private_key).unwrap();
-        let signature = snarkvm_cosmwasm::account::signature::Signature::sign_bytes(
+        let verifying_key =
+            snarkvm_cosmwasm::console::account::Address::try_from(&private_key).unwrap();
+        let signature = snarkvm_cosmwasm::console::account::signature::Signature::sign_bytes(
             &private_key,
             message().as_slice(),
             &mut rand_chacha::ChaChaRng::from_entropy(),

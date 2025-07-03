@@ -43,7 +43,7 @@ impl EncoderExt for Encoder {
             Encoder::StellarXdr => {
                 stellar_xdr::payload_digest(domain_separator, verifier_set, payload)
             }
-            Encoder::Aleo => aleo::payload_digest::<snarkvm_cosmwasm::network::TestnetV0>(
+            Encoder::Aleo => aleo::payload_digest::<snarkvm_cosmwasm::console::network::TestnetV0>(
                 domain_separator,
                 verifier_set,
                 payload,

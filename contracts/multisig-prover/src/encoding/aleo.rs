@@ -7,7 +7,7 @@ use cosmwasm_std::{HexBinary, Uint256};
 use error_stack::{Result, ResultExt};
 use multisig::msg::SignerWithSig;
 use multisig::verifier_set::VerifierSet;
-use snarkvm_cosmwasm::program::Network;
+use snarkvm_cosmwasm::console::program::Network;
 
 use crate::error::ContractError;
 use crate::payload::Payload;
@@ -189,7 +189,7 @@ mod tests {
             4860541,
         );
 
-        let digest = payload_digest::<snarkvm_cosmwasm::network::TestnetV0>(
+        let digest = payload_digest::<snarkvm_cosmwasm::console::network::TestnetV0>(
             &domain_separator,
             &verifier_set,
             &Payload::Messages(vec![message()]),
