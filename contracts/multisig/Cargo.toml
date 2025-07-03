@@ -60,14 +60,7 @@ serde_json = "1.0.89"
 sha3 = { workspace = true }
 signature-verifier-api = { workspace = true }
 thiserror = { workspace = true }
-
-
-[target.'cfg(target_family = "wasm")'.dependencies]
 snarkvm-cosmwasm = { workspace = true, features = ["cosmwasm"] }
-
-[target.'cfg(not(target_family = "wasm"))'.dependencies]
-snarkvm-cosmwasm = { workspace = true }
-
 rand_chacha = "0.3"
 
 [dev-dependencies]

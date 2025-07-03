@@ -38,12 +38,7 @@ cosmwasm-std = { workspace = true }
 error-stack = { workspace = true }
 getrandom = { version = "0.2", default-features = false, features = ["custom"] }
 thiserror = { workspace = true }
-
-[target.'cfg(target_family = "wasm")'.dependencies]
 snarkvm-cosmwasm = { workspace = true, features = ["cosmwasm"] }
-
-[target.'cfg(not(target_family = "wasm"))'.dependencies]
-snarkvm-cosmwasm = { workspace = true }
 
 [dev-dependencies]
 hex = "0.4.3"

@@ -62,13 +62,7 @@ sui-gateway = { workspace = true }
 thiserror = { workspace = true }
 voting-verifier = { workspace = true, features = ["library"] }
 aleo-gateway = { workspace = true }
-
-[target.'cfg(target_family = "wasm")'.dependencies]
 snarkvm-cosmwasm = { workspace = true, features = ["cosmwasm"] }
-
-[target.'cfg(not(target_family = "wasm"))'.dependencies]
-snarkvm-cosmwasm = { workspace = true }
-
 interchain-token-service = { workspace = true }
 
 [dev-dependencies]
