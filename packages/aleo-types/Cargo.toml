@@ -11,7 +11,7 @@ error-stack = { workspace = true }
 serde = { workspace = true }
 thiserror = { workspace = true }
 bech32 = { workspace = true }
-snarkvm-cosmwasm = { workspace = true, features = ["cosmwasm"] }
+snarkvm-cosmwasm = { workspace = true }
 
 [dev-dependencies]
 axelar-wasm-std = { workspace = true }
