@@ -145,7 +145,7 @@ dependencies = [
 [[package]]
 name = "aleo-program-driver"
 version = "0.1.0"
-source = "git+ssh://git@github.com/eigerco/axelar-aleo.git?branch=its-pr#e0031c0ca5c3e7ad4ce41a5ad068df17a52cabed"
+source = "git+ssh://git@github.com/eigerco/axelar-aleo.git?branch=its-pr#3ed6381102d93f7542f2e7b8e391e9c65ae00247"
 dependencies = [
  "aleo-program-interface",
  "aleo-string-encoder",
@@ -171,7 +171,7 @@ dependencies = [
 [[package]]
 name = "aleo-program-interface"
 version = "0.1.0"
-source = "git+ssh://git@github.com/eigerco/axelar-aleo.git?branch=its-pr#e0031c0ca5c3e7ad4ce41a5ad068df17a52cabed"
+source = "git+ssh://git@github.com/eigerco/axelar-aleo.git?branch=its-pr#3ed6381102d93f7542f2e7b8e391e9c65ae00247"
 dependencies = [
  "aleo-std-storage",
  "aleo-utils",
@@ -257,7 +257,7 @@ checksum = "14edf4007a98323f763701688bcbe3bc6ecf33e20c3a81b3eb8d6661ff01b217"
 [[package]]
 name = "aleo-string-encoder"
 version = "0.1.0"
-source = "git+ssh://git@github.com/eigerco/axelar-aleo.git?branch=its-pr#e0031c0ca5c3e7ad4ce41a5ad068df17a52cabed"
+source = "git+ssh://git@github.com/eigerco/axelar-aleo.git?branch=its-pr#3ed6381102d93f7542f2e7b8e391e9c65ae00247"
 dependencies = [
  "serde-aleo",
  "thiserror 2.0.12",
@@ -280,12 +280,10 @@ dependencies = [
 [[package]]
 name = "aleo-utils"
 version = "0.1.0"
-source = "git+ssh://git@github.com/eigerco/axelar-aleo.git?branch=its-pr#e0031c0ca5c3e7ad4ce41a5ad068df17a52cabed"
+source = "git+ssh://git@github.com/eigerco/axelar-aleo.git?branch=its-pr#3ed6381102d93f7542f2e7b8e391e9c65ae00247"
 dependencies = [
- "plaintext-trait",
  "rand_chacha 0.3.1",
  "serde",
- "serde-aleo",
  "serde_json",
  "snarkvm",
  "thiserror 2.0.12",
@@ -1160,7 +1158,7 @@ dependencies = [
 [[package]]
 name = "axelar-core-std"
 version = "1.0.0"
-source = "git+https://github.com/eigerco/axelar-amplifier?branch=aleo-its-mr#98c5f58fa8ce86c45033dbeeef12c3c6ea9d73be"
+source = "git+https://github.com/eigerco/axelar-amplifier?branch=aleo-its-mr#822a004c56052cf4824473c73072f1426bf93da0"
 dependencies = [
  "axelar-wasm-std 1.0.0 (git+https://github.com/eigerco/axelar-amplifier?branch=aleo-its-mr)",
  "client 1.0.0 (git+https://github.com/eigerco/axelar-amplifier?branch=aleo-its-mr)",
@@ -1282,7 +1280,7 @@ dependencies = [
 [[package]]
 name = "axelar-wasm-std"
 version = "1.0.0"
-source = "git+https://github.com/eigerco/axelar-amplifier?branch=aleo-its-mr#98c5f58fa8ce86c45033dbeeef12c3c6ea9d73be"
+source = "git+https://github.com/eigerco/axelar-amplifier?branch=aleo-its-mr#822a004c56052cf4824473c73072f1426bf93da0"
 dependencies = [
  "alloy-primitives",
  "axelar-wasm-std-derive 1.0.0 (git+https://github.com/eigerco/axelar-amplifier?branch=aleo-its-mr)",
@@ -1339,7 +1337,7 @@ dependencies = [
 [[package]]
 name = "axelar-wasm-std-derive"
 version = "1.0.0"
-source = "git+https://github.com/eigerco/axelar-amplifier?branch=aleo-its-mr#98c5f58fa8ce86c45033dbeeef12c3c6ea9d73be"
+source = "git+https://github.com/eigerco/axelar-amplifier?branch=aleo-its-mr#822a004c56052cf4824473c73072f1426bf93da0"
 dependencies = [
  "cosmwasm-std",
  "error-stack",
@@ -1384,7 +1382,7 @@ dependencies = [
 [[package]]
 name = "axelarnet-gateway"
 version = "1.0.0"
-source = "git+https://github.com/eigerco/axelar-amplifier?branch=aleo-its-mr#98c5f58fa8ce86c45033dbeeef12c3c6ea9d73be"
+source = "git+https://github.com/eigerco/axelar-amplifier?branch=aleo-its-mr#822a004c56052cf4824473c73072f1426bf93da0"
 dependencies = [
  "axelar-core-std 1.0.0 (git+https://github.com/eigerco/axelar-amplifier?branch=aleo-its-mr)",
  "axelar-wasm-std 1.0.0 (git+https://github.com/eigerco/axelar-amplifier?branch=aleo-its-mr)",
@@ -2401,7 +2399,7 @@ dependencies = [
 [[package]]
 name = "client"
 version = "1.0.0"
-source = "git+https://github.com/eigerco/axelar-amplifier?branch=aleo-its-mr#98c5f58fa8ce86c45033dbeeef12c3c6ea9d73be"
+source = "git+https://github.com/eigerco/axelar-amplifier?branch=aleo-its-mr#822a004c56052cf4824473c73072f1426bf93da0"
 dependencies = [
  "cosmwasm-std",
  "error-stack",
@@ -3306,7 +3304,7 @@ dependencies = [
 [[package]]
 name = "derive-macros"
 version = "0.1.0"
-source = "git+ssh://git@github.com/eigerco/axelar-aleo.git?branch=its-pr#e0031c0ca5c3e7ad4ce41a5ad068df17a52cabed"
+source = "git+ssh://git@github.com/eigerco/axelar-aleo.git?branch=its-pr#3ed6381102d93f7542f2e7b8e391e9c65ae00247"
 dependencies = [
  "proc-macro2 1.0.95",
  "quote 1.0.40",
@@ -5711,7 +5709,7 @@ dependencies = [
 [[package]]
 name = "interchain-token-service"
 version = "1.2.1"
-source = "git+https://github.com/eigerco/axelar-amplifier?branch=aleo-its-mr#98c5f58fa8ce86c45033dbeeef12c3c6ea9d73be"
+source = "git+https://github.com/eigerco/axelar-amplifier?branch=aleo-its-mr#822a004c56052cf4824473c73072f1426bf93da0"
 dependencies = [
  "alloy-primitives",
  "alloy-sol-types",
@@ -5753,7 +5751,7 @@ dependencies = [
 [[package]]
 name = "into-inner-derive"
 version = "1.0.0"
-source = "git+https://github.com/eigerco/axelar-amplifier?branch=aleo-its-mr#98c5f58fa8ce86c45033dbeeef12c3c6ea9d73be"
+source = "git+https://github.com/eigerco/axelar-amplifier?branch=aleo-its-mr#822a004c56052cf4824473c73072f1426bf93da0"
 dependencies = [
  "error-stack",
  "quote 1.0.40",
@@ -7041,7 +7039,7 @@ dependencies = [
 [[package]]
 name = "msgs-derive"
 version = "1.0.0"
-source = "git+https://github.com/eigerco/axelar-amplifier?branch=aleo-its-mr#98c5f58fa8ce86c45033dbeeef12c3c6ea9d73be"
+source = "git+https://github.com/eigerco/axelar-amplifier?branch=aleo-its-mr#822a004c56052cf4824473c73072f1426bf93da0"
 dependencies = [
  "axelar-wasm-std 1.0.0 (git+https://github.com/eigerco/axelar-amplifier?branch=aleo-its-mr)",
  "cosmwasm-std",
@@ -8324,7 +8322,7 @@ checksum = "7edddbd0b52d732b21ad9a5fab5c704c14cd949e5e9a1ec5929a24fded1b904c"
 [[package]]
 name = "plaintext-trait"
 version = "0.1.0"
-source = "git+ssh://git@github.com/eigerco/axelar-aleo.git?branch=its-pr#e0031c0ca5c3e7ad4ce41a5ad068df17a52cabed"
+source = "git+ssh://git@github.com/eigerco/axelar-aleo.git?branch=its-pr#3ed6381102d93f7542f2e7b8e391e9c65ae00247"
 dependencies = [
  "anyhow",
  "derive-macros",
@@ -9163,7 +9161,7 @@ dependencies = [
 [[package]]
 name = "report"
 version = "1.0.0"
-source = "git+https://github.com/eigerco/axelar-amplifier?branch=aleo-its-mr#98c5f58fa8ce86c45033dbeeef12c3c6ea9d73be"
+source = "git+https://github.com/eigerco/axelar-amplifier?branch=aleo-its-mr#822a004c56052cf4824473c73072f1426bf93da0"
 dependencies = [
  "error-stack",
  "eyre",
@@ -9523,7 +9521,7 @@ dependencies = [
 [[package]]
 name = "router-api"
 version = "1.0.0"
-source = "git+https://github.com/eigerco/axelar-amplifier?branch=aleo-its-mr#98c5f58fa8ce86c45033dbeeef12c3c6ea9d73be"
+source = "git+https://github.com/eigerco/axelar-amplifier?branch=aleo-its-mr#822a004c56052cf4824473c73072f1426bf93da0"
 dependencies = [
  "axelar-wasm-std 1.0.0 (git+https://github.com/eigerco/axelar-amplifier?branch=aleo-its-mr)",
  "client 1.0.0 (git+https://github.com/eigerco/axelar-amplifier?branch=aleo-its-mr)",
@@ -10160,7 +10158,7 @@ dependencies = [
 [[package]]
 name = "serde-aleo"
 version = "0.1.0"
-source = "git+ssh://git@github.com/eigerco/axelar-aleo.git?branch=its-pr#e0031c0ca5c3e7ad4ce41a5ad068df17a52cabed"
+source = "git+ssh://git@github.com/eigerco/axelar-aleo.git?branch=its-pr#3ed6381102d93f7542f2e7b8e391e9c65ae00247"
 dependencies = [
  "nom 8.0.0",
  "serde",
@@ -13186,7 +13184,7 @@ dependencies = [
 [[package]]
 name = "starknet-checked-felt"
 version = "1.0.0"
-source = "git+https://github.com/eigerco/axelar-amplifier?branch=aleo-its-mr#98c5f58fa8ce86c45033dbeeef12c3c6ea9d73be"
+source = "git+https://github.com/eigerco/axelar-amplifier?branch=aleo-its-mr#822a004c56052cf4824473c73072f1426bf93da0"
 dependencies = [
  "alloy-primitives",
  "error-stack",
@@ -13769,7 +13767,7 @@ dependencies = [
 [[package]]
 name = "sui-types"
 version = "1.0.0"
-source = "git+https://github.com/eigerco/axelar-amplifier?branch=aleo-its-mr#98c5f58fa8ce86c45033dbeeef12c3c6ea9d73be"
+source = "git+https://github.com/eigerco/axelar-amplifier?branch=aleo-its-mr#822a004c56052cf4824473c73072f1426bf93da0"
 dependencies = [
  "error-stack",
  "hex",

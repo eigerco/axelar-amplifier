@@ -23,11 +23,11 @@ pub struct CallContract<N: Network> {
 
 impl<N: Network> CallContract<N> {
     pub fn destination_chain(&self) -> Result<String, Error> {
-        Ok(StringEncoder::from_array(&self.destination_chain).decode()?)
+        Ok(StringEncoder::from_slice(&self.destination_chain).decode()?)
     }
 
     pub fn destination_address(&self) -> Result<String, Error> {
-        Ok(StringEncoder::from_array(&self.destination_address).decode()?)
+        Ok(StringEncoder::from_slice(&self.destination_address).decode()?)
     }
 }
 
@@ -114,7 +114,7 @@ fn payload_hash<N: Network>(
         let payload = aleo_program_driver::its::axelarinterchaintokenhub::abi_translate(payload);
 
         if let Ok(payload) = payload {
-            debug!(?payload, "Receive axelar payload is an ITS message");
+            info!(?payload, "Receive axelar payload is an ITS message");
             let payload_hash = keccak256(&payload).to_vec();
 
             Hash::from_slice(&payload_hash)
