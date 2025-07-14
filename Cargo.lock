@@ -138,7 +138,7 @@ dependencies = [
  "serde",
  "serde_with",
  "sha3",
- "snarkvm-cosmwasm",
+ "snarkvm-cosmwasm 3.8.0 (git+https://github.com/eigerco/snarkVM?tag=snarkvm-with-cosmwasm)",
  "thiserror 1.0.69",
 ]
 
@@ -273,7 +273,7 @@ dependencies = [
  "cosmwasm-std",
  "error-stack",
  "serde",
- "snarkvm-cosmwasm",
+ "snarkvm-cosmwasm 3.8.0 (git+https://github.com/eigerco/snarkVM?tag=snarkvm-with-cosmwasm)",
  "thiserror 1.0.69",
 ]
 
@@ -1268,7 +1268,7 @@ dependencies = [
  "serde_json",
  "serde_with",
  "sha3",
- "snarkvm-cosmwasm",
+ "snarkvm-cosmwasm 3.8.0 (git+https://github.com/eigerco/snarkVM?tag=snarkvm-with-cosmwasm)",
  "starknet-checked-felt 1.0.0",
  "stellar-xdr",
  "strum 0.25.0",
@@ -1304,7 +1304,7 @@ dependencies = [
  "serde_json",
  "serde_with",
  "sha3",
- "snarkvm-cosmwasm",
+ "snarkvm-cosmwasm 3.8.0 (git+https://github.com/eigerco/snarkVM?branch=cosmwasm-3)",
  "starknet-checked-felt 1.0.0 (git+https://github.com/eigerco/axelar-amplifier?branch=aleo-its-mr)",
  "stellar-xdr",
  "strum 0.25.0",
@@ -7156,7 +7156,7 @@ dependencies = [
  "serde_json",
  "sha3",
  "signature-verifier-api",
- "snarkvm-cosmwasm",
+ "snarkvm-cosmwasm 3.8.0 (git+https://github.com/eigerco/snarkVM?tag=snarkvm-with-cosmwasm)",
  "thiserror 1.0.69",
 ]
 
@@ -7170,7 +7170,7 @@ dependencies = [
  "error-stack",
  "getrandom 0.2.16",
  "hex",
- "snarkvm-cosmwasm",
+ "snarkvm-cosmwasm 3.8.0 (git+https://github.com/eigerco/snarkVM?tag=snarkvm-with-cosmwasm)",
  "thiserror 1.0.69",
 ]
 
@@ -7216,7 +7216,7 @@ dependencies = [
  "service-registry-api",
  "sha3",
  "snarkvm",
- "snarkvm-cosmwasm",
+ "snarkvm-cosmwasm 3.8.0 (git+https://github.com/eigerco/snarkVM?tag=snarkvm-with-cosmwasm)",
  "stellar",
  "stellar-xdr",
  "sui-gateway",
@@ -10710,7 +10710,7 @@ dependencies = [
 [[package]]
 name = "snarkvm"
 version = "3.8.0"
-source = "git+https://github.com/eigerco/snarkVM?branch=cosmwasm-3#bc0bf9f983eef9793d014a332a644233e601ef5d"
+source = "git+https://github.com/eigerco/snarkVM?tag=snarkvm-with-cosmwasm#bc0bf9f983eef9793d014a332a644233e601ef5d"
 dependencies = [
  "anstyle",
  "anyhow",
@@ -10725,16 +10725,46 @@ dependencies = [
  "rayon",
  "self_update",
  "serde_json",
- "snarkvm-algorithms",
+ "snarkvm-algorithms 3.8.0 (git+https://github.com/eigerco/snarkVM?tag=snarkvm-with-cosmwasm)",
  "snarkvm-circuit",
- "snarkvm-console",
+ "snarkvm-console 3.8.0 (git+https://github.com/eigerco/snarkVM?tag=snarkvm-with-cosmwasm)",
  "snarkvm-ledger",
- "snarkvm-parameters",
+ "snarkvm-parameters 3.8.0 (git+https://github.com/eigerco/snarkVM?tag=snarkvm-with-cosmwasm)",
  "snarkvm-synthesizer",
- "snarkvm-utilities",
+ "snarkvm-utilities 3.8.0 (git+https://github.com/eigerco/snarkVM?tag=snarkvm-with-cosmwasm)",
  "thiserror 2.0.12",
  "ureq 2.12.1",
  "walkdir",
+]
+
+[[package]]
+name = "snarkvm-algorithms"
+version = "3.8.0"
+source = "git+https://github.com/eigerco/snarkVM?tag=snarkvm-with-cosmwasm#bc0bf9f983eef9793d014a332a644233e601ef5d"
+dependencies = [
+ "aleo-std",
+ "anyhow",
+ "blake2",
+ "cfg-if",
+ "fxhash",
+ "hashbrown 0.14.5",
+ "hex",
+ "indexmap 2.10.0",
+ "itertools 0.11.0",
+ "num-traits",
+ "parking_lot",
+ "rand 0.8.5",
+ "rand_chacha 0.3.1",
+ "rand_core 0.6.4",
+ "rayon",
+ "serde",
+ "sha2 0.10.9",
+ "smallvec",
+ "snarkvm-curves 3.8.0 (git+https://github.com/eigerco/snarkVM?tag=snarkvm-with-cosmwasm)",
+ "snarkvm-fields 3.8.0 (git+https://github.com/eigerco/snarkVM?tag=snarkvm-with-cosmwasm)",
+ "snarkvm-parameters 3.8.0 (git+https://github.com/eigerco/snarkVM?tag=snarkvm-with-cosmwasm)",
+ "snarkvm-utilities 3.8.0 (git+https://github.com/eigerco/snarkVM?tag=snarkvm-with-cosmwasm)",
+ "thiserror 2.0.12",
 ]
 
 [[package]]
@@ -10760,17 +10790,17 @@ dependencies = [
  "serde",
  "sha2 0.10.9",
  "smallvec",
- "snarkvm-curves",
- "snarkvm-fields",
- "snarkvm-parameters",
- "snarkvm-utilities",
+ "snarkvm-curves 3.8.0 (git+https://github.com/eigerco/snarkVM?branch=cosmwasm-3)",
+ "snarkvm-fields 3.8.0 (git+https://github.com/eigerco/snarkVM?branch=cosmwasm-3)",
+ "snarkvm-parameters 3.8.0 (git+https://github.com/eigerco/snarkVM?branch=cosmwasm-3)",
+ "snarkvm-utilities 3.8.0 (git+https://github.com/eigerco/snarkVM?branch=cosmwasm-3)",
  "thiserror 2.0.12",
 ]
 
 [[package]]
 name = "snarkvm-circuit"
 version = "3.8.0"
-source = "git+https://github.com/eigerco/snarkVM?branch=cosmwasm-3#bc0bf9f983eef9793d014a332a644233e601ef5d"
+source = "git+https://github.com/eigerco/snarkVM?tag=snarkvm-with-cosmwasm#bc0bf9f983eef9793d014a332a644233e601ef5d"
 dependencies = [
  "snarkvm-circuit-account",
  "snarkvm-circuit-algorithms",
@@ -10784,38 +10814,38 @@ dependencies = [
 [[package]]
 name = "snarkvm-circuit-account"
 version = "3.8.0"
-source = "git+https://github.com/eigerco/snarkVM?branch=cosmwasm-3#bc0bf9f983eef9793d014a332a644233e601ef5d"
+source = "git+https://github.com/eigerco/snarkVM?tag=snarkvm-with-cosmwasm#bc0bf9f983eef9793d014a332a644233e601ef5d"
 dependencies = [
  "snarkvm-circuit-algorithms",
  "snarkvm-circuit-network",
  "snarkvm-circuit-types",
- "snarkvm-console-account",
+ "snarkvm-console-account 3.8.0 (git+https://github.com/eigerco/snarkVM?tag=snarkvm-with-cosmwasm)",
 ]
 
 [[package]]
 name = "snarkvm-circuit-algorithms"
 version = "3.8.0"
-source = "git+https://github.com/eigerco/snarkVM?branch=cosmwasm-3#bc0bf9f983eef9793d014a332a644233e601ef5d"
+source = "git+https://github.com/eigerco/snarkVM?tag=snarkvm-with-cosmwasm#bc0bf9f983eef9793d014a332a644233e601ef5d"
 dependencies = [
  "snarkvm-circuit-types",
- "snarkvm-console-algorithms",
- "snarkvm-fields",
+ "snarkvm-console-algorithms 3.8.0 (git+https://github.com/eigerco/snarkVM?tag=snarkvm-with-cosmwasm)",
+ "snarkvm-fields 3.8.0 (git+https://github.com/eigerco/snarkVM?tag=snarkvm-with-cosmwasm)",
 ]
 
 [[package]]
 name = "snarkvm-circuit-collections"
 version = "3.8.0"
-source = "git+https://github.com/eigerco/snarkVM?branch=cosmwasm-3#bc0bf9f983eef9793d014a332a644233e601ef5d"
+source = "git+https://github.com/eigerco/snarkVM?tag=snarkvm-with-cosmwasm#bc0bf9f983eef9793d014a332a644233e601ef5d"
 dependencies = [
  "snarkvm-circuit-algorithms",
  "snarkvm-circuit-types",
- "snarkvm-console-collections",
+ "snarkvm-console-collections 3.8.0 (git+https://github.com/eigerco/snarkVM?tag=snarkvm-with-cosmwasm)",
 ]
 
 [[package]]
 name = "snarkvm-circuit-environment"
 version = "3.8.0"
-source = "git+https://github.com/eigerco/snarkVM?branch=cosmwasm-3#bc0bf9f983eef9793d014a332a644233e601ef5d"
+source = "git+https://github.com/eigerco/snarkVM?tag=snarkvm-with-cosmwasm#bc0bf9f983eef9793d014a332a644233e601ef5d"
 dependencies = [
  "indexmap 2.10.0",
  "itertools 0.11.0",
@@ -10823,34 +10853,34 @@ dependencies = [
  "num-traits",
  "once_cell",
  "smallvec",
- "snarkvm-algorithms",
+ "snarkvm-algorithms 3.8.0 (git+https://github.com/eigerco/snarkVM?tag=snarkvm-with-cosmwasm)",
  "snarkvm-circuit-environment-witness",
- "snarkvm-console-network",
- "snarkvm-curves",
- "snarkvm-fields",
- "snarkvm-utilities",
+ "snarkvm-console-network 3.8.0 (git+https://github.com/eigerco/snarkVM?tag=snarkvm-with-cosmwasm)",
+ "snarkvm-curves 3.8.0 (git+https://github.com/eigerco/snarkVM?tag=snarkvm-with-cosmwasm)",
+ "snarkvm-fields 3.8.0 (git+https://github.com/eigerco/snarkVM?tag=snarkvm-with-cosmwasm)",
+ "snarkvm-utilities 3.8.0 (git+https://github.com/eigerco/snarkVM?tag=snarkvm-with-cosmwasm)",
 ]
 
 [[package]]
 name = "snarkvm-circuit-environment-witness"
 version = "3.8.0"
-source = "git+https://github.com/eigerco/snarkVM?branch=cosmwasm-3#bc0bf9f983eef9793d014a332a644233e601ef5d"
+source = "git+https://github.com/eigerco/snarkVM?tag=snarkvm-with-cosmwasm#bc0bf9f983eef9793d014a332a644233e601ef5d"
 
 [[package]]
 name = "snarkvm-circuit-network"
 version = "3.8.0"
-source = "git+https://github.com/eigerco/snarkVM?branch=cosmwasm-3#bc0bf9f983eef9793d014a332a644233e601ef5d"
+source = "git+https://github.com/eigerco/snarkVM?tag=snarkvm-with-cosmwasm#bc0bf9f983eef9793d014a332a644233e601ef5d"
 dependencies = [
  "snarkvm-circuit-algorithms",
  "snarkvm-circuit-collections",
  "snarkvm-circuit-types",
- "snarkvm-console-network",
+ "snarkvm-console-network 3.8.0 (git+https://github.com/eigerco/snarkVM?tag=snarkvm-with-cosmwasm)",
 ]
 
 [[package]]
 name = "snarkvm-circuit-program"
 version = "3.8.0"
-source = "git+https://github.com/eigerco/snarkVM?branch=cosmwasm-3#bc0bf9f983eef9793d014a332a644233e601ef5d"
+source = "git+https://github.com/eigerco/snarkVM?tag=snarkvm-with-cosmwasm#bc0bf9f983eef9793d014a332a644233e601ef5d"
 dependencies = [
  "paste",
  "snarkvm-circuit-account",
@@ -10858,14 +10888,14 @@ dependencies = [
  "snarkvm-circuit-collections",
  "snarkvm-circuit-network",
  "snarkvm-circuit-types",
- "snarkvm-console-program",
- "snarkvm-utilities",
+ "snarkvm-console-program 3.8.0 (git+https://github.com/eigerco/snarkVM?tag=snarkvm-with-cosmwasm)",
+ "snarkvm-utilities 3.8.0 (git+https://github.com/eigerco/snarkVM?tag=snarkvm-with-cosmwasm)",
 ]
 
 [[package]]
 name = "snarkvm-circuit-types"
 version = "3.8.0"
-source = "git+https://github.com/eigerco/snarkVM?branch=cosmwasm-3#bc0bf9f983eef9793d014a332a644233e601ef5d"
+source = "git+https://github.com/eigerco/snarkVM?tag=snarkvm-with-cosmwasm#bc0bf9f983eef9793d014a332a644233e601ef5d"
 dependencies = [
  "snarkvm-circuit-environment",
  "snarkvm-circuit-types-address",
@@ -10880,80 +10910,93 @@ dependencies = [
 [[package]]
 name = "snarkvm-circuit-types-address"
 version = "3.8.0"
-source = "git+https://github.com/eigerco/snarkVM?branch=cosmwasm-3#bc0bf9f983eef9793d014a332a644233e601ef5d"
+source = "git+https://github.com/eigerco/snarkVM?tag=snarkvm-with-cosmwasm#bc0bf9f983eef9793d014a332a644233e601ef5d"
 dependencies = [
  "snarkvm-circuit-environment",
  "snarkvm-circuit-types-boolean",
  "snarkvm-circuit-types-field",
  "snarkvm-circuit-types-group",
  "snarkvm-circuit-types-scalar",
- "snarkvm-console-types-address",
+ "snarkvm-console-types-address 3.8.0 (git+https://github.com/eigerco/snarkVM?tag=snarkvm-with-cosmwasm)",
 ]
 
 [[package]]
 name = "snarkvm-circuit-types-boolean"
 version = "3.8.0"
-source = "git+https://github.com/eigerco/snarkVM?branch=cosmwasm-3#bc0bf9f983eef9793d014a332a644233e601ef5d"
+source = "git+https://github.com/eigerco/snarkVM?tag=snarkvm-with-cosmwasm#bc0bf9f983eef9793d014a332a644233e601ef5d"
 dependencies = [
  "snarkvm-circuit-environment",
- "snarkvm-console-types-boolean",
+ "snarkvm-console-types-boolean 3.8.0 (git+https://github.com/eigerco/snarkVM?tag=snarkvm-with-cosmwasm)",
 ]
 
 [[package]]
 name = "snarkvm-circuit-types-field"
 version = "3.8.0"
-source = "git+https://github.com/eigerco/snarkVM?branch=cosmwasm-3#bc0bf9f983eef9793d014a332a644233e601ef5d"
+source = "git+https://github.com/eigerco/snarkVM?tag=snarkvm-with-cosmwasm#bc0bf9f983eef9793d014a332a644233e601ef5d"
 dependencies = [
  "snarkvm-circuit-environment",
  "snarkvm-circuit-types-boolean",
- "snarkvm-console-types-field",
+ "snarkvm-console-types-field 3.8.0 (git+https://github.com/eigerco/snarkVM?tag=snarkvm-with-cosmwasm)",
 ]
 
 [[package]]
 name = "snarkvm-circuit-types-group"
 version = "3.8.0"
-source = "git+https://github.com/eigerco/snarkVM?branch=cosmwasm-3#bc0bf9f983eef9793d014a332a644233e601ef5d"
+source = "git+https://github.com/eigerco/snarkVM?tag=snarkvm-with-cosmwasm#bc0bf9f983eef9793d014a332a644233e601ef5d"
 dependencies = [
  "snarkvm-circuit-environment",
  "snarkvm-circuit-types-boolean",
  "snarkvm-circuit-types-field",
  "snarkvm-circuit-types-scalar",
- "snarkvm-console-types-group",
+ "snarkvm-console-types-group 3.8.0 (git+https://github.com/eigerco/snarkVM?tag=snarkvm-with-cosmwasm)",
 ]
 
 [[package]]
 name = "snarkvm-circuit-types-integers"
 version = "3.8.0"
-source = "git+https://github.com/eigerco/snarkVM?branch=cosmwasm-3#bc0bf9f983eef9793d014a332a644233e601ef5d"
+source = "git+https://github.com/eigerco/snarkVM?tag=snarkvm-with-cosmwasm#bc0bf9f983eef9793d014a332a644233e601ef5d"
 dependencies = [
  "snarkvm-circuit-environment",
  "snarkvm-circuit-types-boolean",
  "snarkvm-circuit-types-field",
  "snarkvm-circuit-types-scalar",
- "snarkvm-console-types-integers",
+ "snarkvm-console-types-integers 3.8.0 (git+https://github.com/eigerco/snarkVM?tag=snarkvm-with-cosmwasm)",
 ]
 
 [[package]]
 name = "snarkvm-circuit-types-scalar"
 version = "3.8.0"
-source = "git+https://github.com/eigerco/snarkVM?branch=cosmwasm-3#bc0bf9f983eef9793d014a332a644233e601ef5d"
+source = "git+https://github.com/eigerco/snarkVM?tag=snarkvm-with-cosmwasm#bc0bf9f983eef9793d014a332a644233e601ef5d"
 dependencies = [
  "snarkvm-circuit-environment",
  "snarkvm-circuit-types-boolean",
  "snarkvm-circuit-types-field",
- "snarkvm-console-types-scalar",
+ "snarkvm-console-types-scalar 3.8.0 (git+https://github.com/eigerco/snarkVM?tag=snarkvm-with-cosmwasm)",
 ]
 
 [[package]]
 name = "snarkvm-circuit-types-string"
 version = "3.8.0"
-source = "git+https://github.com/eigerco/snarkVM?branch=cosmwasm-3#bc0bf9f983eef9793d014a332a644233e601ef5d"
+source = "git+https://github.com/eigerco/snarkVM?tag=snarkvm-with-cosmwasm#bc0bf9f983eef9793d014a332a644233e601ef5d"
 dependencies = [
  "snarkvm-circuit-environment",
  "snarkvm-circuit-types-boolean",
  "snarkvm-circuit-types-field",
  "snarkvm-circuit-types-integers",
- "snarkvm-console-types-string",
+ "snarkvm-console-types-string 3.8.0 (git+https://github.com/eigerco/snarkVM?tag=snarkvm-with-cosmwasm)",
+]
+
+[[package]]
+name = "snarkvm-console"
+version = "3.8.0"
+source = "git+https://github.com/eigerco/snarkVM?tag=snarkvm-with-cosmwasm#bc0bf9f983eef9793d014a332a644233e601ef5d"
+dependencies = [
+ "snarkvm-console-account 3.8.0 (git+https://github.com/eigerco/snarkVM?tag=snarkvm-with-cosmwasm)",
+ "snarkvm-console-algorithms 3.8.0 (git+https://github.com/eigerco/snarkVM?tag=snarkvm-with-cosmwasm)",
+ "snarkvm-console-collections 3.8.0 (git+https://github.com/eigerco/snarkVM?tag=snarkvm-with-cosmwasm)",
+ "snarkvm-console-network 3.8.0 (git+https://github.com/eigerco/snarkVM?tag=snarkvm-with-cosmwasm)",
+ "snarkvm-console-program 3.8.0 (git+https://github.com/eigerco/snarkVM?tag=snarkvm-with-cosmwasm)",
+ "snarkvm-console-types 3.8.0 (git+https://github.com/eigerco/snarkVM?tag=snarkvm-with-cosmwasm)",
 ]
 
 [[package]]
@@ -10961,12 +11004,23 @@ name = "snarkvm-console"
 version = "3.8.0"
 source = "git+https://github.com/eigerco/snarkVM?branch=cosmwasm-3#bc0bf9f983eef9793d014a332a644233e601ef5d"
 dependencies = [
- "snarkvm-console-account",
- "snarkvm-console-algorithms",
- "snarkvm-console-collections",
- "snarkvm-console-network",
- "snarkvm-console-program",
- "snarkvm-console-types",
+ "snarkvm-console-account 3.8.0 (git+https://github.com/eigerco/snarkVM?branch=cosmwasm-3)",
+ "snarkvm-console-algorithms 3.8.0 (git+https://github.com/eigerco/snarkVM?branch=cosmwasm-3)",
+ "snarkvm-console-collections 3.8.0 (git+https://github.com/eigerco/snarkVM?branch=cosmwasm-3)",
+ "snarkvm-console-network 3.8.0 (git+https://github.com/eigerco/snarkVM?branch=cosmwasm-3)",
+ "snarkvm-console-program 3.8.0 (git+https://github.com/eigerco/snarkVM?branch=cosmwasm-3)",
+ "snarkvm-console-types 3.8.0 (git+https://github.com/eigerco/snarkVM?branch=cosmwasm-3)",
+]
+
+[[package]]
+name = "snarkvm-console-account"
+version = "3.8.0"
+source = "git+https://github.com/eigerco/snarkVM?tag=snarkvm-with-cosmwasm#bc0bf9f983eef9793d014a332a644233e601ef5d"
+dependencies = [
+ "bs58 0.5.1",
+ "snarkvm-console-network 3.8.0 (git+https://github.com/eigerco/snarkVM?tag=snarkvm-with-cosmwasm)",
+ "snarkvm-console-types 3.8.0 (git+https://github.com/eigerco/snarkVM?tag=snarkvm-with-cosmwasm)",
+ "zeroize",
 ]
 
 [[package]]
@@ -10975,9 +11029,22 @@ version = "3.8.0"
 source = "git+https://github.com/eigerco/snarkVM?branch=cosmwasm-3#bc0bf9f983eef9793d014a332a644233e601ef5d"
 dependencies = [
  "bs58 0.5.1",
- "snarkvm-console-network",
- "snarkvm-console-types",
+ "snarkvm-console-network 3.8.0 (git+https://github.com/eigerco/snarkVM?branch=cosmwasm-3)",
+ "snarkvm-console-types 3.8.0 (git+https://github.com/eigerco/snarkVM?branch=cosmwasm-3)",
  "zeroize",
+]
+
+[[package]]
+name = "snarkvm-console-algorithms"
+version = "3.8.0"
+source = "git+https://github.com/eigerco/snarkVM?tag=snarkvm-with-cosmwasm#bc0bf9f983eef9793d014a332a644233e601ef5d"
+dependencies = [
+ "blake2s_simd",
+ "smallvec",
+ "snarkvm-console-types 3.8.0 (git+https://github.com/eigerco/snarkVM?tag=snarkvm-with-cosmwasm)",
+ "snarkvm-fields 3.8.0 (git+https://github.com/eigerco/snarkVM?tag=snarkvm-with-cosmwasm)",
+ "snarkvm-utilities 3.8.0 (git+https://github.com/eigerco/snarkVM?tag=snarkvm-with-cosmwasm)",
+ "tiny-keccak",
 ]
 
 [[package]]
@@ -10987,10 +11054,21 @@ source = "git+https://github.com/eigerco/snarkVM?branch=cosmwasm-3#bc0bf9f983eef
 dependencies = [
  "blake2s_simd",
  "smallvec",
- "snarkvm-console-types",
- "snarkvm-fields",
- "snarkvm-utilities",
+ "snarkvm-console-types 3.8.0 (git+https://github.com/eigerco/snarkVM?branch=cosmwasm-3)",
+ "snarkvm-fields 3.8.0 (git+https://github.com/eigerco/snarkVM?branch=cosmwasm-3)",
+ "snarkvm-utilities 3.8.0 (git+https://github.com/eigerco/snarkVM?branch=cosmwasm-3)",
  "tiny-keccak",
+]
+
+[[package]]
+name = "snarkvm-console-collections"
+version = "3.8.0"
+source = "git+https://github.com/eigerco/snarkVM?tag=snarkvm-with-cosmwasm#bc0bf9f983eef9793d014a332a644233e601ef5d"
+dependencies = [
+ "aleo-std",
+ "rayon",
+ "snarkvm-console-algorithms 3.8.0 (git+https://github.com/eigerco/snarkVM?tag=snarkvm-with-cosmwasm)",
+ "snarkvm-console-types 3.8.0 (git+https://github.com/eigerco/snarkVM?tag=snarkvm-with-cosmwasm)",
 ]
 
 [[package]]
@@ -11000,8 +11078,31 @@ source = "git+https://github.com/eigerco/snarkVM?branch=cosmwasm-3#bc0bf9f983eef
 dependencies = [
  "aleo-std",
  "rayon",
- "snarkvm-console-algorithms",
- "snarkvm-console-types",
+ "snarkvm-console-algorithms 3.8.0 (git+https://github.com/eigerco/snarkVM?branch=cosmwasm-3)",
+ "snarkvm-console-types 3.8.0 (git+https://github.com/eigerco/snarkVM?branch=cosmwasm-3)",
+]
+
+[[package]]
+name = "snarkvm-console-network"
+version = "3.8.0"
+source = "git+https://github.com/eigerco/snarkVM?tag=snarkvm-with-cosmwasm#bc0bf9f983eef9793d014a332a644233e601ef5d"
+dependencies = [
+ "anyhow",
+ "indexmap 2.10.0",
+ "itertools 0.11.0",
+ "lazy_static",
+ "once_cell",
+ "paste",
+ "serde",
+ "snarkvm-algorithms 3.8.0 (git+https://github.com/eigerco/snarkVM?tag=snarkvm-with-cosmwasm)",
+ "snarkvm-console-algorithms 3.8.0 (git+https://github.com/eigerco/snarkVM?tag=snarkvm-with-cosmwasm)",
+ "snarkvm-console-collections 3.8.0 (git+https://github.com/eigerco/snarkVM?tag=snarkvm-with-cosmwasm)",
+ "snarkvm-console-network-environment 3.8.0 (git+https://github.com/eigerco/snarkVM?tag=snarkvm-with-cosmwasm)",
+ "snarkvm-console-types 3.8.0 (git+https://github.com/eigerco/snarkVM?tag=snarkvm-with-cosmwasm)",
+ "snarkvm-curves 3.8.0 (git+https://github.com/eigerco/snarkVM?tag=snarkvm-with-cosmwasm)",
+ "snarkvm-fields 3.8.0 (git+https://github.com/eigerco/snarkVM?tag=snarkvm-with-cosmwasm)",
+ "snarkvm-parameters 3.8.0 (git+https://github.com/eigerco/snarkVM?tag=snarkvm-with-cosmwasm)",
+ "snarkvm-utilities 3.8.0 (git+https://github.com/eigerco/snarkVM?tag=snarkvm-with-cosmwasm)",
 ]
 
 [[package]]
@@ -11016,15 +11117,33 @@ dependencies = [
  "once_cell",
  "paste",
  "serde",
- "snarkvm-algorithms",
- "snarkvm-console-algorithms",
- "snarkvm-console-collections",
- "snarkvm-console-network-environment",
- "snarkvm-console-types",
- "snarkvm-curves",
- "snarkvm-fields",
- "snarkvm-parameters",
- "snarkvm-utilities",
+ "snarkvm-algorithms 3.8.0 (git+https://github.com/eigerco/snarkVM?branch=cosmwasm-3)",
+ "snarkvm-console-algorithms 3.8.0 (git+https://github.com/eigerco/snarkVM?branch=cosmwasm-3)",
+ "snarkvm-console-collections 3.8.0 (git+https://github.com/eigerco/snarkVM?branch=cosmwasm-3)",
+ "snarkvm-console-network-environment 3.8.0 (git+https://github.com/eigerco/snarkVM?branch=cosmwasm-3)",
+ "snarkvm-console-types 3.8.0 (git+https://github.com/eigerco/snarkVM?branch=cosmwasm-3)",
+ "snarkvm-curves 3.8.0 (git+https://github.com/eigerco/snarkVM?branch=cosmwasm-3)",
+ "snarkvm-fields 3.8.0 (git+https://github.com/eigerco/snarkVM?branch=cosmwasm-3)",
+ "snarkvm-parameters 3.8.0 (git+https://github.com/eigerco/snarkVM?branch=cosmwasm-3)",
+ "snarkvm-utilities 3.8.0 (git+https://github.com/eigerco/snarkVM?branch=cosmwasm-3)",
+]
+
+[[package]]
+name = "snarkvm-console-network-environment"
+version = "3.8.0"
+source = "git+https://github.com/eigerco/snarkVM?tag=snarkvm-with-cosmwasm#bc0bf9f983eef9793d014a332a644233e601ef5d"
+dependencies = [
+ "anyhow",
+ "bech32 0.9.1",
+ "itertools 0.11.0",
+ "nom 7.1.3",
+ "num-traits",
+ "rand 0.8.5",
+ "serde",
+ "snarkvm-curves 3.8.0 (git+https://github.com/eigerco/snarkVM?tag=snarkvm-with-cosmwasm)",
+ "snarkvm-fields 3.8.0 (git+https://github.com/eigerco/snarkVM?tag=snarkvm-with-cosmwasm)",
+ "snarkvm-utilities 3.8.0 (git+https://github.com/eigerco/snarkVM?tag=snarkvm-with-cosmwasm)",
+ "zeroize",
 ]
 
 [[package]]
@@ -11039,10 +11158,32 @@ dependencies = [
  "num-traits",
  "rand 0.8.5",
  "serde",
- "snarkvm-curves",
- "snarkvm-fields",
- "snarkvm-utilities",
+ "snarkvm-curves 3.8.0 (git+https://github.com/eigerco/snarkVM?branch=cosmwasm-3)",
+ "snarkvm-fields 3.8.0 (git+https://github.com/eigerco/snarkVM?branch=cosmwasm-3)",
+ "snarkvm-utilities 3.8.0 (git+https://github.com/eigerco/snarkVM?branch=cosmwasm-3)",
  "zeroize",
+]
+
+[[package]]
+name = "snarkvm-console-program"
+version = "3.8.0"
+source = "git+https://github.com/eigerco/snarkVM?tag=snarkvm-with-cosmwasm#bc0bf9f983eef9793d014a332a644233e601ef5d"
+dependencies = [
+ "enum-iterator 2.1.0",
+ "enum_index",
+ "enum_index_derive",
+ "indexmap 2.10.0",
+ "num-derive",
+ "num-traits",
+ "once_cell",
+ "paste",
+ "serde_json",
+ "snarkvm-console-account 3.8.0 (git+https://github.com/eigerco/snarkVM?tag=snarkvm-with-cosmwasm)",
+ "snarkvm-console-algorithms 3.8.0 (git+https://github.com/eigerco/snarkVM?tag=snarkvm-with-cosmwasm)",
+ "snarkvm-console-collections 3.8.0 (git+https://github.com/eigerco/snarkVM?tag=snarkvm-with-cosmwasm)",
+ "snarkvm-console-network 3.8.0 (git+https://github.com/eigerco/snarkVM?tag=snarkvm-with-cosmwasm)",
+ "snarkvm-console-types 3.8.0 (git+https://github.com/eigerco/snarkVM?tag=snarkvm-with-cosmwasm)",
+ "snarkvm-utilities 3.8.0 (git+https://github.com/eigerco/snarkVM?tag=snarkvm-with-cosmwasm)",
 ]
 
 [[package]]
@@ -11059,12 +11200,27 @@ dependencies = [
  "once_cell",
  "paste",
  "serde_json",
- "snarkvm-console-account",
- "snarkvm-console-algorithms",
- "snarkvm-console-collections",
- "snarkvm-console-network",
- "snarkvm-console-types",
- "snarkvm-utilities",
+ "snarkvm-console-account 3.8.0 (git+https://github.com/eigerco/snarkVM?branch=cosmwasm-3)",
+ "snarkvm-console-algorithms 3.8.0 (git+https://github.com/eigerco/snarkVM?branch=cosmwasm-3)",
+ "snarkvm-console-collections 3.8.0 (git+https://github.com/eigerco/snarkVM?branch=cosmwasm-3)",
+ "snarkvm-console-network 3.8.0 (git+https://github.com/eigerco/snarkVM?branch=cosmwasm-3)",
+ "snarkvm-console-types 3.8.0 (git+https://github.com/eigerco/snarkVM?branch=cosmwasm-3)",
+ "snarkvm-utilities 3.8.0 (git+https://github.com/eigerco/snarkVM?branch=cosmwasm-3)",
+]
+
+[[package]]
+name = "snarkvm-console-types"
+version = "3.8.0"
+source = "git+https://github.com/eigerco/snarkVM?tag=snarkvm-with-cosmwasm#bc0bf9f983eef9793d014a332a644233e601ef5d"
+dependencies = [
+ "snarkvm-console-network-environment 3.8.0 (git+https://github.com/eigerco/snarkVM?tag=snarkvm-with-cosmwasm)",
+ "snarkvm-console-types-address 3.8.0 (git+https://github.com/eigerco/snarkVM?tag=snarkvm-with-cosmwasm)",
+ "snarkvm-console-types-boolean 3.8.0 (git+https://github.com/eigerco/snarkVM?tag=snarkvm-with-cosmwasm)",
+ "snarkvm-console-types-field 3.8.0 (git+https://github.com/eigerco/snarkVM?tag=snarkvm-with-cosmwasm)",
+ "snarkvm-console-types-group 3.8.0 (git+https://github.com/eigerco/snarkVM?tag=snarkvm-with-cosmwasm)",
+ "snarkvm-console-types-integers 3.8.0 (git+https://github.com/eigerco/snarkVM?tag=snarkvm-with-cosmwasm)",
+ "snarkvm-console-types-scalar 3.8.0 (git+https://github.com/eigerco/snarkVM?tag=snarkvm-with-cosmwasm)",
+ "snarkvm-console-types-string 3.8.0 (git+https://github.com/eigerco/snarkVM?tag=snarkvm-with-cosmwasm)",
 ]
 
 [[package]]
@@ -11072,14 +11228,25 @@ name = "snarkvm-console-types"
 version = "3.8.0"
 source = "git+https://github.com/eigerco/snarkVM?branch=cosmwasm-3#bc0bf9f983eef9793d014a332a644233e601ef5d"
 dependencies = [
- "snarkvm-console-network-environment",
- "snarkvm-console-types-address",
- "snarkvm-console-types-boolean",
- "snarkvm-console-types-field",
- "snarkvm-console-types-group",
- "snarkvm-console-types-integers",
- "snarkvm-console-types-scalar",
- "snarkvm-console-types-string",
+ "snarkvm-console-network-environment 3.8.0 (git+https://github.com/eigerco/snarkVM?branch=cosmwasm-3)",
+ "snarkvm-console-types-address 3.8.0 (git+https://github.com/eigerco/snarkVM?branch=cosmwasm-3)",
+ "snarkvm-console-types-boolean 3.8.0 (git+https://github.com/eigerco/snarkVM?branch=cosmwasm-3)",
+ "snarkvm-console-types-field 3.8.0 (git+https://github.com/eigerco/snarkVM?branch=cosmwasm-3)",
+ "snarkvm-console-types-group 3.8.0 (git+https://github.com/eigerco/snarkVM?branch=cosmwasm-3)",
+ "snarkvm-console-types-integers 3.8.0 (git+https://github.com/eigerco/snarkVM?branch=cosmwasm-3)",
+ "snarkvm-console-types-scalar 3.8.0 (git+https://github.com/eigerco/snarkVM?branch=cosmwasm-3)",
+ "snarkvm-console-types-string 3.8.0 (git+https://github.com/eigerco/snarkVM?branch=cosmwasm-3)",
+]
+
+[[package]]
+name = "snarkvm-console-types-address"
+version = "3.8.0"
+source = "git+https://github.com/eigerco/snarkVM?tag=snarkvm-with-cosmwasm#bc0bf9f983eef9793d014a332a644233e601ef5d"
+dependencies = [
+ "snarkvm-console-network-environment 3.8.0 (git+https://github.com/eigerco/snarkVM?tag=snarkvm-with-cosmwasm)",
+ "snarkvm-console-types-boolean 3.8.0 (git+https://github.com/eigerco/snarkVM?tag=snarkvm-with-cosmwasm)",
+ "snarkvm-console-types-field 3.8.0 (git+https://github.com/eigerco/snarkVM?tag=snarkvm-with-cosmwasm)",
+ "snarkvm-console-types-group 3.8.0 (git+https://github.com/eigerco/snarkVM?tag=snarkvm-with-cosmwasm)",
 ]
 
 [[package]]
@@ -11087,10 +11254,18 @@ name = "snarkvm-console-types-address"
 version = "3.8.0"
 source = "git+https://github.com/eigerco/snarkVM?branch=cosmwasm-3#bc0bf9f983eef9793d014a332a644233e601ef5d"
 dependencies = [
- "snarkvm-console-network-environment",
- "snarkvm-console-types-boolean",
- "snarkvm-console-types-field",
- "snarkvm-console-types-group",
+ "snarkvm-console-network-environment 3.8.0 (git+https://github.com/eigerco/snarkVM?branch=cosmwasm-3)",
+ "snarkvm-console-types-boolean 3.8.0 (git+https://github.com/eigerco/snarkVM?branch=cosmwasm-3)",
+ "snarkvm-console-types-field 3.8.0 (git+https://github.com/eigerco/snarkVM?branch=cosmwasm-3)",
+ "snarkvm-console-types-group 3.8.0 (git+https://github.com/eigerco/snarkVM?branch=cosmwasm-3)",
+]
+
+[[package]]
+name = "snarkvm-console-types-boolean"
+version = "3.8.0"
+source = "git+https://github.com/eigerco/snarkVM?tag=snarkvm-with-cosmwasm#bc0bf9f983eef9793d014a332a644233e601ef5d"
+dependencies = [
+ "snarkvm-console-network-environment 3.8.0 (git+https://github.com/eigerco/snarkVM?tag=snarkvm-with-cosmwasm)",
 ]
 
 [[package]]
@@ -11098,7 +11273,17 @@ name = "snarkvm-console-types-boolean"
 version = "3.8.0"
 source = "git+https://github.com/eigerco/snarkVM?branch=cosmwasm-3#bc0bf9f983eef9793d014a332a644233e601ef5d"
 dependencies = [
- "snarkvm-console-network-environment",
+ "snarkvm-console-network-environment 3.8.0 (git+https://github.com/eigerco/snarkVM?branch=cosmwasm-3)",
+]
+
+[[package]]
+name = "snarkvm-console-types-field"
+version = "3.8.0"
+source = "git+https://github.com/eigerco/snarkVM?tag=snarkvm-with-cosmwasm#bc0bf9f983eef9793d014a332a644233e601ef5d"
+dependencies = [
+ "snarkvm-console-network-environment 3.8.0 (git+https://github.com/eigerco/snarkVM?tag=snarkvm-with-cosmwasm)",
+ "snarkvm-console-types-boolean 3.8.0 (git+https://github.com/eigerco/snarkVM?tag=snarkvm-with-cosmwasm)",
+ "zeroize",
 ]
 
 [[package]]
@@ -11106,9 +11291,20 @@ name = "snarkvm-console-types-field"
 version = "3.8.0"
 source = "git+https://github.com/eigerco/snarkVM?branch=cosmwasm-3#bc0bf9f983eef9793d014a332a644233e601ef5d"
 dependencies = [
- "snarkvm-console-network-environment",
- "snarkvm-console-types-boolean",
+ "snarkvm-console-network-environment 3.8.0 (git+https://github.com/eigerco/snarkVM?branch=cosmwasm-3)",
+ "snarkvm-console-types-boolean 3.8.0 (git+https://github.com/eigerco/snarkVM?branch=cosmwasm-3)",
  "zeroize",
+]
+
+[[package]]
+name = "snarkvm-console-types-group"
+version = "3.8.0"
+source = "git+https://github.com/eigerco/snarkVM?tag=snarkvm-with-cosmwasm#bc0bf9f983eef9793d014a332a644233e601ef5d"
+dependencies = [
+ "snarkvm-console-network-environment 3.8.0 (git+https://github.com/eigerco/snarkVM?tag=snarkvm-with-cosmwasm)",
+ "snarkvm-console-types-boolean 3.8.0 (git+https://github.com/eigerco/snarkVM?tag=snarkvm-with-cosmwasm)",
+ "snarkvm-console-types-field 3.8.0 (git+https://github.com/eigerco/snarkVM?tag=snarkvm-with-cosmwasm)",
+ "snarkvm-console-types-scalar 3.8.0 (git+https://github.com/eigerco/snarkVM?tag=snarkvm-with-cosmwasm)",
 ]
 
 [[package]]
@@ -11116,10 +11312,21 @@ name = "snarkvm-console-types-group"
 version = "3.8.0"
 source = "git+https://github.com/eigerco/snarkVM?branch=cosmwasm-3#bc0bf9f983eef9793d014a332a644233e601ef5d"
 dependencies = [
- "snarkvm-console-network-environment",
- "snarkvm-console-types-boolean",
- "snarkvm-console-types-field",
- "snarkvm-console-types-scalar",
+ "snarkvm-console-network-environment 3.8.0 (git+https://github.com/eigerco/snarkVM?branch=cosmwasm-3)",
+ "snarkvm-console-types-boolean 3.8.0 (git+https://github.com/eigerco/snarkVM?branch=cosmwasm-3)",
+ "snarkvm-console-types-field 3.8.0 (git+https://github.com/eigerco/snarkVM?branch=cosmwasm-3)",
+ "snarkvm-console-types-scalar 3.8.0 (git+https://github.com/eigerco/snarkVM?branch=cosmwasm-3)",
+]
+
+[[package]]
+name = "snarkvm-console-types-integers"
+version = "3.8.0"
+source = "git+https://github.com/eigerco/snarkVM?tag=snarkvm-with-cosmwasm#bc0bf9f983eef9793d014a332a644233e601ef5d"
+dependencies = [
+ "snarkvm-console-network-environment 3.8.0 (git+https://github.com/eigerco/snarkVM?tag=snarkvm-with-cosmwasm)",
+ "snarkvm-console-types-boolean 3.8.0 (git+https://github.com/eigerco/snarkVM?tag=snarkvm-with-cosmwasm)",
+ "snarkvm-console-types-field 3.8.0 (git+https://github.com/eigerco/snarkVM?tag=snarkvm-with-cosmwasm)",
+ "snarkvm-console-types-scalar 3.8.0 (git+https://github.com/eigerco/snarkVM?tag=snarkvm-with-cosmwasm)",
 ]
 
 [[package]]
@@ -11127,10 +11334,21 @@ name = "snarkvm-console-types-integers"
 version = "3.8.0"
 source = "git+https://github.com/eigerco/snarkVM?branch=cosmwasm-3#bc0bf9f983eef9793d014a332a644233e601ef5d"
 dependencies = [
- "snarkvm-console-network-environment",
- "snarkvm-console-types-boolean",
- "snarkvm-console-types-field",
- "snarkvm-console-types-scalar",
+ "snarkvm-console-network-environment 3.8.0 (git+https://github.com/eigerco/snarkVM?branch=cosmwasm-3)",
+ "snarkvm-console-types-boolean 3.8.0 (git+https://github.com/eigerco/snarkVM?branch=cosmwasm-3)",
+ "snarkvm-console-types-field 3.8.0 (git+https://github.com/eigerco/snarkVM?branch=cosmwasm-3)",
+ "snarkvm-console-types-scalar 3.8.0 (git+https://github.com/eigerco/snarkVM?branch=cosmwasm-3)",
+]
+
+[[package]]
+name = "snarkvm-console-types-scalar"
+version = "3.8.0"
+source = "git+https://github.com/eigerco/snarkVM?tag=snarkvm-with-cosmwasm#bc0bf9f983eef9793d014a332a644233e601ef5d"
+dependencies = [
+ "snarkvm-console-network-environment 3.8.0 (git+https://github.com/eigerco/snarkVM?tag=snarkvm-with-cosmwasm)",
+ "snarkvm-console-types-boolean 3.8.0 (git+https://github.com/eigerco/snarkVM?tag=snarkvm-with-cosmwasm)",
+ "snarkvm-console-types-field 3.8.0 (git+https://github.com/eigerco/snarkVM?tag=snarkvm-with-cosmwasm)",
+ "zeroize",
 ]
 
 [[package]]
@@ -11138,10 +11356,21 @@ name = "snarkvm-console-types-scalar"
 version = "3.8.0"
 source = "git+https://github.com/eigerco/snarkVM?branch=cosmwasm-3#bc0bf9f983eef9793d014a332a644233e601ef5d"
 dependencies = [
- "snarkvm-console-network-environment",
- "snarkvm-console-types-boolean",
- "snarkvm-console-types-field",
+ "snarkvm-console-network-environment 3.8.0 (git+https://github.com/eigerco/snarkVM?branch=cosmwasm-3)",
+ "snarkvm-console-types-boolean 3.8.0 (git+https://github.com/eigerco/snarkVM?branch=cosmwasm-3)",
+ "snarkvm-console-types-field 3.8.0 (git+https://github.com/eigerco/snarkVM?branch=cosmwasm-3)",
  "zeroize",
+]
+
+[[package]]
+name = "snarkvm-console-types-string"
+version = "3.8.0"
+source = "git+https://github.com/eigerco/snarkVM?tag=snarkvm-with-cosmwasm#bc0bf9f983eef9793d014a332a644233e601ef5d"
+dependencies = [
+ "snarkvm-console-network-environment 3.8.0 (git+https://github.com/eigerco/snarkVM?tag=snarkvm-with-cosmwasm)",
+ "snarkvm-console-types-boolean 3.8.0 (git+https://github.com/eigerco/snarkVM?tag=snarkvm-with-cosmwasm)",
+ "snarkvm-console-types-field 3.8.0 (git+https://github.com/eigerco/snarkVM?tag=snarkvm-with-cosmwasm)",
+ "snarkvm-console-types-integers 3.8.0 (git+https://github.com/eigerco/snarkVM?tag=snarkvm-with-cosmwasm)",
 ]
 
 [[package]]
@@ -11149,10 +11378,18 @@ name = "snarkvm-console-types-string"
 version = "3.8.0"
 source = "git+https://github.com/eigerco/snarkVM?branch=cosmwasm-3#bc0bf9f983eef9793d014a332a644233e601ef5d"
 dependencies = [
- "snarkvm-console-network-environment",
- "snarkvm-console-types-boolean",
- "snarkvm-console-types-field",
- "snarkvm-console-types-integers",
+ "snarkvm-console-network-environment 3.8.0 (git+https://github.com/eigerco/snarkVM?branch=cosmwasm-3)",
+ "snarkvm-console-types-boolean 3.8.0 (git+https://github.com/eigerco/snarkVM?branch=cosmwasm-3)",
+ "snarkvm-console-types-field 3.8.0 (git+https://github.com/eigerco/snarkVM?branch=cosmwasm-3)",
+ "snarkvm-console-types-integers 3.8.0 (git+https://github.com/eigerco/snarkVM?branch=cosmwasm-3)",
+]
+
+[[package]]
+name = "snarkvm-cosmwasm"
+version = "3.8.0"
+source = "git+https://github.com/eigerco/snarkVM?tag=snarkvm-with-cosmwasm#bc0bf9f983eef9793d014a332a644233e601ef5d"
+dependencies = [
+ "snarkvm-console 3.8.0 (git+https://github.com/eigerco/snarkVM?tag=snarkvm-with-cosmwasm)",
 ]
 
 [[package]]
@@ -11161,7 +11398,21 @@ version = "3.8.0"
 source = "git+https://github.com/eigerco/snarkVM?branch=cosmwasm-3#bc0bf9f983eef9793d014a332a644233e601ef5d"
 dependencies = [
  "getrandom 0.2.16",
- "snarkvm-console",
+ "snarkvm-console 3.8.0 (git+https://github.com/eigerco/snarkVM?branch=cosmwasm-3)",
+]
+
+[[package]]
+name = "snarkvm-curves"
+version = "3.8.0"
+source = "git+https://github.com/eigerco/snarkVM?tag=snarkvm-with-cosmwasm#bc0bf9f983eef9793d014a332a644233e601ef5d"
+dependencies = [
+ "rand 0.8.5",
+ "rayon",
+ "rustc_version 0.4.1",
+ "serde",
+ "snarkvm-fields 3.8.0 (git+https://github.com/eigerco/snarkVM?tag=snarkvm-with-cosmwasm)",
+ "snarkvm-utilities 3.8.0 (git+https://github.com/eigerco/snarkVM?tag=snarkvm-with-cosmwasm)",
+ "thiserror 2.0.12",
 ]
 
 [[package]]
@@ -11173,9 +11424,26 @@ dependencies = [
  "rayon",
  "rustc_version 0.4.1",
  "serde",
- "snarkvm-fields",
- "snarkvm-utilities",
+ "snarkvm-fields 3.8.0 (git+https://github.com/eigerco/snarkVM?branch=cosmwasm-3)",
+ "snarkvm-utilities 3.8.0 (git+https://github.com/eigerco/snarkVM?branch=cosmwasm-3)",
  "thiserror 2.0.12",
+]
+
+[[package]]
+name = "snarkvm-fields"
+version = "3.8.0"
+source = "git+https://github.com/eigerco/snarkVM?tag=snarkvm-with-cosmwasm#bc0bf9f983eef9793d014a332a644233e601ef5d"
+dependencies = [
+ "aleo-std",
+ "anyhow",
+ "itertools 0.11.0",
+ "num-traits",
+ "rand 0.8.5",
+ "rayon",
+ "serde",
+ "snarkvm-utilities 3.8.0 (git+https://github.com/eigerco/snarkVM?tag=snarkvm-with-cosmwasm)",
+ "thiserror 2.0.12",
+ "zeroize",
 ]
 
 [[package]]
@@ -11190,7 +11458,7 @@ dependencies = [
  "rand 0.8.5",
  "rayon",
  "serde",
- "snarkvm-utilities",
+ "snarkvm-utilities 3.8.0 (git+https://github.com/eigerco/snarkVM?branch=cosmwasm-3)",
  "thiserror 2.0.12",
  "zeroize",
 ]
@@ -11198,7 +11466,7 @@ dependencies = [
 [[package]]
 name = "snarkvm-ledger"
 version = "3.8.0"
-source = "git+https://github.com/eigerco/snarkVM?branch=cosmwasm-3#bc0bf9f983eef9793d014a332a644233e601ef5d"
+source = "git+https://github.com/eigerco/snarkVM?tag=snarkvm-with-cosmwasm#bc0bf9f983eef9793d014a332a644233e601ef5d"
 dependencies = [
  "aleo-std",
  "anyhow",
@@ -11207,7 +11475,7 @@ dependencies = [
  "parking_lot",
  "rand 0.8.5",
  "rayon",
- "snarkvm-console",
+ "snarkvm-console 3.8.0 (git+https://github.com/eigerco/snarkVM?tag=snarkvm-with-cosmwasm)",
  "snarkvm-ledger-authority",
  "snarkvm-ledger-block",
  "snarkvm-ledger-committee",
@@ -11223,24 +11491,24 @@ dependencies = [
 [[package]]
 name = "snarkvm-ledger-authority"
 version = "3.8.0"
-source = "git+https://github.com/eigerco/snarkVM?branch=cosmwasm-3#bc0bf9f983eef9793d014a332a644233e601ef5d"
+source = "git+https://github.com/eigerco/snarkVM?tag=snarkvm-with-cosmwasm#bc0bf9f983eef9793d014a332a644233e601ef5d"
 dependencies = [
  "anyhow",
  "rand 0.8.5",
  "serde_json",
- "snarkvm-console",
+ "snarkvm-console 3.8.0 (git+https://github.com/eigerco/snarkVM?tag=snarkvm-with-cosmwasm)",
  "snarkvm-ledger-narwhal-subdag",
 ]
 
 [[package]]
 name = "snarkvm-ledger-block"
 version = "3.8.0"
-source = "git+https://github.com/eigerco/snarkVM?branch=cosmwasm-3#bc0bf9f983eef9793d014a332a644233e601ef5d"
+source = "git+https://github.com/eigerco/snarkVM?tag=snarkvm-with-cosmwasm#bc0bf9f983eef9793d014a332a644233e601ef5d"
 dependencies = [
  "indexmap 2.10.0",
  "rayon",
  "serde_json",
- "snarkvm-console",
+ "snarkvm-console 3.8.0 (git+https://github.com/eigerco/snarkVM?tag=snarkvm-with-cosmwasm)",
  "snarkvm-ledger-authority",
  "snarkvm-ledger-committee",
  "snarkvm-ledger-narwhal-batch-header",
@@ -11255,19 +11523,19 @@ dependencies = [
 [[package]]
 name = "snarkvm-ledger-committee"
 version = "3.8.0"
-source = "git+https://github.com/eigerco/snarkVM?branch=cosmwasm-3#bc0bf9f983eef9793d014a332a644233e601ef5d"
+source = "git+https://github.com/eigerco/snarkVM?tag=snarkvm-with-cosmwasm#bc0bf9f983eef9793d014a332a644233e601ef5d"
 dependencies = [
  "indexmap 2.10.0",
  "rayon",
  "serde_json",
- "snarkvm-console",
+ "snarkvm-console 3.8.0 (git+https://github.com/eigerco/snarkVM?tag=snarkvm-with-cosmwasm)",
  "snarkvm-ledger-narwhal-batch-header",
 ]
 
 [[package]]
 name = "snarkvm-ledger-narwhal"
 version = "3.8.0"
-source = "git+https://github.com/eigerco/snarkVM?branch=cosmwasm-3#bc0bf9f983eef9793d014a332a644233e601ef5d"
+source = "git+https://github.com/eigerco/snarkVM?tag=snarkvm-with-cosmwasm#bc0bf9f983eef9793d014a332a644233e601ef5d"
 dependencies = [
  "snarkvm-ledger-narwhal-batch-certificate",
  "snarkvm-ledger-narwhal-batch-header",
@@ -11280,12 +11548,12 @@ dependencies = [
 [[package]]
 name = "snarkvm-ledger-narwhal-batch-certificate"
 version = "3.8.0"
-source = "git+https://github.com/eigerco/snarkVM?branch=cosmwasm-3#bc0bf9f983eef9793d014a332a644233e601ef5d"
+source = "git+https://github.com/eigerco/snarkVM?tag=snarkvm-with-cosmwasm#bc0bf9f983eef9793d014a332a644233e601ef5d"
 dependencies = [
  "indexmap 2.10.0",
  "rayon",
  "serde_json",
- "snarkvm-console",
+ "snarkvm-console 3.8.0 (git+https://github.com/eigerco/snarkVM?tag=snarkvm-with-cosmwasm)",
  "snarkvm-ledger-narwhal-batch-header",
  "snarkvm-ledger-narwhal-transmission-id",
 ]
@@ -11293,35 +11561,35 @@ dependencies = [
 [[package]]
 name = "snarkvm-ledger-narwhal-batch-header"
 version = "3.8.0"
-source = "git+https://github.com/eigerco/snarkVM?branch=cosmwasm-3#bc0bf9f983eef9793d014a332a644233e601ef5d"
+source = "git+https://github.com/eigerco/snarkVM?tag=snarkvm-with-cosmwasm#bc0bf9f983eef9793d014a332a644233e601ef5d"
 dependencies = [
  "indexmap 2.10.0",
  "rayon",
  "serde_json",
- "snarkvm-console",
+ "snarkvm-console 3.8.0 (git+https://github.com/eigerco/snarkVM?tag=snarkvm-with-cosmwasm)",
  "snarkvm-ledger-narwhal-transmission-id",
 ]
 
 [[package]]
 name = "snarkvm-ledger-narwhal-data"
 version = "3.8.0"
-source = "git+https://github.com/eigerco/snarkVM?branch=cosmwasm-3#bc0bf9f983eef9793d014a332a644233e601ef5d"
+source = "git+https://github.com/eigerco/snarkVM?tag=snarkvm-with-cosmwasm#bc0bf9f983eef9793d014a332a644233e601ef5d"
 dependencies = [
  "bytes",
  "serde_json",
- "snarkvm-console",
+ "snarkvm-console 3.8.0 (git+https://github.com/eigerco/snarkVM?tag=snarkvm-with-cosmwasm)",
  "tokio",
 ]
 
 [[package]]
 name = "snarkvm-ledger-narwhal-subdag"
 version = "3.8.0"
-source = "git+https://github.com/eigerco/snarkVM?branch=cosmwasm-3#bc0bf9f983eef9793d014a332a644233e601ef5d"
+source = "git+https://github.com/eigerco/snarkVM?tag=snarkvm-with-cosmwasm#bc0bf9f983eef9793d014a332a644233e601ef5d"
 dependencies = [
  "indexmap 2.10.0",
  "rayon",
  "serde_json",
- "snarkvm-console",
+ "snarkvm-console 3.8.0 (git+https://github.com/eigerco/snarkVM?tag=snarkvm-with-cosmwasm)",
  "snarkvm-ledger-committee",
  "snarkvm-ledger-narwhal-batch-certificate",
  "snarkvm-ledger-narwhal-batch-header",
@@ -11331,11 +11599,11 @@ dependencies = [
 [[package]]
 name = "snarkvm-ledger-narwhal-transmission"
 version = "3.8.0"
-source = "git+https://github.com/eigerco/snarkVM?branch=cosmwasm-3#bc0bf9f983eef9793d014a332a644233e601ef5d"
+source = "git+https://github.com/eigerco/snarkVM?tag=snarkvm-with-cosmwasm#bc0bf9f983eef9793d014a332a644233e601ef5d"
 dependencies = [
  "bytes",
  "serde_json",
- "snarkvm-console",
+ "snarkvm-console 3.8.0 (git+https://github.com/eigerco/snarkVM?tag=snarkvm-with-cosmwasm)",
  "snarkvm-ledger-block",
  "snarkvm-ledger-narwhal-data",
  "snarkvm-ledger-puzzle",
@@ -11344,16 +11612,16 @@ dependencies = [
 [[package]]
 name = "snarkvm-ledger-narwhal-transmission-id"
 version = "3.8.0"
-source = "git+https://github.com/eigerco/snarkVM?branch=cosmwasm-3#bc0bf9f983eef9793d014a332a644233e601ef5d"
+source = "git+https://github.com/eigerco/snarkVM?tag=snarkvm-with-cosmwasm#bc0bf9f983eef9793d014a332a644233e601ef5d"
 dependencies = [
- "snarkvm-console",
+ "snarkvm-console 3.8.0 (git+https://github.com/eigerco/snarkVM?tag=snarkvm-with-cosmwasm)",
  "snarkvm-ledger-puzzle",
 ]
 
 [[package]]
 name = "snarkvm-ledger-puzzle"
 version = "3.8.0"
-source = "git+https://github.com/eigerco/snarkVM?branch=cosmwasm-3#bc0bf9f983eef9793d014a332a644233e601ef5d"
+source = "git+https://github.com/eigerco/snarkVM?tag=snarkvm-with-cosmwasm#bc0bf9f983eef9793d014a332a644233e601ef5d"
 dependencies = [
  "aleo-std",
  "anyhow",
@@ -11366,14 +11634,14 @@ dependencies = [
  "rand_chacha 0.3.1",
  "rayon",
  "serde_json",
- "snarkvm-algorithms",
- "snarkvm-console",
+ "snarkvm-algorithms 3.8.0 (git+https://github.com/eigerco/snarkVM?tag=snarkvm-with-cosmwasm)",
+ "snarkvm-console 3.8.0 (git+https://github.com/eigerco/snarkVM?tag=snarkvm-with-cosmwasm)",
 ]
 
 [[package]]
 name = "snarkvm-ledger-puzzle-epoch"
 version = "3.8.0"
-source = "git+https://github.com/eigerco/snarkVM?branch=cosmwasm-3#bc0bf9f983eef9793d014a332a644233e601ef5d"
+source = "git+https://github.com/eigerco/snarkVM?tag=snarkvm-with-cosmwasm#bc0bf9f983eef9793d014a332a644233e601ef5d"
 dependencies = [
  "aleo-std",
  "anyhow",
@@ -11385,7 +11653,7 @@ dependencies = [
  "rand_chacha 0.3.1",
  "rayon",
  "snarkvm-circuit",
- "snarkvm-console",
+ "snarkvm-console 3.8.0 (git+https://github.com/eigerco/snarkVM?tag=snarkvm-with-cosmwasm)",
  "snarkvm-ledger-puzzle",
  "snarkvm-synthesizer-process",
  "snarkvm-synthesizer-program",
@@ -11394,11 +11662,11 @@ dependencies = [
 [[package]]
 name = "snarkvm-ledger-query"
 version = "3.8.0"
-source = "git+https://github.com/eigerco/snarkVM?branch=cosmwasm-3#bc0bf9f983eef9793d014a332a644233e601ef5d"
+source = "git+https://github.com/eigerco/snarkVM?tag=snarkvm-with-cosmwasm#bc0bf9f983eef9793d014a332a644233e601ef5d"
 dependencies = [
  "async-trait",
  "reqwest 0.11.27",
- "snarkvm-console",
+ "snarkvm-console 3.8.0 (git+https://github.com/eigerco/snarkVM?tag=snarkvm-with-cosmwasm)",
  "snarkvm-ledger-store",
  "snarkvm-synthesizer-program",
  "ureq 2.12.1",
@@ -11407,7 +11675,7 @@ dependencies = [
 [[package]]
 name = "snarkvm-ledger-store"
 version = "3.8.0"
-source = "git+https://github.com/eigerco/snarkVM?branch=cosmwasm-3#bc0bf9f983eef9793d014a332a644233e601ef5d"
+source = "git+https://github.com/eigerco/snarkVM?tag=snarkvm-with-cosmwasm#bc0bf9f983eef9793d014a332a644233e601ef5d"
 dependencies = [
  "aleo-std-storage",
  "anyhow",
@@ -11420,7 +11688,7 @@ dependencies = [
  "serde",
  "serde_json",
  "smallvec",
- "snarkvm-console",
+ "snarkvm-console 3.8.0 (git+https://github.com/eigerco/snarkVM?tag=snarkvm-with-cosmwasm)",
  "snarkvm-ledger-authority",
  "snarkvm-ledger-block",
  "snarkvm-ledger-committee",
@@ -11429,6 +11697,32 @@ dependencies = [
  "snarkvm-synthesizer-program",
  "snarkvm-synthesizer-snark",
  "tracing",
+]
+
+[[package]]
+name = "snarkvm-parameters"
+version = "3.8.0"
+source = "git+https://github.com/eigerco/snarkVM?tag=snarkvm-with-cosmwasm#bc0bf9f983eef9793d014a332a644233e601ef5d"
+dependencies = [
+ "aleo-std",
+ "anyhow",
+ "bincode",
+ "cfg-if",
+ "colored",
+ "curl",
+ "getrandom 0.2.16",
+ "hex",
+ "indexmap 2.10.0",
+ "itertools 0.11.0",
+ "lazy_static",
+ "parking_lot",
+ "paste",
+ "rand 0.8.5",
+ "serde_json",
+ "sha2 0.10.9",
+ "snarkvm-curves 3.8.0 (git+https://github.com/eigerco/snarkVM?tag=snarkvm-with-cosmwasm)",
+ "snarkvm-utilities 3.8.0 (git+https://github.com/eigerco/snarkVM?tag=snarkvm-with-cosmwasm)",
+ "thiserror 2.0.12",
 ]
 
 [[package]]
@@ -11452,15 +11746,15 @@ dependencies = [
  "rand 0.8.5",
  "serde_json",
  "sha2 0.10.9",
- "snarkvm-curves",
- "snarkvm-utilities",
+ "snarkvm-curves 3.8.0 (git+https://github.com/eigerco/snarkVM?branch=cosmwasm-3)",
+ "snarkvm-utilities 3.8.0 (git+https://github.com/eigerco/snarkVM?branch=cosmwasm-3)",
  "thiserror 2.0.12",
 ]
 
 [[package]]
 name = "snarkvm-synthesizer"
 version = "3.8.0"
-source = "git+https://github.com/eigerco/snarkVM?branch=cosmwasm-3#bc0bf9f983eef9793d014a332a644233e601ef5d"
+source = "git+https://github.com/eigerco/snarkVM?tag=snarkvm-with-cosmwasm#bc0bf9f983eef9793d014a332a644233e601ef5d"
 dependencies = [
  "aleo-std",
  "anyhow",
@@ -11471,9 +11765,9 @@ dependencies = [
  "rand 0.8.5",
  "rayon",
  "serde_json",
- "snarkvm-algorithms",
+ "snarkvm-algorithms 3.8.0 (git+https://github.com/eigerco/snarkVM?tag=snarkvm-with-cosmwasm)",
  "snarkvm-circuit",
- "snarkvm-console",
+ "snarkvm-console 3.8.0 (git+https://github.com/eigerco/snarkVM?tag=snarkvm-with-cosmwasm)",
  "snarkvm-ledger-block",
  "snarkvm-ledger-committee",
  "snarkvm-ledger-narwhal-data",
@@ -11484,14 +11778,14 @@ dependencies = [
  "snarkvm-synthesizer-process",
  "snarkvm-synthesizer-program",
  "snarkvm-synthesizer-snark",
- "snarkvm-utilities",
+ "snarkvm-utilities 3.8.0 (git+https://github.com/eigerco/snarkVM?tag=snarkvm-with-cosmwasm)",
  "tracing",
 ]
 
 [[package]]
 name = "snarkvm-synthesizer-process"
 version = "3.8.0"
-source = "git+https://github.com/eigerco/snarkVM?branch=cosmwasm-3#bc0bf9f983eef9793d014a332a644233e601ef5d"
+source = "git+https://github.com/eigerco/snarkVM?tag=snarkvm-with-cosmwasm#bc0bf9f983eef9793d014a332a644233e601ef5d"
 dependencies = [
  "aleo-std",
  "colored",
@@ -11502,21 +11796,21 @@ dependencies = [
  "rand_chacha 0.3.1",
  "rayon",
  "serde_json",
- "snarkvm-algorithms",
+ "snarkvm-algorithms 3.8.0 (git+https://github.com/eigerco/snarkVM?tag=snarkvm-with-cosmwasm)",
  "snarkvm-circuit",
- "snarkvm-console",
+ "snarkvm-console 3.8.0 (git+https://github.com/eigerco/snarkVM?tag=snarkvm-with-cosmwasm)",
  "snarkvm-ledger-block",
  "snarkvm-ledger-query",
  "snarkvm-ledger-store",
  "snarkvm-synthesizer-program",
  "snarkvm-synthesizer-snark",
- "snarkvm-utilities",
+ "snarkvm-utilities 3.8.0 (git+https://github.com/eigerco/snarkVM?tag=snarkvm-with-cosmwasm)",
 ]
 
 [[package]]
 name = "snarkvm-synthesizer-program"
 version = "3.8.0"
-source = "git+https://github.com/eigerco/snarkVM?branch=cosmwasm-3#bc0bf9f983eef9793d014a332a644233e601ef5d"
+source = "git+https://github.com/eigerco/snarkVM?tag=snarkvm-with-cosmwasm#bc0bf9f983eef9793d014a332a644233e601ef5d"
 dependencies = [
  "indexmap 2.10.0",
  "paste",
@@ -11524,21 +11818,43 @@ dependencies = [
  "rand_chacha 0.3.1",
  "serde_json",
  "snarkvm-circuit",
- "snarkvm-console",
+ "snarkvm-console 3.8.0 (git+https://github.com/eigerco/snarkVM?tag=snarkvm-with-cosmwasm)",
  "snarkvm-synthesizer-snark",
 ]
 
 [[package]]
 name = "snarkvm-synthesizer-snark"
 version = "3.8.0"
-source = "git+https://github.com/eigerco/snarkVM?branch=cosmwasm-3#bc0bf9f983eef9793d014a332a644233e601ef5d"
+source = "git+https://github.com/eigerco/snarkVM?tag=snarkvm-with-cosmwasm#bc0bf9f983eef9793d014a332a644233e601ef5d"
 dependencies = [
  "bincode",
  "once_cell",
  "serde_json",
- "snarkvm-algorithms",
+ "snarkvm-algorithms 3.8.0 (git+https://github.com/eigerco/snarkVM?tag=snarkvm-with-cosmwasm)",
  "snarkvm-circuit",
- "snarkvm-console",
+ "snarkvm-console 3.8.0 (git+https://github.com/eigerco/snarkVM?tag=snarkvm-with-cosmwasm)",
+]
+
+[[package]]
+name = "snarkvm-utilities"
+version = "3.8.0"
+source = "git+https://github.com/eigerco/snarkVM?tag=snarkvm-with-cosmwasm#bc0bf9f983eef9793d014a332a644233e601ef5d"
+dependencies = [
+ "aleo-std",
+ "anyhow",
+ "bincode",
+ "cosmwasm-std",
+ "num-bigint 0.4.6",
+ "num_cpus",
+ "rand 0.8.5",
+ "rand_xorshift 0.3.0",
+ "rayon",
+ "serde",
+ "serde_json",
+ "smol_str",
+ "snarkvm-utilities-derives 3.8.0 (git+https://github.com/eigerco/snarkVM?tag=snarkvm-with-cosmwasm)",
+ "thiserror 2.0.12",
+ "zeroize",
 ]
 
 [[package]]
@@ -11558,9 +11874,19 @@ dependencies = [
  "serde",
  "serde_json",
  "smol_str",
- "snarkvm-utilities-derives",
+ "snarkvm-utilities-derives 3.8.0 (git+https://github.com/eigerco/snarkVM?branch=cosmwasm-3)",
  "thiserror 2.0.12",
  "zeroize",
+]
+
+[[package]]
+name = "snarkvm-utilities-derives"
+version = "3.8.0"
+source = "git+https://github.com/eigerco/snarkVM?tag=snarkvm-with-cosmwasm#bc0bf9f983eef9793d014a332a644233e601ef5d"
+dependencies = [
+ "proc-macro2 1.0.95",
+ "quote 1.0.40",
+ "syn 2.0.104",
 ]
 
 [[package]]

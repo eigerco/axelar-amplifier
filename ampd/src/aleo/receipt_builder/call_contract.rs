@@ -6,7 +6,7 @@ use router_api::ChainName;
 use serde::{Deserialize, Serialize};
 use sha3::{Digest, Keccak256};
 use snarkvm::prelude::{Address, Field, Network};
-use tracing::{debug, error, info};
+use tracing::{error, info};
 
 use crate::aleo::error::Error;
 use crate::types::Hash;
