@@ -1,0 +1,35 @@
+[package]
+name = "its-aleo-translator"
+version = "0.1.0"
+rust-version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[features]
+# use library feature to disable all instantiate/execute/query exports
+library = []
+
+[dependencies]
+
+# Aleo encoding dependencies
+snarkvm-cosmwasm = { workspace = true }
+plaintext-trait = { workspace = true }
+aleo-string-encoder = { workspace = true }
+aleo-gateway = { workspace = true }
+
+# Axelar dependencies
+axelar-wasm-std = { workspace = true }
+cosmwasm-std = { workspace = true }
+cw2 = { workspace = true }
+error-stack = { workspace = true }
+hex = { workspace = true }
+interchain-token-service-std = { workspace = true }
+its-msg-translator-api = { workspace = true }
+router-api = { workspace = true }
+thiserror = { workspace = true }
+
+[dev-dependencies]
+rand = { workspace = true }
