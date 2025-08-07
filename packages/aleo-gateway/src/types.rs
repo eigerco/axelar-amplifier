@@ -8,7 +8,8 @@ pub type GmpChainName = [u128; 2];
 pub type GmpMessageId = [u128; 8];
 
 /// Used for addresses used in Aleo GMP
-pub type GmpAddress = [u128; 6];
+pub const GMP_ADDRESS_LENGTH: usize = 6;
+pub type GmpAddress = [u128; GMP_ADDRESS_LENGTH];
 
 /// ITS token id used in Aleo ITS
 pub type ItsTokenId = [u128; 2];
