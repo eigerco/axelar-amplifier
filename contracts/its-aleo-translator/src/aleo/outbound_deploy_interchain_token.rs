@@ -125,6 +125,7 @@ impl<N: Network> TryFrom<&Plaintext<N>> for DeployInterchainToken {
                     "Expected to find 'its_token_id' array".to_string()
                 ));
             };
+
             match &its_token_id[..] {
                 [Plaintext::Literal(Literal::U128(n1), _), Plaintext::Literal(Literal::U128(n2), _)] => {
                     [**n1, **n2]
@@ -137,6 +138,7 @@ impl<N: Network> TryFrom<&Plaintext<N>> for DeployInterchainToken {
                 }
             }
         };
+
         let name = {
             let key: Identifier<N> = "name".parse().map_err(Error::from)?;
             let Some(Plaintext::Literal(Literal::U128(name), _)) = map.get(&key) else {
@@ -144,8 +146,10 @@ impl<N: Network> TryFrom<&Plaintext<N>> for DeployInterchainToken {
                     "Expected to find 'name'".to_string()
                 ));
             };
+
             **name
         };
+
         let symbol = {
             let key: Identifier<N> = "symbol".parse().map_err(Error::from)?;
             let Some(Plaintext::Literal(Literal::U128(symbol), _)) = map.get(&key) else {
@@ -153,8 +157,10 @@ impl<N: Network> TryFrom<&Plaintext<N>> for DeployInterchainToken {
                     "Expected to find 'symbol'".to_string()
                 ));
             };
+
             **symbol
         };
+
         let decimals = {
             let key: Identifier<N> = "decimals".parse().map_err(Error::from)?;
             let Some(Plaintext::Literal(Literal::U8(decimals), _)) = map.get(&key) else {
@@ -162,8 +168,10 @@ impl<N: Network> TryFrom<&Plaintext<N>> for DeployInterchainToken {
                     "Expected to find 'decimals'".to_string()
                 ));
             };
+
             **decimals
         };
+
         let minter = {
             let key: Identifier<N> = "minter".parse().map_err(Error::from)?;
             let Some(Plaintext::Array(minter, _)) = map.get(&key) else {
@@ -171,6 +179,7 @@ impl<N: Network> TryFrom<&Plaintext<N>> for DeployInterchainToken {
                     "Expected to find 'minter'".to_string()
                 ));
             };
+
             match &minter[..] {
                 [Plaintext::Literal(Literal::U128(n1), _), Plaintext::Literal(Literal::U128(n2), _), Plaintext::Literal(Literal::U128(n3), _), Plaintext::Literal(Literal::U128(n4), _), Plaintext::Literal(Literal::U128(n5), _), Plaintext::Literal(Literal::U128(n6), _)] => {
                     [**n1, **n2, **n3, **n4, **n5, **n6]
@@ -183,6 +192,7 @@ impl<N: Network> TryFrom<&Plaintext<N>> for DeployInterchainToken {
                 }
             }
         };
+
         Ok(DeployInterchainToken {
             its_token_id,
             name,
@@ -210,6 +220,7 @@ impl<N: Network> TryFrom<&Plaintext<N>> for RemoteDeployInterchainToken {
                     "Expected to find 'payload'".to_string()
                 ));
             };
+
             DeployInterchainToken::try_from(nested_plaintext)?
         };
 

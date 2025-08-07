@@ -52,12 +52,11 @@ pub fn aleo_inbound_hub_message<N: Network>(
             source_chain,
             message: Message::InterchainTransfer(interchain_transfer),
         } => {
-            let source_chain: SafeGmpChainName =
-                SafeGmpChainName::try_from(source_chain).map_err(|e| {
-                    report!(Error::TranslationFailed(format!(
-                        "Failed to convert source chain to AleoGmpChainName: {e}"
-                    )))
-                })?;
+            let source_chain = SafeGmpChainName::try_from(source_chain).map_err(|e| {
+                report!(Error::TranslationFailed(format!(
+                    "Failed to convert source chain to AleoGmpChainName: {e}"
+                )))
+            })?;
 
             let aleo_inbound_transfer =
                 InboundInterchainTransfer::<N>::try_from(&interchain_transfer).map_err(|e| {
@@ -78,12 +77,11 @@ pub fn aleo_inbound_hub_message<N: Network>(
             source_chain,
             message: Message::DeployInterchainToken(deploy_interchain_token),
         } => {
-            let source_chain: SafeGmpChainName =
-                SafeGmpChainName::try_from(source_chain).map_err(|e| {
-                    report!(Error::TranslationFailed(format!(
-                        "Failed to convert source chain to AleoGmpChainName: {e}"
-                    )))
-                })?;
+            let source_chain = SafeGmpChainName::try_from(source_chain).map_err(|e| {
+                report!(Error::TranslationFailed(format!(
+                    "Failed to convert source chain to AleoGmpChainName: {e}"
+                )))
+            })?;
 
             let message = ItsMessageDeployInterchainToken::<N> {
                 inner_message: FromRemoteDeployInterchainToken::try_from(deploy_interchain_token)?,
@@ -103,7 +101,7 @@ pub fn aleo_inbound_hub_message<N: Network>(
 pub fn aleo_outbound_hub_message<N: Network>(
     payload: HexBinary,
 ) -> Result<HubMessage, Report<Error>> {
-    let value = Value::<N>::from_bytes_le(&payload).map_err(|e| report!(Error::SnarkVm(e)))?;
+    let value = Value::<N>::from_bytes_le(&payload).map_err(Error::from)?;
 
     let Value::Plaintext(plaintext) = value else {
         bail!(Error::TranslationFailed(

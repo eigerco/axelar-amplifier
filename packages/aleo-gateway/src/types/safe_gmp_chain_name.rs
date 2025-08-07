@@ -17,7 +17,7 @@ pub struct SafeGmpChainName {
 }
 
 impl SafeGmpChainName {
-    pub fn new(chain_name: [u128; 2]) -> Result<Self, Report<AleoError>> {
+    pub fn new(chain_name: GmpChainName) -> Result<Self, Report<AleoError>> {
         let encoded_chain_name = StringEncoder::from_slice(&chain_name)
             .decode()
             .map_err(AleoError::from)?;

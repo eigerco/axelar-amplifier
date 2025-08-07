@@ -5542,6 +5542,7 @@ dependencies = [
  "aleo-gateway",
  "aleo-string-encoder",
  "axelar-wasm-std",
+ "cosmwasm-schema",
  "cosmwasm-std",
  "cw2",
  "error-stack",

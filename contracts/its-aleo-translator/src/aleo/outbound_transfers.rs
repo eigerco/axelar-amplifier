@@ -83,6 +83,7 @@ impl<N: Network> TryFrom<&Plaintext<N>> for OutboundInterchainTransfer<N> {
                     "Expected to find 'destination_address'".to_string()
                 ));
             };
+
             match &destination_address[..] {
                 [Plaintext::Literal(Literal::U128(n1), _), Plaintext::Literal(Literal::U128(n2), _), Plaintext::Literal(Literal::U128(n3), _), Plaintext::Literal(Literal::U128(n4), _), Plaintext::Literal(Literal::U128(n5), _), Plaintext::Literal(Literal::U128(n6), _)] => {
                     [**n1, **n2, **n3, **n4, **n5, **n6]
@@ -103,6 +104,7 @@ impl<N: Network> TryFrom<&Plaintext<N>> for OutboundInterchainTransfer<N> {
                     "Expected to find 'amount' as u128".to_string()
                 ));
             };
+
             **amount
         };
 
@@ -159,6 +161,7 @@ impl<N: Network> TryFrom<&Plaintext<N>> for ItsOutboundInterchainTransfer<N> {
                 }
             }
         };
+
         Ok(ItsOutboundInterchainTransfer {
             inner_message,
             destination_chain,
