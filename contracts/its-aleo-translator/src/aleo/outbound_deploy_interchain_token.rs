@@ -13,19 +13,35 @@ use snarkvm_cosmwasm::prelude::{Identifier, Literal, Network, Plaintext};
 use super::token_id_conversion::ItsTokenIdNewType;
 use super::Error;
 
-#[derive(ToPlaintext, Clone, Debug)]
-pub struct DeployInterchainToken {
-    pub its_token_id: ItsTokenId,
-    pub name: u128,
-    pub symbol: u128,
-    pub decimals: u8,
-    pub minter: GmpAddress,
-}
 
+/// Represents a deploy interchain token message that is sent to the hub.
+///
+/// It can only be translated to
+/// [HubMessage::SendToHub]
+/// with [DeployInterchainToken](interchain_token_service_std::DeployInterchainToken)
 #[derive(ToPlaintext, Clone, Debug)]
 pub struct RemoteDeployInterchainToken {
     pub payload: DeployInterchainToken,
     pub destination_chain: GmpChainName,
+}
+
+/// Represents a deploy interchain token message that is sent to the hub.
+///
+/// This struct corresponds to the [DeployInterchainToken](interchain_token_service_std::primitives::DeployInterchainToken).
+/// Because on Aleo there are no optional values, an array with zero values is used to represent
+/// the absence of a minter address.
+#[derive(ToPlaintext, Clone, Debug)]
+pub struct DeployInterchainToken {
+    /// Unique identifier for the interchain token
+    pub its_token_id: ItsTokenId,
+    /// Token name encoded as a u128 value
+    pub name: u128,
+    /// Token symbol encoded as a u128 value
+    pub symbol: u128,
+    /// Number of decimal places for the token
+    pub decimals: u8,
+    /// Address authorized to mint tokens (`[0, 0, 0, 0, 0, 0]` if no minter)
+    pub minter: GmpAddress,
 }
 
 impl TryFrom<DeployInterchainToken> for DeployInterchainTokenItsHub {

@@ -9,18 +9,31 @@ use snarkvm_cosmwasm::prelude::{Address, Identifier, Literal, Network, Plaintext
 use crate::aleo::token_id_conversion::ItsTokenIdNewType;
 use crate::aleo::Error;
 
-#[derive(Debug)]
-pub struct OutgoingInterchainTransfer<N: Network> {
-    pub its_token_id: ItsTokenId,
-    pub source_address: Address<N>,
-    pub destination_address: GmpAddress,
-    pub amount: u128,
-}
-
+/// Represents an outgoing interchain transfer message that is sent to the hub.
+///
+/// This struct can only be translated to [HubMessage::SendToHub](interchain_token_service_std::HubMessage::SendToHub)
+/// with [InterchainTransfer](interchain_token_service_std::InterchainTransfer) message type.
 #[derive(Debug)]
 pub struct ItsOutgoingInterchainTransfer<N: Network> {
+    /// The inner interchain transfer message containing the transfer details.
     pub inner_message: OutgoingInterchainTransfer<N>,
+    /// The destination chain where the interchain transfer is directed.
     pub destination_chain: [u128; 2],
+}
+
+/// Represents an outgoing interchain transfer message that is sent to the hub.
+///
+/// This struct corresponds to the [InterchainTransfer](interchain_token_service_std::InterchainTransfer).
+#[derive(Debug)]
+pub struct OutgoingInterchainTransfer<N: Network> {
+    /// Unique identifier for the interchain token
+    pub its_token_id: ItsTokenId,
+    /// Source address from which the transfer originated.
+    pub source_address: Address<N>,
+    /// Destination address on the remote chain where the transfer is directed, encoded as a GmpAddress.
+    pub destination_address: GmpAddress,
+    /// Amount of tokens being transferred, represented as a u128.
+    pub amount: u128,
 }
 
 impl<N: Network> TryFrom<&Plaintext<N>> for OutgoingInterchainTransfer<N> {

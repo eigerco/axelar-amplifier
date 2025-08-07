@@ -12,17 +12,31 @@ use snarkvm_cosmwasm::console::types::Address;
 use super::token_id_conversion::ItsTokenIdNewType;
 use super::Error;
 
+/// Wrapper for interchain transfer messages that includes source chain information.
+///
+/// This struct represents the [HubMessage::ReceiveFromHub](interchain_token_service_std::primitives::HubMessage::ReceiveFromHub)
+/// that contains [InterchainTransfer] message type.
 #[derive(ToPlaintext, Clone, Debug)]
 pub struct ItsIncomingInterchainTransfer<N: Network> {
+    /// The inner interchain transfer message containing the transfer details.
     pub inner_message: IncomingInterchainTransfer<N>,
+    /// The source chain from which the interchain transfer originated.
     pub source_chain: GmpChainName,
 }
 
+/// Represents an incoming interchain transfer message received from a remote chain.
+///
+/// This struct contains the essential information needed to process an interchain transfer
+/// on the Aleo network.
 #[derive(ToPlaintext, Clone, Copy, Debug)]
 pub struct IncomingInterchainTransfer<N: Network> {
+    /// Unique identifier for the interchain token
     pub its_token_id: ItsTokenId,
+    /// Source address from which the transfer originated, encoded as a GmpAddress.
     pub source_address: GmpAddress,
+    /// Destination address on the Aleo network where the transfer is directed.
     pub destination_address: Address<N>,
+    /// Amount of tokens being transferred, represented as a u128.
     pub amount: u128,
 }
 

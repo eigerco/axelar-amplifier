@@ -9,12 +9,23 @@ use snarkvm_cosmwasm::console::{program::Network, types::Address};
 use super::token_id_conversion::ItsTokenIdNewType;
 use super::Error;
 
+/// Wrapper for deploy interchain token messages that includes source chain information.
+///
+/// This struct represents the [HubMessage::ReceiveFromHub](interchain_token_service_std::primitives::HubMessage::ReceiveFromHub)
+/// with [DeployInterchainToken](interchain_token_service_std::primitives::DeployInterchainToken)
+/// message type.
+#[derive(ToPlaintext, Clone, Copy, Debug)]
+pub struct ItsMessageDeployInterchainToken<N: Network> {
+    pub inner_message: FromRemoteDeployInterchainToken<N>,
+    pub source_chain: GmpChainName,
+}
+
 /// Represents a deploy interchain token message received from a remote chain.
 ///
 /// This struct contains the essential information needed to deploy an interchain token
-/// on the Aleo network, including token metadata and minter authorization.
+/// on the Aleo network.
 ///
-/// Note: Axelar supports 20 characters for the token name, but on Aleo we can have only upto 16 characters.
+/// Note: Axelar supports 20 characters for the token name, but on Aleo we can have only up to 16 characters.
 /// the last 4 characters are ignored.
 #[derive(ToPlaintext, Clone, Copy, Debug)]
 pub struct FromRemoteDeployInterchainToken<N: Network> {
@@ -30,38 +41,11 @@ pub struct FromRemoteDeployInterchainToken<N: Network> {
     pub minter: Address<N>,
 }
 
-/// Wrapper for deploy interchain token messages that includes source chain information.
-///
-/// This struct represents the HubMessage::ReceiveFromHub
-#[derive(ToPlaintext, Clone, Copy, Debug)]
-pub struct ItsMessageDeployInterchainToken<N: Network> {
-    pub inner_message: FromRemoteDeployInterchainToken<N>,
-    pub source_chain: GmpChainName,
-}
-
 impl<N: Network> TryFrom<interchain_token_service_std::DeployInterchainToken>
     for FromRemoteDeployInterchainToken<N>
 {
     type Error = Report<Error>;
 
-    /// Converts a standard DeployInterchainToken message into an Aleo-compatible format.
-    ///
-    /// This conversion handles:
-    /// - Token ID conversion using ItsTokenIdNewType wrapper
-    /// - String encoding for name and symbol (taking first u128 of encoded array)
-    /// - Minter address parsing from hex bytes (defaults to zero address if None)
-    ///
-    /// # Arguments
-    /// * `deploy_message` - The source deployment message to convert
-    ///
-    /// # Returns
-    /// * `Ok(FromRemoteDeployInterchainToken)` - Successfully converted message
-    /// * `Err(Error)` - Conversion failed due to encoding or parsing errors
-    ///
-    /// # Errors
-    /// - String encoding failures for name or symbol
-    /// - Invalid UTF-8 in minter hex string
-    /// - Invalid address format in minter field
     fn try_from(
         deploy_message: interchain_token_service_std::DeployInterchainToken,
     ) -> Result<Self, Self::Error> {

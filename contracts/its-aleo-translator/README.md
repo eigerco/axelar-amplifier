@@ -40,6 +40,7 @@ ITS HubMesage defines 3 messages.
 |    [ ]     | `impl TryFrom<DeployInterchainToken> for FromRemoteDeployInterchainToken` | DeployInterchainToken |    ->     | FromRemoteDeployInterchainToken |
 |    [ ]     | `impl TryFrom<Aleo::DeployInterchainToken> for DeployInterchainToken`     | DeployInterchainToken |    <-     | DeployInterchainToken           |
 
+```mermaid
 flowchart LR
 subgraph EVM
 A[SendToHub<br/>InterchainTransfer]
@@ -81,3 +82,4 @@ end
     style E fill:#e8f5e8
     style G fill:#e8f5e8
     style Aleo fill:#f3e5f5,stroke:#7b1fa2,stroke-width:2px
+```
