@@ -5,10 +5,10 @@ use error_stack::{bail, report, Report};
 use inbound_deploy_interchain_token::{
     FromRemoteDeployInterchainToken, ItsMessageDeployInterchainToken,
 };
-use inbound_transfers::{IncomingInterchainTransfer, ItsIncomingInterchainTransfer};
+use inbound_transfers::{InboundInterchainTransfer, ItsInboundInterchainTransfer};
 use interchain_token_service_std::{HubMessage, Message};
 use outbound_deploy_interchain_token::RemoteDeployInterchainToken;
-use outbound_transfers::ItsOutgoingInterchainTransfer;
+use outbound_transfers::ItsOutboundInterchainTransfer;
 use plaintext_trait::ToPlaintext;
 use snarkvm_cosmwasm::prelude::{FromBytes as _, Network, Value};
 use thiserror::Error;
@@ -60,13 +60,13 @@ pub fn aleo_inbound_hub_message<N: Network>(
                 })?;
 
             let aleo_inbound_transfer =
-                IncomingInterchainTransfer::<N>::try_from(&interchain_transfer).map_err(|e| {
+                InboundInterchainTransfer::<N>::try_from(&interchain_transfer).map_err(|e| {
                     report!(Error::TranslationFailed(format!(
-                        "Failed to convert InterchainTransfer to IncomingInterchainTransfer: {e}"
+                        "Failed to convert InterchainTransfer to InboundInterchainTransfer: {e}"
                     )))
                 })?;
 
-            let message = ItsIncomingInterchainTransfer::<N> {
+            let message = ItsInboundInterchainTransfer::<N> {
                 inner_message: aleo_inbound_transfer,
                 source_chain: source_chain.chain_name(),
             };
@@ -111,15 +111,15 @@ pub fn aleo_outbound_hub_message<N: Network>(
         ));
     };
 
-    if let Ok(its_outgoing_transfer) = ItsOutgoingInterchainTransfer::<N>::try_from(&plaintext) {
-        Ok(HubMessage::try_from(its_outgoing_transfer)?)
+    if let Ok(its_outbound_transfer) = ItsOutboundInterchainTransfer::<N>::try_from(&plaintext) {
+        Ok(HubMessage::try_from(its_outbound_transfer)?)
     } else if let Ok(remote_deploy_interchain_token) =
         RemoteDeployInterchainToken::try_from(&plaintext)
     {
         Ok(HubMessage::try_from(remote_deploy_interchain_token)?)
     } else {
         bail!(Error::TranslationFailed(
-            format!("Failed to convert Plaintext to ItsOutgoingInterchainTransfer or RemoteDeployInterchainToken. Received plaintext: {plaintext:?}")
+            format!("Failed to convert Plaintext to ItsOutboundInterchainTransfer or RemoteDeployInterchainToken. Received plaintext: {plaintext:?}")
         ))
     }
 }

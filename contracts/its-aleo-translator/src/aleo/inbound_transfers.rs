@@ -17,19 +17,19 @@ use super::Error;
 /// This struct represents the [HubMessage::ReceiveFromHub](interchain_token_service_std::primitives::HubMessage::ReceiveFromHub)
 /// that contains [InterchainTransfer] message type.
 #[derive(ToPlaintext, Clone, Debug)]
-pub struct ItsIncomingInterchainTransfer<N: Network> {
+pub struct ItsInboundInterchainTransfer<N: Network> {
     /// The inner interchain transfer message containing the transfer details.
-    pub inner_message: IncomingInterchainTransfer<N>,
+    pub inner_message: InboundInterchainTransfer<N>,
     /// The source chain from which the interchain transfer originated.
     pub source_chain: GmpChainName,
 }
 
-/// Represents an incoming interchain transfer message received from a remote chain.
+/// Represents an inbound interchain transfer message received from a remote chain.
 ///
 /// This struct contains the essential information needed to process an interchain transfer
 /// on the Aleo network.
 #[derive(ToPlaintext, Clone, Copy, Debug)]
-pub struct IncomingInterchainTransfer<N: Network> {
+pub struct InboundInterchainTransfer<N: Network> {
     /// Unique identifier for the interchain token
     pub its_token_id: ItsTokenId,
     /// Source address from which the transfer originated, encoded as a GmpAddress.
@@ -40,7 +40,7 @@ pub struct IncomingInterchainTransfer<N: Network> {
     pub amount: u128,
 }
 
-impl<N: Network> TryFrom<&InterchainTransfer> for IncomingInterchainTransfer<N> {
+impl<N: Network> TryFrom<&InterchainTransfer> for InboundInterchainTransfer<N> {
     type Error = Report<Error>;
 
     fn try_from(transfer: &InterchainTransfer) -> Result<Self, Self::Error> {
@@ -60,7 +60,7 @@ impl<N: Network> TryFrom<&InterchainTransfer> for IncomingInterchainTransfer<N> 
             .map_err(Error::from)?
             .u128();
 
-        Ok(IncomingInterchainTransfer {
+        Ok(InboundInterchainTransfer {
             its_token_id,
             source_address,
             destination_address,

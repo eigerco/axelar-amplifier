@@ -14,8 +14,8 @@ ITS HubMesage defines 3 messages.
 
 | Axelar ITS-Hub        | Direction | Aleo ITS-Hub                    |
 | --------------------- | :-------: | ------------------------------- |
-| InterchainTransfer    |    ->     | IncomingInterchainTransfer      |
-| InterchainTransfer    |    <-     | OutgoingInterchainTransfer      |
+| InterchainTransfer    |    ->     | InboundInterchainTransfer      |
+| InterchainTransfer    |    <-     | OutboundInterchainTransfer      |
 | DeployInterchainToken |    ->     | FromRemoteDeployInterchainToken |
 | DeployInterchainToken |    <-     | DeployInterchainToken           |
 | LinkToken             |    <->    | TBD                             |
@@ -27,8 +27,8 @@ ITS HubMesage defines 3 messages.
 
 | Axelar ITS-Hub                        | Aleo ITS-Hub                                                     |
 | ------------------------------------- | ---------------------------------------------------------------- |
-| SendToHub(InterchainTransfer)         | ItsIncomingInterchainTransfer                                    |
-| ReceiveFromHub(InterchainTransfer)    | ItsOutgoingInterchainTransfer                                    |
+| SendToHub(InterchainTransfer)         | ItsInboundInterchainTransfer                                    |
+| ReceiveFromHub(InterchainTransfer)    | ItsOutboundInterchainTransfer                                    |
 | SendToHub(DeployInterchainToken)      | RemoteDeployInterchainToken(DeployInterchainToken)               |
 | ReceiveFromHub(DeployInterchainToken) | ItsMessageDeployInterchainToken(FromRemoteDeployInterchainToken) |
 | RgisterTokenMetadata                  | TBD                                                              |
@@ -38,12 +38,12 @@ flowchart LR
     subgraph EVM
         A[📤 SendToHub<br/>InterchainTransfer<br/>destination: Aleo]
         H[📥 ReceiveFromHub<br/>InterchainTransfer<br/>source: Aleo]
-        L[🚀 DeployInterchainToken<br/>destination: Aleo]
+        L[🚀 SendToHub<br/>DeployInterchainToken<br/>destination: Aleo]
         M[📥 ReceiveFromHub<br/>DeployInterchainToken<br/>source: Aleo]
     end
     subgraph Aleo
-        E[📥 ReceiveFromHub<br/>IncomingInterchainTransfer<br/>source: EVM]
-        G[📤 SendToHub<br/>ItsOutgoingInterchainTransfer<br/>OutgoingInterchainTransfer<br/>destination: EVM]
+        E[📥 ReceiveFromHub<br/>InboundInterchainTransfer<br/>source: EVM]
+        G[📤 SendToHub<br/>ItsOutboundInterchainTransfer<br/>OutboundInterchainTransfer<br/>destination: EVM]
         N[📥 ReceiveFromHub<br/>ItsMessageDeployInterchainToken<br/>FromRemoteDeployInterchainToken<br/>source: EVM]
         O[🚀 SendToHub<br/>RemoteDeployInterchainToken<br/>DeployInterchainToken <br/>destination: EVM]
     end

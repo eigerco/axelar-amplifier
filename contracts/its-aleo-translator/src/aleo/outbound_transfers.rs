@@ -9,22 +9,22 @@ use snarkvm_cosmwasm::prelude::{Address, Identifier, Literal, Network, Plaintext
 use crate::aleo::token_id_conversion::ItsTokenIdNewType;
 use crate::aleo::Error;
 
-/// Represents an outgoing interchain transfer message that is sent to the hub.
+/// Represents an outbound interchain transfer message that is sent to the hub.
 ///
 /// This struct can only be translated to [HubMessage::SendToHub] with [InterchainTransfer] internal message.
 #[derive(Debug)]
-pub struct ItsOutgoingInterchainTransfer<N: Network> {
+pub struct ItsOutboundInterchainTransfer<N: Network> {
     /// The inner interchain transfer message containing the transfer details.
-    pub inner_message: OutgoingInterchainTransfer<N>,
+    pub inner_message: OutboundInterchainTransfer<N>,
     /// The destination chain where the interchain transfer is directed.
     pub destination_chain: [u128; 2],
 }
 
-/// Represents an outgoing interchain transfer message that is sent to the hub.
+/// Represents an outbound interchain transfer message that is sent to the hub.
 ///
 /// This struct corresponds to the [InterchainTransfer].
 #[derive(Debug)]
-pub struct OutgoingInterchainTransfer<N: Network> {
+pub struct OutboundInterchainTransfer<N: Network> {
     /// Unique identifier for the interchain token
     pub its_token_id: ItsTokenId,
     /// Source address from which the transfer originated.
@@ -35,7 +35,7 @@ pub struct OutgoingInterchainTransfer<N: Network> {
     pub amount: u128,
 }
 
-impl<N: Network> TryFrom<&Plaintext<N>> for OutgoingInterchainTransfer<N> {
+impl<N: Network> TryFrom<&Plaintext<N>> for OutboundInterchainTransfer<N> {
     type Error = Report<Error>;
 
     fn try_from(plaintext: &Plaintext<N>) -> Result<Self, Self::Error> {
@@ -106,7 +106,7 @@ impl<N: Network> TryFrom<&Plaintext<N>> for OutgoingInterchainTransfer<N> {
             **amount
         };
 
-        Ok(OutgoingInterchainTransfer {
+        Ok(OutboundInterchainTransfer {
             its_token_id,
             source_address,
             destination_address,
@@ -115,7 +115,7 @@ impl<N: Network> TryFrom<&Plaintext<N>> for OutgoingInterchainTransfer<N> {
     }
 }
 
-impl<N: Network> TryFrom<&Plaintext<N>> for ItsOutgoingInterchainTransfer<N> {
+impl<N: Network> TryFrom<&Plaintext<N>> for ItsOutboundInterchainTransfer<N> {
     type Error = Report<Error>;
 
     fn try_from(value: &Plaintext<N>) -> Result<Self, Self::Error> {
@@ -133,7 +133,7 @@ impl<N: Network> TryFrom<&Plaintext<N>> for ItsOutgoingInterchainTransfer<N> {
                 ));
             };
 
-            OutgoingInterchainTransfer::<N>::try_from(nested_plaintext).attach_printable_lazy(
+            OutboundInterchainTransfer::<N>::try_from(nested_plaintext).attach_printable_lazy(
                 || format!("Failed to parse 'inner_message': {nested_plaintext:#?}"),
             )?
         };
@@ -159,20 +159,20 @@ impl<N: Network> TryFrom<&Plaintext<N>> for ItsOutgoingInterchainTransfer<N> {
                 }
             }
         };
-        Ok(ItsOutgoingInterchainTransfer {
+        Ok(ItsOutboundInterchainTransfer {
             inner_message,
             destination_chain,
         })
     }
 }
 
-impl<N: Network> TryFrom<&OutgoingInterchainTransfer<N>> for InterchainTransfer {
+impl<N: Network> TryFrom<&OutboundInterchainTransfer<N>> for InterchainTransfer {
     type Error = Report<Error>;
 
-    fn try_from(outgoing_transfer: &OutgoingInterchainTransfer<N>) -> Result<Self, Self::Error> {
-        let its_token_id = ItsTokenIdNewType(outgoing_transfer.its_token_id);
+    fn try_from(outbound_transfer: &OutboundInterchainTransfer<N>) -> Result<Self, Self::Error> {
+        let its_token_id = ItsTokenIdNewType(outbound_transfer.its_token_id);
         let source_address =
-            StringEncoder::encode_string(&outgoing_transfer.source_address.to_string())
+            StringEncoder::encode_string(&outbound_transfer.source_address.to_string())
                 .map_err(Error::from)?
                 .decode()
                 .map_err(Error::from)?
@@ -182,7 +182,7 @@ impl<N: Network> TryFrom<&OutgoingInterchainTransfer<N>> for InterchainTransfer 
 
         let destination_address = {
             let destination_address =
-                StringEncoder::from_slice(&outgoing_transfer.destination_address)
+                StringEncoder::from_slice(&outbound_transfer.destination_address)
                     .decode()
                     .map_err(Error::from)?;
 
@@ -198,7 +198,7 @@ impl<N: Network> TryFrom<&OutgoingInterchainTransfer<N>> for InterchainTransfer 
             token_id: TokenId::from(its_token_id),
             source_address,
             destination_address,
-            amount: cosmwasm_std::Uint256::from_u128(outgoing_transfer.amount)
+            amount: cosmwasm_std::Uint256::from_u128(outbound_transfer.amount)
                 .try_into()
                 .map_err(Error::from)?,
             data: None,
@@ -206,15 +206,15 @@ impl<N: Network> TryFrom<&OutgoingInterchainTransfer<N>> for InterchainTransfer 
     }
 }
 
-impl<N: Network> TryFrom<ItsOutgoingInterchainTransfer<N>> for HubMessage {
+impl<N: Network> TryFrom<ItsOutboundInterchainTransfer<N>> for HubMessage {
     type Error = Report<Error>;
 
-    fn try_from(outgoing_transfer: ItsOutgoingInterchainTransfer<N>) -> Result<Self, Self::Error> {
-        let interchain_transfer = InterchainTransfer::try_from(&outgoing_transfer.inner_message)
-            .attach_printable_lazy(|| format!("{:#?}", outgoing_transfer.inner_message))?;
+    fn try_from(outbound_transfer: ItsOutboundInterchainTransfer<N>) -> Result<Self, Self::Error> {
+        let interchain_transfer = InterchainTransfer::try_from(&outbound_transfer.inner_message)
+            .attach_printable_lazy(|| format!("{:#?}", outbound_transfer.inner_message))?;
 
         let destination_chain: SafeGmpChainName =
-            SafeGmpChainName::new(outgoing_transfer.destination_chain).change_context(
+            SafeGmpChainName::new(outbound_transfer.destination_chain).change_context(
                 Error::TranslationFailed("Failed to translate chain name".to_string()),
             )?;
 
