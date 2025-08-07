@@ -173,58 +173,70 @@ mod tests {
         from_hex(&hex::encode(data.as_bytes()))
     }
 
-    mod inbound {
-        use super::*;
+    struct TestTransferBuilder {
+        token_id: TokenId,
+        source_address: String,
+        destination_address: String,
+        amount: u64,
+        external_chain: ChainNameRaw,
+    }
 
-        struct TestTransferBuilder {
-            token_id: TokenId,
-            source_address: String,
-            destination_address: String,
-            amount: u64,
+    impl TestTransferBuilder {
+        fn new(source_address: String, destination_address: String) -> Self {
+            Self {
+                token_id: random_token_id(),
+                source_address,
+                destination_address,
+                amount: rand::random(),
+                external_chain: eth_sepolia_chain(),
+            }
         }
 
-        impl TestTransferBuilder {
-            fn new() -> Self {
-                Self {
-                    token_id: random_token_id(),
-                    source_address: EVM_DESTINATION_ADDRESS.to_string(),
-                    destination_address: random_address::<CurrentNetwork>(),
-                    amount: rand::random(),
-                }
+        fn inbound_hub_message(&self) -> HubMessage {
+            HubMessage::ReceiveFromHub {
+                source_chain: self.external_chain.clone(),
+                message: Message::InterchainTransfer(InterchainTransfer {
+                    token_id: self.token_id,
+                    source_address: to_hex(&self.source_address),
+                    destination_address: from_hex(&hex::encode(&self.destination_address)),
+                    amount: self.amount.try_into().expect("Valid amount"),
+                    data: None,
+                }),
             }
+        }
 
-            fn hub_message(&self) -> HubMessage {
-                HubMessage::ReceiveFromHub {
-                    source_chain: eth_sepolia_chain(),
-                    message: Message::InterchainTransfer(InterchainTransfer {
-                        token_id: self.token_id,
-                        source_address: to_hex(&self.source_address),
-                        destination_address: from_hex(&hex::encode(&self.destination_address)),
-                        amount: self.amount.try_into().expect("Valid amount"),
-                        data: None,
-                    }),
-                }
+        fn outbound_hub_message(&self) -> HubMessage {
+            HubMessage::SendToHub {
+                destination_chain: self.external_chain.clone(),
+                message: Message::InterchainTransfer(InterchainTransfer {
+                    token_id: self.token_id,
+                    source_address: to_hex(&self.source_address),
+                    destination_address: from_hex(&self.destination_address),
+                    amount: self.amount.try_into().expect("Valid amount"),
+                    data: None,
+                }),
             }
+        }
 
-            fn aleo_mesasge(&self) -> String {
-                let its_token_id = ItsTokenIdNewType::from(self.token_id);
-                let amount = self.amount;
-                let destination_address = &self.destination_address;
-                let source_address = StringEncoder::encode_string(&self.source_address)
-                    .expect("Failed to encode source address")
-                    .consume();
-                    let source_address = source_address
-                    .iter()
-                    .map(|n| format!("{n}u128"))
-                    .chain(
-                        std::iter::repeat("0u128".to_string())
-                            .take(GMP_ADDRESS_LENGTH.saturating_sub(source_address.len())),
-                    )
-                    .collect::<Vec<String>>()
-                    .join(", ");
+        fn aleo_inbound_transfer_mesasge(&self) -> String {
+            let its_token_id = ItsTokenIdNewType::from(self.token_id);
+            let amount = self.amount;
+            let destination_address = &self.destination_address;
+            let source_address = StringEncoder::encode_string(&self.source_address)
+                .expect("Failed to encode source address")
+                .consume();
+            let source_address = source_address
+                .iter()
+                .map(|n| format!("{n}u128"))
+                .chain(
+                    std::iter::repeat("0u128".to_string())
+                        .take(GMP_ADDRESS_LENGTH.saturating_sub(source_address.len())),
+                )
+                .collect::<Vec<String>>()
+                .join(", ");
 
-                let aleo_message = format!(
-                    r#"{{
+            let aleo_message = format!(
+                r#"{{
                         inner_message: {{
                             its_token_id: [ {}u128, {}u128 ],
                             source_address: [ {source_address} ],
@@ -233,20 +245,130 @@ mod tests {
                         }},
                         source_chain: [ {}u128, {}u128 ]
                     }}"#,
-                    its_token_id[0],
-                    its_token_id[1],
-                    ETH_SEPOLIA_CHAIN_ID[0],
-                    ETH_SEPOLIA_CHAIN_ID[1],
-                );
-                aleo_message
+                its_token_id[0], its_token_id[1], ETH_SEPOLIA_CHAIN_ID[0], ETH_SEPOLIA_CHAIN_ID[1],
+            );
+            aleo_message
+        }
+
+        fn aleo_outbound_transfer_message(&self) -> String {
+            let its_token_id = ItsTokenIdNewType::from(self.token_id);
+            let amount = self.amount;
+            // let destination_address = &self.external_chain;
+            let source_address = &self.source_address;
+
+            format!(
+                r#"{{
+                    inner_message: {{
+                        its_token_id: [ {}u128, {}u128 ],
+                        source_address: {},
+                        destination_address: [ {}u128, {}u128, {}u128, {}u128, {}u128, {}u128 ],
+                        amount: {}u128
+                    }},
+                    destination_chain: [ {}u128, {}u128 ]
+                }}"#,
+                its_token_id[0],
+                its_token_id[1],
+                source_address,
+                EVM_ADDRESS_AS_ALEO[0],
+                EVM_ADDRESS_AS_ALEO[1],
+                EVM_ADDRESS_AS_ALEO[2],
+                EVM_ADDRESS_AS_ALEO[3],
+                EVM_ADDRESS_AS_ALEO[4],
+                EVM_ADDRESS_AS_ALEO[5],
+                amount,
+                ETH_SEPOLIA_CHAIN_ID[0],
+                ETH_SEPOLIA_CHAIN_ID[1]
+            )
+        }
+    }
+
+    struct TestDeployBuilder {
+        token_id: TokenId,
+        token_name: String,
+        token_symbol: String,
+        decimals: u8,
+        minter: Option<String>,
+        destination_chain: ChainNameRaw,
+    }
+
+    impl TestDeployBuilder {
+        fn new(minter: Option<String>) -> Self {
+            let token_id = random_token_id();
+            let suffix: u8 = rand::random();
+            let token_name = format!("TokenName_{suffix}");
+            let token_symbol = format!("TN{suffix}");
+            let decimals: u8 = rand::random();
+            let destination_chain = eth_sepolia_chain();
+
+            Self {
+                token_id,
+                token_name,
+                token_symbol,
+                decimals,
+                minter,
+                destination_chain,
             }
         }
 
+        fn format_aleo_deploy_interchain_token(&self) -> String {
+            let its_token_id = ItsTokenIdNewType::from(self.token_id);
+
+            let token_name = StringEncoder::encode_string(&self.token_name)
+                .expect("Failed to encode token name")
+                .consume()[0];
+
+            let token_symbol = StringEncoder::encode_string(&self.token_symbol)
+                .expect("Failed to encode token symbol")
+                .consume()[0];
+
+            let decimals = self.decimals;
+
+            let minter = self.minter.as_ref().map_or_else(Vec::new, |m| {
+                StringEncoder::encode_string(m)
+                    .expect("Failed to encode string to Aleo GMP address")
+                    .consume()
+            });
+
+            let minter_str = minter
+                .iter()
+                .map(|n| format!("{n}u128"))
+                .chain(
+                    std::iter::repeat("0u128".to_string())
+                        .take(GMP_ADDRESS_LENGTH.saturating_sub(minter.len())),
+                )
+                .collect::<Vec<String>>()
+                .join(", ");
+
+            let destination_chain = SafeGmpChainName::try_from(&self.destination_chain)
+                .expect("Failed to convert destination chain to SafeGmpChainName")
+                .chain_name();
+
+            format!(
+                r#"{{
+                    payload: {{
+                        its_token_id: [ {}u128, {}u128 ],
+                        name: {token_name}u128,
+                        symbol: {token_symbol}u128,
+                        decimals: {decimals}u8,
+                        minter: [ {minter_str} ]
+                    }},
+                    destination_chain: [ {}u128, {}u128 ]
+                }}"#,
+                its_token_id[0], its_token_id[1], destination_chain[0], destination_chain[1]
+            )
+        }
+    }
+
+    mod inbound {
+        use super::*;
+
         #[test]
         fn translate_transfer() {
-            let test_transfer = TestTransferBuilder::new();
-            let its_message = test_transfer.hub_message();
-            let expected_aleo_message = test_transfer.aleo_mesasge();
+            let source_address = EVM_DESTINATION_ADDRESS.to_string();
+            let destination_address = random_address::<CurrentNetwork>();
+            let test_transfer = TestTransferBuilder::new(source_address, destination_address);
+            let its_message = test_transfer.inbound_hub_message();
+            let expected_aleo_message = test_transfer.aleo_inbound_transfer_mesasge();
 
             let aleo_message = aleo_inbound_hub_message::<CurrentNetwork>(its_message)
                 .expect("Failed to convert HubMessage to Aleo value");
@@ -335,10 +457,10 @@ mod tests {
                 ),
             };
             assert_eq!(
-            aleo_value, expected_aleo_value,
-            "Expected Aleo value does not match the actual Aleo value. \nExpected: {:?}\nActual: {:?}",
-            expected_aleo_value, aleo_value
-        );
+                aleo_value, expected_aleo_value,
+                "Expected Aleo value does not match the actual Aleo value. \nExpected: {:?}\nActual: {:?}",
+                expected_aleo_value, aleo_value
+            );
 
             let aleo_value_with_minter =
                 aleo_inbound_hub_message::<CurrentNetwork>(its_hub_message)
@@ -369,85 +491,25 @@ mod tests {
             let expected_aleo_value = Value::<CurrentNetwork>::from_str(&expected)
                 .expect("Failed to parse expected Aleo value");
             assert_eq!(
-            aleo_value_with_minter, expected_aleo_value,
-            "Expected Aleo value with minter does not match the actual Aleo value. \nExpected: {:?}\nActual: {:?}",
-            expected_aleo_value, aleo_value_with_minter
-        );
+                aleo_value_with_minter, expected_aleo_value,
+                "Expected Aleo value with minter does not match the actual Aleo value. \nExpected: {:?}\nActual: {:?}",
+                expected_aleo_value, aleo_value_with_minter
+            );
         }
     }
 
     mod outbound {
         use super::*;
 
-        struct TestTransferBuilder {
-            token_id: TokenId,
-            source_address: String,
-            destination_address: String,
-            amount: u64,
-            chain: ChainNameRaw,
-        }
-
-        impl TestTransferBuilder {
-            fn new() -> Self {
-                Self {
-                    token_id: random_token_id(),
-                    source_address: random_address::<CurrentNetwork>(),
-                    destination_address: EVM_DESTINATION_ADDRESS.to_string(),
-                    amount: rand::random(),
-                    chain: eth_sepolia_chain(),
-                }
-            }
-
-            fn build_hub_message(self) -> HubMessage {
-                HubMessage::SendToHub {
-                    destination_chain: self.chain,
-                    message: Message::InterchainTransfer(InterchainTransfer {
-                        token_id: self.token_id,
-                        source_address: from_hex(&hex::encode(&self.source_address)),
-                        destination_address: from_hex(&self.destination_address),
-                        amount: self.amount.try_into().expect("Valid amount"),
-                        data: None,
-                    }),
-                }
-            }
-        }
-
-        fn format_aleo_transfer(test_data: &TestTransferBuilder) -> String {
-            let its_token_id = ItsTokenIdNewType::from(test_data.token_id);
-            let source_address = &test_data.source_address;
-            let amount = test_data.amount;
-
-            format!(
-                r#"{{
-            inner_message: {{
-                its_token_id: [ {}u128, {}u128 ],
-                source_address: {},
-                destination_address: [ {}u128, {}u128, {}u128, {}u128, {}u128, {}u128 ],
-                amount: {}u128
-            }},
-            destination_chain: [ {}u128, {}u128 ]
-        }}"#,
-                its_token_id[0],
-                its_token_id[1],
-                source_address,
-                EVM_ADDRESS_AS_ALEO[0],
-                EVM_ADDRESS_AS_ALEO[1],
-                EVM_ADDRESS_AS_ALEO[2],
-                EVM_ADDRESS_AS_ALEO[3],
-                EVM_ADDRESS_AS_ALEO[4],
-                EVM_ADDRESS_AS_ALEO[5],
-                amount,
-                ETH_SEPOLIA_CHAIN_ID[0],
-                ETH_SEPOLIA_CHAIN_ID[1]
-            )
-        }
-
         #[test]
         fn translate_transfer() {
-            let test_data = TestTransferBuilder::new();
+            let test_data = TestTransferBuilder::new(
+                random_address::<CurrentNetwork>(),
+                EVM_DESTINATION_ADDRESS.to_string(),
+            );
 
             // Create Aleo value representation
-            let aleo_value_str = format_aleo_transfer(&test_data);
+            let aleo_value_str = test_data.aleo_outbound_transfer_message();
 
             let aleo_value = Value::<CurrentNetwork>::from_str(&aleo_value_str)
                 .expect("Valid Aleo value")
@@ -457,85 +519,8 @@ mod tests {
             let result = aleo_outbound_hub_message::<CurrentNetwork>(HexBinary::from(aleo_value))
                 .expect("Successful conversion");
 
-            let expected_message = test_data.build_hub_message();
+            let expected_message = test_data.outbound_hub_message();
             assert_eq!(result, expected_message);
-        }
-
-        struct TestDeployBuilder {
-            token_id: TokenId,
-            token_name: String,
-            token_symbol: String,
-            decimals: u8,
-            minter: Option<String>,
-            destination_chain: ChainNameRaw,
-        }
-
-        impl TestDeployBuilder {
-            fn new(minter: Option<String>) -> Self {
-                let token_id = random_token_id();
-                let suffix: u8 = rand::random();
-                let token_name = format!("TokenName_{suffix}");
-                let token_symbol = format!("TN{suffix}");
-                let decimals: u8 = rand::random();
-                let destination_chain = eth_sepolia_chain();
-
-                Self {
-                    token_id,
-                    token_name,
-                    token_symbol,
-                    decimals,
-                    minter,
-                    destination_chain,
-                }
-            }
-        }
-
-        fn format_aleo_deploy_interchain_token(test_builder: &TestDeployBuilder) -> String {
-            let its_token_id = ItsTokenIdNewType::from(test_builder.token_id);
-
-            let token_name = StringEncoder::encode_string(&test_builder.token_name)
-                .expect("Failed to encode token name")
-                .consume()[0];
-
-            let token_symbol = StringEncoder::encode_string(&test_builder.token_symbol)
-                .expect("Failed to encode token symbol")
-                .consume()[0];
-
-            let decimals = test_builder.decimals;
-
-            let minter = test_builder.minter.as_ref().map_or_else(Vec::new, |m| {
-                StringEncoder::encode_string(m)
-                    .expect("Failed to encode string to Aleo GMP address")
-                    .consume()
-            });
-
-            let minter_str = minter
-                .iter()
-                .map(|n| format!("{n}u128"))
-                .chain(
-                    std::iter::repeat("0u128".to_string())
-                        .take(GMP_ADDRESS_LENGTH.saturating_sub(minter.len())),
-                )
-                .collect::<Vec<String>>()
-                .join(", ");
-
-            let destination_chain = SafeGmpChainName::try_from(&test_builder.destination_chain)
-                .expect("Failed to convert destination chain to SafeGmpChainName")
-                .chain_name();
-
-            format!(
-                r#"{{
-                    payload: {{
-                        its_token_id: [ {}u128, {}u128 ],
-                        name: {token_name}u128,
-                        symbol: {token_symbol}u128,
-                        decimals: {decimals}u8,
-                        minter: [ {minter_str} ]
-                    }},
-                    destination_chain: [ {}u128, {}u128 ]
-                }}"#,
-                its_token_id[0], its_token_id[1], destination_chain[0], destination_chain[1]
-            )
         }
 
         #[test]
@@ -547,7 +532,7 @@ mod tests {
             for test_builder in [test_builder_without_minter, test_builder_with_minter].into_iter()
             {
                 let outbound_deploy_interchain_token =
-                    format_aleo_deploy_interchain_token(&test_builder);
+                    test_builder.format_aleo_deploy_interchain_token();
 
                 let aleo_value =
                     Value::<CurrentNetwork>::from_str(&outbound_deploy_interchain_token)
