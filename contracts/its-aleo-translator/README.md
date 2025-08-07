@@ -71,17 +71,29 @@ flowchart LR
     %% Aleo DeployInterchainToken to EVM flow
     O --> I
     K --> M
-    style EVM fill:#e3f2fd,stroke:#1976d2,stroke-width:2px
-    style A fill:#e1f5fe
-    style H fill:#e1f5fe
-    style L fill:#c8e6c9
-    style M fill:#c8e6c9
-    style F fill:#ffeb3b
-    style J fill:#ffeb3b
-    style ITSHub fill:#f0f0f0,stroke:#333,stroke-width:2px
-    style E fill:#e8f5e8
-    style G fill:#e8f5e8
-    style N fill:#c8e6c9
-    style O fill:#c8e6c9
-    style Aleo fill:#f3e5f5,stroke:#7b1fa2,stroke-width:2px
+
+    %% Improved color scheme
+    style EVM fill:#f0f8ff,stroke:#4682b4,stroke-width:3px,color:#2c3e50
+    style Aleo fill:#f5f0ff,stroke:#8b5cf6,stroke-width:3px,color:#2c3e50
+    style ITSHub fill:#fafafa,stroke:#6b7280,stroke-width:3px,color:#2c3e50
+
+    %% EVM nodes - blue theme
+    style A fill:#dbeafe,stroke:#3b82f6,stroke-width:2px,color:#1e40af
+    style H fill:#dbeafe,stroke:#3b82f6,stroke-width:2px,color:#1e40af
+    style L fill:#bfdbfe,stroke:#2563eb,stroke-width:2px,color:#1d4ed8
+    style M fill:#bfdbfe,stroke:#2563eb,stroke-width:2px,color:#1d4ed8
+
+    %% Aleo nodes - purple theme
+    style E fill:#e9d5ff,stroke:#8b5cf6,stroke-width:2px,color:#6b21a8
+    style G fill:#e9d5ff,stroke:#8b5cf6,stroke-width:2px,color:#6b21a8
+    style N fill:#ddd6fe,stroke:#7c3aed,stroke-width:2px,color:#5b21b6
+    style O fill:#ddd6fe,stroke:#7c3aed,stroke-width:2px,color:#5b21b6
+
+    %% Hub processing nodes - warm theme
+    style C fill:#fef3c7,stroke:#f59e0b,stroke-width:2px,color:#92400e
+    style D fill:#fef3c7,stroke:#f59e0b,stroke-width:2px,color:#92400e
+    style I fill:#fef3c7,stroke:#f59e0b,stroke-width:2px,color:#92400e
+    style K fill:#fef3c7,stroke:#f59e0b,stroke-width:2px,color:#92400e
+    style F fill:#fed7aa,stroke:#ea580c,stroke-width:2px,color:#9a3412
+    style J fill:#fed7aa,stroke:#ea580c,stroke-width:2px,color:#9a3412
 ```
