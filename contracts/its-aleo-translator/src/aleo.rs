@@ -140,15 +140,6 @@ mod tests {
     type CurrentNetwork = snarkvm_cosmwasm::prelude::TestnetV0;
 
     const EVM_DESTINATION_ADDRESS: &str = "aA411dE17e8E5C12bfac98c53670D520BB827d94";
-    const ETH_SEPOLIA_CHAIN_ID: [u128; 2] = [134856446981446044681495648599413882880u128, 0u128];
-    const EVM_ADDRESS_AS_ALEO: [u128; 6] = [
-        129273673469706941367715161866217140530u128,
-        130795933121520764988248272954977497648u128,
-        88072879107956514698150556559508242432u128,
-        0u128,
-        0u128,
-        0u128,
-    ];
 
     fn random_address<N: Network>() -> String {
         rand::random::<Address<N>>().to_string()
@@ -218,7 +209,7 @@ mod tests {
             }
         }
 
-        fn aleo_inbound_transfer_mesasge(&self) -> String {
+        fn inbound_aleo_message(&self) -> String {
             let its_token_id = ItsTokenIdNewType::from(self.token_id);
             let amount = self.amount;
             let destination_address = &self.destination_address;
@@ -234,6 +225,9 @@ mod tests {
                 )
                 .collect::<Vec<String>>()
                 .join(", ");
+            let source_chain = SafeGmpChainName::try_from(&self.external_chain)
+                .expect("Failed to convert external chain to SafeGmpChainName")
+                .chain_name();
 
             let aleo_message = format!(
                 r#"{{
@@ -245,39 +239,46 @@ mod tests {
                         }},
                         source_chain: [ {}u128, {}u128 ]
                     }}"#,
-                its_token_id[0], its_token_id[1], ETH_SEPOLIA_CHAIN_ID[0], ETH_SEPOLIA_CHAIN_ID[1],
+                its_token_id[0], its_token_id[1], source_chain[0], source_chain[1],
             );
             aleo_message
         }
 
-        fn aleo_outbound_transfer_message(&self) -> String {
+        fn outbound_aleo_message(&self) -> String {
             let its_token_id = ItsTokenIdNewType::from(self.token_id);
             let amount = self.amount;
-            // let destination_address = &self.external_chain;
             let source_address = &self.source_address;
+            let destination_chain = SafeGmpChainName::try_from(&self.external_chain)
+                .expect("Failed to convert external chain to SafeGmpChainName")
+                .chain_name();
+
+            let destination_address = {
+                let destination_address = StringEncoder::encode_string(&self.destination_address)
+                    .expect("Failed to encode destination address")
+                    .consume();
+
+                destination_address
+                    .iter()
+                    .map(|n| format!("{n}u128"))
+                    .chain(
+                        std::iter::repeat("0u128".to_string())
+                            .take(GMP_ADDRESS_LENGTH.saturating_sub(destination_address.len())),
+                    )
+                    .collect::<Vec<String>>()
+                    .join(", ")
+            };
 
             format!(
                 r#"{{
                     inner_message: {{
                         its_token_id: [ {}u128, {}u128 ],
-                        source_address: {},
-                        destination_address: [ {}u128, {}u128, {}u128, {}u128, {}u128, {}u128 ],
-                        amount: {}u128
+                        source_address: {source_address},
+                        destination_address: [ {destination_address} ],
+                        amount: {amount}u128
                     }},
                     destination_chain: [ {}u128, {}u128 ]
                 }}"#,
-                its_token_id[0],
-                its_token_id[1],
-                source_address,
-                EVM_ADDRESS_AS_ALEO[0],
-                EVM_ADDRESS_AS_ALEO[1],
-                EVM_ADDRESS_AS_ALEO[2],
-                EVM_ADDRESS_AS_ALEO[3],
-                EVM_ADDRESS_AS_ALEO[4],
-                EVM_ADDRESS_AS_ALEO[5],
-                amount,
-                ETH_SEPOLIA_CHAIN_ID[0],
-                ETH_SEPOLIA_CHAIN_ID[1]
+                its_token_id[0], its_token_id[1], destination_chain[0], destination_chain[1]
             )
         }
     }
@@ -411,7 +412,7 @@ mod tests {
 
             let minter = self.minter.as_ref().map_or_else(
                 || Address::<CurrentNetwork>::zero().to_string(),
-                |m| m.to_string(),
+                ToString::to_string,
             );
 
             let source_chain = SafeGmpChainName::try_from(&self.destination_chain)
@@ -453,7 +454,7 @@ mod tests {
             let destination_address = random_address::<CurrentNetwork>();
             let test_transfer = TestTransferBuilder::new(source_address, destination_address);
             let its_message = test_transfer.inbound_hub_message();
-            let expected_aleo_message = test_transfer.aleo_inbound_transfer_mesasge();
+            let expected_aleo_message = test_transfer.inbound_aleo_message();
 
             let aleo_message = aleo_inbound_hub_message::<CurrentNetwork>(its_message)
                 .expect("Failed to convert HubMessage to Aleo value");
@@ -506,7 +507,7 @@ mod tests {
                 EVM_DESTINATION_ADDRESS.to_string(),
             );
 
-            let aleo_value_str = test_data.aleo_outbound_transfer_message();
+            let aleo_value_str = test_data.outbound_aleo_message();
 
             let aleo_value = Value::<CurrentNetwork>::from_str(&aleo_value_str)
                 .expect("Valid Aleo value")
