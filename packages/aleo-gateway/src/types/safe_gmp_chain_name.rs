@@ -1,12 +1,11 @@
 use std::str::FromStr;
 
 use aleo_string_encoder::StringEncoder;
-use error_stack::{Report, ensure};
+use error_stack::{ensure, Report};
 use router_api::ChainNameRaw;
 
-use crate::error::AleoError;
-
 use super::GmpChainName;
+use crate::error::AleoError;
 
 /// A safe GMP chain name that can be used in communication between the Aleo network and Axelar
 /// network.

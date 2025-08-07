@@ -4,7 +4,8 @@ use aleo_gateway::types::{GmpChainName, ItsTokenId};
 use aleo_string_encoder::StringEncoder;
 use error_stack::Report;
 use plaintext_trait::ToPlaintext;
-use snarkvm_cosmwasm::console::{program::Network, types::Address};
+use snarkvm_cosmwasm::console::program::Network;
+use snarkvm_cosmwasm::console::types::Address;
 
 use super::token_id_conversion::ItsTokenIdNewType;
 use super::Error;

@@ -165,7 +165,10 @@ mod tests {
     fn format_aleo_array(data: &[u128], len: usize) -> String {
         data.iter()
             .map(|n| format!("{n}u128"))
-            .chain(std::iter::repeat("0u128".to_string()).take(len.saturating_sub(data.len())))
+            .chain(std::iter::repeat_n(
+                "0u128".to_string(),
+                len.saturating_sub(data.len()),
+            ))
             .collect::<Vec<String>>()
             .join(", ")
     }

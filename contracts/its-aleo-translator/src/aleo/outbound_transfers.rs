@@ -217,8 +217,8 @@ impl<N: Network> TryFrom<ItsOutboundInterchainTransfer<N>> for HubMessage {
             .attach_printable_lazy(|| format!("{:#?}", outbound_transfer.inner_message))?;
 
         let destination_chain: SafeGmpChainName =
-            SafeGmpChainName::new(outbound_transfer.destination_chain).change_context(
-                Error::TranslationFailed("Failed to translate chain name".to_string()),
+            SafeGmpChainName::new(outbound_transfer.destination_chain).change_context_lazy(
+                || Error::TranslationFailed("Failed to translate chain name".to_string()),
             )?;
 
         Ok(HubMessage::SendToHub {

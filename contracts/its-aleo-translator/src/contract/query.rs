@@ -1,7 +1,8 @@
 use cosmwasm_std::{Binary, Deps, Env, HexBinary};
 use interchain_token_service_std::HubMessage;
 
-use crate::{aleo::{aleo_inbound_hub_message, aleo_outbound_hub_message}, error::ContractError};
+use crate::aleo::{aleo_inbound_hub_message, aleo_outbound_hub_message};
+use crate::error::ContractError;
 
 pub fn from_bytes(_deps: Deps, _env: Env, payload: HexBinary) -> Result<Binary, ContractError> {
     let hub_message = aleo_outbound_hub_message::<snarkvm_cosmwasm::prelude::TestnetV0>(payload)

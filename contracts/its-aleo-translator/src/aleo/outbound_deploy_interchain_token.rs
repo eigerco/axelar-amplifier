@@ -1,18 +1,16 @@
-use std::str::FromStr as _;
-
-use aleo_gateway::types::{GmpAddress, GmpChainName, ItsTokenId};
+use aleo_gateway::types::{GmpAddress, GmpChainName, ItsTokenId, SafeGmpChainName};
 use aleo_string_encoder::StringEncoder;
 use axelar_wasm_std::nonempty;
 use error_stack::{bail, report, Report, ResultExt};
-use interchain_token_service_std::{DeployInterchainToken as DeployInterchainTokenItsHub, TokenId};
-use interchain_token_service_std::{HubMessage, Message};
+use interchain_token_service_std::{
+    DeployInterchainToken as DeployInterchainTokenItsHub, HubMessage, Message, TokenId,
+};
 use plaintext_trait::ToPlaintext;
 use router_api::ChainNameRaw;
 use snarkvm_cosmwasm::prelude::{Identifier, Literal, Network, Plaintext};
 
 use super::token_id_conversion::ItsTokenIdNewType;
 use super::Error;
-
 
 /// Represents a deploy interchain token message that is sent to the hub.
 ///
@@ -89,18 +87,19 @@ impl TryFrom<RemoteDeployInterchainToken> for HubMessage {
     fn try_from(transfer: RemoteDeployInterchainToken) -> Result<Self, Self::Error> {
         let deploy_interchain_token = DeployInterchainTokenItsHub::try_from(transfer.payload)?;
 
-        let destination_chain = StringEncoder::from_slice(&transfer.destination_chain)
-            .decode()
-            .map_err(|e| {
-                report!(Error::TranslationFailed(format!(
-                    "Failed to decode destination chain: {e}"
-                )))
-            })?;
+        let destination_chain = {
+            let destination_chain = SafeGmpChainName::new(transfer.destination_chain)
+                .change_context_lazy(|| {
+                    Error::TranslationFailed(
+                        "Failed to create SafeGmpChainName from destination_chain".to_string(),
+                    )
+                })?;
+
+            ChainNameRaw::try_from(destination_chain).map_err(Error::from)?
+        };
 
         let message_hub = HubMessage::SendToHub {
-            destination_chain: ChainNameRaw::from_str(&destination_chain)
-                .map_err(Error::from)
-                .attach_printable_lazy(|| destination_chain.to_string())?,
+            destination_chain,
             message: Message::DeployInterchainToken(deploy_interchain_token),
         };
 
