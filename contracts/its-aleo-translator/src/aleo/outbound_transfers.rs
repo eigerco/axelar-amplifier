@@ -11,8 +11,7 @@ use crate::aleo::Error;
 
 /// Represents an outgoing interchain transfer message that is sent to the hub.
 ///
-/// This struct can only be translated to [HubMessage::SendToHub](interchain_token_service_std::HubMessage::SendToHub)
-/// with [InterchainTransfer](interchain_token_service_std::InterchainTransfer) message type.
+/// This struct can only be translated to [HubMessage::SendToHub] with [InterchainTransfer] internal message.
 #[derive(Debug)]
 pub struct ItsOutgoingInterchainTransfer<N: Network> {
     /// The inner interchain transfer message containing the transfer details.
@@ -23,7 +22,7 @@ pub struct ItsOutgoingInterchainTransfer<N: Network> {
 
 /// Represents an outgoing interchain transfer message that is sent to the hub.
 ///
-/// This struct corresponds to the [InterchainTransfer](interchain_token_service_std::InterchainTransfer).
+/// This struct corresponds to the [InterchainTransfer].
 #[derive(Debug)]
 pub struct OutgoingInterchainTransfer<N: Network> {
     /// Unique identifier for the interchain token
