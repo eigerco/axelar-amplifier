@@ -104,7 +104,7 @@ service-registry = { version = "^1.1.0", path = "contracts/service-registry" }
 service-registry-api = { version = "^1.0.0", path = "packages/service-registry-api" }
 sha3 = { version = "0.10.8", default-features = false, features = [] }
 signature-verifier-api = { version = "^1.0.0", path = "packages/signature-verifier-api" }
-snarkvm-cosmwasm = { git = "https://github.com/eigerco/snarkVM", branch = "cosmwasm-4" }
+snarkvm-cosmwasm = { git = "https://github.com/eigerco/snarkVM", tag = "snarkvm-with-cosmwasm" }
 starknet-checked-felt = { version = "^1.0.0", path = "packages/starknet-checked-felt" }
 starknet-core = "0.12.0"
 starknet-providers = "0.12.0"
