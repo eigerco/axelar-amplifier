@@ -33,13 +33,6 @@ ITS HubMesage defines 3 messages.
 | ReceiveFromHub(DeployInterchainToken) | ItsMessageDeployInterchainToken(FromRemoteDeployInterchainToken) |
 | RgisterTokenMetadata                  | TBD                                                              |
 
-| Check list | Rust impl                                                                 | Axelar ITS-Hub        | Direction | Aleo ITS-Hub                    |
-| :--------: | :------------------------------------------------------------------------ | --------------------- | :-------: | ------------------------------- |
-|    [ ]     | `impl TryFrom<InterchainTransfer> for IncomingInterchainTransfer`         | InterchainTransfer    |    ->     | IncomingInterchainTransfer      |
-|    [ ]     | `impl TryFrom<OutgoingInterchainTransfer> for InterchainTransfer`         | InterchainTransfer    |    <-     | OutgoingInterchainTransfer      |
-|    [ ]     | `impl TryFrom<DeployInterchainToken> for FromRemoteDeployInterchainToken` | DeployInterchainToken |    ->     | FromRemoteDeployInterchainToken |
-|    [ ]     | `impl TryFrom<Aleo::DeployInterchainToken> for DeployInterchainToken`     | DeployInterchainToken |    <-     | DeployInterchainToken           |
-
 ```mermaid
 flowchart LR
     subgraph EVM
