@@ -164,6 +164,14 @@ mod tests {
         from_hex(&hex::encode(data.as_bytes()))
     }
 
+    fn format_aleo_array(data: &[u128], len: usize) -> String {
+        data.iter()
+            .map(|n| format!("{n}u128"))
+            .chain(std::iter::repeat("0u128".to_string()).take(len.saturating_sub(data.len())))
+            .collect::<Vec<String>>()
+            .join(", ")
+    }
+
     struct TestTransferBuilder {
         token_id: TokenId,
         source_address: String,
@@ -213,18 +221,14 @@ mod tests {
             let its_token_id = ItsTokenIdNewType::from(self.token_id);
             let amount = self.amount;
             let destination_address = &self.destination_address;
-            let source_address = StringEncoder::encode_string(&self.source_address)
-                .expect("Failed to encode source address")
-                .consume();
-            let source_address = source_address
-                .iter()
-                .map(|n| format!("{n}u128"))
-                .chain(
-                    std::iter::repeat("0u128".to_string())
-                        .take(GMP_ADDRESS_LENGTH.saturating_sub(source_address.len())),
-                )
-                .collect::<Vec<String>>()
-                .join(", ");
+            let source_address = {
+                let source_address = StringEncoder::encode_string(&self.source_address)
+                    .expect("Failed to encode source address")
+                    .consume();
+
+                format_aleo_array(&source_address, GMP_ADDRESS_LENGTH)
+            };
+
             let source_chain = SafeGmpChainName::try_from(&self.external_chain)
                 .expect("Failed to convert external chain to SafeGmpChainName")
                 .chain_name();
@@ -257,15 +261,7 @@ mod tests {
                     .expect("Failed to encode destination address")
                     .consume();
 
-                destination_address
-                    .iter()
-                    .map(|n| format!("{n}u128"))
-                    .chain(
-                        std::iter::repeat("0u128".to_string())
-                            .take(GMP_ADDRESS_LENGTH.saturating_sub(destination_address.len())),
-                    )
-                    .collect::<Vec<String>>()
-                    .join(", ")
+                format_aleo_array(&destination_address, GMP_ADDRESS_LENGTH)
             };
 
             format!(
@@ -375,16 +371,7 @@ mod tests {
                     .expect("Failed to encode string to Aleo GMP address")
                     .consume()
             });
-
-            let minter_str = minter
-                .iter()
-                .map(|n| format!("{n}u128"))
-                .chain(
-                    std::iter::repeat("0u128".to_string())
-                        .take(GMP_ADDRESS_LENGTH.saturating_sub(minter.len())),
-                )
-                .collect::<Vec<String>>()
-                .join(", ");
+            let minter = format_aleo_array(&minter, GMP_ADDRESS_LENGTH);
 
             let destination_chain = SafeGmpChainName::try_from(&self.destination_chain)
                 .expect("Failed to convert destination chain to SafeGmpChainName")
@@ -397,7 +384,7 @@ mod tests {
                         name: {token_name}u128,
                         symbol: {token_symbol}u128,
                         decimals: {decimals}u8,
-                        minter: [ {minter_str} ]
+                        minter: [ {minter} ]
                     }},
                     destination_chain: [ {}u128, {}u128 ]
                 }}"#,
@@ -463,10 +450,8 @@ mod tests {
                 .expect("Failed to parse Aleo value");
 
             assert_eq!(
-                aleo_message,
-                exected_aleo_value,
-                "Expected Aleo value does not match the actual Aleo value. \nExpected: {:?}\nActual: {:?}",
-                exected_aleo_value, aleo_message
+                aleo_message, exected_aleo_value,
+                "Expected Aleo value does not match the actual Aleo value."
             );
         }
 
@@ -490,8 +475,7 @@ mod tests {
 
                 assert_eq!(
                     aleo_value, expected_aleo_value,
-                    "Expected Aleo value does not match the actual Aleo value. \nExpected: {:?}\nActual: {:?}",
-                    expected_aleo_value, aleo_value
+                    "Expected Aleo value does not match the actual Aleo value."
                 );
             }
         }
@@ -518,7 +502,10 @@ mod tests {
                 .expect("Successful conversion");
 
             let expected_message = test_data.outbound_hub_message();
-            assert_eq!(result, expected_message);
+            assert_eq!(
+                result, expected_message,
+                "Expected HubMessage does not match the actual HubMessage.",
+            );
         }
 
         #[test]
@@ -543,9 +530,9 @@ mod tests {
                     .expect("Failed to convert Aleo value to HubMessage");
 
                 let expected_message = test_builder.outbound_hub_message();
-                assert_eq!(its_hub_message, expected_message,
-                    "Expected HubMessage does not match the actual HubMessage. \nExpected: {:?}\nActual: {:?}",
-                    expected_message, its_hub_message
+                assert_eq!(
+                    its_hub_message, expected_message,
+                    "Expected HubMessage does not match the actual HubMessage.",
                 );
             }
         }
