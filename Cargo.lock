@@ -199,7 +199,7 @@ checksum = "14edf4007a98323f763701688bcbe3bc6ecf33e20c3a81b3eb8d6661ff01b217"
 [[package]]
 name = "aleo-string-encoder"
 version = "0.1.0"
-source = "git+ssh://git@github.com/eigerco/axelar-aleo.git?branch=aleo-its-translation#e357a503c9cac79a221a697bc43a52976a8e7ed5"
+source = "git+ssh://git@github.com/eigerco/axelar-aleo.git?branch=dev#f17daed0449362fa145bdcae0c9f50a4e43b2e66"
 dependencies = [
  "serde-aleo",
  "thiserror 2.0.12",
@@ -3058,7 +3058,7 @@ dependencies = [
 [[package]]
 name = "derive-macros"
 version = "0.1.0"
-source = "git+ssh://git@github.com/eigerco/axelar-aleo.git?branch=aleo-its-translation#e357a503c9cac79a221a697bc43a52976a8e7ed5"
+source = "git+ssh://git@github.com/eigerco/axelar-aleo.git?branch=dev#f17daed0449362fa145bdcae0c9f50a4e43b2e66"
 dependencies = [
  "proc-macro2 1.0.95",
  "quote 1.0.40",
@@ -7868,7 +7868,7 @@ checksum = "7edddbd0b52d732b21ad9a5fab5c704c14cd949e5e9a1ec5929a24fded1b904c"
 [[package]]
 name = "plaintext-trait"
 version = "0.1.0"
-source = "git+ssh://git@github.com/eigerco/axelar-aleo.git?branch=aleo-its-translation#e357a503c9cac79a221a697bc43a52976a8e7ed5"
+source = "git+ssh://git@github.com/eigerco/axelar-aleo.git?branch=dev#f17daed0449362fa145bdcae0c9f50a4e43b2e66"
 dependencies = [
  "anyhow",
  "derive-macros",
@@ -9636,7 +9636,7 @@ dependencies = [
 [[package]]
 name = "serde-aleo"
 version = "0.1.0"
-source = "git+ssh://git@github.com/eigerco/axelar-aleo.git?branch=aleo-its-translation#e357a503c9cac79a221a697bc43a52976a8e7ed5"
+source = "git+ssh://git@github.com/eigerco/axelar-aleo.git?branch=dev#f17daed0449362fa145bdcae0c9f50a4e43b2e66"
 dependencies = [
  "nom 8.0.0",
  "serde",
