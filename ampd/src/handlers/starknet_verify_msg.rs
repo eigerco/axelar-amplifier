@@ -7,11 +7,12 @@ use cosmrs::cosmwasm::MsgExecuteContract;
 use cosmrs::tx::Msg;
 use cosmrs::Any;
 use error_stack::ResultExt;
+use events::try_from;
 use events::Error::EventTypeMismatch;
-use events_derive::try_from;
 use futures::future::join_all;
 use itertools::Itertools;
-use router_api::ChainName;
+use lazy_static::lazy_static;
+use router_api::{chain_name, ChainName};
 use serde::Deserialize;
 use starknet_checked_felt::CheckedFelt;
 use tokio::sync::watch::Receiver;
@@ -21,9 +22,15 @@ use voting_verifier::msg::ExecuteMsg;
 use crate::event_processor::EventHandler;
 use crate::handlers::errors::Error;
 use crate::handlers::errors::Error::DeserializeEvent;
+use crate::monitoring;
+use crate::monitoring::metrics;
 use crate::starknet::json_rpc::StarknetClient;
 use crate::starknet::verifier::verify_msg;
 use crate::types::{Hash, TMAddress};
+
+lazy_static! {
+    static ref STARKNET_CHAIN_NAME: ChainName = chain_name!("starknet");
+}
 
 type Result<T> = error_stack::Result<T, Error>;
 
@@ -48,6 +55,7 @@ struct PollStartedEvent {
     participants: Vec<TMAddress>,
 }
 
+#[derive(Debug)]
 pub struct Handler<C>
 where
     C: StarknetClient,
@@ -56,6 +64,7 @@ where
     voting_verifier: TMAddress,
     rpc_client: C,
     latest_block_height: Receiver<u64>,
+    monitoring_client: monitoring::Client,
 }
 
 impl<C> Handler<C>
@@ -67,12 +76,14 @@ where
         voting_verifier: TMAddress,
         rpc_client: C,
         latest_block_height: Receiver<u64>,
+        monitoring_client: monitoring::Client,
     ) -> Self {
         Self {
             verifier,
             voting_verifier,
             rpc_client,
             latest_block_height,
+            monitoring_client,
         }
     }
 
@@ -129,14 +140,23 @@ where
                 .iter()
                 .unique_by(|msg| msg.message_id.to_string())
                 .map(|msg| async {
-                    match self
+                    let vote = match self
                         .rpc_client
-                        .get_event_by_message_id_contract_call(msg.message_id.clone())
+                        .event_by_message_id_contract_call(msg.message_id.clone())
                         .await
                     {
                         Some(event) => verify_msg(&event, msg, &source_gateway_address),
                         None => Vote::NotFound,
-                    }
+                    };
+
+                    self.monitoring_client.metrics().record_metric(
+                        metrics::Msg::VerificationVote {
+                            vote_decision: vote.clone(),
+                            chain_name: STARKNET_CHAIN_NAME.clone(),
+                        },
+                    );
+
+                    vote
                 }),
         )
         .await;
@@ -152,6 +172,7 @@ where
 mod tests {
     use std::str::FromStr;
 
+    use axelar_wasm_std::voting::Vote;
     use base64::engine::general_purpose::STANDARD;
     use base64::Engine;
     use ethers_core::types::H256;
@@ -164,6 +185,7 @@ mod tests {
     use voting_verifier::events::{PollMetadata, PollStarted, TxEventConfirmation};
 
     use super::*;
+    use crate::monitoring::{metrics, test_utils};
     use crate::starknet::json_rpc::MockStarknetClient;
     use crate::types::starknet::events::contract_call::ContractCallEvent;
     use crate::PREFIX;
@@ -179,7 +201,7 @@ mod tests {
         // Prepare the rpc client, which fetches the event and the vote broadcaster
         let mut rpc_client = MockStarknetClient::new();
         rpc_client
-            .expect_get_event_by_message_id_contract_call()
+            .expect_event_by_message_id_contract_call()
             .returning(|_| {
                 Some(ContractCallEvent {
                     from_contract_addr: String::from("source-gw-addr"),
@@ -213,7 +235,10 @@ mod tests {
             &voting_verifier,
         );
 
-        let handler = super::Handler::new(verifier, voting_verifier, rpc_client, rx);
+        let (monitoring_client, _) = test_utils::monitoring_client();
+
+        let handler =
+            super::Handler::new(verifier, voting_verifier, rpc_client, rx, monitoring_client);
         let result = handler.handle(&event).await.unwrap();
 
         assert_eq!(result.len(), 1);
@@ -231,7 +256,7 @@ mod tests {
         // Prepare the rpc client, which fetches the event and the vote broadcaster
         let mut rpc_client = MockStarknetClient::new();
         rpc_client
-            .expect_get_event_by_message_id_contract_call()
+            .expect_event_by_message_id_contract_call()
             .returning(|_| {
                 Some(ContractCallEvent {
                     from_contract_addr: String::from("source-gw-addr"),
@@ -250,11 +275,54 @@ mod tests {
             &voting_verifier,
         );
 
-        let handler = super::Handler::new(verifier, voting_verifier, rpc_client, rx);
+        let (monitoring_client, _) = test_utils::monitoring_client();
+
+        let handler =
+            super::Handler::new(verifier, voting_verifier, rpc_client, rx, monitoring_client);
         let result = handler.handle(&event).await.unwrap();
 
         assert_eq!(result.len(), 1);
         assert!(MsgExecuteContract::from_any(result.first().unwrap()).is_ok());
+    }
+
+    #[async_test]
+    async fn should_record_verification_vote_metric() {
+        let voting_verifier = TMAddress::random(PREFIX);
+        let verifier = TMAddress::random(PREFIX);
+
+        let mut rpc_client = MockStarknetClient::new();
+        rpc_client
+            .expect_event_by_message_id_contract_call()
+            .returning(|_| None);
+
+        let event: Event = get_event(
+            get_poll_started_event_with_two_msgs(participants(5, Some(verifier.clone())), 100_u64),
+            &voting_verifier,
+        );
+
+        let (monitoring_client, mut receiver) = test_utils::monitoring_client();
+
+        let handler = super::Handler::new(
+            verifier,
+            voting_verifier,
+            rpc_client,
+            watch::channel(0).1,
+            monitoring_client,
+        );
+        let _ = handler.handle(&event).await.unwrap();
+
+        for _ in 0..2 {
+            let msg = receiver.recv().await.unwrap();
+            assert_eq!(
+                msg,
+                metrics::Msg::VerificationVote {
+                    vote_decision: Vote::NotFound,
+                    chain_name: STARKNET_CHAIN_NAME.clone(),
+                }
+            );
+        }
+
+        assert!(receiver.try_recv().is_err());
     }
 
     #[async_test]
@@ -268,7 +336,7 @@ mod tests {
         // Prepare the rpc client, which fetches the event and the vote broadcaster
         let mut rpc_client = MockStarknetClient::new();
         rpc_client
-            .expect_get_event_by_message_id_contract_call()
+            .expect_event_by_message_id_contract_call()
             .once()
             .with(eq(FieldElementAndEventIndex {
                 tx_hash: CheckedFelt::from_str(
@@ -298,7 +366,10 @@ mod tests {
             &voting_verifier,
         );
 
-        let handler = super::Handler::new(verifier, voting_verifier, rpc_client, rx);
+        let (monitoring_client, _) = test_utils::monitoring_client();
+
+        let handler =
+            super::Handler::new(verifier, voting_verifier, rpc_client, rx, monitoring_client);
         let result = handler.handle(&event).await.unwrap();
 
         assert_eq!(result.len(), 1);
@@ -316,7 +387,7 @@ mod tests {
         // Prepare the rpc client, which fetches the event and the vote broadcaster
         let mut rpc_client = MockStarknetClient::new();
         rpc_client
-            .expect_get_event_by_message_id_contract_call()
+            .expect_event_by_message_id_contract_call()
             .times(0);
 
         let event: Event = get_event(
@@ -327,7 +398,10 @@ mod tests {
             &TMAddress::random(PREFIX), // some other random address
         );
 
-        let handler = super::Handler::new(verifier, voting_verifier, rpc_client, rx);
+        let (monitoring_client, _) = test_utils::monitoring_client();
+
+        let handler =
+            super::Handler::new(verifier, voting_verifier, rpc_client, rx, monitoring_client);
 
         let result = handler.handle(&event).await.unwrap();
         assert_eq!(result, vec![]);
@@ -344,7 +418,7 @@ mod tests {
         // Prepare the rpc client, which fetches the event and the vote broadcaster
         let mut rpc_client = MockStarknetClient::new();
         rpc_client
-            .expect_get_event_by_message_id_contract_call()
+            .expect_event_by_message_id_contract_call()
             .times(0);
 
         let event: Event = get_event(
@@ -353,7 +427,10 @@ mod tests {
             &voting_verifier,
         );
 
-        let handler = super::Handler::new(verifier, voting_verifier, rpc_client, rx);
+        let (monitoring_client, _) = test_utils::monitoring_client();
+
+        let handler =
+            super::Handler::new(verifier, voting_verifier, rpc_client, rx, monitoring_client);
 
         let result = handler.handle(&event).await.unwrap();
         assert_eq!(result, vec![]);
@@ -370,7 +447,7 @@ mod tests {
         // Prepare the rpc client, which fetches the event and the vote broadcaster
         let mut rpc_client = MockStarknetClient::new();
         rpc_client
-            .expect_get_event_by_message_id_contract_call()
+            .expect_event_by_message_id_contract_call()
             .times(0);
 
         let event: Event = get_event(
@@ -381,7 +458,10 @@ mod tests {
             &voting_verifier,
         );
 
-        let handler = super::Handler::new(verifier, voting_verifier, rpc_client, rx);
+        let (monitoring_client, _) = test_utils::monitoring_client();
+
+        let handler =
+            super::Handler::new(verifier, voting_verifier, rpc_client, rx, monitoring_client);
 
         let result = handler.handle(&event).await.unwrap();
         assert_eq!(result, vec![]);

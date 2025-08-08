@@ -40,8 +40,9 @@ fn parse_message_id(message_id: &str) -> Result<(nonempty::Vec<u8>, u64), Error>
 impl From<router_api::Message> for Message {
     fn from(msg: router_api::Message) -> Self {
         // fallback to using all 0's as the tx ID if it's not in the expected format
+        let zeroed_message_id = vec![0; 32].try_into().expect("conversion should not fail");
         let (source_tx_id, source_tx_index) =
-            parse_message_id(&msg.cc_id.message_id).unwrap_or((vec![0; 32].try_into().unwrap(), 0));
+            parse_message_id(&msg.cc_id.message_id).unwrap_or((zeroed_message_id, 0));
 
         Self {
             source_chain: msg.cc_id.source_chain,
@@ -85,7 +86,7 @@ mod test {
     use std::vec;
 
     use axelar_wasm_std::msg_id::{Base58TxDigestAndEventIndex, HexTxHashAndEventIndex};
-    use router_api::CrossChainId;
+    use router_api::{chain_name_raw, CrossChainId};
 
     use super::Message;
 
@@ -96,7 +97,7 @@ mod test {
             event_index: 1,
         };
         let msg = Message {
-            source_chain: "ethereum".parse().unwrap(),
+            source_chain: chain_name_raw!("ethereum"),
             source_address: "something".parse().unwrap(),
             destination_chain: "polygon".parse().unwrap(),
             destination_address: "something else".parse().unwrap(),
