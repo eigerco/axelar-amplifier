@@ -1,7 +1,7 @@
 use aleo_gateway::types::SafeGmpChainName;
 use axelar_wasm_std::{nonempty, IntoContractError};
 use cosmwasm_std::{ConversionOverflowError, HexBinary, StdError};
-use error_stack::{bail, report, Report};
+use error_stack::{bail, report, Report, ResultExt as _};
 use inbound_deploy_interchain_token::{
     FromRemoteDeployInterchainToken, ItsMessageDeployInterchainToken,
 };
@@ -52,11 +52,10 @@ pub fn aleo_inbound_hub_message<N: Network>(
             source_chain,
             message: Message::InterchainTransfer(interchain_transfer),
         } => {
-            let source_chain = SafeGmpChainName::try_from(source_chain).map_err(|e| {
-                report!(Error::TranslationFailed(format!(
-                    "Failed to convert source chain to AleoGmpChainName: {e}"
-                )))
-            })?;
+            let source_chain =
+                SafeGmpChainName::try_from(source_chain).change_context_lazy(|| {
+                    Error::TranslationFailed("Failed to translate chain name".to_string())
+                })?;
 
             let aleo_inbound_transfer =
                 InboundInterchainTransfer::<N>::try_from(&interchain_transfer).map_err(|e| {
@@ -77,11 +76,10 @@ pub fn aleo_inbound_hub_message<N: Network>(
             source_chain,
             message: Message::DeployInterchainToken(deploy_interchain_token),
         } => {
-            let source_chain = SafeGmpChainName::try_from(source_chain).map_err(|e| {
-                report!(Error::TranslationFailed(format!(
-                    "Failed to convert source chain to AleoGmpChainName: {e}"
-                )))
-            })?;
+            let source_chain =
+                SafeGmpChainName::try_from(source_chain).change_context_lazy(|| {
+                    Error::TranslationFailed("Failed to translate chain name".to_string())
+                })?;
 
             let message = ItsMessageDeployInterchainToken::<N> {
                 inner_message: FromRemoteDeployInterchainToken::try_from(deploy_interchain_token)?,

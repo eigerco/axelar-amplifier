@@ -8,7 +8,7 @@ ITS HubMesage defines 3 messages.
 1. `ReceiveFromHub`
 1. `RgisterTokenMetadata`
 
-`SendToHub` and `ReceiveFromHub` define a direction for the message, they contain an ITS Message and the destination or the origin chain respectively.
+`SendToHub` and `ReceiveFromHub` define the direction of a message. They each wrap an ITS message along with the destination (for `SendToHub`) or the origin chain (for `ReceiveFromHub`), respectively.
 
 # ITS Message
 
@@ -20,8 +20,8 @@ ITS HubMesage defines 3 messages.
 | DeployInterchainToken |    <-     | DeployInterchainToken           |
 | LinkToken             |    <->    | TBD                             |
 
-->: ReceiveFromHub
-<-: SendToHub
+->: `ReceiveFromHub`
+<-: `SendToHub`
 
 # Aleo ITS Messages
 
