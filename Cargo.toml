@@ -24,7 +24,7 @@ rev = "ebfed5dde7990739367c182338a3b6c2dd11ef09"
 
 [workspace.dependencies]
 aleo-gateway = { path = "packages/aleo-gateway" }
-aleo-string-encoder = { git = "ssh://git@github.com/eigerco/axelar-aleo.git", branch = "aleo-its-translation"}
+aleo-string-encoder = { git = "ssh://git@github.com/eigerco/axelar-aleo.git", branch = "aleo-its-translation" }
 alloy-primitives = { version = "0.7.6", default-features = false, features = [
   "std",
 ] }
@@ -88,7 +88,7 @@ multisig = { version = "^2.2.0", path = "contracts/multisig" }
 multisig-prover = { version = "^1.1.1", path = "contracts/multisig-prover" }
 multisig-prover-api = { version = "1.0.0", path = "packages/multisig-prover-api" }
 num-traits = { version = "0.2.14", default-features = false }
-plaintext-trait = { git = "ssh://git@github.com/eigerco/axelar-aleo.git", branch = "aleo-its-translation"}
+plaintext-trait = { git = "ssh://git@github.com/eigerco/axelar-aleo.git", branch = "aleo-its-translation" }
 proc-macro2 = "1.0.92"
 quote = "1.0.38"
 rand = "0.8.5"

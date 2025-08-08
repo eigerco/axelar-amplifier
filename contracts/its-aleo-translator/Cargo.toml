@@ -13,12 +13,8 @@ crate-type = ["cdylib", "rlib"]
 library = []
 
 [dependencies]
-
-# Aleo encoding dependencies
-snarkvm-cosmwasm = { workspace = true }
-plaintext-trait = { workspace = true }
-aleo-string-encoder = { workspace = true }
 aleo-gateway = { workspace = true }
+aleo-string-encoder = { workspace = true }
 
 # Axelar dependencies
 axelar-wasm-std = { workspace = true }
@@ -29,8 +25,15 @@ error-stack = { workspace = true }
 hex = { workspace = true }
 interchain-token-service-std = { workspace = true }
 its-msg-translator-api = { workspace = true }
+plaintext-trait = { workspace = true }
 router-api = { workspace = true }
+
+# Aleo encoding dependencies
+snarkvm-cosmwasm = { workspace = true }
 thiserror = { workspace = true }
 
 [dev-dependencies]
 rand = { workspace = true }
+
+[lints]
+workspace = true
