@@ -1,6 +1,6 @@
 use std::str::FromStr as _;
 
-use aleo_gateway::types::{GmpChainName, ItsTokenId};
+use aleo_gmp_types::{GmpChainName, ItsTokenId};
 use aleo_string_encoder::StringEncoder;
 use error_stack::Report;
 use plaintext_trait::ToPlaintext;

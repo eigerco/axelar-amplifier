@@ -1,6 +1,6 @@
 use std::str::FromStr as _;
 
-use aleo_gateway::types::{GmpAddress, GmpChainName, ItsTokenId};
+use aleo_gmp_types::{GmpAddress, GmpChainName, ItsTokenId};
 use aleo_string_encoder::StringEncoder;
 use cosmwasm_std::Uint128;
 use error_stack::Report;

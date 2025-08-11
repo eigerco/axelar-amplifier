@@ -5,7 +5,7 @@ use error_stack::{ensure, Report};
 use router_api::ChainNameRaw;
 
 use super::GmpChainName;
-use crate::error::AleoError;
+use crate::error::Error;
 
 /// A safe GMP chain name that can be used in communication between the Aleo network and Axelar
 /// network.
@@ -16,14 +16,14 @@ pub struct SafeGmpChainName {
 }
 
 impl SafeGmpChainName {
-    pub fn new(chain_name: GmpChainName) -> Result<Self, Report<AleoError>> {
+    pub fn new(chain_name: GmpChainName) -> Result<Self, Report<Error>> {
         let encoded_chain_name = StringEncoder::from_slice(&chain_name)
             .decode()
-            .map_err(AleoError::from)?;
+            .map_err(Error::from)?;
 
         ensure!(
             ChainNameRaw::is_raw_chain_name(&encoded_chain_name),
-            AleoError::InvalidChainName(encoded_chain_name.clone())
+            Error::InvalidChainName(encoded_chain_name.clone())
         );
 
         Ok(Self { chain_name })
@@ -35,7 +35,7 @@ impl SafeGmpChainName {
 }
 
 impl FromStr for SafeGmpChainName {
-    type Err = AleoError;
+    type Err = Error;
 
     fn from_str(chain_name: &str) -> Result<Self, Self::Err> {
         let chain_name_raw = ChainNameRaw::from_str(chain_name)?;
@@ -47,7 +47,7 @@ impl FromStr for SafeGmpChainName {
 }
 
 impl TryFrom<&ChainNameRaw> for SafeGmpChainName {
-    type Error = AleoError;
+    type Error = Error;
 
     fn try_from(chain_name: &ChainNameRaw) -> Result<Self, Self::Error> {
         let encoded = StringEncoder::encode_string(chain_name.as_ref())?.to_array()?;
@@ -58,18 +58,15 @@ impl TryFrom<&ChainNameRaw> for SafeGmpChainName {
 }
 
 impl TryFrom<ChainNameRaw> for SafeGmpChainName {
-    type Error = AleoError;
+    type Error = Error;
 
     fn try_from(chain_name: ChainNameRaw) -> Result<Self, Self::Error> {
-        let encoded = StringEncoder::encode_string(chain_name.as_ref())?.to_array()?;
-        Ok(Self {
-            chain_name: encoded,
-        })
+        Self::try_from(&chain_name)
     }
 }
 
 impl TryFrom<SafeGmpChainName> for ChainNameRaw {
-    type Error = AleoError;
+    type Error = Error;
 
     fn try_from(aleo_gmp_chain_name: SafeGmpChainName) -> Result<Self, Self::Error> {
         let decoded_chain_name =

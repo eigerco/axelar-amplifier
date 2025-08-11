@@ -1,4 +1,4 @@
-use aleo_gateway::types::{GmpAddress, GmpChainName, ItsTokenId, SafeGmpChainName};
+use aleo_gmp_types::{GmpAddress, GmpChainName, ItsTokenId, SafeGmpChainName};
 use aleo_string_encoder::StringEncoder;
 use axelar_wasm_std::nonempty;
 use error_stack::{bail, report, Report, ResultExt};

@@ -1,4 +1,4 @@
-use aleo_gateway::types::SafeGmpChainName;
+use aleo_gmp_types::SafeGmpChainName;
 use axelar_wasm_std::{nonempty, IntoContractError};
 use cosmwasm_std::{ConversionOverflowError, HexBinary, StdError};
 use error_stack::{bail, report, Report, ResultExt as _};
@@ -30,7 +30,7 @@ pub enum Error {
     #[error("Utf8Error: {0}")]
     Utf8(#[from] std::str::Utf8Error),
     #[error("Aleo: {0}")]
-    AleoGateway(#[from] aleo_gateway::error::AleoError),
+    AleoGateway(#[from] aleo_gmp_types::error::Error),
     #[error(transparent)]
     NonEmpty(#[from] nonempty::Error),
     #[error("TranslationFailed: {0}")]
@@ -124,7 +124,7 @@ pub fn aleo_outbound_hub_message<N: Network>(
 mod tests {
     use std::str::FromStr;
 
-    use aleo_gateway::types::GMP_ADDRESS_LENGTH;
+    use aleo_gmp_types::GMP_ADDRESS_LENGTH;
     use aleo_string_encoder::StringEncoder;
     use interchain_token_service_std::{InterchainTransfer, Message, TokenId};
     use router_api::ChainNameRaw;

@@ -24,6 +24,7 @@ rev = "ebfed5dde7990739367c182338a3b6c2dd11ef09"
 
 [workspace.dependencies]
 aleo-gateway = { path = "packages/aleo-gateway" }
+aleo-gmp-types = { path = "packages/aleo-gmp-types" }
 aleo-string-encoder = { git = "ssh://git@github.com/eigerco/axelar-aleo.git", branch = "dev" }
 alloy-primitives = { version = "0.7.6", default-features = false, features = [
   "std",
