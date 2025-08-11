@@ -1,20 +1,17 @@
 use aleo_gmp_types::SafeGmpChainName;
 use axelar_wasm_std::{nonempty, IntoContractError};
-use cosmwasm_std::{ConversionOverflowError, HexBinary, StdError};
+use cosmwasm_std::{ConversionOverflowError, HexBinary};
 use error_stack::{bail, report, Report, ResultExt as _};
-use inbound_deploy_interchain_token::convert_incoming_deploy_interchain_token;
-use inbound_transfers::convert_incoming_transfer;
 use interchain_token_service_std::{HubMessage, Message};
-use outbound_transfers::convert_outgoing_transfer;
-use outbound_deploy_interchain_token::convert_outgoing_deploy;
 use snarkvm_cosmwasm::prelude::{FromBytes as _, Network, Value};
 use thiserror::Error;
 
-mod inbound_deploy_interchain_token;
-mod inbound_transfers;
-mod outbound_deploy_interchain_token;
-mod outbound_transfers;
+mod its_hub_conversions;
 mod token_id_conversion;
+
+use its_hub_conversions::{
+    incoming_deploy_interchain_token, incoming_transfer, outgoing_deploy, outgoing_transfer,
+};
 
 pub(crate) mod generated {
     use snarkvm_cosmwasm as snarkvm;
@@ -23,8 +20,6 @@ pub(crate) mod generated {
 
 #[derive(Error, Debug, IntoContractError)]
 pub enum Error {
-    #[error(transparent)]
-    Std(#[from] StdError),
     #[error("SnarkVmError: {0}")]
     SnarkVm(#[from] snarkvm_cosmwasm::prelude::Error),
     #[error("StringEncoder: {0}")]
@@ -37,8 +32,6 @@ pub enum Error {
     NonEmpty(#[from] nonempty::Error),
     #[error("TranslationFailed: {0}")]
     TranslationFailed(String),
-    #[error("RouterApi: {0}")]
-    RouterApi(#[from] router_api::error::Error),
     #[error("ConversionOverflowError: {0}")]
     ConversionOverflow(#[from] ConversionOverflowError),
     #[error("Hex: {0}")]
@@ -60,7 +53,7 @@ pub fn aleo_inbound_hub_message<N: Network>(
                 })?;
 
             let message = generated::ItsIncomingInterchainTransfer::<N> {
-                inner_message: convert_incoming_transfer::<N>(&interchain_transfer)?,
+                inner_message: incoming_transfer::<N>(&interchain_transfer)?,
                 source_chain: source_chain.chain_name(),
             };
 
@@ -83,7 +76,7 @@ pub fn aleo_inbound_hub_message<N: Network>(
                 })?;
 
             let message = generated::ItsMessageDeployInterchainToken::<N> {
-                inner_message: convert_incoming_deploy_interchain_token(deploy_interchain_token)?,
+                inner_message: incoming_deploy_interchain_token(deploy_interchain_token)?,
                 source_chain: source_chain.chain_name(),
             };
 
@@ -117,7 +110,7 @@ pub fn aleo_outbound_hub_message<N: Network>(
     if let Ok(its_outbound_transfer) =
         generated::ItsOutgoingInterchainTransfer::<N>::try_from(&plaintext)
     {
-        convert_outgoing_transfer(its_outbound_transfer).change_context_lazy(|| {
+        outgoing_transfer(its_outbound_transfer).change_context_lazy(|| {
             Error::TranslationFailed(
                 "Failed to convert ItsOutgoingInterchainTransfer to HubMessage".to_string(),
             )
@@ -125,7 +118,7 @@ pub fn aleo_outbound_hub_message<N: Network>(
     } else if let Ok(remote_deploy_interchain_token) =
         generated::RemoteDeployInterchainToken::try_from(&plaintext)
     {
-        convert_outgoing_deploy::<N>(remote_deploy_interchain_token).change_context_lazy(|| {
+        outgoing_deploy::<N>(remote_deploy_interchain_token).change_context_lazy(|| {
             Error::TranslationFailed(
                 "Failed to convert RemoteDeployInterchainToken to HubMessage".to_string(),
             )

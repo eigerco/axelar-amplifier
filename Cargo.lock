@@ -5968,6 +5968,7 @@ dependencies = [
 [[package]]
 name = "leo-codegen"
 version = "0.1.0"
+source = "git+ssh://git@github.com/eigerco/axelar-aleo.git?branch=leo-structs-macro#21053f5616a1a952f3bcdd33c56b7409e3749aea"
 dependencies = [
  "anyhow",
  "indexmap 2.10.0",
