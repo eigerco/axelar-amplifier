@@ -1,5 +1,9 @@
 use std::str::FromStr;
 
+use aleo_gateway::network::NetworkConfig;
+use aleo_gateway::utils::{
+    validate_address as validate_aleo_address, validate_program_name as validate_aleo_program_name,
+};
 use alloy_primitives::Address;
 use cosmwasm_schema::cw_serde;
 use cosmwasm_std::{ensure, Addr, Api};
@@ -22,6 +26,19 @@ pub enum AddressFormat {
     Stellar,
     Solana,
     Starknet,
+    Aleo(NetworkConfig),
+}
+
+/// This function validates the contract address based on the provided format.
+///
+/// Note: This is implemented because Aleo has different id for programs
+/// Each program has an associated Aleo address, but the program name is used as the program id when is needed to find the program.
+pub fn validate_contract_address(address: &str, format: &AddressFormat) -> Result<(), Error> {
+    match format {
+        AddressFormat::Aleo(network) => validate_aleo_program_name(network, address)
+            .change_context(Error::InvalidAddress(address.to_string())),
+        _ => validate_address(address, format),
+    }
 }
 
 pub fn validate_address(address: &str, format: &AddressFormat) -> Result<(), Error> {
@@ -62,6 +79,10 @@ pub fn validate_address(address: &str, format: &AddressFormat) -> Result<(), Err
                 pubkey.len() == SOLANA_PUBKEY_LEN,
                 Error::InvalidAddress(address.to_string())
             );
+        }
+        AddressFormat::Aleo(network) => {
+            validate_aleo_address(network, address)
+                .change_context(Error::InvalidAddress(address.to_string()))?;
         }
         AddressFormat::Starknet => {
             CheckedFelt::from_str(address)
