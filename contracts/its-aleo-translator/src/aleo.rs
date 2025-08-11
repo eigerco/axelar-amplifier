@@ -48,8 +48,10 @@ pub fn aleo_inbound_hub_message<N: Network>(
             message: Message::InterchainTransfer(interchain_transfer),
         } => {
             let source_chain =
-                SafeGmpChainName::try_from(source_chain).change_context_lazy(|| {
-                    Error::TranslationFailed("Failed to translate chain name".to_string())
+                SafeGmpChainName::try_from(&source_chain).change_context_lazy(|| {
+                    Error::TranslationFailed(format!(
+                        "Failed to translate chain name, '{source_chain:?}'"
+                    ))
                 })?;
 
             let message = generated::ItsIncomingInterchainTransfer::<N> {
@@ -71,8 +73,10 @@ pub fn aleo_inbound_hub_message<N: Network>(
             message: Message::DeployInterchainToken(deploy_interchain_token),
         } => {
             let source_chain =
-                SafeGmpChainName::try_from(source_chain).change_context_lazy(|| {
-                    Error::TranslationFailed("Failed to translate chain name".to_string())
+                SafeGmpChainName::try_from(&source_chain).change_context_lazy(|| {
+                    Error::TranslationFailed(format!(
+                        "Failed to translate chain name, '{source_chain:?}'"
+                    ))
                 })?;
 
             let message = generated::ItsMessageDeployInterchainToken::<N> {
