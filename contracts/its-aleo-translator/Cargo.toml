@@ -12,6 +12,9 @@ crate-type = ["cdylib", "rlib"]
 # use library feature to disable all instantiate/execute/query exports
 library = []
 
+[build-dependencies]
+leo-codegen = { workspace = true }
+
 [dependencies]
 aleo-gateway = { workspace = true }
 aleo-gmp-types = { workspace = true }
@@ -27,11 +30,13 @@ error-stack = { workspace = true }
 hex = { workspace = true }
 interchain-token-service-std = { workspace = true }
 its-msg-translator-api = { workspace = true }
-plaintext-trait = { workspace = true }
 router-api = { workspace = true }
 
 # Aleo encoding dependencies
-snarkvm-cosmwasm = { workspace = true }
+snarkvm-cosmwasm = { workspace = true , features = [ "cosmwasm" ]}
+anyhow = "1.0.98"
+once_cell = "1.21.3"
+indexmap = "2.10.0"
 thiserror = { workspace = true }
 
 [dev-dependencies]
