@@ -6,7 +6,7 @@ ITS HubMesage defines 3 messages.
 
 1. `SendToHub`
 1. `ReceiveFromHub`
-1. `RgisterTokenMetadata`
+1. `RegisterTokenMetadata`
 
 `SendToHub` and `ReceiveFromHub` define the direction of a message. They each wrap an ITS message along with the destination (for `SendToHub`) or the origin chain (for `ReceiveFromHub`), respectively.
 
@@ -31,7 +31,7 @@ ITS HubMesage defines 3 messages.
 | ReceiveFromHub(InterchainTransfer)    | ItsOutboundInterchainTransfer                                    |
 | SendToHub(DeployInterchainToken)      | RemoteDeployInterchainToken(DeployInterchainToken)               |
 | ReceiveFromHub(DeployInterchainToken) | ItsMessageDeployInterchainToken(FromRemoteDeployInterchainToken) |
-| RgisterTokenMetadata                  | TBD                                                              |
+| RegisterTokenMetadata                  | TBD                                                              |
 
 ```mermaid
 flowchart LR
