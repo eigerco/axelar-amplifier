@@ -59,15 +59,8 @@ pub fn aleo_inbound_hub_message<N: Network>(
                     Error::TranslationFailed("Failed to translate chain name".to_string())
                 })?;
 
-            let message = convert_incoming_transfer::<N>(&interchain_transfer)
-                .change_context_lazy(|| {
-                    Error::TranslationFailed(
-                        "Failed to convert incoming interchain transfer".to_string(),
-                    )
-                })?;
-
             let message = generated::ItsIncomingInterchainTransfer::<N> {
-                inner_message: message,
+                inner_message: convert_incoming_transfer::<N>(&interchain_transfer)?,
                 source_chain: source_chain.chain_name(),
             };
 

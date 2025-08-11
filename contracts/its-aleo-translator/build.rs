@@ -63,8 +63,6 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         }
     "#;
 
-    println!("cargo:rerun-if-changed=build.rs");
-
     generate_leo_structs_pretty(&dest_path, "testnet", leo_code)?;
 
     Ok(())

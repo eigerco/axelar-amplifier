@@ -39,10 +39,7 @@ impl FromStr for SafeGmpChainName {
 
     fn from_str(chain_name: &str) -> Result<Self, Self::Err> {
         let chain_name_raw = ChainNameRaw::from_str(chain_name)?;
-        let encoded = StringEncoder::encode_string(chain_name_raw.as_ref())?.to_array()?;
-        Ok(Self {
-            chain_name: encoded,
-        })
+        Self::try_from(chain_name_raw)
     }
 }
 

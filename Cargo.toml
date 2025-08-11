@@ -83,8 +83,7 @@ its-abi-translator = { version = "^2.0.0", path = "contracts/its-abi-translator"
 its-aleo-translator = { path = "contracts/its-aleo-translator" }
 its-msg-translator-api = { version = "^1.0.0", path = "packages/its-msg-translator-api" }
 k256 = { version = "0.13.1", features = ["ecdsa"] }
-# leo-codegen = { git = "ssh://git@github.com/eigerco/axelar-aleo.git", branch = "leo-structs-macro" }
-leo-codegen = { path = "../token-minter/crates/leo-codegen" }
+leo-codegen = { git = "ssh://git@github.com/eigerco/axelar-aleo.git", branch = "leo-structs-macro" }
 mockall = "0.12.1"
 msgs-derive = { version = "^1.0.0", path = "packages/msgs-derive" }
 multisig = { version = "^2.2.0", path = "contracts/multisig" }
