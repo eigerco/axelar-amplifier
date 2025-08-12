@@ -11035,7 +11035,6 @@ name = "snarkvm-cosmwasm"
 version = "3.8.0"
 source = "git+https://github.com/eigerco/snarkVM?tag=snarkvm-with-cosmwasm#379958aeb4914e16985f79d420041b490613a50a"
 dependencies = [
- "getrandom 0.2.16",
  "snarkvm-console 3.8.0 (git+https://github.com/eigerco/snarkVM?tag=snarkvm-with-cosmwasm)",
 ]
 
