@@ -8,7 +8,7 @@ use interchain_token_service_std::InterchainTransfer as InterchainTransferItsHub
 use router_api::ChainNameRaw;
 use snarkvm_cosmwasm::prelude::{Address, Network, Value};
 
-use crate::aleo::generated_code::{
+use crate::aleo::try_from_impl::{
     FromRemoteDeployInterchainToken, IncomingInterchainTransfer, ItsIncomingInterchainTransfer,
     ItsMessageDeployInterchainToken,
 };
