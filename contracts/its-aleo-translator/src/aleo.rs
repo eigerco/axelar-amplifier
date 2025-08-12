@@ -24,8 +24,8 @@ pub enum Error {
     StringEncoder(#[from] aleo_string_encoder::Error),
     #[error("Utf8Error: {0}")]
     Utf8(#[from] std::str::Utf8Error),
-    #[error("Aleo: {0}")]
-    AleoGateway(#[from] aleo_gmp_types::error::Error),
+    #[error("AleoGmpTypes: {0}")]
+    AleoGmpTypes(#[from] aleo_gmp_types::error::Error),
     #[error(transparent)]
     NonEmpty(#[from] nonempty::Error),
     #[error("TranslationFailed: {0}")]
