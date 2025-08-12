@@ -48,7 +48,7 @@ impl<N: Network> ToAleoValue<N> for interchain_token_service_std::DeployIntercha
         })?;
 
         let deploy_interchain_token = FromRemoteDeployInterchainToken {
-            its_token_id: its_token_id.0,
+            its_token_id: *its_token_id,
             name: name[0],
             symbol: symbol[0],
             decimals: self.decimals,
@@ -104,7 +104,7 @@ impl<N: Network> ToAleoValue<N> for InterchainTransferItsHub {
         })?;
 
         let interchain_transfer = IncomingInterchainTransfer {
-            its_token_id: its_token_id.0,
+            its_token_id: *its_token_id,
             source_address,
             destination_address,
             amount,

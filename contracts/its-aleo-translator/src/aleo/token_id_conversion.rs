@@ -1,4 +1,4 @@
-use std::ops::Index;
+use std::ops::{Deref, Index};
 
 use interchain_token_service_std::TokenId;
 
@@ -57,5 +57,13 @@ impl Index<usize> for ItsTokenIdNewType {
 
     fn index(&self, index: usize) -> &Self::Output {
         &self.0[index]
+    }
+}
+
+impl Deref for ItsTokenIdNewType {
+    type Target = [u128; 2];
+
+    fn deref(&self) -> &Self::Target {
+        &self.0
     }
 }
