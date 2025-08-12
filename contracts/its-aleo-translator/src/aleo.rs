@@ -13,7 +13,6 @@ use to_aleo_value::ToAleoValue;
 use to_its_hub_message::ToItsHubMessage;
 
 pub(crate) mod generated {
-    use snarkvm_cosmwasm as snarkvm;
     include!(concat!(env!("OUT_DIR"), "/generated_structs.rs"));
 }
 

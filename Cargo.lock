@@ -1552,8 +1552,8 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "33415e24172c1b7d6066f6d999545375ab8e1d95421d6784bdfff9496f292387"
 dependencies = [
  "bitcoin_hashes 0.13.0",
- "rand 0.8.5",
- "rand_core 0.6.4",
+ "rand 0.7.3",
+ "rand_core 0.5.1",
  "serde",
  "unicode-normalization",
 ]
@@ -1781,7 +1781,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "115e54d64eb62cdebad391c19efc9dce4981c690c85a33a12199d99bb9546fee"
 dependencies = [
  "borsh-derive 0.10.4",
- "hashbrown 0.13.2",
+ "hashbrown 0.12.3",
 ]
 
 [[package]]
@@ -5561,7 +5561,6 @@ dependencies = [
  "aleo-gateway",
  "aleo-gmp-types",
  "aleo-string-encoder",
- "anyhow",
  "axelar-wasm-std",
  "cosmwasm-schema",
  "cosmwasm-std",
@@ -5569,11 +5568,10 @@ dependencies = [
  "cw2",
  "error-stack",
  "hex",
- "indexmap 2.10.0",
  "interchain-token-service-std",
  "its-msg-translator-api",
  "leo-codegen",
- "once_cell",
+ "leo-codegen-deps",
  "rand 0.8.5",
  "router-api",
  "snarkvm-cosmwasm",
@@ -5968,21 +5966,29 @@ dependencies = [
 [[package]]
 name = "leo-codegen"
 version = "0.1.0"
-source = "git+ssh://git@github.com/eigerco/axelar-aleo.git?branch=leo-structs-macro#21053f5616a1a952f3bcdd33c56b7409e3749aea"
+source = "git+ssh://git@github.com/eigerco/axelar-aleo.git?branch=leo-structs-macro#8ae74c757c17b0fdeebd2e92d1936f242e84e25c"
 dependencies = [
  "anyhow",
- "indexmap 2.10.0",
  "leo-ast",
  "leo-errors",
  "leo-parser",
  "leo-span",
- "once_cell",
  "prettyplease",
  "proc-macro2 1.0.96",
  "quote 1.0.40",
  "snarkvm",
- "snarkvm-cosmwasm",
  "syn 2.0.104",
+]
+
+[[package]]
+name = "leo-codegen-deps"
+version = "0.1.0"
+source = "git+ssh://git@github.com/eigerco/axelar-aleo.git?branch=leo-structs-macro#8ae74c757c17b0fdeebd2e92d1936f242e84e25c"
+dependencies = [
+ "anyhow",
+ "indexmap 2.10.0",
+ "once_cell",
+ "snarkvm-cosmwasm",
 ]
 
 [[package]]
@@ -8301,7 +8307,7 @@ version = "0.13.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "be769465445e8c1474e9c5dac2018218498557af32d9ed057325ec9a41ae81bf"
 dependencies = [
- "heck 0.5.0",
+ "heck 0.4.1",
  "itertools 0.14.0",
  "log",
  "multimap",
