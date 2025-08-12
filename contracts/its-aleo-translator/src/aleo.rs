@@ -86,8 +86,7 @@ pub fn aleo_outbound_hub_message<N: Network>(
 mod tests {
     use std::str::FromStr;
 
-    use aleo_gmp_types::SafeGmpChainName;
-    use aleo_gmp_types::GMP_ADDRESS_LENGTH;
+    use aleo_gmp_types::{SafeGmpChainName, GMP_ADDRESS_LENGTH};
     use aleo_string_encoder::StringEncoder;
     use interchain_token_service_std::{InterchainTransfer, Message, TokenId};
     use router_api::ChainNameRaw;

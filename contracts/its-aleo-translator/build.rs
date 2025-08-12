@@ -1,6 +1,7 @@
-use leo_codegen::generate_leo_structs_pretty;
 use std::env;
 use std::path::Path;
+
+use leo_codegen::generate_leo_structs_pretty;
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let out_dir = env::var("OUT_DIR")?;

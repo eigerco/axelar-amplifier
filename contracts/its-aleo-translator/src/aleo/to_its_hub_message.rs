@@ -9,10 +9,9 @@ use interchain_token_service_std::{
 use router_api::ChainNameRaw;
 use snarkvm_cosmwasm::prelude::Network;
 
+use super::generated::{ItsOutgoingInterchainTransfer, RemoteDeployInterchainToken};
 use crate::aleo::token_id_conversion::ItsTokenIdNewType;
 use crate::aleo::Error;
-
-use super::generated::{ItsOutgoingInterchainTransfer, RemoteDeployInterchainToken};
 
 /// Trait to convert a message to a HubMessage
 pub trait ToItsHubMessage {
@@ -113,9 +112,10 @@ impl<N: Network> ToItsHubMessage for ItsOutgoingInterchainTransfer<N> {
                 .map_err(Error::from)?;
 
         let destination_address = {
-            let destination_address = StringEncoder::from_slice(&outgoing_interchain_transfer.destination_address)
-                .decode()
-                .map_err(Error::from)?;
+            let destination_address =
+                StringEncoder::from_slice(&outgoing_interchain_transfer.destination_address)
+                    .decode()
+                    .map_err(Error::from)?;
 
             let destination_address = destination_address
                 .strip_prefix("0x")

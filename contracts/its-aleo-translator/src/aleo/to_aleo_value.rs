@@ -1,3 +1,5 @@
+use std::str::FromStr as _;
+
 use aleo_gmp_types::SafeGmpChainName;
 use aleo_string_encoder::StringEncoder;
 use cosmwasm_std::Uint128;
@@ -5,13 +7,10 @@ use error_stack::{Report, ResultExt};
 use interchain_token_service_std::InterchainTransfer as InterchainTransferItsHub;
 use router_api::ChainNameRaw;
 use snarkvm_cosmwasm::prelude::{Address, Network, Value};
-use std::str::FromStr as _;
 
+use crate::aleo::generated::{FromRemoteDeployInterchainToken, IncomingInterchainTransfer};
 use crate::aleo::token_id_conversion::ItsTokenIdNewType;
 use crate::aleo::Error;
-
-use crate::aleo::generated::FromRemoteDeployInterchainToken;
-use crate::aleo::generated::IncomingInterchainTransfer;
 
 /// Trait to convert a message to an Aleo Value
 pub trait ToAleoValue<N: Network> {

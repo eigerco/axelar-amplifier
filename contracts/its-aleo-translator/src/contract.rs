@@ -5,11 +5,9 @@ use cosmwasm_std::{Binary, Deps, DepsMut, Env, MessageInfo, Response};
 use its_msg_translator_api::QueryMsg;
 use snarkvm_cosmwasm::prelude::{CanaryV0, MainnetV0, Network, TestnetV0};
 
-use crate::{
-    error::ContractError,
-    msg::{InstantiateMsg, MigrateMsg},
-    state::{Config, CONFIG},
-};
+use crate::error::ContractError;
+use crate::msg::{InstantiateMsg, MigrateMsg};
+use crate::state::{Config, CONFIG};
 
 mod query;
 
