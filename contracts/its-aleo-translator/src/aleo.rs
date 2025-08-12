@@ -1,17 +1,16 @@
-use aleo_gmp_types::SafeGmpChainName;
 use axelar_wasm_std::{nonempty, IntoContractError};
 use cosmwasm_std::{ConversionOverflowError, HexBinary};
-use error_stack::{bail, report, Report, ResultExt as _};
+use error_stack::{bail, report, Report};
 use interchain_token_service_std::{HubMessage, Message};
 use snarkvm_cosmwasm::prelude::{FromBytes as _, Network, Value};
 use thiserror::Error;
 
-mod its_hub_conversions;
+mod to_aleo_value;
+mod to_its_hub_message;
 mod token_id_conversion;
 
-use its_hub_conversions::{
-    incoming_deploy_interchain_token, incoming_transfer, outgoing_deploy, outgoing_transfer,
-};
+use to_aleo_value::ToAleoValue;
+use to_its_hub_message::ToItsHubMessage;
 
 pub(crate) mod generated {
     use snarkvm_cosmwasm as snarkvm;
@@ -46,53 +45,11 @@ pub fn aleo_inbound_hub_message<N: Network>(
         HubMessage::ReceiveFromHub {
             source_chain,
             message: Message::InterchainTransfer(interchain_transfer),
-        } => {
-            let source_chain =
-                SafeGmpChainName::try_from(&source_chain).change_context_lazy(|| {
-                    Error::TranslationFailed(format!(
-                        "Failed to translate chain name, '{source_chain:?}'"
-                    ))
-                })?;
-
-            let message = generated::ItsIncomingInterchainTransfer::<N> {
-                inner_message: incoming_transfer::<N>(&interchain_transfer)?,
-                source_chain: source_chain.chain_name(),
-            };
-
-            let aleo_plaintext =
-                snarkvm_cosmwasm::prelude::Plaintext::try_from(&message).map_err(|e| {
-                    Error::TranslationFailed(format!(
-                        "Failed to convert transfer to Aleo plaintext: {e}"
-                    ))
-                })?;
-
-            Ok(snarkvm_cosmwasm::prelude::Value::Plaintext(aleo_plaintext))
-        }
+        } => interchain_transfer.to_aleo_value(source_chain),
         HubMessage::ReceiveFromHub {
             source_chain,
             message: Message::DeployInterchainToken(deploy_interchain_token),
-        } => {
-            let source_chain =
-                SafeGmpChainName::try_from(&source_chain).change_context_lazy(|| {
-                    Error::TranslationFailed(format!(
-                        "Failed to translate chain name, '{source_chain:?}'"
-                    ))
-                })?;
-
-            let message = generated::ItsMessageDeployInterchainToken::<N> {
-                inner_message: incoming_deploy_interchain_token(deploy_interchain_token)?,
-                source_chain: source_chain.chain_name(),
-            };
-
-            let aleo_plaintext =
-                snarkvm_cosmwasm::prelude::Plaintext::try_from(&message).map_err(|e| {
-                    Error::TranslationFailed(format!(
-                        "Failed to convert deploy interchain token to Aleo plaintext: {e}"
-                    ))
-                })?;
-
-            Ok(snarkvm_cosmwasm::prelude::Value::Plaintext(aleo_plaintext))
-        }
+        } => deploy_interchain_token.to_aleo_value(source_chain),
         _ => bail!(Error::TranslationFailed(format!(
             "Unsupported HubMessage type for inbound translation: {hub_message:?}"
         ))),
@@ -114,19 +71,11 @@ pub fn aleo_outbound_hub_message<N: Network>(
     if let Ok(its_outbound_transfer) =
         generated::ItsOutgoingInterchainTransfer::<N>::try_from(&plaintext)
     {
-        outgoing_transfer(its_outbound_transfer).change_context_lazy(|| {
-            Error::TranslationFailed(
-                "Failed to convert ItsOutgoingInterchainTransfer to HubMessage".to_string(),
-            )
-        })
+        its_outbound_transfer.to_hub_message()
     } else if let Ok(remote_deploy_interchain_token) =
         generated::RemoteDeployInterchainToken::try_from(&plaintext)
     {
-        outgoing_deploy::<N>(remote_deploy_interchain_token).change_context_lazy(|| {
-            Error::TranslationFailed(
-                "Failed to convert RemoteDeployInterchainToken to HubMessage".to_string(),
-            )
-        })
+        remote_deploy_interchain_token.to_hub_message()
     } else {
         bail!(Error::TranslationFailed(format!(
             "Failed to convert Plaintext to ItsOutboundInterchainTransfer or RemoteDeployInterchainToken. Received plaintext: {plaintext:?}"
@@ -138,6 +87,7 @@ pub fn aleo_outbound_hub_message<N: Network>(
 mod tests {
     use std::str::FromStr;
 
+    use aleo_gmp_types::SafeGmpChainName;
     use aleo_gmp_types::GMP_ADDRESS_LENGTH;
     use aleo_string_encoder::StringEncoder;
     use interchain_token_service_std::{InterchainTransfer, Message, TokenId};
