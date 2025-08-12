@@ -12,15 +12,14 @@ crate-type = ["cdylib", "rlib"]
 # use library feature to disable all instantiate/execute/query exports
 library = []
 
-[build-dependencies]
-leo-codegen = { workspace = true }
-
 [dependencies]
 aleo-gateway = { workspace = true }
 aleo-gmp-types = { workspace = true }
 aleo-string-encoder = { workspace = true }
+anyhow = "1"
 bytemuck = { workspace = true }
-leo-codegen-deps = { workspace = true }
+indexmap = "2.7.1"
+once_cell = "1.19.0"                                                                             # required by snarkVM's `Plaintext` type (but not re-exported)
 snarkvm-cosmwasm = { workspace = true }
 thiserror = { workspace = true }
 

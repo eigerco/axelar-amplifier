@@ -5,16 +5,13 @@ use interchain_token_service_std::{HubMessage, Message};
 use snarkvm_cosmwasm::prelude::{FromBytes as _, Network, Value};
 use thiserror::Error;
 
+mod generated_code;
 mod to_aleo_value;
 mod to_its_hub_message;
 mod token_id_conversion;
 
 use to_aleo_value::ToAleoValue;
 use to_its_hub_message::ToItsHubMessage;
-
-pub(crate) mod generated {
-    include!(concat!(env!("OUT_DIR"), "/generated_structs.rs"));
-}
 
 #[derive(Error, Debug, IntoContractError)]
 pub enum Error {
@@ -68,11 +65,11 @@ pub fn aleo_outbound_hub_message<N: Network>(
     };
 
     if let Ok(its_outbound_transfer) =
-        generated::ItsOutgoingInterchainTransfer::<N>::try_from(&plaintext)
+        generated_code::ItsOutgoingInterchainTransfer::<N>::try_from(&plaintext)
     {
         its_outbound_transfer.to_hub_message()
     } else if let Ok(remote_deploy_interchain_token) =
-        generated::RemoteDeployInterchainToken::try_from(&plaintext)
+        generated_code::RemoteDeployInterchainToken::try_from(&plaintext)
     {
         remote_deploy_interchain_token.to_hub_message()
     } else {

@@ -8,7 +8,10 @@ use interchain_token_service_std::InterchainTransfer as InterchainTransferItsHub
 use router_api::ChainNameRaw;
 use snarkvm_cosmwasm::prelude::{Address, Network, Value};
 
-use crate::aleo::generated::{FromRemoteDeployInterchainToken, IncomingInterchainTransfer};
+use crate::aleo::generated_code::{
+    FromRemoteDeployInterchainToken, IncomingInterchainTransfer, ItsIncomingInterchainTransfer,
+    ItsMessageDeployInterchainToken,
+};
 use crate::aleo::token_id_conversion::ItsTokenIdNewType;
 use crate::aleo::Error;
 
@@ -55,7 +58,7 @@ impl<N: Network> ToAleoValue<N> for interchain_token_service_std::DeployIntercha
             minter,
         };
 
-        let message = super::generated::ItsMessageDeployInterchainToken::<N> {
+        let message = ItsMessageDeployInterchainToken::<N> {
             inner_message: deploy_interchain_token,
             source_chain: source_chain.chain_name(),
         };
@@ -110,7 +113,7 @@ impl<N: Network> ToAleoValue<N> for InterchainTransferItsHub {
             amount,
         };
 
-        let message = super::generated::ItsIncomingInterchainTransfer::<N> {
+        let message = ItsIncomingInterchainTransfer::<N> {
             inner_message: interchain_transfer,
             source_chain: source_chain.chain_name(),
         };

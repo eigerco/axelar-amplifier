@@ -9,7 +9,7 @@ use interchain_token_service_std::{
 use router_api::ChainNameRaw;
 use snarkvm_cosmwasm::prelude::Network;
 
-use super::generated::{ItsOutgoingInterchainTransfer, RemoteDeployInterchainToken};
+use super::generated_code::{ItsOutgoingInterchainTransfer, RemoteDeployInterchainToken};
 use crate::aleo::token_id_conversion::ItsTokenIdNewType;
 use crate::aleo::Error;
 
