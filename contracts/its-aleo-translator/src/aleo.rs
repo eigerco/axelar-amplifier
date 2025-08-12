@@ -99,7 +99,7 @@ pub fn aleo_inbound_hub_message<N: Network>(
     }
 }
 
-/// Converts an ITS HubMessage to snarkvm Value.
+/// Converts a SnarkVM Value to HubMessage.
 pub fn aleo_outbound_hub_message<N: Network>(
     payload: HexBinary,
 ) -> Result<HubMessage, Report<Error>> {

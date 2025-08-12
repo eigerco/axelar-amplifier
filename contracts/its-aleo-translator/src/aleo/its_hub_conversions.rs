@@ -63,7 +63,13 @@ pub fn incoming_transfer<N: Network>(
         )
         .map_err(Error::from)?,
         amount: Uint128::try_from(*transfer.amount)
-            .map_err(Error::from)?
+            .map_err(Error::from)
+            .change_context_lazy(|| {
+                Error::TranslationFailed(format!(
+                    "Failed to convert amount to Uint128, amount = {}",
+                    transfer.amount
+                ))
+            })?
             .u128(),
     })
 }
@@ -150,7 +156,13 @@ pub fn outgoing_transfer<N: Network>(
         },
         amount: cosmwasm_std::Uint256::from_u128(outgoing_transfer.inner_message.amount)
             .try_into()
-            .map_err(Error::from)?,
+            .map_err(Error::from)
+            .change_context_lazy(|| {
+                Error::TranslationFailed(format!(
+                    "Failed to convert amount to Uint256, amount = {}",
+                    outgoing_transfer.inner_message.amount
+                ))
+            })?,
         data: None,
     };
 
