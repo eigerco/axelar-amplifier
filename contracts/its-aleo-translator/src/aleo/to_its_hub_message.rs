@@ -14,6 +14,7 @@ use crate::aleo::Error;
 
 use super::generated::{ItsOutgoingInterchainTransfer, RemoteDeployInterchainToken};
 
+/// Trait to convert a message to a HubMessage
 pub trait ToItsHubMessage {
     type Error;
 

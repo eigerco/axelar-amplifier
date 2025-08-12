@@ -13,6 +13,7 @@ use crate::aleo::Error;
 use crate::aleo::generated::FromRemoteDeployInterchainToken;
 use crate::aleo::generated::IncomingInterchainTransfer;
 
+/// Trait to convert a message to an Aleo Value
 pub trait ToAleoValue<N: Network> {
     type Error;
 
