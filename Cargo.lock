@@ -5562,6 +5562,7 @@ dependencies = [
  "aleo-gmp-types",
  "aleo-string-encoder",
  "axelar-wasm-std",
+ "bytemuck",
  "cosmwasm-schema",
  "cosmwasm-std",
  "cw-storage-plus",

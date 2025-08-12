@@ -19,6 +19,7 @@ leo-codegen = { workspace = true }
 aleo-gateway = { workspace = true }
 aleo-gmp-types = { workspace = true }
 aleo-string-encoder = { workspace = true }
+bytemuck = { workspace = true }
 leo-codegen-deps = { workspace = true }
 snarkvm-cosmwasm = { workspace = true }
 thiserror = { workspace = true }
