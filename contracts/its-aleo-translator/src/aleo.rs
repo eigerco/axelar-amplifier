@@ -5,10 +5,10 @@ use interchain_token_service_std::{HubMessage, Message};
 use snarkvm_cosmwasm::prelude::{FromBytes as _, Network, Value};
 use thiserror::Error;
 
-mod try_from_impl;
 mod to_aleo_value;
 mod to_its_hub_message;
 mod token_id_conversion;
+mod try_from_impl;
 
 use to_aleo_value::ToAleoValue;
 use to_its_hub_message::ToItsHubMessage;
@@ -31,6 +31,8 @@ pub enum Error {
     ConversionOverflow(#[from] ConversionOverflowError),
     #[error("Hex: {0}")]
     Hex(#[from] hex::FromHexError),
+    #[error("Invalid chain name: {0}")]
+    InvalidChainName(String),
 }
 
 /// Converts a HubMessage to snarkvm Value.
@@ -41,11 +43,11 @@ pub fn aleo_inbound_hub_message<N: Network>(
         HubMessage::ReceiveFromHub {
             source_chain,
             message: Message::InterchainTransfer(interchain_transfer),
-        } => interchain_transfer.to_aleo_value(source_chain),
+        } => Ok(interchain_transfer.to_aleo_value(source_chain)?),
         HubMessage::ReceiveFromHub {
             source_chain,
             message: Message::DeployInterchainToken(deploy_interchain_token),
-        } => deploy_interchain_token.to_aleo_value(source_chain),
+        } => Ok(deploy_interchain_token.to_aleo_value(source_chain)?),
         _ => bail!(Error::TranslationFailed(format!(
             "Unsupported HubMessage type for inbound translation: {hub_message:?}"
         ))),
@@ -67,11 +69,11 @@ pub fn aleo_outbound_hub_message<N: Network>(
     if let Ok(its_outbound_transfer) =
         try_from_impl::ItsOutgoingInterchainTransfer::<N>::try_from(&plaintext)
     {
-        its_outbound_transfer.to_hub_message()
+        Ok(its_outbound_transfer.to_hub_message()?)
     } else if let Ok(remote_deploy_interchain_token) =
         try_from_impl::RemoteDeployInterchainToken::try_from(&plaintext)
     {
-        remote_deploy_interchain_token.to_hub_message()
+        Ok(remote_deploy_interchain_token.to_hub_message()?)
     } else {
         bail!(Error::TranslationFailed(format!(
             "Failed to convert Plaintext to ItsOutboundInterchainTransfer or RemoteDeployInterchainToken. Received plaintext: {plaintext:?}"
