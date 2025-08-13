@@ -127,7 +127,18 @@ version = "0.1.0"
 dependencies = [
  "cosmwasm-schema",
  "snarkvm-cosmwasm",
- "thiserror 1.0.69",
+ "thiserror 2.0.17",
+]
+
+[[package]]
+name = "aleo-gmp-types"
+version = "0.1.0"
+dependencies = [
+ "aleo-string-encoder",
+ "axelar-wasm-std",
+ "error-stack",
+ "router-api",
+ "thiserror 2.0.17",
 ]
 
 [[package]]
@@ -194,6 +205,14 @@ name = "aleo-std-timer"
 version = "1.0.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "14edf4007a98323f763701688bcbe3bc6ecf33e20c3a81b3eb8d6661ff01b217"
+
+[[package]]
+name = "aleo-string-encoder"
+version = "0.1.0"
+source = "git+ssh://git@github.com/eigerco/aleo-program-rust-support.git?branch=main#e3fad1f238f539a39c8738a07f1a3433a3880725"
+dependencies = [
+ "thiserror 2.0.17",
+]
 
 [[package]]
 name = "aliasable"
@@ -397,7 +416,7 @@ dependencies = [
  "tendermint-proto 0.40.4",
  "tendermint-rpc",
  "test-log",
- "thiserror 1.0.69",
+ "thiserror 2.0.17",
  "tokio",
  "tokio-stream",
  "tokio-util",
@@ -467,7 +486,7 @@ dependencies = [
  "serde_json",
  "temp-env",
  "tempfile",
- "thiserror 1.0.69",
+ "thiserror 2.0.17",
  "tokio",
  "tokio-stream",
  "tokio-util",
@@ -1065,7 +1084,7 @@ dependencies = [
  "schemars",
  "serde",
  "serde_json",
- "thiserror 1.0.69",
+ "thiserror 2.0.17",
 ]
 
 [[package]]
@@ -1172,7 +1191,7 @@ dependencies = [
  "stellar-xdr",
  "strum 0.25.0",
  "sui-types 1.0.0",
- "thiserror 1.0.69",
+ "thiserror 2.0.17",
  "valuable",
 ]
 
@@ -1194,7 +1213,7 @@ dependencies = [
  "serde",
  "serde_json",
  "syn 2.0.101",
- "thiserror 1.0.69",
+ "thiserror 2.0.17",
 ]
 
 [[package]]
@@ -1222,7 +1241,7 @@ dependencies = [
  "serde",
  "serde_json",
  "sha3",
- "thiserror 1.0.69",
+ "thiserror 2.0.17",
 ]
 
 [[package]]
@@ -2160,7 +2179,7 @@ dependencies = [
  "cosmwasm-std",
  "error-stack",
  "serde",
- "thiserror 1.0.69",
+ "thiserror 2.0.17",
 ]
 
 [[package]]
@@ -2416,7 +2435,7 @@ dependencies = [
  "semver 1.0.26",
  "serde_json",
  "service-registry-api",
- "thiserror 1.0.69",
+ "thiserror 2.0.17",
  "tofn",
  "voting-verifier-api",
 ]
@@ -2799,7 +2818,7 @@ dependencies = [
  "schemars",
  "serde",
  "sha2 0.10.9",
- "thiserror 2.0.12",
+ "thiserror 2.0.17",
 ]
 
 [[package]]
@@ -2957,7 +2976,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "8d162beedaa69905488a8da94f5ac3edb4dd4788b732fadb7bd120b2625c1976"
 dependencies = [
  "data-encoding",
- "syn 1.0.109",
+ "syn 2.0.101",
 ]
 
 [[package]]
@@ -3815,7 +3834,7 @@ dependencies = [
  "serde",
  "serde_json",
  "tendermint 0.35.0",
- "thiserror 1.0.69",
+ "thiserror 2.0.17",
 ]
 
 [[package]]
@@ -3844,7 +3863,7 @@ dependencies = [
  "multisig",
  "router-api",
  "sha3",
- "thiserror 1.0.69",
+ "thiserror 2.0.17",
 ]
 
 [[package]]
@@ -4343,7 +4362,7 @@ dependencies = [
  "semver 1.0.26",
  "serde",
  "serde_json",
- "thiserror 1.0.69",
+ "thiserror 2.0.17",
  "voting-verifier",
 ]
 
@@ -4359,7 +4378,7 @@ dependencies = [
  "goldie",
  "msgs-derive",
  "router-api",
- "thiserror 1.0.69",
+ "thiserror 2.0.17",
 ]
 
 [[package]]
@@ -5378,7 +5397,7 @@ dependencies = [
  "serde_json",
  "sha3",
  "strum 0.25.0",
- "thiserror 1.0.69",
+ "thiserror 2.0.17",
 ]
 
 [[package]]
@@ -5396,7 +5415,7 @@ dependencies = [
  "router-api",
  "schemars",
  "strum 0.25.0",
- "thiserror 1.0.69",
+ "thiserror 2.0.17",
 ]
 
 [[package]]
@@ -5408,7 +5427,7 @@ dependencies = [
  "quote 1.0.40",
  "report",
  "syn 2.0.101",
- "thiserror 1.0.69",
+ "thiserror 2.0.17",
 ]
 
 [[package]]
@@ -5516,7 +5535,33 @@ dependencies = [
  "router-api",
  "serde",
  "serde_json",
- "thiserror 1.0.69",
+ "thiserror 2.0.17",
+]
+
+[[package]]
+name = "its-aleo-translator"
+version = "0.1.0"
+dependencies = [
+ "aleo-gateway",
+ "aleo-gmp-types",
+ "aleo-string-encoder",
+ "anyhow",
+ "axelar-wasm-std",
+ "bytemuck",
+ "cosmwasm-schema",
+ "cosmwasm-std",
+ "cw-storage-plus",
+ "cw2",
+ "error-stack",
+ "hex",
+ "indexmap 2.9.0",
+ "interchain-token-service-std",
+ "its-msg-translator-api",
+ "once_cell",
+ "rand 0.8.5",
+ "router-api",
+ "snarkvm-cosmwasm",
+ "thiserror 2.0.17",
 ]
 
 [[package]]
@@ -5528,7 +5573,7 @@ dependencies = [
  "cosmwasm-std",
  "error-stack",
  "interchain-token-service-std",
- "thiserror 1.0.69",
+ "thiserror 2.0.17",
 ]
 
 [[package]]
@@ -6149,7 +6194,7 @@ dependencies = [
  "cw2",
  "error-stack",
  "semver 1.0.26",
- "thiserror 1.0.69",
+ "thiserror 2.0.17",
  "toml 0.8.22",
 ]
 
@@ -6583,7 +6628,7 @@ dependencies = [
  "serde",
  "serde_json",
  "syn 2.0.101",
- "thiserror 1.0.69",
+ "thiserror 2.0.17",
 ]
 
 [[package]]
@@ -6690,7 +6735,7 @@ dependencies = [
  "serde_json",
  "sha3",
  "signature-verifier-api",
- "thiserror 1.0.69",
+ "thiserror 2.0.17",
 ]
 
 [[package]]
@@ -6735,7 +6780,7 @@ dependencies = [
  "stellar",
  "stellar-xdr",
  "sui-gateway",
- "thiserror 1.0.69",
+ "thiserror 2.0.17",
  "voting-verifier",
 ]
 
@@ -7633,7 +7678,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "198db74531d58c70a361c42201efde7e2591e976d518caf7662a47dc5720e7b6"
 dependencies = [
  "memchr",
- "thiserror 2.0.12",
+ "thiserror 2.0.17",
  "ucd-trie",
 ]
 
@@ -8268,7 +8313,7 @@ dependencies = [
  "rustc-hash 2.1.1",
  "rustls 0.23.27",
  "socket2",
- "thiserror 2.0.12",
+ "thiserror 2.0.17",
  "tokio",
  "tracing",
  "web-time",
@@ -8289,7 +8334,7 @@ dependencies = [
  "rustls-pki-types",
  "rustls-platform-verifier",
  "slab",
- "thiserror 2.0.12",
+ "thiserror 2.0.17",
  "tinyvec",
  "tracing",
  "web-time",
@@ -8616,7 +8661,7 @@ dependencies = [
  "error-stack",
  "eyre",
  "itertools 0.14.0",
- "thiserror 1.0.69",
+ "thiserror 2.0.17",
  "tracing",
  "tracing-core",
  "tracing-error",
@@ -8743,7 +8788,7 @@ version = "2.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "21918d6644020c6f6ef1993242989bf6d4952d2e025617744f184c02df51c356"
 dependencies = [
- "thiserror 2.0.12",
+ "thiserror 2.0.17",
 ]
 
 [[package]]
@@ -8765,7 +8810,7 @@ dependencies = [
  "router-api",
  "semver 1.0.26",
  "serde_json",
- "thiserror 1.0.69",
+ "thiserror 2.0.17",
 ]
 
 [[package]]
@@ -8950,7 +8995,7 @@ dependencies = [
  "router-api",
  "semver 1.0.26",
  "serde_json",
- "thiserror 1.0.69",
+ "thiserror 2.0.17",
 ]
 
 [[package]]
@@ -8974,7 +9019,7 @@ dependencies = [
  "serde",
  "serde_json",
  "sha3",
- "thiserror 1.0.69",
+ "thiserror 2.0.17",
  "valuable",
 ]
 
@@ -9802,7 +9847,7 @@ dependencies = [
  "serde_json",
  "service-registry-api",
  "sha3",
- "thiserror 1.0.69",
+ "thiserror 2.0.17",
 ]
 
 [[package]]
@@ -9821,7 +9866,7 @@ dependencies = [
  "router-api",
  "schemars",
  "serde",
- "thiserror 1.0.69",
+ "thiserror 2.0.17",
 ]
 
 [[package]]
@@ -9965,7 +10010,7 @@ dependencies = [
  "error-stack",
  "goldie",
  "msgs-derive",
- "thiserror 1.0.69",
+ "thiserror 2.0.17",
 ]
 
 [[package]]
@@ -9994,7 +10039,7 @@ checksum = "297f631f50729c8c99b84667867963997ec0b50f32b2a7dbcab828ef0541e8bb"
 dependencies = [
  "num-bigint 0.4.6",
  "num-traits",
- "thiserror 2.0.12",
+ "thiserror 2.0.17",
  "time",
 ]
 
@@ -10102,7 +10147,7 @@ dependencies = [
  "snarkvm-fields",
  "snarkvm-parameters",
  "snarkvm-utilities",
- "thiserror 2.0.12",
+ "thiserror 2.0.17",
 ]
 
 [[package]]
@@ -10323,7 +10368,7 @@ dependencies = [
  "serde",
  "snarkvm-fields",
  "snarkvm-utilities",
- "thiserror 2.0.12",
+ "thiserror 2.0.17",
 ]
 
 [[package]]
@@ -10339,7 +10384,7 @@ dependencies = [
  "rayon",
  "serde",
  "snarkvm-utilities",
- "thiserror 2.0.12",
+ "thiserror 2.0.17",
  "zeroize",
 ]
 
@@ -10366,7 +10411,7 @@ dependencies = [
  "sha2 0.10.9",
  "snarkvm-curves",
  "snarkvm-utilities",
- "thiserror 2.0.12",
+ "thiserror 2.0.17",
 ]
 
 [[package]]
@@ -10387,7 +10432,7 @@ dependencies = [
  "serde_json",
  "smol_str",
  "snarkvm-utilities-derives",
- "thiserror 2.0.12",
+ "thiserror 2.0.17",
  "zeroize",
 ]
 
@@ -12020,7 +12065,7 @@ dependencies = [
  "hex",
  "serde",
  "starknet-types-core",
- "thiserror 1.0.69",
+ "thiserror 2.0.17",
 ]
 
 [[package]]
@@ -12145,7 +12190,7 @@ dependencies = [
  "sha3",
  "stellar-strkey 0.0.10",
  "stellar-xdr",
- "thiserror 1.0.69",
+ "thiserror 2.0.17",
 ]
 
 [[package]]
@@ -12347,7 +12392,7 @@ dependencies = [
  "serde_json",
  "sha3",
  "sui-types 1.0.0",
- "thiserror 1.0.69",
+ "thiserror 2.0.17",
 ]
 
 [[package]]
@@ -12603,7 +12648,7 @@ dependencies = [
  "hex",
  "rand 0.8.5",
  "serde",
- "thiserror 1.0.69",
+ "thiserror 2.0.17",
 ]
 
 [[package]]
@@ -13049,11 +13094,11 @@ dependencies = [
 
 [[package]]
 name = "thiserror"
-version = "2.0.12"
+version = "2.0.17"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "567b8a2dae586314f7be2a752ec7474332959c6460e02bde30d702a66d488708"
+checksum = "f63587ca0f12b72a0600bcba1d40081f830876000bb46dd2337a3051618f4fc8"
 dependencies = [
- "thiserror-impl 2.0.12",
+ "thiserror-impl 2.0.17",
 ]
 
 [[package]]
@@ -13069,9 +13114,9 @@ dependencies = [
 
 [[package]]
 name = "thiserror-impl"
-version = "2.0.12"
+version = "2.0.17"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "7f7cf42b4507d8ea322120659672cf1b9dbb93f8f2d4ecfd6e51350ff5b17a1d"
+checksum = "3ff15c8ecd7de3849db632e14d18d2571fa09dfc5ed93479bc4485c7a517c913"
 dependencies = [
  "proc-macro2 1.0.95",
  "quote 1.0.40",
@@ -14109,7 +14154,7 @@ dependencies = [
  "service-registry-api",
  "sha3",
  "starknet-checked-felt",
- "thiserror 1.0.69",
+ "thiserror 2.0.17",
  "voting-verifier-api",
 ]
 
@@ -14868,7 +14913,7 @@ dependencies = [
  "serde_json",
  "sha2 0.10.9",
  "sha3",
- "thiserror 1.0.69",
+ "thiserror 2.0.17",
 ]
 
 [[package]]
