@@ -135,8 +135,8 @@ name = "aleo-gmp-types"
 version = "0.1.0"
 dependencies = [
  "aleo-string-encoder",
+ "axelar-wasm-std",
  "error-stack",
- "router-api",
  "thiserror 1.0.69",
 ]
 
