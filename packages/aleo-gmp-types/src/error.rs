@@ -4,8 +4,6 @@ use thiserror::Error;
 pub enum Error {
     #[error(transparent)]
     StringEncoderError(#[from] aleo_string_encoder::AleoStringEncoderError),
-    #[error(transparent)]
-    RouterApi(#[from] router_api::error::Error),
     #[error("Invalid chain name: {0}")]
     InvalidChainName(String),
     #[error(transparent)]

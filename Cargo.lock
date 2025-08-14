@@ -137,7 +137,6 @@ dependencies = [
  "aleo-string-encoder",
  "axelar-wasm-std",
  "error-stack",
- "router-api",
  "thiserror 2.0.17",
 ]
 
