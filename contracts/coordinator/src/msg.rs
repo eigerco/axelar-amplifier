@@ -72,6 +72,7 @@ pub struct ManualDeploymentParams {
     pub gateway: ContractDeploymentInfo<()>,
     pub verifier: ContractDeploymentInfo<VerifierMsg>,
     pub prover: ContractDeploymentInfo<ProverMsg>,
+    pub signature_verifier_address: Option<String>,
 }
 
 #[cw_serde]

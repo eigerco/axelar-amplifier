@@ -71,4 +71,7 @@ pub enum ContractError {
 
     #[error("specified chain name is incorrect. expected: {expected}")]
     WrongChainName { expected: ChainName },
+
+    #[error("Unsupported signatures type: {signature_type:?}")]
+    UnsupportedSignatureType { signature_type: crate::key::KeyType },
 }
