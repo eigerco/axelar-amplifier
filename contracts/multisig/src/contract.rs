@@ -198,7 +198,8 @@ mod tests {
     use crate::multisig::Multisig;
     use crate::state::load_session_signatures;
     use crate::test::common::{
-        build_verifier_set, ecdsa_test_data, ed25519_test_data, signature_test_data, TestSigner,
+        aleo_schnorr_test_data, build_verifier_set, ecdsa_test_data, ed25519_test_data,
+        signature_test_data, TestSigner,
     };
     use crate::types::MultisigState;
     use crate::verifier_set::VerifierSet;
@@ -210,6 +211,7 @@ mod tests {
     const ADMIN: &str = "admin";
     const COORDINATOR: &str = "coordinator";
     const MOCK_CHAIN: &str = "mock-chain";
+    const ALEO_SIGNATURE_VERIFIER: &str = "aleo-signature-verifier";
 
     const SIGNATURE_BLOCK_EXPIRY: u64 = 100;
 
@@ -234,6 +236,22 @@ mod tests {
         instantiate(deps, env, info, msg)
     }
 
+    fn setup_aleo_sig_verify(deps: DepsMut) -> Result<Addr, axelar_wasm_std::error::ContractError> {
+        let instantiator = cosmos_addr!(INSTANTIATOR);
+        let info = message_info(&instantiator, &[]);
+        let env = mock_env();
+
+        // Deploy multisig-aleo contract
+        let aleo_msg = multisig_aleo::msg::InstantiateMsg {
+            network: aleo_network_config::network::NetworkConfig::TestnetV0,
+        };
+
+        multisig_aleo::contract::instantiate(deps, env, info, aleo_msg)?;
+
+        // Return the deployed contract address
+        Ok(cosmos_addr!(ALEO_SIGNATURE_VERIFIER))
+    }
+
     fn generate_verifier_set(
         key_type: KeyType,
         deps: DepsMut,
@@ -244,6 +262,7 @@ mod tests {
         let signers = match key_type {
             KeyType::Ecdsa => ecdsa_test_data::signers(),
             KeyType::Ed25519 => ed25519_test_data::signers(),
+            KeyType::AleoSchnorr => aleo_schnorr_test_data::signers(),
         };
 
         let verifier_set = build_verifier_set(key_type, &signers);
@@ -273,6 +292,7 @@ mod tests {
         sender: Addr,
         verifier_set_id: &str,
         chain_name: ChainName,
+        sig_verifier: Option<String>,
     ) -> Result<Response, axelar_wasm_std::error::ContractError> {
         let info = message_info(&sender, &[]);
         let env = mock_env();
@@ -282,7 +302,7 @@ mod tests {
             verifier_set_id: verifier_set_id.to_string(),
             msg: message.clone(),
             chain_name,
-            sig_verifier: None,
+            sig_verifier,
         };
         execute(deps, env, info, msg.into())
     }
@@ -387,19 +407,35 @@ mod tests {
         OwnedDeps<MockStorage, MockApi, MockQuerier, Empty>,
         String,
         String,
+        String,
+        Addr, // Aleo Schnorr validate address
     ) {
         let mut deps = mock_dependencies();
         do_instantiate(deps.as_mut()).unwrap();
+
+        let mut aleo_sig_deps = mock_dependencies();
+        let aleo_sig_verify_addr = setup_aleo_sig_verify(aleo_sig_deps.as_mut()).unwrap();
+
         let verifier_set_ecdsa = generate_verifier_set(KeyType::Ecdsa, deps.as_mut())
             .unwrap()
             .1;
         let verifier_set_ed25519 = generate_verifier_set(KeyType::Ed25519, deps.as_mut())
             .unwrap()
             .1;
+        let verifier_set_aleo_schnorr = generate_verifier_set(KeyType::AleoSchnorr, deps.as_mut())
+            .unwrap()
+            .1;
         let ecdsa_subkey = verifier_set_ecdsa.id();
         let ed25519_subkey = verifier_set_ed25519.id();
+        let aleo_schnorr_subkey = verifier_set_aleo_schnorr.id();
 
-        (deps, ecdsa_subkey, ed25519_subkey)
+        (
+            deps,
+            ecdsa_subkey,
+            ed25519_subkey,
+            aleo_schnorr_subkey,
+            aleo_sig_verify_addr,
+        )
     }
 
     // TODO: move to external crate?
@@ -453,6 +489,11 @@ mod tests {
         let verifier_set_2 = res.unwrap().1;
         let verifier_set_2_id = verifier_set_2.id();
 
+        let res = generate_verifier_set(KeyType::AleoSchnorr, deps.as_mut());
+        assert!(res.is_ok());
+        let verifier_set_3 = res.unwrap().1;
+        let verifier_set_3_id = verifier_set_3.id();
+
         let res = query_verifier_set(&verifier_set_1.id(), deps.as_ref());
         assert!(res.is_ok());
         assert_eq!(verifier_set_1, from_json(res.unwrap()).unwrap());
@@ -464,6 +505,7 @@ mod tests {
         for (key_type, _) in [
             (KeyType::Ecdsa, verifier_set_1_id),
             (KeyType::Ed25519, verifier_set_2_id),
+            (KeyType::AleoSchnorr, verifier_set_3_id),
         ] {
             let res = generate_verifier_set(key_type, deps.as_mut());
             assert!(res.is_ok());
@@ -473,7 +515,7 @@ mod tests {
     #[test]
     #[allow(clippy::arithmetic_side_effects)]
     fn start_signing_session() {
-        let (mut deps, ecdsa_subkey, ed25519_subkey) = setup();
+        let (mut deps, ecdsa_subkey, ed25519_subkey, aleo_schnorr_subkey, _) = setup();
         let chain_name = chain_name!(MOCK_CHAIN);
         do_authorize_callers(
             deps.as_mut(),
@@ -481,15 +523,20 @@ mod tests {
         )
         .unwrap();
 
-        for (i, subkey) in [ecdsa_subkey.clone(), ed25519_subkey.clone()]
-            .into_iter()
-            .enumerate()
+        for (i, subkey) in [
+            ecdsa_subkey.clone(),
+            ed25519_subkey.clone(),
+            aleo_schnorr_subkey.clone(),
+        ]
+        .into_iter()
+        .enumerate()
         {
             let res = do_start_signing_session(
                 deps.as_mut(),
                 cosmos_addr!(PROVER),
                 &subkey,
                 chain_name.clone(),
+                None,
             );
 
             assert!(res.is_ok());
@@ -503,6 +550,7 @@ mod tests {
             let message = match subkey {
                 _ if subkey == ecdsa_subkey => ecdsa_test_data::message(),
                 _ if subkey == ed25519_subkey => ed25519_test_data::message(),
+                _ if subkey == aleo_schnorr_subkey => aleo_schnorr_test_data::message(),
                 _ => panic!("unexpected subkey"),
             };
             let signatures =
@@ -538,7 +586,7 @@ mod tests {
 
     #[test]
     fn start_signing_session_wrong_sender() {
-        let (mut deps, ecdsa_subkey, ed25519_subkey) = setup();
+        let (mut deps, ecdsa_subkey, ed25519_subkey, aleo_schnorr_subkey, _) = setup();
         let chain_name = chain_name!(MOCK_CHAIN);
         do_authorize_callers(
             deps.as_mut(),
@@ -546,12 +594,13 @@ mod tests {
         )
         .unwrap();
 
-        for verifier_set_id in [ecdsa_subkey, ed25519_subkey] {
+        for verifier_set_id in [ecdsa_subkey, ed25519_subkey, aleo_schnorr_subkey] {
             let res = do_start_signing_session(
                 deps.as_mut(),
                 cosmos_addr!("someone else"),
                 &verifier_set_id,
                 chain_name.clone(),
+                None,
             );
 
             assert!(res.unwrap_err().to_string().contains(
@@ -565,7 +614,7 @@ mod tests {
 
     #[test]
     fn submit_signature() {
-        let (mut deps, ecdsa_subkey, ed25519_subkey) = setup();
+        let (mut deps, ecdsa_subkey, ed25519_subkey, aleo_schnorr_subkey, aleo_sig_addr) = setup();
         let chain_name = chain_name!(MOCK_CHAIN);
         do_authorize_callers(
             deps.as_mut(),
@@ -574,13 +623,17 @@ mod tests {
         .unwrap();
 
         for (key_type, verifier_set_id, signers, session_id) in
-            signature_test_data(&ecdsa_subkey, &ed25519_subkey)
+            signature_test_data(&ecdsa_subkey, &ed25519_subkey, &aleo_schnorr_subkey)
         {
+            let sig_verifier =
+                matches!(key_type, KeyType::AleoSchnorr).then_some(aleo_sig_addr.to_string());
+
             do_start_signing_session(
                 deps.as_mut(),
                 cosmos_addr!(PROVER),
                 verifier_set_id,
                 chain_name.clone(),
+                sig_verifier,
             )
             .unwrap();
 
@@ -641,7 +694,7 @@ mod tests {
 
     #[test]
     fn submit_signature_completes_session() {
-        let (mut deps, ecdsa_subkey, ed25519_subkey) = setup();
+        let (mut deps, ecdsa_subkey, ed25519_subkey, aleo_schnorr_subkey, aleo_sig_addr) = setup();
         let chain_name = chain_name!(MOCK_CHAIN);
         do_authorize_callers(
             deps.as_mut(),
@@ -650,13 +703,17 @@ mod tests {
         .unwrap();
 
         for (key_type, subkey, signers, session_id) in
-            signature_test_data(&ecdsa_subkey, &ed25519_subkey)
+            signature_test_data(&ecdsa_subkey, &ed25519_subkey, &aleo_schnorr_subkey)
         {
+            let sig_verifier =
+                matches!(key_type, KeyType::AleoSchnorr).then_some(aleo_sig_addr.to_string());
+
             do_start_signing_session(
                 deps.as_mut(),
                 cosmos_addr!(PROVER),
                 subkey,
                 chain_name.clone(),
+                sig_verifier,
             )
             .unwrap();
 
@@ -705,7 +762,7 @@ mod tests {
     #[test]
     #[allow(clippy::arithmetic_side_effects)]
     fn submit_signature_before_expiry() {
-        let (mut deps, ecdsa_subkey, ed25519_subkey) = setup();
+        let (mut deps, ecdsa_subkey, ed25519_subkey, aleo_schnorr_subkey, aleo_sig_addr) = setup();
         let chain_name = chain_name!(MOCK_CHAIN);
         do_authorize_callers(
             deps.as_mut(),
@@ -713,14 +770,18 @@ mod tests {
         )
         .unwrap();
 
-        for (_key_type, subkey, signers, session_id) in
-            signature_test_data(&ecdsa_subkey, &ed25519_subkey)
+        for (key_type, subkey, signers, session_id) in
+            signature_test_data(&ecdsa_subkey, &ed25519_subkey, &aleo_schnorr_subkey)
         {
+            let sig_verifier =
+                matches!(key_type, KeyType::AleoSchnorr).then_some(aleo_sig_addr.to_string());
+
             do_start_signing_session(
                 deps.as_mut(),
                 cosmos_addr!(PROVER),
                 subkey,
                 chain_name.clone(),
+                sig_verifier,
             )
             .unwrap();
 
@@ -761,7 +822,7 @@ mod tests {
     #[test]
     #[allow(clippy::arithmetic_side_effects)]
     fn submit_signature_after_expiry() {
-        let (mut deps, ecdsa_subkey, ed25519_subkey) = setup();
+        let (mut deps, ecdsa_subkey, ed25519_subkey, aleo_schnorr_subkey, aleo_sig_addr) = setup();
 
         let chain_name = chain_name!(MOCK_CHAIN);
         do_authorize_callers(
@@ -770,14 +831,18 @@ mod tests {
         )
         .unwrap();
 
-        for (_key_type, subkey, signers, session_id) in
-            signature_test_data(&ecdsa_subkey, &ed25519_subkey)
+        for (key_type, subkey, signers, session_id) in
+            signature_test_data(&ecdsa_subkey, &ed25519_subkey, &aleo_schnorr_subkey)
         {
+            let sig_verifier =
+                matches!(key_type, KeyType::AleoSchnorr).then_some(aleo_sig_addr.to_string());
+
             do_start_signing_session(
                 deps.as_mut(),
                 cosmos_addr!(PROVER),
                 subkey,
                 chain_name.clone(),
+                sig_verifier,
             )
             .unwrap();
 
@@ -806,7 +871,7 @@ mod tests {
 
     #[test]
     fn submit_signature_wrong_session_id() {
-        let (mut deps, ecdsa_subkey, _) = setup();
+        let (mut deps, ecdsa_subkey, _, _, _) = setup();
         let chain_name = chain_name!(MOCK_CHAIN);
         do_authorize_callers(
             deps.as_mut(),
@@ -818,6 +883,7 @@ mod tests {
             cosmos_addr!(PROVER),
             &ecdsa_subkey,
             chain_name.clone(),
+            None,
         )
         .unwrap();
 
@@ -836,7 +902,7 @@ mod tests {
 
     #[test]
     fn query_signing_session() {
-        let (mut deps, ecdsa_subkey, ed25519_subkey) = setup();
+        let (mut deps, ecdsa_subkey, ed25519_subkey, aleo_schnorr_subkey, aleo_sig_addr) = setup();
         let chain_name = chain_name!(MOCK_CHAIN);
         do_authorize_callers(
             deps.as_mut(),
@@ -844,14 +910,18 @@ mod tests {
         )
         .unwrap();
 
-        for (_key_type, subkey, signers, session_id) in
-            signature_test_data(&ecdsa_subkey, &ed25519_subkey)
+        for (key_type, subkey, signers, session_id) in
+            signature_test_data(&ecdsa_subkey, &ed25519_subkey, &aleo_schnorr_subkey)
         {
+            let sig_verifier =
+                matches!(key_type, KeyType::AleoSchnorr).then_some(aleo_sig_addr.to_string());
+
             do_start_signing_session(
                 deps.as_mut(),
                 cosmos_addr!(PROVER),
                 subkey,
                 chain_name!(MOCK_CHAIN),
+                sig_verifier,
             )
             .unwrap();
 
@@ -1136,7 +1206,7 @@ mod tests {
 
     #[test]
     fn authorize_and_unauthorize_callers() {
-        let (mut deps, ecdsa_subkey, ed25519_subkey) = setup();
+        let (mut deps, ecdsa_subkey, ed25519_subkey, aleo_schnorr_subkey, _) = setup();
         let prover_address = cosmos_addr!(PROVER);
         let chain_name = chain_name!(MOCK_CHAIN);
 
@@ -1147,12 +1217,17 @@ mod tests {
         )
         .unwrap();
 
-        for verifier_set_id in [ecdsa_subkey.clone(), ed25519_subkey.clone()] {
+        for verifier_set_id in [
+            ecdsa_subkey.clone(),
+            ed25519_subkey.clone(),
+            aleo_schnorr_subkey.clone(),
+        ] {
             let res = do_start_signing_session(
                 deps.as_mut(),
                 cosmos_addr!(PROVER),
                 &verifier_set_id,
                 chain_name.clone(),
+                None,
             );
 
             assert!(res.is_ok());
@@ -1175,6 +1250,7 @@ mod tests {
                 cosmos_addr!(PROVER),
                 &verifier_set_id,
                 chain_name.clone(),
+                None,
             );
 
             assert!(res.unwrap_err().to_string().contains(
@@ -1192,7 +1268,7 @@ mod tests {
 
     #[test]
     fn authorize_and_unauthorize_many_callers() {
-        let (mut deps, _, _) = setup();
+        let (mut deps, _, _, _, _) = setup();
 
         let contracts = vec![
             (cosmos_addr!("addr1"), chain_name!("chain1")),
@@ -1274,7 +1350,7 @@ mod tests {
 
     #[test]
     fn disable_enable_signing() {
-        let (mut deps, ecdsa_subkey, ed25519_subkey) = setup();
+        let (mut deps, ecdsa_subkey, ed25519_subkey, aleo_schnorr_subkey, _) = setup();
         let prover_address = cosmos_addr!(PROVER);
         let chain_name = chain_name!(MOCK_CHAIN);
 
@@ -1287,12 +1363,17 @@ mod tests {
 
         do_disable_signing(deps.as_mut(), cosmos_addr!(ADMIN)).unwrap();
 
-        for verifier_set_id in [ecdsa_subkey.clone(), ed25519_subkey.clone()] {
+        for verifier_set_id in [
+            ecdsa_subkey.clone(),
+            ed25519_subkey.clone(),
+            aleo_schnorr_subkey.clone(),
+        ] {
             let res = do_start_signing_session(
                 deps.as_mut(),
                 cosmos_addr!(PROVER),
                 &verifier_set_id,
                 chain_name.clone(),
+                None,
             );
 
             assert_eq!(
@@ -1309,6 +1390,7 @@ mod tests {
                 cosmos_addr!(PROVER),
                 &verifier_set_id,
                 chain_name!(MOCK_CHAIN),
+                None,
             );
 
             assert!(res.is_ok());
@@ -1317,7 +1399,7 @@ mod tests {
 
     #[test]
     fn disable_signing_after_session_creation() {
-        let (mut deps, ecdsa_subkey, ed25519_subkey) = setup();
+        let (mut deps, ecdsa_subkey, ed25519_subkey, aleo_schnorr_subkey, aleo_sig_addr) = setup();
         let chain_name = chain_name!(MOCK_CHAIN);
         do_authorize_callers(
             deps.as_mut(),
@@ -1325,14 +1407,18 @@ mod tests {
         )
         .unwrap();
 
-        for (_, verifier_set_id, signers, session_id) in
-            signature_test_data(&ecdsa_subkey, &ed25519_subkey)
+        for (key_type, verifier_set_id, signers, session_id) in
+            signature_test_data(&ecdsa_subkey, &ed25519_subkey, &aleo_schnorr_subkey)
         {
+            let sig_verifier =
+                matches!(key_type, KeyType::AleoSchnorr).then_some(aleo_sig_addr.to_string());
+
             do_start_signing_session(
                 deps.as_mut(),
                 cosmos_addr!(PROVER),
                 verifier_set_id,
                 chain_name.clone(),
+                sig_verifier,
             )
             .unwrap();
 
@@ -1366,8 +1452,7 @@ mod tests {
 
     #[test]
     fn start_signing_session_wrong_chain() {
-        let (mut deps, ecdsa_subkey, ed25519_subkey) = setup();
-
+        let (mut deps, ecdsa_subkey, ed25519_subkey, aleo_schnorr_subkey, _) = setup();
         let chain_name = chain_name!(MOCK_CHAIN);
         do_authorize_callers(
             deps.as_mut(),
@@ -1377,12 +1462,13 @@ mod tests {
 
         let wrong_chain_name = chain_name!("some-other-chain");
 
-        for verifier_set_id in [ecdsa_subkey, ed25519_subkey] {
+        for verifier_set_id in [ecdsa_subkey, ed25519_subkey, aleo_schnorr_subkey] {
             let res = do_start_signing_session(
                 deps.as_mut(),
                 cosmos_addr!(PROVER),
                 &verifier_set_id,
                 wrong_chain_name.clone(),
+                None,
             );
 
             assert!(res.unwrap_err().to_string().contains(
