@@ -1,0 +1,815 @@
+[
+  {
+    "type": "impl",
+    "name": "UpgradeableImpl",
+    "interface_name": "openzeppelin_upgrades::interface::IUpgradeable"
+  },
+  {
+    "type": "interface",
+    "name": "openzeppelin_upgrades::interface::IUpgradeable",
+    "items": [
+      {
+        "type": "function",
+        "name": "upgrade",
+        "inputs": [
+          {
+            "name": "new_class_hash",
+            "type": "core::starknet::class_hash::ClassHash"
+          }
+        ],
+        "outputs": [],
+        "state_mutability": "external"
+      }
+    ]
+  },
+  {
+    "type": "impl",
+    "name": "AxelarImpl",
+    "interface_name": "gateway::interface::IAxelarGateway"
+  },
+  {
+    "type": "struct",
+    "name": "shared_types::weighted_signer::WeightedSigner",
+    "members": [
+      {
+        "name": "signer",
+        "type": "core::felt252"
+      },
+      {
+        "name": "weight",
+        "type": "core::integer::u128"
+      }
+    ]
+  },
+  {
+    "type": "struct",
+    "name": "core::integer::u256",
+    "members": [
+      {
+        "name": "low",
+        "type": "core::integer::u128"
+      },
+      {
+        "name": "high",
+        "type": "core::integer::u128"
+      }
+    ]
+  },
+  {
+    "type": "struct",
+    "name": "shared_types::weighted_signers::WeightedSigners",
+    "members": [
+      {
+        "name": "signers",
+        "type": "core::array::Array::<shared_types::weighted_signer::WeightedSigner>"
+      },
+      {
+        "name": "threshold",
+        "type": "core::integer::u128"
+      },
+      {
+        "name": "nonce",
+        "type": "core::integer::u256"
+      }
+    ]
+  },
+  {
+    "type": "enum",
+    "name": "core::option::Option::<core::starknet::contract_address::ContractAddress>",
+    "variants": [
+      {
+        "name": "Some",
+        "type": "core::starknet::contract_address::ContractAddress"
+      },
+      {
+        "name": "None",
+        "type": "()"
+      }
+    ]
+  },
+  {
+    "type": "enum",
+    "name": "core::bool",
+    "variants": [
+      {
+        "name": "False",
+        "type": "()"
+      },
+      {
+        "name": "True",
+        "type": "()"
+      }
+    ]
+  },
+  {
+    "type": "struct",
+    "name": "shared_types::stark_signature::StarkSignature",
+    "members": [
+      {
+        "name": "r",
+        "type": "core::felt252"
+      },
+      {
+        "name": "s",
+        "type": "core::felt252"
+      },
+      {
+        "name": "v",
+        "type": "core::bool"
+      }
+    ]
+  },
+  {
+    "type": "struct",
+    "name": "shared_types::proof::Proof",
+    "members": [
+      {
+        "name": "signers",
+        "type": "shared_types::weighted_signers::WeightedSigners"
+      },
+      {
+        "name": "signatures",
+        "type": "core::array::Array::<shared_types::stark_signature::StarkSignature>"
+      }
+    ]
+  },
+  {
+    "type": "struct",
+    "name": "core::byte_array::ByteArray",
+    "members": [
+      {
+        "name": "data",
+        "type": "core::array::Array::<core::bytes_31::bytes31>"
+      },
+      {
+        "name": "pending_word",
+        "type": "core::felt252"
+      },
+      {
+        "name": "pending_word_len",
+        "type": "core::integer::u32"
+      }
+    ]
+  },
+  {
+    "type": "struct",
+    "name": "gateway::types::Message",
+    "members": [
+      {
+        "name": "source_chain",
+        "type": "core::byte_array::ByteArray"
+      },
+      {
+        "name": "message_id",
+        "type": "core::byte_array::ByteArray"
+      },
+      {
+        "name": "source_address",
+        "type": "core::byte_array::ByteArray"
+      },
+      {
+        "name": "contract_address",
+        "type": "core::starknet::contract_address::ContractAddress"
+      },
+      {
+        "name": "payload_hash",
+        "type": "core::integer::u256"
+      }
+    ]
+  },
+  {
+    "type": "interface",
+    "name": "gateway::interface::IAxelarGateway",
+    "items": [
+      {
+        "type": "function",
+        "name": "init_signers",
+        "inputs": [
+          {
+            "name": "signers",
+            "type": "core::array::Array::<shared_types::weighted_signers::WeightedSigners>"
+          },
+          {
+            "name": "operator",
+            "type": "core::option::Option::<core::starknet::contract_address::ContractAddress>"
+          }
+        ],
+        "outputs": [],
+        "state_mutability": "external"
+      },
+      {
+        "type": "function",
+        "name": "transfer_operatorship",
+        "inputs": [
+          {
+            "name": "new_operator",
+            "type": "core::starknet::contract_address::ContractAddress"
+          }
+        ],
+        "outputs": [],
+        "state_mutability": "external"
+      },
+      {
+        "type": "function",
+        "name": "validate_proof",
+        "inputs": [
+          {
+            "name": "data_hash",
+            "type": "core::felt252"
+          },
+          {
+            "name": "proof",
+            "type": "shared_types::proof::Proof"
+          }
+        ],
+        "outputs": [
+          {
+            "type": "core::bool"
+          }
+        ],
+        "state_mutability": "external"
+      },
+      {
+        "type": "function",
+        "name": "validate_message",
+        "inputs": [
+          {
+            "name": "source_chain",
+            "type": "core::byte_array::ByteArray"
+          },
+          {
+            "name": "message_id",
+            "type": "core::byte_array::ByteArray"
+          },
+          {
+            "name": "source_address",
+            "type": "core::byte_array::ByteArray"
+          },
+          {
+            "name": "payload_hash",
+            "type": "core::integer::u256"
+          }
+        ],
+        "outputs": [
+          {
+            "type": "core::bool"
+          }
+        ],
+        "state_mutability": "external"
+      },
+      {
+        "type": "function",
+        "name": "approve_messages",
+        "inputs": [
+          {
+            "name": "messages",
+            "type": "core::array::Array::<gateway::types::Message>"
+          },
+          {
+            "name": "proof",
+            "type": "shared_types::proof::Proof"
+          }
+        ],
+        "outputs": [],
+        "state_mutability": "external"
+      },
+      {
+        "type": "function",
+        "name": "call_contract",
+        "inputs": [
+          {
+            "name": "destination_chain",
+            "type": "core::felt252"
+          },
+          {
+            "name": "destination_contract_address",
+            "type": "core::byte_array::ByteArray"
+          },
+          {
+            "name": "payload",
+            "type": "core::byte_array::ByteArray"
+          }
+        ],
+        "outputs": [],
+        "state_mutability": "external"
+      },
+      {
+        "type": "function",
+        "name": "call_contract_offchain_data",
+        "inputs": [
+          {
+            "name": "destination_chain",
+            "type": "core::felt252"
+          },
+          {
+            "name": "destination_contract_address",
+            "type": "core::byte_array::ByteArray"
+          },
+          {
+            "name": "payload_hash",
+            "type": "core::integer::u256"
+          }
+        ],
+        "outputs": [],
+        "state_mutability": "external"
+      },
+      {
+        "type": "function",
+        "name": "rotate_signers",
+        "inputs": [
+          {
+            "name": "new_signers",
+            "type": "shared_types::weighted_signers::WeightedSigners"
+          },
+          {
+            "name": "proof",
+            "type": "shared_types::proof::Proof"
+          }
+        ],
+        "outputs": [],
+        "state_mutability": "external"
+      },
+      {
+        "type": "function",
+        "name": "operator",
+        "inputs": [],
+        "outputs": [
+          {
+            "type": "core::starknet::contract_address::ContractAddress"
+          }
+        ],
+        "state_mutability": "view"
+      },
+      {
+        "type": "function",
+        "name": "epoch",
+        "inputs": [],
+        "outputs": [
+          {
+            "type": "core::felt252"
+          }
+        ],
+        "state_mutability": "view"
+      },
+      {
+        "type": "function",
+        "name": "signers_hash_by_epoch",
+        "inputs": [
+          {
+            "name": "signer_epoch",
+            "type": "core::felt252"
+          }
+        ],
+        "outputs": [
+          {
+            "type": "core::felt252"
+          }
+        ],
+        "state_mutability": "view"
+      },
+      {
+        "type": "function",
+        "name": "epoch_by_signers_hash",
+        "inputs": [
+          {
+            "name": "signers_hash",
+            "type": "core::felt252"
+          }
+        ],
+        "outputs": [
+          {
+            "type": "core::felt252"
+          }
+        ],
+        "state_mutability": "view"
+      },
+      {
+        "type": "function",
+        "name": "last_rotation_timestamp",
+        "inputs": [],
+        "outputs": [
+          {
+            "type": "core::integer::u64"
+          }
+        ],
+        "state_mutability": "view"
+      },
+      {
+        "type": "function",
+        "name": "time_since_rotation",
+        "inputs": [],
+        "outputs": [
+          {
+            "type": "core::integer::u64"
+          }
+        ],
+        "state_mutability": "view"
+      },
+      {
+        "type": "function",
+        "name": "is_message_approved",
+        "inputs": [
+          {
+            "name": "source_chain",
+            "type": "core::byte_array::ByteArray"
+          },
+          {
+            "name": "message_id",
+            "type": "core::byte_array::ByteArray"
+          },
+          {
+            "name": "source_address",
+            "type": "core::byte_array::ByteArray"
+          },
+          {
+            "name": "contract_address",
+            "type": "core::starknet::contract_address::ContractAddress"
+          },
+          {
+            "name": "payload_hash",
+            "type": "core::integer::u256"
+          }
+        ],
+        "outputs": [
+          {
+            "type": "core::bool"
+          }
+        ],
+        "state_mutability": "view"
+      },
+      {
+        "type": "function",
+        "name": "is_message_executed",
+        "inputs": [
+          {
+            "name": "source_chain",
+            "type": "core::byte_array::ByteArray"
+          },
+          {
+            "name": "message_id",
+            "type": "core::byte_array::ByteArray"
+          }
+        ],
+        "outputs": [
+          {
+            "type": "core::bool"
+          }
+        ],
+        "state_mutability": "view"
+      }
+    ]
+  },
+  {
+    "type": "impl",
+    "name": "OwnableImpl",
+    "interface_name": "openzeppelin_access::ownable::interface::IOwnable"
+  },
+  {
+    "type": "interface",
+    "name": "openzeppelin_access::ownable::interface::IOwnable",
+    "items": [
+      {
+        "type": "function",
+        "name": "owner",
+        "inputs": [],
+        "outputs": [
+          {
+            "type": "core::starknet::contract_address::ContractAddress"
+          }
+        ],
+        "state_mutability": "view"
+      },
+      {
+        "type": "function",
+        "name": "transfer_ownership",
+        "inputs": [
+          {
+            "name": "new_owner",
+            "type": "core::starknet::contract_address::ContractAddress"
+          }
+        ],
+        "outputs": [],
+        "state_mutability": "external"
+      },
+      {
+        "type": "function",
+        "name": "renounce_ownership",
+        "inputs": [],
+        "outputs": [],
+        "state_mutability": "external"
+      }
+    ]
+  },
+  {
+    "type": "constructor",
+    "name": "constructor",
+    "inputs": [
+      {
+        "name": "previous_signers_retention",
+        "type": "core::felt252"
+      },
+      {
+        "name": "minimum_rotation_delay",
+        "type": "core::integer::u64"
+      },
+      {
+        "name": "domain_separator",
+        "type": "core::felt252"
+      },
+      {
+        "name": "owner",
+        "type": "core::starknet::contract_address::ContractAddress"
+      },
+      {
+        "name": "operator",
+        "type": "core::option::Option::<core::starknet::contract_address::ContractAddress>"
+      }
+    ]
+  },
+  {
+    "type": "event",
+    "name": "gateway::contract::AxelarGateway::_MessageApproved",
+    "kind": "struct",
+    "members": [
+      {
+        "name": "command_id",
+        "type": "core::felt252",
+        "kind": "key"
+      },
+      {
+        "name": "source_chain",
+        "type": "core::byte_array::ByteArray",
+        "kind": "data"
+      },
+      {
+        "name": "message_id",
+        "type": "core::byte_array::ByteArray",
+        "kind": "data"
+      },
+      {
+        "name": "source_address",
+        "type": "core::byte_array::ByteArray",
+        "kind": "data"
+      },
+      {
+        "name": "contract_address",
+        "type": "core::starknet::contract_address::ContractAddress",
+        "kind": "data"
+      },
+      {
+        "name": "payload_hash",
+        "type": "core::integer::u256",
+        "kind": "data"
+      }
+    ]
+  },
+  {
+    "type": "event",
+    "name": "gateway::contract::AxelarGateway::_MessageExecuted",
+    "kind": "struct",
+    "members": [
+      {
+        "name": "command_id",
+        "type": "core::felt252",
+        "kind": "key"
+      },
+      {
+        "name": "message_id",
+        "type": "core::byte_array::ByteArray",
+        "kind": "data"
+      },
+      {
+        "name": "source_chain",
+        "type": "core::byte_array::ByteArray",
+        "kind": "data"
+      }
+    ]
+  },
+  {
+    "type": "event",
+    "name": "gateway::contract::AxelarGateway::_ContractCall",
+    "kind": "struct",
+    "members": [
+      {
+        "name": "destination_chain",
+        "type": "core::felt252",
+        "kind": "key"
+      },
+      {
+        "name": "caller",
+        "type": "core::starknet::contract_address::ContractAddress",
+        "kind": "data"
+      },
+      {
+        "name": "destination_contract_address",
+        "type": "core::byte_array::ByteArray",
+        "kind": "data"
+      },
+      {
+        "name": "payload_hash",
+        "type": "core::integer::u256",
+        "kind": "data"
+      },
+      {
+        "name": "payload",
+        "type": "core::byte_array::ByteArray",
+        "kind": "data"
+      }
+    ]
+  },
+  {
+    "type": "event",
+    "name": "gateway::contract::AxelarGateway::_ContractCallOffchainData",
+    "kind": "struct",
+    "members": [
+      {
+        "name": "destination_chain",
+        "type": "core::felt252",
+        "kind": "key"
+      },
+      {
+        "name": "caller",
+        "type": "core::starknet::contract_address::ContractAddress",
+        "kind": "data"
+      },
+      {
+        "name": "destination_contract_address",
+        "type": "core::byte_array::ByteArray",
+        "kind": "data"
+      },
+      {
+        "name": "payload_hash",
+        "type": "core::integer::u256",
+        "kind": "data"
+      }
+    ]
+  },
+  {
+    "type": "event",
+    "name": "gateway::contract::AxelarGateway::_OperatorshipTransferred",
+    "kind": "struct",
+    "members": [
+      {
+        "name": "new_operator",
+        "type": "core::starknet::contract_address::ContractAddress",
+        "kind": "key"
+      }
+    ]
+  },
+  {
+    "type": "event",
+    "name": "auth_weighted::component::AuthWeightedComponent::_SignersRotated",
+    "kind": "struct",
+    "members": [
+      {
+        "name": "epoch",
+        "type": "core::felt252",
+        "kind": "key"
+      },
+      {
+        "name": "signers_hash",
+        "type": "core::felt252",
+        "kind": "key"
+      },
+      {
+        "name": "signers",
+        "type": "shared_types::weighted_signers::WeightedSigners",
+        "kind": "data"
+      }
+    ]
+  },
+  {
+    "type": "event",
+    "name": "auth_weighted::component::AuthWeightedComponent::Event",
+    "kind": "enum",
+    "variants": [
+      {
+        "name": "SignersRotated",
+        "type": "auth_weighted::component::AuthWeightedComponent::_SignersRotated",
+        "kind": "nested"
+      }
+    ]
+  },
+  {
+    "type": "event",
+    "name": "openzeppelin_access::ownable::ownable::OwnableComponent::OwnershipTransferred",
+    "kind": "struct",
+    "members": [
+      {
+        "name": "previous_owner",
+        "type": "core::starknet::contract_address::ContractAddress",
+        "kind": "key"
+      },
+      {
+        "name": "new_owner",
+        "type": "core::starknet::contract_address::ContractAddress",
+        "kind": "key"
+      }
+    ]
+  },
+  {
+    "type": "event",
+    "name": "openzeppelin_access::ownable::ownable::OwnableComponent::OwnershipTransferStarted",
+    "kind": "struct",
+    "members": [
+      {
+        "name": "previous_owner",
+        "type": "core::starknet::contract_address::ContractAddress",
+        "kind": "key"
+      },
+      {
+        "name": "new_owner",
+        "type": "core::starknet::contract_address::ContractAddress",
+        "kind": "key"
+      }
+    ]
+  },
+  {
+    "type": "event",
+    "name": "openzeppelin_access::ownable::ownable::OwnableComponent::Event",
+    "kind": "enum",
+    "variants": [
+      {
+        "name": "OwnershipTransferred",
+        "type": "openzeppelin_access::ownable::ownable::OwnableComponent::OwnershipTransferred",
+        "kind": "nested"
+      },
+      {
+        "name": "OwnershipTransferStarted",
+        "type": "openzeppelin_access::ownable::ownable::OwnableComponent::OwnershipTransferStarted",
+        "kind": "nested"
+      }
+    ]
+  },
+  {
+    "type": "event",
+    "name": "openzeppelin_upgrades::upgradeable::UpgradeableComponent::Upgraded",
+    "kind": "struct",
+    "members": [
+      {
+        "name": "class_hash",
+        "type": "core::starknet::class_hash::ClassHash",
+        "kind": "data"
+      }
+    ]
+  },
+  {
+    "type": "event",
+    "name": "openzeppelin_upgrades::upgradeable::UpgradeableComponent::Event",
+    "kind": "enum",
+    "variants": [
+      {
+        "name": "Upgraded",
+        "type": "openzeppelin_upgrades::upgradeable::UpgradeableComponent::Upgraded",
+        "kind": "nested"
+      }
+    ]
+  },
+  {
+    "type": "event",
+    "name": "gateway::contract::AxelarGateway::Event",
+    "kind": "enum",
+    "variants": [
+      {
+        "name": "MessageApproved",
+        "type": "gateway::contract::AxelarGateway::_MessageApproved",
+        "kind": "nested"
+      },
+      {
+        "name": "MessageExecuted",
+        "type": "gateway::contract::AxelarGateway::_MessageExecuted",
+        "kind": "nested"
+      },
+      {
+        "name": "ContractCall",
+        "type": "gateway::contract::AxelarGateway::_ContractCall",
+        "kind": "nested"
+      },
+      {
+        "name": "ContractCallOffchainData",
+        "type": "gateway::contract::AxelarGateway::_ContractCallOffchainData",
+        "kind": "nested"
+      },
+      {
+        "name": "OperatorshipTransferred",
+        "type": "gateway::contract::AxelarGateway::_OperatorshipTransferred",
+        "kind": "nested"
+      },
+      {
+        "name": "AuthWeighted",
+        "type": "auth_weighted::component::AuthWeightedComponent::Event",
+        "kind": "nested"
+      },
+      {
+        "name": "OwnableEvent",
+        "type": "openzeppelin_access::ownable::ownable::OwnableComponent::Event",
+        "kind": "flat"
+      },
+      {
+        "name": "UpgradeableEvent",
+        "type": "openzeppelin_upgrades::upgradeable::UpgradeableComponent::Event",
+        "kind": "flat"
+      }
+    ]
+  }
+]
