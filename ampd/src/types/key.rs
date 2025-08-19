@@ -21,6 +21,7 @@ pub enum Error {
 pub enum PublicKey {
     Secp256k1(k256::ecdsa::VerifyingKey),
     Ed25519(ed25519_dalek::VerifyingKey),
+    Stark(starknet_core::types::Felt),
 }
 
 impl PublicKey {
@@ -41,10 +42,33 @@ impl PublicKey {
         ))
     }
 
+    pub fn new_stark(bytes: impl AsRef<[u8]>) -> Result<Self> {
+        // STARK public keys are 32-byte Felts
+        // Using Felt instead of starknet_signers::VerifyingKey because
+        // VerifyingKey doesn't implement Copy and Eq traits which we need
+        let bytes = bytes.as_ref();
+        if bytes.len() != 32 {
+            return Err(Error::InvalidRawBytes).change_context(Error::InvalidRawBytes);
+        }
+
+        let felt = starknet_core::types::Felt::from_bytes_be_slice(bytes);
+
+        // Validate it's not zero (invalid public key)
+        if felt == starknet_core::types::Felt::ZERO {
+            return Err(Error::InvalidRawBytes).change_context(Error::InvalidRawBytes);
+        }
+
+        // TODO: Additional validation to ensure it's a valid curve point
+        // starknet_signers::VerifyingKey would validate this, but we can't use it
+
+        Ok(PublicKey::Stark(felt))
+    }
+
     pub fn to_bytes(self) -> Vec<u8> {
         match self {
             PublicKey::Secp256k1(key) => key.to_sec1_bytes().to_vec(),
             PublicKey::Ed25519(key) => key.to_bytes().to_vec(),
+            PublicKey::Stark(key) => key.to_bytes_be().to_vec(),
         }
     }
 }
@@ -62,6 +86,13 @@ impl fmt::Display for PublicKey {
             PublicKey::Ed25519(key) => {
                 write!(f, "ed25519: {}", HexBinary::from(key.to_bytes()).to_hex())
             }
+            PublicKey::Stark(key) => {
+                write!(
+                    f,
+                    "stark: {}",
+                    HexBinary::from(key.to_bytes_be().to_vec()).to_hex()
+                )
+            }
         }
     }
 }
@@ -73,6 +104,7 @@ impl TryFrom<&multisig::key::PublicKey> for PublicKey {
         match key {
             multisig::key::PublicKey::Ecdsa(key) => Self::new_secp256k1(key),
             multisig::key::PublicKey::Ed25519(key) => Self::new_ed25519(key),
+            multisig::key::PublicKey::Stark(key) => Self::new_stark(key),
         }
     }
 }
@@ -96,6 +128,7 @@ impl TryFrom<&PublicKey> for CosmosPublicKey {
             )
             .expect("must be valid ed25519 key")
             .into()),
+            PublicKey::Stark(_) => Err(Error::UnsupportedConversionForCosmosKey(*key))?,
         }
     }
 }

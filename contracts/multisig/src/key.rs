@@ -7,9 +7,13 @@ use enum_display_derive::Display;
 use error_stack::{Report, ResultExt};
 use serde::de::Error;
 use serde::{Deserialize, Deserializer};
+use starknet_checked_felt::CheckedFelt;
+use starknet_crypto::Felt;
+use starknet_types_core::curve::AffinePoint;
 
 use crate::ed25519::{ed25519_verify, ED25519_SIGNATURE_LEN};
 use crate::secp256k1::ecdsa_verify;
+use crate::stark::{stark_verify, STARK_SIGNATURE_LEN};
 use crate::ContractError;
 
 const ECDSA_COMPRESSED_PUBKEY_LEN: usize = 33;
@@ -19,6 +23,7 @@ const ECDSA_COMPRESSED_PUBKEY_LEN: usize = 33;
 pub enum KeyType {
     Ecdsa,
     Ed25519,
+    Stark,
 }
 
 #[cw_serde]
@@ -27,6 +32,7 @@ pub enum Signature {
     Ecdsa(NonRecoverable),
     EcdsaRecoverable(Recoverable),
     Ed25519(HexBinary),
+    Stark(HexBinary),
 }
 
 #[cw_serde]
@@ -124,6 +130,19 @@ pub enum PublicKey {
 
     #[serde(deserialize_with = "deserialize_ed25519_key")]
     Ed25519(HexBinary),
+
+    #[serde(deserialize_with = "deserialize_stark_key")]
+    Stark(HexBinary),
+}
+
+fn deserialize_stark_key<'de, D>(deserializer: D) -> Result<HexBinary, D::Error>
+where
+    D: Deserializer<'de>,
+{
+    let pk: HexBinary = Deserialize::deserialize(deserializer)?;
+    PublicKey::try_from((KeyType::Stark, pk.clone()))
+        .map_err(|err| Error::custom(format!("failed to deserialize public key: {}", err)))?;
+    Ok(pk)
 }
 
 fn deserialize_ecdsa_key<'de, D>(deserializer: D) -> Result<HexBinary, D::Error>
@@ -162,6 +181,7 @@ impl KeyTyped for PublicKey {
         match self {
             PublicKey::Ecdsa(_) => KeyType::Ecdsa,
             PublicKey::Ed25519(_) => KeyType::Ed25519,
+            PublicKey::Stark(_) => KeyType::Stark,
         }
     }
 }
@@ -171,6 +191,7 @@ impl KeyTyped for Signature {
         match self {
             Signature::Ecdsa(_) | Signature::EcdsaRecoverable(_) => KeyType::Ecdsa,
             Signature::Ed25519(_) => KeyType::Ed25519,
+            Signature::Stark(_) => KeyType::Stark,
         }
     }
 }
@@ -188,6 +209,7 @@ impl Signature {
         let res = match self.key_type() {
             KeyType::Ecdsa => ecdsa_verify(msg.as_ref(), self.as_ref(), pub_key.as_ref()),
             KeyType::Ed25519 => ed25519_verify(msg.as_ref(), self.as_ref(), pub_key.as_ref()),
+            KeyType::Stark => stark_verify(msg.as_ref(), self.as_ref(), pub_key.as_ref()),
         }?;
 
         if !res {
@@ -255,6 +277,27 @@ fn validate_and_normalize_public_key(
         .change_context(ContractError::InvalidPublicKey)?
         .to_bytes()
         .into()),
+        KeyType::Stark => {
+            // check if bytes are a valid Felt
+            let public_key: Felt = Felt::from(
+                CheckedFelt::try_from(pub_key.as_slice())
+                    .change_context(ContractError::InvalidPublicKey)?,
+            );
+
+            // check if public key is a point on the STARK curve
+            AffinePoint::new(
+                public_key,
+                (public_key.square() * public_key
+                    + starknet_curve::curve_params::ALPHA * public_key
+                    + starknet_curve::curve_params::BETA)
+                    .sqrt()
+                    .ok_or(starknet_crypto::VerifyError::InvalidPublicKey)
+                    .change_context(ContractError::InvalidPublicKey)?,
+            )
+            .unwrap();
+
+            Ok(pub_key)
+        }
     }
 }
 
@@ -267,6 +310,7 @@ impl TryFrom<(KeyType, HexBinary)> for PublicKey {
         match key_type {
             KeyType::Ecdsa => Ok(PublicKey::Ecdsa(pub_key)),
             KeyType::Ed25519 => Ok(PublicKey::Ed25519(pub_key)),
+            KeyType::Stark => Ok(PublicKey::Stark(pub_key)),
         }
     }
 }
@@ -279,6 +323,7 @@ impl TryFrom<(KeyType, HexBinary)> for Signature {
             (KeyType::Ecdsa, Recoverable::LEN) => Ok(Signature::EcdsaRecoverable(Recoverable(sig))),
             (KeyType::Ecdsa, NonRecoverable::LEN) => Ok(Signature::Ecdsa(NonRecoverable(sig))),
             (KeyType::Ed25519, ED25519_SIGNATURE_LEN) => Ok(Signature::Ed25519(sig)),
+            (KeyType::Stark, STARK_SIGNATURE_LEN) => Ok(Signature::Stark(sig)),
             (_, _) => Err(ContractError::InvalidSignatureFormat {
                 reason: format!(
                     "could not find a match for key type {} and signature length {}",
@@ -295,6 +340,7 @@ impl AsRef<[u8]> for PublicKey {
         match self {
             PublicKey::Ecdsa(pk) => pk.as_ref(),
             PublicKey::Ed25519(pk) => pk.as_ref(),
+            PublicKey::Stark(pk) => pk.as_ref(),
         }
     }
 }
@@ -305,6 +351,7 @@ impl AsRef<[u8]> for Signature {
             Signature::Ecdsa(sig) => sig.as_ref(),
             Signature::EcdsaRecoverable(sig) => sig.as_ref(),
             Signature::Ed25519(sig) => sig.as_ref(),
+            Signature::Stark(sig) => sig.as_ref(),
         }
     }
 }
@@ -314,6 +361,7 @@ impl From<PublicKey> for HexBinary {
         match original {
             PublicKey::Ecdsa(key) => key,
             PublicKey::Ed25519(key) => key,
+            PublicKey::Stark(key) => key,
         }
     }
 }
@@ -478,6 +526,134 @@ mod ecdsa_tests {
         let message = MsgToSign::from(ecdsa_test_data::message());
         let public_key = PublicKey::try_from((KeyType::Ecdsa, invalid_pub_key)).unwrap();
         let result = signature.verify(message, &public_key);
+        assert_err_contains!(
+            result,
+            ContractError,
+            ContractError::SignatureVerificationFailed { .. }
+        );
+    }
+}
+
+#[cfg(test)]
+mod stark_tests {
+    use axelar_wasm_std::assert_err_contains;
+    use cosmwasm_std::HexBinary;
+
+    use super::{KeyType, PublicKey};
+    use crate::key::{validate_and_normalize_public_key, Signature};
+    use crate::test::common::stark_test_data;
+    use crate::types::MsgToSign;
+    use crate::ContractError;
+
+    #[test]
+    fn deserialize_stark_key() {
+        let key = PublicKey::try_from((KeyType::Stark, stark_test_data::pub_key())).unwrap();
+
+        let serialized = serde_json::to_string(&key).unwrap();
+        let deserialized: Result<PublicKey, _> = serde_json::from_str(&serialized);
+        assert!(deserialized.is_ok());
+        assert_eq!(deserialized.unwrap(), key);
+    }
+
+    #[test]
+    fn deserialize_stark_key_fails() {
+        let key = PublicKey::Stark(HexBinary::from_hex("deadbeef").unwrap());
+
+        let serialized = serde_json::to_string(&key).unwrap();
+        let deserialized: Result<PublicKey, _> = serde_json::from_str(&serialized);
+        assert!(deserialized.is_err());
+    }
+
+    #[test]
+    fn test_try_from_hexbinary_to_stark_public_key() {
+        let hex = stark_test_data::pub_key();
+        let pub_key = PublicKey::try_from((KeyType::Stark, hex.clone())).unwrap();
+        assert_eq!(HexBinary::from(pub_key), hex);
+    }
+
+    #[test]
+    fn test_try_from_hexbinary_to_stark_public_key_fails() {
+        // not on the STARK curve
+        let hex = HexBinary::from_hex("049baa").unwrap();
+        assert_eq!(
+            *PublicKey::try_from((KeyType::Stark, hex.clone()))
+                .unwrap_err()
+                .current_context(),
+            ContractError::InvalidPublicKey
+        );
+    }
+
+    #[test]
+    fn validate_stark_public_key_zero() {
+        // Test that zero felt is rejected as invalid public key
+        let zero_felt = vec![0u8; 32];
+        let result = validate_and_normalize_public_key(KeyType::Stark, HexBinary::from(zero_felt));
+        assert_eq!(
+            *result.unwrap_err().current_context(),
+            ContractError::InvalidPublicKey
+        );
+    }
+
+    #[test]
+    fn test_try_from_hexbinary_to_signature() {
+        let hex = stark_test_data::signature();
+        let signature: Signature = (KeyType::Stark, hex.clone()).try_into().unwrap();
+        assert_eq!(signature.as_ref(), hex.as_ref());
+    }
+
+    #[test]
+    fn test_try_from_hexbinary_to_signature_fails() {
+        let hex = HexBinary::from_hex("deadbeef").unwrap();
+        assert_eq!(
+            Signature::try_from((KeyType::Stark, hex.clone())).unwrap_err(),
+            ContractError::InvalidSignatureFormat {
+                reason: "could not find a match for key type Stark and signature length 4".into()
+            }
+        );
+    }
+
+    #[test]
+    fn test_verify_signature() {
+        let signature =
+            Signature::try_from((KeyType::Stark, stark_test_data::signature())).unwrap();
+        let message = MsgToSign::from(stark_test_data::message());
+        let public_key = PublicKey::try_from((KeyType::Stark, stark_test_data::pub_key())).unwrap();
+        let result = signature.verify(message, &public_key);
+        assert!(result.is_ok(), "{:?}", result)
+    }
+
+    #[test]
+    fn test_verify_signature_invalid_signature() {
+        let invalid_signature = HexBinary::from_hex(
+            "0000000000000000000000000000000000000000000000000000000000000001\
+             0000000000000000000000000000000000000000000000000000000000000002\
+             0000000000000000000000000000000000000000000000000000000000000000",
+        )
+        .unwrap();
+
+        let signature = Signature::try_from((KeyType::Stark, invalid_signature)).unwrap();
+        let message = MsgToSign::from(stark_test_data::message());
+        let public_key = PublicKey::try_from((KeyType::Stark, stark_test_data::pub_key())).unwrap();
+        let result = signature.verify(message, &public_key);
+        assert_err_contains!(
+            result,
+            ContractError,
+            ContractError::SignatureVerificationFailed { .. }
+        );
+    }
+
+    #[test]
+    fn test_verify_signature_invalid_pub_key() {
+        let invalid_pub_key =
+            HexBinary::from_hex("0000000000000000000000000000000000000000000000000000000000000001")
+                .unwrap();
+
+        let signature =
+            Signature::try_from((KeyType::Stark, stark_test_data::signature())).unwrap();
+        let message = MsgToSign::from(stark_test_data::message());
+        let public_key = PublicKey::Stark(invalid_pub_key);
+        let result = signature.verify(message, &public_key);
+
         assert_err_contains!(
             result,
             ContractError,

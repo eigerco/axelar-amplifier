@@ -88,6 +88,7 @@ impl Multisig for MultisigClient {
                 KeygenResponse::PubKey(pub_key) => match algorithm {
                     Algorithm::Ecdsa => PublicKey::new_secp256k1(pub_key),
                     Algorithm::Ed25519 => PublicKey::new_ed25519(pub_key),
+                    Algorithm::Stark => PublicKey::new_stark(pub_key),
                 }
                 .change_context(Error::InvalidKeygenResponse)
                 .inspect_err(|err| {
@@ -143,6 +144,35 @@ impl Multisig for MultisigClient {
                     }
                     Algorithm::Ed25519 => {
                         ed25519_dalek::Signature::from_slice(signature).map(|sig| sig.to_vec())
+                    }
+                    Algorithm::Stark => {
+                        // Compressed in 96 bytes: r (32) + s (32) + v (32)
+                        if signature.len() != 96 {
+                            return Err(report!(Error::InvalidSignResponse));
+                        }
+
+                        // Split into 3 32-byte chunks and validate as Felts
+                        let r_bytes: [u8; 32] = signature[0..32].try_into().unwrap();
+                        let s_bytes: [u8; 32] = signature[32..64].try_into().unwrap();
+                        let v_bytes: [u8; 32] = signature[64..96].try_into().unwrap();
+
+                        // Validate R, S and V felts
+                        let _r = starknet_checked_felt::CheckedFelt::try_from(&r_bytes)
+                            .map_err(|_| Error::InvalidSignResponse)?;
+                        let _s = starknet_checked_felt::CheckedFelt::try_from(&s_bytes)
+                            .map_err(|_| Error::InvalidSignResponse)?;
+                        let v = starknet_checked_felt::CheckedFelt::try_from(&v_bytes)
+                            .map_err(|_| Error::InvalidSignResponse)?;
+
+                        // Recovery value should be 0 or 1
+                        let v_felt: starknet_core::types::Felt = v.into();
+                        if v_felt != starknet_core::types::Felt::ZERO
+                            && v_felt != starknet_core::types::Felt::ONE
+                        {
+                            return Err(report!(Error::InvalidSignResponse));
+                        }
+
+                        Ok(signature.to_vec())
                     }
                 }
                 .change_context(Error::InvalidSignResponse)

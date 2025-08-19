@@ -2,6 +2,7 @@ use axelar_wasm_std::IntoContractError;
 use cosmwasm_std::{OverflowError, StdError, Uint64};
 use cw2::VersionError;
 use router_api::ChainName;
+use starknet_checked_felt::CheckedFeltError;
 use thiserror::Error;
 
 #[derive(Error, Debug, PartialEq, IntoContractError)]
@@ -71,4 +72,7 @@ pub enum ContractError {
 
     #[error("specified chain name is incorrect. expected: {expected}")]
     WrongChainName { expected: ChainName },
+
+    #[error(transparent)]
+    InvalidFelt(#[from] CheckedFeltError),
 }

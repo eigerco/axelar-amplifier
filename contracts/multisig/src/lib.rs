@@ -17,6 +17,9 @@ mod secp256k1;
 #[cfg(feature = "ed25519")]
 mod ed25519;
 
+#[cfg(feature = "stark")]
+mod stark;
+
 #[cfg(any(test, feature = "test"))]
 pub mod test;
 

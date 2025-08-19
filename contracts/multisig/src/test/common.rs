@@ -151,10 +151,97 @@ pub fn build_verifier_set(key_type: KeyType, signers: &[TestSigner]) -> Verifier
     VerifierSet::new(participants, total_weight.mul_ceil((2u64, 3u64)), 0)
 }
 
+pub mod stark_test_data {
+    use cosmwasm_std::testing::MockApi;
+    use sha3::{Digest, Keccak256};
+    use starknet_core::types::Felt;
+    use starknet_crypto::{get_public_key, rfc6979_generate_k, sign};
+
+    use super::*;
+
+    pub fn new(address: Addr, private_key: Felt) -> TestSigner {
+        let address_hash = Keccak256::digest(address.as_bytes());
+
+        // Get public key from private key
+        let public_key = get_public_key(&private_key);
+
+        // Sign the test message (as a Felt)
+        let msg_felt = Felt::from_bytes_be_slice(message().as_slice());
+        let k_msg = rfc6979_generate_k(&msg_felt, &private_key, None);
+        let signature = sign(&private_key, &msg_felt, &k_msg).unwrap();
+
+        // Sign the address hash (as a Felt)
+        let address_felt = Felt::from_bytes_be_slice(address_hash.as_slice());
+        let k_addr = rfc6979_generate_k(&address_felt, &private_key, None);
+        let signed_address = sign(&private_key, &address_felt, &k_addr).unwrap();
+
+        // Serialize signatures as r + s + v (96 bytes total)
+        let sig_bytes = [
+            signature.r.to_bytes_be(),
+            signature.s.to_bytes_be(),
+            signature.v.to_bytes_be(),
+        ]
+        .concat();
+
+        let signed_addr_bytes = [
+            signed_address.r.to_bytes_be(),
+            signed_address.s.to_bytes_be(),
+            signed_address.v.to_bytes_be(),
+        ]
+        .concat();
+
+        TestSigner {
+            address,
+            pub_key: public_key.to_bytes_be().into(),
+            signature: sig_bytes.into(),
+            signed_address: signed_addr_bytes.into(),
+        }
+    }
+
+    pub fn pub_key() -> HexBinary {
+        // This is the public key for the private key used to generate the signature below
+        // Private key: 0x01234567890abcdef1234567890abcdef1234567890abcdef1234567890abcde
+        // We'll need to compute this properly or use a known test vector
+        HexBinary::from_hex("01ef15c18599971b7beced415a40f0c7deacfd9b0d1819e03d723d8bc943cfca")
+            .unwrap()
+    }
+
+    pub fn signature() -> HexBinary {
+        HexBinary::from_hex(
+            "062b585d762287a317f4397e02594a866a24ff9d332bbf1475b140b89ee5b231\
+             06d7cb4d8eb9a406e5e7b4b8707b1c39bdd2517a9204f2a1def45b003dc8a87c\
+             0000000000000000000000000000000000000000000000000000000000000000",
+        )
+        .unwrap()
+    }
+
+    pub fn message() -> HexBinary {
+        HexBinary::from_hex("fa0609efd1dfeedfdcc8ba51520fae2d5176b7621d2560f071e801b0817e1537")
+            .unwrap()
+    }
+
+    pub fn signers() -> Vec<TestSigner> {
+        let api = MockApi::default();
+        let addresses = vec!["signer1", "signer2", "signer3"]
+            .into_iter()
+            .map(|name| api.addr_make(name));
+
+        let private_keys = vec!["0x01", "0x02", "0x03"]
+            .into_iter()
+            .map(|hex| Felt::from_hex(hex).unwrap());
+
+        addresses
+            .zip(private_keys)
+            .map(|(address, private_key)| new(address, private_key))
+            .collect()
+    }
+}
+
 // Returns a list of (key_type, subkey, signers, session_id)
 pub fn signature_test_data<'a>(
     ecdsa_subkey: &'a String,
     ed25519_subkey: &'a String,
+    stark_subkey: &'a String,
 ) -> Vec<(KeyType, &'a String, Vec<TestSigner>, Uint64)> {
     vec![
         (
@@ -168,6 +255,12 @@ pub fn signature_test_data<'a>(
             ed25519_subkey,
             ed25519_test_data::signers(),
             Uint64::from(2u64),
+        ),
+        (
+            KeyType::Stark,
+            stark_subkey,
+            stark_test_data::signers(),
+            Uint64::from(3u64),
         ),
     ]
 }

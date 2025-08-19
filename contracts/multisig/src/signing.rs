@@ -127,7 +127,9 @@ mod tests {
 
     use super::*;
     use crate::key::KeyType;
-    use crate::test::common::{build_verifier_set, ecdsa_test_data, ed25519_test_data};
+    use crate::test::common::{
+        build_verifier_set, ecdsa_test_data, ed25519_test_data, stark_test_data,
+    };
 
     pub struct TestConfig {
         pub verifier_set: VerifierSet,
@@ -208,9 +210,45 @@ mod tests {
         }
     }
 
+    fn stark_setup() -> TestConfig {
+        let signers = stark_test_data::signers();
+
+        let verifier_set_id = "subkey".to_string();
+        let key_type = KeyType::Stark;
+        let verifier_set = build_verifier_set(key_type, &signers);
+
+        let message: MsgToSign = stark_test_data::message().into();
+        let expires_at = 12345;
+        let session = SigningSession::new(
+            Uint64::one(),
+            verifier_set_id,
+            chain_name!("mock-chain"),
+            message.clone(),
+            expires_at,
+            None,
+        );
+
+        let signatures: HashMap<String, Signature> = signers
+            .iter()
+            .map(|signer| {
+                (
+                    signer.address.clone().into_string(),
+                    Signature::try_from((key_type, signer.signature.clone())).unwrap(),
+                )
+            })
+            .collect();
+
+        TestConfig {
+            verifier_set,
+            session,
+            signatures,
+            key_type,
+        }
+    }
+
     #[test]
     fn correct_session_state() {
-        for config in [ecdsa_setup(), ed25519_setup()] {
+        for config in [ecdsa_setup(), ed25519_setup(), stark_setup()] {
             let mut session = config.session;
             let verifier_set = config.verifier_set;
             let signatures = config.signatures;
@@ -231,7 +269,7 @@ mod tests {
 
     #[test]
     fn success_validation() {
-        for config in [ecdsa_setup(), ed25519_setup()] {
+        for config in [ecdsa_setup(), ed25519_setup(), stark_setup()] {
             let session = config.session;
             let verifier_set = config.verifier_set;
             let signer = Addr::unchecked(config.signatures.keys().next().unwrap());
@@ -250,7 +288,7 @@ mod tests {
 
     #[test]
     fn validation_through_signature_verifier_contract() {
-        for config in [ecdsa_setup(), ed25519_setup()] {
+        for config in [ecdsa_setup(), ed25519_setup(), stark_setup()] {
             let session = config.session;
             let verifier_set = config.verifier_set;
             let signer = Addr::unchecked(config.signatures.keys().next().unwrap());
@@ -294,7 +332,7 @@ mod tests {
 
     #[test]
     fn success_validation_expiry_not_reached() {
-        for config in [ecdsa_setup(), ed25519_setup()] {
+        for config in [ecdsa_setup(), ed25519_setup(), stark_setup()] {
             let session = config.session;
             let verifier_set = config.verifier_set;
             let signer = Addr::unchecked(config.signatures.keys().next().unwrap());
@@ -320,7 +358,7 @@ mod tests {
 
     #[test]
     fn signing_session_closed_validation() {
-        for config in [ecdsa_setup(), ed25519_setup()] {
+        for config in [ecdsa_setup(), ed25519_setup(), stark_setup()] {
             let session = config.session;
             let verifier_set = config.verifier_set;
             let signer = Addr::unchecked(config.signatures.keys().next().unwrap());
@@ -352,7 +390,7 @@ mod tests {
 
     #[test]
     fn invalid_signature_validation() {
-        for config in [ecdsa_setup(), ed25519_setup()] {
+        for config in [ecdsa_setup(), ed25519_setup(), stark_setup()] {
             let session = config.session;
             let verifier_set = config.verifier_set;
             let signer = Addr::unchecked(config.signatures.keys().next().unwrap());
@@ -365,6 +403,7 @@ mod tests {
             let sig_bytes = match config.key_type {
                 KeyType::Ecdsa =>   "a58c9543b9df54578ec45838948e19afb1c6e4c86b34d9899b10b44e619ea74e19b457611e41a047030ed233af437d7ecff84de97cb6b3c13d73d22874e03511",
                 KeyType::Ed25519 => "1fe264eb7258d48d8feedea4d237ccb20157fbe5eb412bc971d758d072b036a99b06d20853c1f23cdf82085917e08dda2fcfbb5d4d7ee17d74e4988ae81d0308",
+                KeyType::Stark =>   "111111111111111111111111111111111111111111111111111111111111111122222222222222222222222222222222222222222222222222222222222222220000000000000000000000000000000000000000000000000000000000000000",
             };
 
             let invalid_sig: Signature = (config.key_type, HexBinary::from_hex(sig_bytes).unwrap())
@@ -386,7 +425,7 @@ mod tests {
 
     #[test]
     fn signer_not_a_participant_validation() {
-        for config in [ecdsa_setup(), ed25519_setup()] {
+        for config in [ecdsa_setup(), ed25519_setup(), stark_setup()] {
             let session = config.session;
             let verifier_set = config.verifier_set;
             let invalid_participant = cosmos_addr!("not_a_participant");
