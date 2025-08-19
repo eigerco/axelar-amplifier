@@ -384,7 +384,7 @@ mod test {
                 event_index: 0,
             })
             .await
-            .unwrap(); // unwrap the option
+            .unwrap();
 
         assert_eq!(
             contract_call_events,
@@ -858,14 +858,9 @@ mod test {
       }
     ],
     \"execution_resources\": {
-      \"data_availability\": {
-        \"l1_data_gas\": 0,
-        \"l1_gas\": 0
-      },
-      \"memory_holes\": 1176,
-      \"pedersen_builtin_applications\": 34,
-      \"range_check_builtin_applications\": 1279,
-      \"steps\": 17574
+      \"l1_data_gas\": 0,
+      \"l1_gas\": 0,
+      \"l2_gas\": 0
     }
   },
   \"id\": 0
@@ -943,14 +938,9 @@ mod test {
       }
     ],
     \"execution_resources\": {
-      \"data_availability\": {
-        \"l1_data_gas\": 0,
-        \"l1_gas\": 0
-      },
-      \"memory_holes\": 1176,
-      \"pedersen_builtin_applications\": 34,
-      \"range_check_builtin_applications\": 1279,
-      \"steps\": 17574
+      \"l1_data_gas\": 0,
+      \"l1_gas\": 0,
+      \"l2_gas\": 0
     }
   },
   \"id\": 0
@@ -1021,14 +1011,9 @@ mod test {
       }
     ],
     \"execution_resources\": {
-      \"data_availability\": {
-        \"l1_data_gas\": 0,
-        \"l1_gas\": 0
-      },
-      \"memory_holes\": 1176,
-      \"pedersen_builtin_applications\": 34,
-      \"range_check_builtin_applications\": 1279,
-      \"steps\": 17574
+      \"l1_data_gas\": 0,
+      \"l1_gas\": 0,
+      \"l2_gas\": 0
     }
   },
   \"id\": 0
@@ -1122,14 +1107,9 @@ mod test {
       }
     ],
     \"execution_resources\": {
-      \"data_availability\": {
-        \"l1_data_gas\": 0,
-        \"l1_gas\": 0
-      },
-      \"memory_holes\": 1176,
-      \"pedersen_builtin_applications\": 34,
-      \"range_check_builtin_applications\": 1279,
-      \"steps\": 17574
+      \"l1_data_gas\": 0,
+      \"l1_gas\": 0,
+      \"l2_gas\": 0
     }
   },
   \"id\": 0
@@ -1165,13 +1145,13 @@ mod test {
             R: DeserializeOwned,
         {
             let response_mock = "{
-  \"jsonrpc\": \"2.0\",
+  \"id\": 0,
   \"result\": {
     \"type\": \"INVOKE\",
     \"transaction_hash\": \"0x0000000000000000000000000000000000000000000000000000000000000001\",
     \"actual_fee\": {
       \"amount\": \"0x3062e4c46d4\",
-      \"unit\": \"WEI\"
+      \"unit\": \"FRI\"
     },
     \"execution_status\": \"SUCCEEDED\",
     \"finality_status\": \"ACCEPTED_ON_L2\",
@@ -1202,17 +1182,11 @@ mod test {
       }
     ],
     \"execution_resources\": {
-      \"data_availability\": {
         \"l1_data_gas\": 0,
-        \"l1_gas\": 0
-      },
-      \"memory_holes\": 1176,
-      \"pedersen_builtin_applications\": 34,
-      \"range_check_builtin_applications\": 1279,
-      \"steps\": 17574
+        \"l1_gas\": 0,
+        \"l2_gas\": 0
     }
-  },
-  \"id\": 0
+  }
 }";
             let parsed_response = serde_json::from_str(response_mock).map_err(Self::Error::Json)?;
 
