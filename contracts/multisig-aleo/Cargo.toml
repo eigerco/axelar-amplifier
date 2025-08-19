@@ -34,8 +34,9 @@ snarkvm-cosmwasm = { workspace = true }
 thiserror = { workspace = true }
 
 [dev-dependencies]
-hex = "0.4.3"
-tofn = { workspace = true, features = ["aleo-schnorr"] }
+hex = { workspace = true }
+rand = { workspace = true }
+snarkos-account = { workspace = true }
 
 [lints]
 workspace = true

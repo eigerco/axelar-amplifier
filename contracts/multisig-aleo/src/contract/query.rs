@@ -19,8 +19,8 @@ pub fn verify_signature<N: Network>(
 
 #[cfg(test)]
 mod tests {
-    use snarkvm_cosmwasm::console::network::TestnetV0;
-    use tofn::aleo_schnorr::{sign, KeyPair};
+    use snarkos_account::Account;
+    use snarkvm_cosmwasm::{console::network::TestnetV0, prelude::ToBytes as _};
 
     use super::*;
 
@@ -31,23 +31,25 @@ mod tests {
         let message = [
             30, 165, 51, 99, 240, 22, 44, 209, 224, 46, 25, 4, 49, 49, 114, 238, 209, 48, 186, 136,
             95, 224, 128, 254, 19, 109, 54, 40, 214, 206, 187, 13,
-        ]
-        .into();
+        ];
 
-        let key_pair: KeyPair<CurrentNetwork> =
-            tofn::aleo_schnorr::dummy_keygen().expect("Failed to generate key pair");
-        let encoded_signature = sign(&key_pair, &message).expect("Failed to sign message");
+        let aleo_account =
+            Account::new(&mut rand::thread_rng()).expect("Failed to create Aleo account");
+        let encoded_signature = aleo_account
+            .sign_bytes(&message, &mut rand::thread_rng())
+            .and_then(|signature| signature.to_bytes_le())
+            .expect("Failed to sign message")
+            .into();
 
-        let signature = HexBinary::from(encoded_signature);
-        let address = HexBinary::from(
-            key_pair
-                .encoded_verifying_key()
-                .expect("Failed to get verifying key"),
-        );
-        let message = HexBinary::from(message.as_ref());
+        let message = message.into();
+        let public_key: Address<CurrentNetwork> = aleo_account.address();
+        let encoded_public_key = public_key
+            .to_bytes_le()
+            .expect("Failed to get address")
+            .into();
 
         assert!(
-            verify_signature::<CurrentNetwork>(signature, message, address)
+            verify_signature::<CurrentNetwork>(encoded_signature, message, encoded_public_key)
                 .expect("Failed to verify signature"),
         );
     }
