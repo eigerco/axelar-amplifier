@@ -1,0 +1,34 @@
+[package]
+name = "stark-sig-verifier"
+version = "0.1.0"
+rust-version.workspace = true
+edition.workspace = true
+license.workspace = true
+description = "STARK ECDSA curve custom signature verifier"
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[[bin]]
+name = "stark-sig-verifier"
+path = "src/bin/schema.rs"
+
+[features]
+# use library feature to disable all instantiate/execute/query exports
+library = []
+# use this feature to enable test utils
+test = []
+
+[dependencies]
+axelar-wasm-std = { workspace = true, features = ["derive"] }
+cosmwasm-schema = { workspace = true }
+cosmwasm-std = { workspace = true }
+error-stack = { workspace = true }
+signature-verifier-api = { workspace = true }
+starknet-crypto = { workspace = true }
+thiserror = { workspace = true }
+
+[dev-dependencies]
+
+[lints]
+workspace = true

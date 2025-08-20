@@ -11526,6 +11526,19 @@ dependencies = [
 ]
 
 [[package]]
+name = "stark-sig-verifier"
+version = "0.1.0"
+dependencies = [
+ "axelar-wasm-std",
+ "cosmwasm-schema",
+ "cosmwasm-std",
+ "error-stack",
+ "signature-verifier-api",
+ "starknet-crypto",
+ "thiserror 1.0.69",
+]
+
+[[package]]
 name = "starknet-checked-felt"
 version = "1.0.0"
 dependencies = [
