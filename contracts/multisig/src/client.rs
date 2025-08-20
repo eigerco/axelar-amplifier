@@ -190,7 +190,8 @@ mod test {
     use crate::msg::QueryMsg;
     use crate::multisig::Multisig;
     use crate::test::common::{
-        build_verifier_set, ecdsa_test_data, ed25519_test_data, stark_test_data, signature_test_data, TestSigner,
+        build_verifier_set, ecdsa_test_data, ed25519_test_data, signature_test_data,
+        stark_test_data, TestSigner,
     };
     use crate::types::MultisigState;
 
@@ -420,14 +421,16 @@ mod test {
         let client: Client =
             client::ContractClient::new(QuerierWrapper::new(&querier), &addr).into();
 
-        goldie::assert_json!(&signature_test_data(&ecdsa_subkey, &ed25519_subkey, &stark_subkey)
-            .into_iter()
-            .flat_map(
-                |(_, _, signers, session_id)| validate_submit_signature_msgs_construction(
-                    &client, session_id, signers
+        goldie::assert_json!(
+            &signature_test_data(&ecdsa_subkey, &ed25519_subkey, &stark_subkey)
+                .into_iter()
+                .flat_map(
+                    |(_, _, signers, session_id)| validate_submit_signature_msgs_construction(
+                        &client, session_id, signers
+                    )
                 )
-            )
-            .collect::<Vec<WasmMsg>>());
+                .collect::<Vec<WasmMsg>>()
+        );
     }
 
     #[test]
@@ -438,14 +441,14 @@ mod test {
         let client: Client =
             client::ContractClient::new(QuerierWrapper::new(&querier), &addr).into();
 
-        goldie::assert_json!(&signature_test_data(&ecdsa_subkey, &ed25519_subkey, &stark_subkey)
-            .into_iter()
-            .flat_map(
-                |(key_type, _, signers, _)| validate_register_public_key_msgs_construction(
-                    &client, key_type, signers
-                )
-            )
-            .collect::<Vec<WasmMsg>>());
+        goldie::assert_json!(
+            &signature_test_data(&ecdsa_subkey, &ed25519_subkey, &stark_subkey)
+                .into_iter()
+                .flat_map(|(key_type, _, signers, _)| {
+                    validate_register_public_key_msgs_construction(&client, key_type, signers)
+                })
+                .collect::<Vec<WasmMsg>>()
+        );
     }
 
     #[test]
