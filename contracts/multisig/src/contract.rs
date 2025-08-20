@@ -527,6 +527,7 @@ mod tests {
             let message = match subkey {
                 _ if subkey == ecdsa_subkey => ecdsa_test_data::message(),
                 _ if subkey == ed25519_subkey => ed25519_test_data::message(),
+                _ if subkey == stark_subkey => stark_test_data::message(),
                 _ => panic!("unexpected subkey"),
             };
             let signatures =
@@ -573,7 +574,7 @@ mod tests {
 
         let sender = "someone else";
 
-        for verifier_set_id in [ecdsa_subkey, ed25519_subkey] {
+        for verifier_set_id in [ecdsa_subkey, ed25519_subkey, stark_subkey] {
             let res = do_start_signing_session(
                 deps.as_mut(),
                 api.addr_make(sender),
@@ -1179,7 +1180,11 @@ mod tests {
         )
         .unwrap();
 
-        for verifier_set_id in [ecdsa_subkey.clone(), ed25519_subkey.clone()] {
+        for verifier_set_id in [
+            ecdsa_subkey.clone(),
+            ed25519_subkey.clone(),
+            stark_subkey.clone(),
+        ] {
             let res = do_start_signing_session(
                 deps.as_mut(),
                 api.addr_make(PROVER),
@@ -1201,7 +1206,7 @@ mod tests {
             vec![(prover_address.clone(), chain_name.clone())],
         )
         .unwrap();
-        for verifier_set_id in [ecdsa_subkey, ed25519_subkey] {
+        for verifier_set_id in [ecdsa_subkey, ed25519_subkey, stark_subkey] {
             let res = do_start_signing_session(
                 deps.as_mut(),
                 api.addr_make(PROVER),
@@ -1324,7 +1329,11 @@ mod tests {
 
         do_disable_signing(deps.as_mut(), api.addr_make(ADMIN)).unwrap();
 
-        for verifier_set_id in [ecdsa_subkey.clone(), ed25519_subkey.clone()] {
+        for verifier_set_id in [
+            ecdsa_subkey.clone(),
+            ed25519_subkey.clone(),
+            stark_subkey.clone(),
+        ] {
             let res = do_start_signing_session(
                 deps.as_mut(),
                 api.addr_make(PROVER),
@@ -1340,7 +1349,11 @@ mod tests {
 
         do_enable_signing(deps.as_mut(), api.addr_make(ADMIN)).unwrap();
 
-        for verifier_set_id in [ecdsa_subkey.clone(), ed25519_subkey.clone()] {
+        for verifier_set_id in [
+            ecdsa_subkey.clone(),
+            ed25519_subkey.clone(),
+            stark_subkey.clone(),
+        ] {
             let res = do_start_signing_session(
                 deps.as_mut(),
                 api.addr_make(PROVER),
@@ -1417,7 +1430,7 @@ mod tests {
 
         let wrong_chain_name = chain_name!("some-other-chain");
 
-        for verifier_set_id in [ecdsa_subkey, ed25519_subkey] {
+        for verifier_set_id in [ecdsa_subkey, ed25519_subkey, stark_subkey] {
             let res = do_start_signing_session(
                 deps.as_mut(),
                 api.addr_make(PROVER),

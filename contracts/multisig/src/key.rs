@@ -284,17 +284,22 @@ fn validate_and_normalize_public_key(
                     .change_context(ContractError::InvalidPublicKey)?,
             );
 
-            // check if public key is a point on the STARK curve
-            AffinePoint::new(
-                public_key,
-                (public_key.square() * public_key
-                    + starknet_curve::curve_params::ALPHA * public_key
-                    + starknet_curve::curve_params::BETA)
-                    .sqrt()
-                    .ok_or(starknet_crypto::VerifyError::InvalidPublicKey)
-                    .change_context(ContractError::InvalidPublicKey)?,
-            )
-            .unwrap();
+            // Check if public key is a point on the STARK curve
+            // Felt uses modular arithmetic (wraps around a prime number)
+            // so overflow is impossible - all operations stay within the finite field
+            #[allow(clippy::arithmetic_side_effects)]
+            let y_squared = public_key.square() * public_key
+                + starknet_curve::curve_params::ALPHA * public_key
+                + starknet_curve::curve_params::BETA;
+
+            let y_coordinate = y_squared
+                .sqrt()
+                .ok_or(starknet_crypto::VerifyError::InvalidPublicKey)
+                .change_context(ContractError::InvalidPublicKey)?;
+
+            // Validate that the point is actually on the curve
+            AffinePoint::new(public_key, y_coordinate)
+                .map_err(|_| ContractError::InvalidPublicKey)?;
 
             Ok(pub_key)
         }
