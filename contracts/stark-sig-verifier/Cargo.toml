@@ -28,7 +28,5 @@ signature-verifier-api = { workspace = true }
 starknet-crypto = { workspace = true }
 thiserror = { workspace = true }
 
-[dev-dependencies]
-
 [lints]
 workspace = true

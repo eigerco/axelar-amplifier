@@ -1,9 +1,8 @@
-use axelar_wasm_std::FnExt as _;
 use cosmwasm_schema::cw_serde;
 
 #[cfg(not(feature = "library"))]
 use cosmwasm_std::entry_point;
-use cosmwasm_std::{to_json_binary, Binary, Deps, DepsMut, Empty, Env, MessageInfo, Response};
+use cosmwasm_std::{to_json_binary, DepsMut, Empty, Env, MessageInfo, Response};
 use signature_verifier_api::msg::ExecuteMsg;
 
 use crate::error::ContractError;
@@ -33,17 +32,23 @@ pub fn instantiate(
 }
 
 #[cfg_attr(not(feature = "library"), entry_point)]
-pub fn execute(_deps: Deps, _env: Env, msg: ExecuteMsg) -> Result<Binary, ContractError> {
-    match msg {
+pub fn execute(
+    _deps: DepsMut,
+    _env: Env,
+    _info: MessageInfo,
+    msg: ExecuteMsg,
+) -> Result<Response, ContractError> {
+    let result = match msg {
         ExecuteMsg::VerifySignature {
             signature,
             message,
             public_key,
             signer_address: _,
             session_id: _,
-        } => to_json_binary(&execute::verify_signature(signature, message, public_key)?)?,
-    }
-    .then(Ok)
+        } => execute::verify_signature(signature, message, public_key)?,
+    };
+
+    Ok(Response::new().set_data(to_json_binary(&result)?))
 }
 
 #[cfg(test)]
@@ -79,8 +84,9 @@ mod tests {
 
     #[test]
     fn test_execute_verify_signature_success() {
-        let deps = mock_dependencies();
+        let mut deps = mock_dependencies();
         let env = mock_env();
+        let info = message_info(&Addr::unchecked("sender"), &[]);
 
         let (private_key, public_key) = create_test_key_pair();
         let message =
@@ -104,15 +110,16 @@ mod tests {
             session_id: Uint64::new(1),
         };
 
-        let result = execute(deps.as_ref(), env, msg).unwrap();
-        let response: bool = from_json(&result).unwrap();
-        assert!(response, "Valid signature should verify successfully");
+        let response = execute(deps.as_mut(), env, info, msg).unwrap();
+        let result: bool = from_json(&response.data.unwrap()).unwrap();
+        assert!(result, "Valid signature should verify successfully");
     }
 
     #[test]
     fn test_execute_verify_signature_invalid() {
-        let deps = mock_dependencies();
+        let mut deps = mock_dependencies();
         let env = mock_env();
+        let info = message_info(&Addr::unchecked("sender"), &[]);
 
         let (_, public_key) = create_test_key_pair();
         let message =
@@ -130,11 +137,11 @@ mod tests {
             session_id: Uint64::new(1),
         };
 
-        let result = execute(deps.as_ref(), env, msg);
+        let result = execute(deps.as_mut(), env, info, msg);
         match result {
-            Ok(binary) => {
-                let response: bool = from_json(&binary).unwrap();
-                assert!(!response, "Invalid signature should return false");
+            Ok(response) => {
+                let result: bool = from_json(&response.data.unwrap()).unwrap();
+                assert!(!result, "Invalid signature should return false");
             }
             Err(ContractError::VerificationFailed) => {
                 // This is also acceptable - invalid signature can return an error
@@ -145,8 +152,9 @@ mod tests {
 
     #[test]
     fn test_execute_verify_signature_wrong_length() {
-        let deps = mock_dependencies();
+        let mut deps = mock_dependencies();
         let env = mock_env();
+        let info = message_info(&Addr::unchecked("sender"), &[]);
 
         let msg = ExecuteMsg::VerifySignature {
             signature: HexBinary::from(vec![0u8; 95]),
@@ -156,7 +164,7 @@ mod tests {
             session_id: Uint64::new(1),
         };
 
-        let result = execute(deps.as_ref(), env, msg);
+        let result = execute(deps.as_mut(), env, info, msg);
         match result {
             Err(ContractError::InvalidSignatureLength(95)) => {}
             _ => panic!("Expected InvalidSignatureLength error"),
