@@ -101,9 +101,10 @@ service-registry-api = { version = "^1.0.0", path = "packages/service-registry-a
 sha3 = { version = "0.10.8", default-features = false, features = [] }
 signature-verifier-api = { version = "^1.0.0", path = "packages/signature-verifier-api" }
 starknet-checked-felt = { version = "^1.0.0", path = "packages/starknet-checked-felt" }
-starknet-core = "0.12.0"
+starknet-core = "0.14.0"
+starknet-crypto = "0.7.4"
 starknet-message = { version = "^1.0.0", path = "packages/starknet-message" }
-starknet-providers = "0.12.0"
+starknet-providers = "0.14.1"
 starknet-types-core = { version = "0.1.7" }
 stellar = { version = "^1.0.0", path = "external-gateways/stellar" }
 stellar-rpc-client = { version = "23.0.0-rc.5" }
@@ -115,7 +116,7 @@ sui-types = { version = "^1.0.0", path = "packages/sui-types" }
 syn = "2.0.92"
 tendermint = "0.35.0"
 thiserror = "1.0.61"
-tofn = { version = "1.1" }
+tofn = { version = "1.1", git = "https://github.com/eigerco/tofn.git", branch = "starknet-STARK" }
 tokio = "1.44.2"
 tokio-stream = "0.1.11"
 tokio-util = "0.7.11"

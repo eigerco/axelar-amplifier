@@ -40,5 +40,26 @@
       "msg": "eyJzdWJtaXRfc2lnbmF0dXJlIjp7InNlc3Npb25faWQiOiIyIiwic2lnbmF0dXJlIjoiZTU0NDY2ODk5MmI1NjBjYTg0M2JlNmViNDFjOWZjODliNzFlMjU3MTkyZTA5YjJiNmMxYmZlNjhiMjBiYTc0MWJmYjZkMTM5MDViZmM0ZmI3OWU5YzE0NzJiNDI3NGY5NWFkZWQ3YjM0NzRiNmRmMzFhNmM5ZThlYzAzZWI0MDMifX0=",
       "funds": []
     }
+  },
+  {
+    "execute": {
+      "contract_addr": "cosmwasm10yjnqzs0nxzpesqmzfv006q9fwgu833xme5kuu60tuan72n77j8qvem39j",
+      "msg": "eyJzdWJtaXRfc2lnbmF0dXJlIjp7InNlc3Npb25faWQiOiIzIiwic2lnbmF0dXJlIjoiMDU1YjdlZTQxYzdmM2UzOTU0YWI4MWI5YmY0ZWI3N2M1MzVlN2VjOWMxZjk4YTAzN2RmOWQzMWE0YjJhMTEwODAwYjA3MjQ4ZjEwMGM2OGZjYWU4Mzc3ZWE1YTRkYTZmMDUwYmQzZmYxYzAyMzMwZTk0Mjk0ZTYyYjRlM2E2YzkwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwIn19",
+      "funds": []
+    }
+  },
+  {
+    "execute": {
+      "contract_addr": "cosmwasm10yjnqzs0nxzpesqmzfv006q9fwgu833xme5kuu60tuan72n77j8qvem39j",
+      "msg": "eyJzdWJtaXRfc2lnbmF0dXJlIjp7InNlc3Npb25faWQiOiIzIiwic2lnbmF0dXJlIjoiMDFhZGQyMjczMzczODMwZGJiMWRlMmI1ODQ5N2E3Y2QxOWFiNTBmMjc2OThhZTY1Y2ZlYzkyZTBmOTZlYjRlMjAxY2MyNzUxZjM1MDQ2YTJkN2I0MDJkZWRiYTE1YTM1YmE4MWQzYjEyNTdhNDRhZjRhODAyYzRkZjRiZmEyY2IwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwIn19",
+      "funds": []
+    }
+  },
+  {
+    "execute": {
+      "contract_addr": "cosmwasm10yjnqzs0nxzpesqmzfv006q9fwgu833xme5kuu60tuan72n77j8qvem39j",
+      "msg": "eyJzdWJtaXRfc2lnbmF0dXJlIjp7InNlc3Npb25faWQiOiIzIiwic2lnbmF0dXJlIjoiMDY5NTBmZTYzZGUwODQ5Y2IwMzc3Yjk5MTE2ZWIyZWFhZmQxNTc3MmM3OWI2YjNiZDI5NzE5OWMyMWRiZTcxZDA0MTE3MTdlMjUwOGMwZmM3OTU3YjE4MGQ2NzZmNjRhOGMxZDc0NTA3YmIxNmY5ZDM0YTRkODZjZWM3NzM5ZmEwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAxIn19",
+      "funds": []
+    }
   }
 ]

@@ -67,14 +67,15 @@ fn to_pub_key(pk: &PublicKey) -> Option<axelar_solana_encoding::types::pubkey::P
     use axelar_solana_encoding::types::pubkey::{
         ED25519_PUBKEY_LEN, SECP256K1_COMPRESSED_PUBKEY_LEN,
     };
-    Some(match pk {
-        PublicKey::Ecdsa(hb) => axelar_solana_encoding::types::pubkey::PublicKey::Secp256k1(
+    match pk {
+        PublicKey::Ecdsa(hb) => Some(axelar_solana_encoding::types::pubkey::PublicKey::Secp256k1(
             hb.to_array::<SECP256K1_COMPRESSED_PUBKEY_LEN>().ok()?,
-        ),
-        PublicKey::Ed25519(hb) => axelar_solana_encoding::types::pubkey::PublicKey::Ed25519(
+        )),
+        PublicKey::Ed25519(hb) => Some(axelar_solana_encoding::types::pubkey::PublicKey::Ed25519(
             hb.to_array::<ED25519_PUBKEY_LEN>().ok()?,
-        ),
-    })
+        )),
+        _ => None,
+    }
 }
 
 #[cfg(test)]
