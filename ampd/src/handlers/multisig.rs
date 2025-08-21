@@ -198,6 +198,7 @@ mod test {
 
     const MULTISIG_ADDRESS: &str = "axelarvaloper1zh9wrak6ke4n6fclj5e8yk397czv430ygs5jz7";
     const PREFIX: &str = "axelar";
+    const ETHEREUM: &str = "Ethereum";
 
     fn rand_public_key() -> multisig::key::PublicKey {
         multisig::key::PublicKey::Ecdsa(HexBinary::from(
@@ -223,7 +224,7 @@ mod test {
             verifier_set_id: "verifier_set_id".to_string(),
             pub_keys,
             msg: MsgToSign::unchecked(rand_message()),
-            chain_name: chain_name!("Ethereum"),
+            chain_name: chain_name!(ETHEREUM),
             expires_at: 100u64,
         };
 
@@ -254,7 +255,7 @@ mod test {
             verifier_set_id: "verifier_set_id".to_string(),
             pub_keys,
             msg: MsgToSign::unchecked(rand_message()),
-            chain_name: chain_name!("Ethereum"),
+            chain_name: chain_name!(ETHEREUM),
             expires_at: 100u64,
         };
 
@@ -349,7 +350,7 @@ mod test {
         let handler = handler(
             TMAddress::random(PREFIX),
             TMAddress::from(MULTISIG_ADDRESS.parse::<AccountId>().unwrap()),
-            chain_name!("Ethereum"),
+            chain_name!(ETHEREUM),
             client,
             100u64,
         );
@@ -372,7 +373,7 @@ mod test {
         let handler = handler(
             TMAddress::random(PREFIX),
             TMAddress::from(MULTISIG_ADDRESS.parse::<AccountId>().unwrap()),
-            chain_name!("Ethereum"),
+            chain_name!(ETHEREUM),
             client,
             100u64,
         );
@@ -390,7 +391,7 @@ mod test {
         let handler = handler(
             TMAddress::random(PREFIX),
             TMAddress::random(PREFIX),
-            chain_name!("Ethereum"),
+            chain_name!(ETHEREUM),
             client,
             100u64,
         );
@@ -411,7 +412,7 @@ mod test {
         let handler = handler(
             TMAddress::random(PREFIX),
             TMAddress::from(MULTISIG_ADDRESS.parse::<AccountId>().unwrap()),
-            chain_name!("Ethereum"),
+            chain_name!(ETHEREUM),
             client,
             100u64,
         );
@@ -435,7 +436,7 @@ mod test {
         let handler = handler(
             verifier,
             TMAddress::from(MULTISIG_ADDRESS.parse::<AccountId>().unwrap()),
-            chain_name!("Ethereum"),
+            chain_name!(ETHEREUM),
             client,
             99u64,
         );
@@ -459,7 +460,7 @@ mod test {
         let handler = handler(
             verifier,
             TMAddress::from(MULTISIG_ADDRESS.parse::<AccountId>().unwrap()),
-            chain_name!("Ethereum"),
+            chain_name!(ETHEREUM),
             client,
             101u64,
         );
