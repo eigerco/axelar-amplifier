@@ -20,6 +20,7 @@ use crate::{handlers, Error, PREFIX};
 enum KeyType {
     Ecdsa,
     Ed25519,
+    Stark,
 }
 
 impl From<KeyType> for tofnd::Algorithm {
@@ -27,6 +28,7 @@ impl From<KeyType> for tofnd::Algorithm {
         match val {
             KeyType::Ecdsa => tofnd::Algorithm::Ecdsa,
             KeyType::Ed25519 => tofnd::Algorithm::Ed25519,
+            KeyType::Stark => tofnd::Algorithm::Stark,
         }
     }
 }
@@ -36,6 +38,7 @@ impl From<KeyType> for multisig::key::KeyType {
         match val {
             KeyType::Ecdsa => multisig::key::KeyType::Ecdsa,
             KeyType::Ed25519 => multisig::key::KeyType::Ed25519,
+            KeyType::Stark => multisig::key::KeyType::Stark,
         }
     }
 }
