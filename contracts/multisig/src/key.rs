@@ -8,7 +8,7 @@ use error_stack::{Report, ResultExt};
 use serde::de::Error;
 use serde::{Deserialize, Deserializer};
 use starknet_checked_felt::CheckedFelt;
-use starknet_crypto::Felt;
+use starknet_types_core::felt::Felt;
 use starknet_types_core::curve::AffinePoint;
 
 use crate::ed25519::{ed25519_verify, ED25519_SIGNATURE_LEN};
