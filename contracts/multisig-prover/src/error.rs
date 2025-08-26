@@ -12,6 +12,9 @@ pub enum ContractError {
     #[error(transparent)]
     ParseReply(#[from] ParseReplyError),
 
+    #[error("felt is not valid")]
+    InvalidFelt,
+
     #[error("message is invalid")]
     InvalidMessage,
 

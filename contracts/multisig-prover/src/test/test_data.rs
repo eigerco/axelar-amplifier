@@ -77,20 +77,16 @@ pub fn new_verifier_set() -> VerifierSet {
 
 pub fn starknet_messages() -> Vec<Message> {
     vec![Message {
-        cc_id: CrossChainId::new(
-            "ganache-1",
-            "0xff822c88807859ff226b58e24f24974a70f04b9442501ae38fd665b3c68f3834-0",
-        )
-        .unwrap(),
-        source_address: "0x52444f1835Adc02086c37Cb226561605e2E1699b"
+        cc_id: CrossChainId::new("ethereum", "tx_id_10sig-event_idx_0").unwrap(),
+        source_address: "0x71C7656EC7ab88b098defB751B7401B5f6d8976F"
             .parse()
             .unwrap(),
-        destination_address: "0x049ec69cd2e0c987857fbda7966ff59077e2e92c18959bdb9b0012438c452047"
+        destination_address: "0x0402de8f0afb2615e0889bc1ff92bf2fb32562f541bd4301d393269aec0f2dae"
             .parse()
             .unwrap(),
         destination_chain: "starknet-devnet-v1".parse().unwrap(),
         payload_hash: HexBinary::from_hex(
-            "8c3685dc41c2eca11426f8035742fb97ea9f14931152670a5703f18fe8b392f0",
+            "25E41F1A98129E1482ECA0B377FF81405EB6269017843215ECAA19F56CCFFDCB",
         )
         .unwrap()
         .to_array::<32>()
@@ -221,11 +217,19 @@ pub fn verifier_set_from_pub_keys(pub_keys: Vec<&str>) -> VerifierSet {
                     address: MockApi::default().addr_make(format!("verifier{i}").as_str()),
                     weight: nonempty::Uint128::one(),
                 },
-                multisig::key::PublicKey::Ecdsa(HexBinary::from_hex(pub_keys[i]).unwrap()),
+                multisig::key::PublicKey::Stark(HexBinary::from_hex(pub_keys[i]).unwrap()),
             )
         })
         .collect();
-    VerifierSet::new(participants, Uint128::from(3u128), 1)
+    VerifierSet::new(participants, Uint128::from(pub_keys.len() as u128), 1)
+}
+
+// A valid felt252 as a domain separator
+pub fn starknet_domain_separator() -> [u8; 32] {
+    HexBinary::from_hex("004c6f6e6720737472696e672c206d6f7265207468616e203331206368617261")
+        .unwrap()
+        .to_array()
+        .unwrap()
 }
 
 // Domain separator matches axelar-gmp-sdk-solidity repo test data

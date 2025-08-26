@@ -49,7 +49,10 @@ serde_json = { workspace = true }
 service-registry = { workspace = true }
 service-registry-api = { workspace = true }
 sha3 = { workspace = true }
+starknet-checked-felt = { workspace = true }
+starknet-crypto = { workspace = true }
 starknet-message = { workspace = true }
+starknet-types-core = { workspace = true }
 stellar = { workspace = true }
 stellar-xdr = { workspace = true }
 sui-gateway = { workspace = true }
