@@ -483,7 +483,7 @@ mod test {
                 event_index: 0,
             })
             .await
-            .unwrap(); // unwrap the option
+            .unwrap();
 
         assert_eq!(
             contract_call_events,
@@ -685,14 +685,9 @@ mod test {
     \"messages_sent\": [],
     \"events\": [],
     \"execution_resources\": {
-      \"data_availability\": {
-        \"l1_data_gas\": 0,
-        \"l1_gas\": 0
-      },
-      \"memory_holes\": 1176,
-      \"pedersen_builtin_applications\": 34,
-      \"range_check_builtin_applications\": 1279,
-      \"steps\": 17574
+      \"l1_data_gas\": 0,
+      \"l1_gas\": 0,
+      \"l2_gas\": 0
     }
   },
   \"id\": 0
@@ -745,14 +740,9 @@ mod test {
     \"messages_sent\": [],
     \"events\": [],
     \"execution_resources\": {
-      \"data_availability\": {
-        \"l1_data_gas\": 0,
-        \"l1_gas\": 0
-      },
-      \"memory_holes\": 1176,
-      \"pedersen_builtin_applications\": 34,
-      \"range_check_builtin_applications\": 1279,
-      \"steps\": 17574
+      \"l1_data_gas\": 0,
+      \"l1_gas\": 0,
+      \"l2_gas\": 0
     }
   },
   \"id\": 0
@@ -805,14 +795,9 @@ mod test {
     \"messages_sent\": [],
     \"events\": [],
     \"execution_resources\": {
-      \"data_availability\": {
-        \"l1_data_gas\": 0,
-        \"l1_gas\": 0
-      },
-      \"memory_holes\": 1176,
-      \"pedersen_builtin_applications\": 34,
-      \"range_check_builtin_applications\": 1279,
-      \"steps\": 17574
+      \"l1_data_gas\": 0,
+      \"l1_gas\": 0,
+      \"l2_gas\": 0
     }
   },
   \"id\": 0
@@ -864,14 +849,9 @@ mod test {
     \"messages_sent\": [],
     \"events\": [],
     \"execution_resources\": {
-      \"data_availability\": {
-        \"l1_data_gas\": 0,
-        \"l1_gas\": 0
-      },
-      \"memory_holes\": 1176,
-      \"pedersen_builtin_applications\": 34,
-      \"range_check_builtin_applications\": 1279,
-      \"steps\": 17574
+      \"l1_data_gas\": 0,
+      \"l1_gas\": 0,
+      \"l2_gas\": 0
     }
   },
   \"id\": 0
@@ -923,14 +903,9 @@ mod test {
     \"messages_sent\": [],
     \"events\": [],
     \"execution_resources\": {
-      \"data_availability\": {
-        \"l1_data_gas\": 0,
-        \"l1_gas\": 0
-      },
-      \"memory_holes\": 1176,
-      \"pedersen_builtin_applications\": 34,
-      \"range_check_builtin_applications\": 1279,
-      \"steps\": 17574
+      \"l1_data_gas\": 0,
+      \"l1_gas\": 0,
+      \"l2_gas\": 0
     }
   },
   \"id\": 0
@@ -982,14 +957,9 @@ mod test {
     \"messages_sent\": [],
     \"events\": [],
     \"execution_resources\": {
-      \"data_availability\": {
-        \"l1_data_gas\": 0,
-        \"l1_gas\": 0
-      },
-      \"memory_holes\": 1176,
-      \"pedersen_builtin_applications\": 34,
-      \"range_check_builtin_applications\": 1279,
-      \"steps\": 17574
+      \"l1_data_gas\": 0,
+      \"l1_gas\": 0,
+      \"l2_gas\": 0
     }
   },
   \"id\": 0
@@ -1067,14 +1037,9 @@ mod test {
       }
     ],
     \"execution_resources\": {
-      \"data_availability\": {
-        \"l1_data_gas\": 0,
-        \"l1_gas\": 0
-      },
-      \"memory_holes\": 1176,
-      \"pedersen_builtin_applications\": 34,
-      \"range_check_builtin_applications\": 1279,
-      \"steps\": 17574
+      \"l1_data_gas\": 0,
+      \"l1_gas\": 0,
+      \"l2_gas\": 0
     }
   },
   \"id\": 0
@@ -1152,14 +1117,9 @@ mod test {
       }
     ],
     \"execution_resources\": {
-      \"data_availability\": {
-        \"l1_data_gas\": 0,
-        \"l1_gas\": 0
-      },
-      \"memory_holes\": 1176,
-      \"pedersen_builtin_applications\": 34,
-      \"range_check_builtin_applications\": 1279,
-      \"steps\": 17574
+      \"l1_data_gas\": 0,
+      \"l1_gas\": 0,
+      \"l2_gas\": 0
     }
   },
   \"id\": 0
@@ -1230,14 +1190,9 @@ mod test {
       }
     ],
     \"execution_resources\": {
-      \"data_availability\": {
-        \"l1_data_gas\": 0,
-        \"l1_gas\": 0
-      },
-      \"memory_holes\": 1176,
-      \"pedersen_builtin_applications\": 34,
-      \"range_check_builtin_applications\": 1279,
-      \"steps\": 17574
+      \"l1_data_gas\": 0,
+      \"l1_gas\": 0,
+      \"l2_gas\": 0
     }
   },
   \"id\": 0
@@ -1331,14 +1286,9 @@ mod test {
       }
     ],
     \"execution_resources\": {
-      \"data_availability\": {
-        \"l1_data_gas\": 0,
-        \"l1_gas\": 0
-      },
-      \"memory_holes\": 1176,
-      \"pedersen_builtin_applications\": 34,
-      \"range_check_builtin_applications\": 1279,
-      \"steps\": 17574
+      \"l1_data_gas\": 0,
+      \"l1_gas\": 0,
+      \"l2_gas\": 0
     }
   },
   \"id\": 0
@@ -1411,14 +1361,9 @@ mod test {
       }
     ],
     \"execution_resources\": {
-      \"data_availability\": {
         \"l1_data_gas\": 0,
-        \"l1_gas\": 0
-      },
-      \"memory_holes\": 1176,
-      \"pedersen_builtin_applications\": 34,
-      \"range_check_builtin_applications\": 1279,
-      \"steps\": 17574
+        \"l1_gas\": 0,
+        \"l2_gas\": 0
     }
   },
   \"id\": 0

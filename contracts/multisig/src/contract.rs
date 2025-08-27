@@ -198,7 +198,8 @@ mod tests {
     use crate::multisig::Multisig;
     use crate::state::load_session_signatures;
     use crate::test::common::{
-        build_verifier_set, ecdsa_test_data, ed25519_test_data, signature_test_data, TestSigner,
+        build_verifier_set, ecdsa_test_data, ed25519_test_data, signature_test_data,
+        stark_test_data, TestSigner,
     };
     use crate::types::MultisigState;
     use crate::verifier_set::VerifierSet;
@@ -244,6 +245,7 @@ mod tests {
         let signers = match key_type {
             KeyType::Ecdsa => ecdsa_test_data::signers(),
             KeyType::Ed25519 => ed25519_test_data::signers(),
+            KeyType::Stark => stark_test_data::signers(),
         };
 
         let verifier_set = build_verifier_set(key_type, &signers);
@@ -387,6 +389,7 @@ mod tests {
         OwnedDeps<MockStorage, MockApi, MockQuerier, Empty>,
         String,
         String,
+        String,
     ) {
         let mut deps = mock_dependencies();
         do_instantiate(deps.as_mut()).unwrap();
@@ -396,10 +399,14 @@ mod tests {
         let verifier_set_ed25519 = generate_verifier_set(KeyType::Ed25519, deps.as_mut())
             .unwrap()
             .1;
+        let verifier_set_stark = generate_verifier_set(KeyType::Stark, deps.as_mut())
+            .unwrap()
+            .1;
         let ecdsa_subkey = verifier_set_ecdsa.id();
         let ed25519_subkey = verifier_set_ed25519.id();
+        let stark_subkey = verifier_set_stark.id();
 
-        (deps, ecdsa_subkey, ed25519_subkey)
+        (deps, ecdsa_subkey, ed25519_subkey, stark_subkey)
     }
 
     // TODO: move to external crate?
@@ -453,6 +460,11 @@ mod tests {
         let verifier_set_2 = res.unwrap().1;
         let verifier_set_2_id = verifier_set_2.id();
 
+        let res = generate_verifier_set(KeyType::Stark, deps.as_mut());
+        assert!(res.is_ok());
+        let verifier_set_3 = res.unwrap().1;
+        let verifier_set_3_id = verifier_set_3.id();
+
         let res = query_verifier_set(&verifier_set_1.id(), deps.as_ref());
         assert!(res.is_ok());
         assert_eq!(verifier_set_1, from_json(res.unwrap()).unwrap());
@@ -461,9 +473,14 @@ mod tests {
         assert!(res.is_ok());
         assert_eq!(verifier_set_2, from_json(res.unwrap()).unwrap());
 
+        let res = query_verifier_set(&verifier_set_3.id(), deps.as_ref());
+        assert!(res.is_ok());
+        assert_eq!(verifier_set_3, from_json(res.unwrap()).unwrap());
+
         for (key_type, _) in [
             (KeyType::Ecdsa, verifier_set_1_id),
             (KeyType::Ed25519, verifier_set_2_id),
+            (KeyType::Stark, verifier_set_3_id),
         ] {
             let res = generate_verifier_set(key_type, deps.as_mut());
             assert!(res.is_ok());
@@ -473,7 +490,7 @@ mod tests {
     #[test]
     #[allow(clippy::arithmetic_side_effects)]
     fn start_signing_session() {
-        let (mut deps, ecdsa_subkey, ed25519_subkey) = setup();
+        let (mut deps, ecdsa_subkey, ed25519_subkey, stark_subkey) = setup();
         let chain_name = chain_name!(MOCK_CHAIN);
         do_authorize_callers(
             deps.as_mut(),
@@ -503,6 +520,7 @@ mod tests {
             let message = match subkey {
                 _ if subkey == ecdsa_subkey => ecdsa_test_data::message(),
                 _ if subkey == ed25519_subkey => ed25519_test_data::message(),
+                _ if subkey == stark_subkey => stark_test_data::message(),
                 _ => panic!("unexpected subkey"),
             };
             let signatures =
@@ -538,7 +556,7 @@ mod tests {
 
     #[test]
     fn start_signing_session_wrong_sender() {
-        let (mut deps, ecdsa_subkey, ed25519_subkey) = setup();
+        let (mut deps, ecdsa_subkey, ed25519_subkey, stark_subkey) = setup();
         let chain_name = chain_name!(MOCK_CHAIN);
         do_authorize_callers(
             deps.as_mut(),
@@ -546,7 +564,7 @@ mod tests {
         )
         .unwrap();
 
-        for verifier_set_id in [ecdsa_subkey, ed25519_subkey] {
+        for verifier_set_id in [ecdsa_subkey, ed25519_subkey, stark_subkey] {
             let res = do_start_signing_session(
                 deps.as_mut(),
                 cosmos_addr!("someone else"),
@@ -565,7 +583,7 @@ mod tests {
 
     #[test]
     fn submit_signature() {
-        let (mut deps, ecdsa_subkey, ed25519_subkey) = setup();
+        let (mut deps, ecdsa_subkey, ed25519_subkey, stark_subkey) = setup();
         let chain_name = chain_name!(MOCK_CHAIN);
         do_authorize_callers(
             deps.as_mut(),
@@ -574,7 +592,7 @@ mod tests {
         .unwrap();
 
         for (key_type, verifier_set_id, signers, session_id) in
-            signature_test_data(&ecdsa_subkey, &ed25519_subkey)
+            signature_test_data(&ecdsa_subkey, &ed25519_subkey, &stark_subkey)
         {
             do_start_signing_session(
                 deps.as_mut(),
@@ -641,7 +659,7 @@ mod tests {
 
     #[test]
     fn submit_signature_completes_session() {
-        let (mut deps, ecdsa_subkey, ed25519_subkey) = setup();
+        let (mut deps, ecdsa_subkey, ed25519_subkey, stark_subkey) = setup();
         let chain_name = chain_name!(MOCK_CHAIN);
         do_authorize_callers(
             deps.as_mut(),
@@ -650,7 +668,7 @@ mod tests {
         .unwrap();
 
         for (key_type, subkey, signers, session_id) in
-            signature_test_data(&ecdsa_subkey, &ed25519_subkey)
+            signature_test_data(&ecdsa_subkey, &ed25519_subkey, &stark_subkey)
         {
             do_start_signing_session(
                 deps.as_mut(),
@@ -705,7 +723,7 @@ mod tests {
     #[test]
     #[allow(clippy::arithmetic_side_effects)]
     fn submit_signature_before_expiry() {
-        let (mut deps, ecdsa_subkey, ed25519_subkey) = setup();
+        let (mut deps, ecdsa_subkey, ed25519_subkey, stark_subkey) = setup();
         let chain_name = chain_name!(MOCK_CHAIN);
         do_authorize_callers(
             deps.as_mut(),
@@ -714,7 +732,7 @@ mod tests {
         .unwrap();
 
         for (_key_type, subkey, signers, session_id) in
-            signature_test_data(&ecdsa_subkey, &ed25519_subkey)
+            signature_test_data(&ecdsa_subkey, &ed25519_subkey, &stark_subkey)
         {
             do_start_signing_session(
                 deps.as_mut(),
@@ -761,7 +779,7 @@ mod tests {
     #[test]
     #[allow(clippy::arithmetic_side_effects)]
     fn submit_signature_after_expiry() {
-        let (mut deps, ecdsa_subkey, ed25519_subkey) = setup();
+        let (mut deps, ecdsa_subkey, ed25519_subkey, stark_subkey) = setup();
 
         let chain_name = chain_name!(MOCK_CHAIN);
         do_authorize_callers(
@@ -771,7 +789,7 @@ mod tests {
         .unwrap();
 
         for (_key_type, subkey, signers, session_id) in
-            signature_test_data(&ecdsa_subkey, &ed25519_subkey)
+            signature_test_data(&ecdsa_subkey, &ed25519_subkey, &stark_subkey)
         {
             do_start_signing_session(
                 deps.as_mut(),
@@ -806,7 +824,7 @@ mod tests {
 
     #[test]
     fn submit_signature_wrong_session_id() {
-        let (mut deps, ecdsa_subkey, _) = setup();
+        let (mut deps, ecdsa_subkey, _, _) = setup();
         let chain_name = chain_name!(MOCK_CHAIN);
         do_authorize_callers(
             deps.as_mut(),
@@ -836,7 +854,7 @@ mod tests {
 
     #[test]
     fn query_signing_session() {
-        let (mut deps, ecdsa_subkey, ed25519_subkey) = setup();
+        let (mut deps, ecdsa_subkey, ed25519_subkey, stark_subkey) = setup();
         let chain_name = chain_name!(MOCK_CHAIN);
         do_authorize_callers(
             deps.as_mut(),
@@ -845,7 +863,7 @@ mod tests {
         .unwrap();
 
         for (_key_type, subkey, signers, session_id) in
-            signature_test_data(&ecdsa_subkey, &ed25519_subkey)
+            signature_test_data(&ecdsa_subkey, &ed25519_subkey, &stark_subkey)
         {
             do_start_signing_session(
                 deps.as_mut(),
@@ -1136,7 +1154,7 @@ mod tests {
 
     #[test]
     fn authorize_and_unauthorize_callers() {
-        let (mut deps, ecdsa_subkey, ed25519_subkey) = setup();
+        let (mut deps, ecdsa_subkey, ed25519_subkey, stark_subkey) = setup();
         let prover_address = cosmos_addr!(PROVER);
         let chain_name = chain_name!(MOCK_CHAIN);
 
@@ -1147,7 +1165,11 @@ mod tests {
         )
         .unwrap();
 
-        for verifier_set_id in [ecdsa_subkey.clone(), ed25519_subkey.clone()] {
+        for verifier_set_id in [
+            ecdsa_subkey.clone(),
+            ed25519_subkey.clone(),
+            stark_subkey.clone(),
+        ] {
             let res = do_start_signing_session(
                 deps.as_mut(),
                 cosmos_addr!(PROVER),
@@ -1169,7 +1191,7 @@ mod tests {
             vec![(prover_address.clone(), chain_name.clone())],
         )
         .unwrap();
-        for verifier_set_id in [ecdsa_subkey, ed25519_subkey] {
+        for verifier_set_id in [ecdsa_subkey, ed25519_subkey, stark_subkey] {
             let res = do_start_signing_session(
                 deps.as_mut(),
                 cosmos_addr!(PROVER),
@@ -1192,7 +1214,7 @@ mod tests {
 
     #[test]
     fn authorize_and_unauthorize_many_callers() {
-        let (mut deps, _, _) = setup();
+        let (mut deps, _, _, _) = setup();
 
         let contracts = vec![
             (cosmos_addr!("addr1"), chain_name!("chain1")),
@@ -1274,7 +1296,7 @@ mod tests {
 
     #[test]
     fn disable_enable_signing() {
-        let (mut deps, ecdsa_subkey, ed25519_subkey) = setup();
+        let (mut deps, ecdsa_subkey, ed25519_subkey, stark_subkey) = setup();
         let prover_address = cosmos_addr!(PROVER);
         let chain_name = chain_name!(MOCK_CHAIN);
 
@@ -1287,7 +1309,11 @@ mod tests {
 
         do_disable_signing(deps.as_mut(), cosmos_addr!(ADMIN)).unwrap();
 
-        for verifier_set_id in [ecdsa_subkey.clone(), ed25519_subkey.clone()] {
+        for verifier_set_id in [
+            ecdsa_subkey.clone(),
+            ed25519_subkey.clone(),
+            stark_subkey.clone(),
+        ] {
             let res = do_start_signing_session(
                 deps.as_mut(),
                 cosmos_addr!(PROVER),
@@ -1303,7 +1329,11 @@ mod tests {
 
         do_enable_signing(deps.as_mut(), cosmos_addr!(ADMIN)).unwrap();
 
-        for verifier_set_id in [ecdsa_subkey.clone(), ed25519_subkey.clone()] {
+        for verifier_set_id in [
+            ecdsa_subkey.clone(),
+            ed25519_subkey.clone(),
+            stark_subkey.clone(),
+        ] {
             let res = do_start_signing_session(
                 deps.as_mut(),
                 cosmos_addr!(PROVER),
@@ -1317,7 +1347,7 @@ mod tests {
 
     #[test]
     fn disable_signing_after_session_creation() {
-        let (mut deps, ecdsa_subkey, ed25519_subkey) = setup();
+        let (mut deps, ecdsa_subkey, ed25519_subkey, stark_subkey) = setup();
         let chain_name = chain_name!(MOCK_CHAIN);
         do_authorize_callers(
             deps.as_mut(),
@@ -1326,7 +1356,7 @@ mod tests {
         .unwrap();
 
         for (_, verifier_set_id, signers, session_id) in
-            signature_test_data(&ecdsa_subkey, &ed25519_subkey)
+            signature_test_data(&ecdsa_subkey, &ed25519_subkey, &stark_subkey)
         {
             do_start_signing_session(
                 deps.as_mut(),
@@ -1366,7 +1396,7 @@ mod tests {
 
     #[test]
     fn start_signing_session_wrong_chain() {
-        let (mut deps, ecdsa_subkey, ed25519_subkey) = setup();
+        let (mut deps, ecdsa_subkey, ed25519_subkey, stark_subkey) = setup();
 
         let chain_name = chain_name!(MOCK_CHAIN);
         do_authorize_callers(
@@ -1377,7 +1407,7 @@ mod tests {
 
         let wrong_chain_name = chain_name!("some-other-chain");
 
-        for verifier_set_id in [ecdsa_subkey, ed25519_subkey] {
+        for verifier_set_id in [ecdsa_subkey, ed25519_subkey, stark_subkey] {
             let res = do_start_signing_session(
                 deps.as_mut(),
                 cosmos_addr!(PROVER),

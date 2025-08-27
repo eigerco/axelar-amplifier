@@ -6521,6 +6521,11 @@ dependencies = [
  "serde_json",
  "sha3",
  "signature-verifier-api",
+ "starknet-checked-felt",
+ "starknet-core",
+ "starknet-crypto",
+ "starknet-curve",
+ "starknet-types-core",
  "thiserror 1.0.69",
 ]
 
@@ -11535,9 +11540,9 @@ dependencies = [
 
 [[package]]
 name = "starknet-core"
-version = "0.12.2"
+version = "0.14.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ab44b2157b7f4697d58375cc8b8dbac8dfb6be79f13fd80c9f59634d2ac972c7"
+checksum = "dc2091a08ebfc65c5a6b8bd2c66e32780739854b813af0b4348b6dbf3a887865"
 dependencies = [
  "base64 0.21.7",
  "crypto-bigint",
@@ -11609,9 +11614,9 @@ dependencies = [
 
 [[package]]
 name = "starknet-providers"
-version = "0.12.1"
+version = "0.14.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a9256247f718564b3e4c73cc941735012691c14903fbc25cea306745bcbfa384"
+checksum = "1ce77bf215b70673264bc875d59c45fb7da500e7e6f71d2608ad25a1f7280671"
 dependencies = [
  "async-trait",
  "auto_impl",
@@ -11619,7 +11624,7 @@ dependencies = [
  "flate2",
  "getrandom 0.2.16",
  "log",
- "reqwest 0.11.27",
+ "reqwest 0.12.15",
  "serde",
  "serde_json",
  "serde_with",
@@ -12658,8 +12663,7 @@ checksum = "1f3ccbac311fea05f86f61904b462b55fb3df8837a366dfc601a0161d0532f20"
 [[package]]
 name = "tofn"
 version = "1.1.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "255a99b697179124254f23d05c2bc394276ba870791d99a9f5896f7f60d40eb9"
+source = "git+https://github.com/eigerco/tofn.git?branch=starknet-STARK#a87d67a48e9163897021e4b85982686ed71a6174"
 dependencies = [
  "bincode",
  "crypto-bigint",
@@ -12672,6 +12676,7 @@ dependencies = [
  "rand_chacha 0.3.1",
  "serde",
  "sha2 0.10.9",
+ "starknet-crypto",
  "tracing",
  "zeroize",
 ]
