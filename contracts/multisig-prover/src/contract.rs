@@ -3,6 +3,7 @@ use axelar_wasm_std::{address, permission_control};
 use cosmwasm_std::entry_point;
 use cosmwasm_std::{to_json_binary, Binary, Deps, DepsMut, Env, MessageInfo, Reply, Response};
 use error_stack::ResultExt;
+use starknet_checked_felt::CheckedFelt;
 
 use crate::error::ContractError;
 use crate::msg::{ExecuteMsg, InstantiateMsg, QueryMsg};
@@ -28,6 +29,16 @@ pub fn instantiate(
     msg: InstantiateMsg,
 ) -> Result<Response, axelar_wasm_std::error::ContractError> {
     cw2::set_contract_version(deps.storage, CONTRACT_NAME, CONTRACT_VERSION)?;
+
+    // For Starknet, validate that domain_separator is a valid felt
+    if matches!(
+        msg.encoder,
+        multisig_prover_api::encoding::Encoder::StarknetAbi
+    ) {
+        CheckedFelt::try_from(&msg.domain_separator)
+            .change_context(ContractError::InvalidFelt)
+            .attach_printable("domain_separator must be a valid Starknet felt252")?;
+    }
 
     let config = Config {
         gateway: address::validate_cosmwasm_address(deps.api, &msg.gateway_address)?,

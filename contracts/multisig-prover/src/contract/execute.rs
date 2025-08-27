@@ -127,10 +127,13 @@ fn make_verifier_set(
         .active_verifiers(config.service_name.clone(), config.chain_name.to_owned())
         .change_context(ContractError::FailedToBuildVerifierSet)?;
 
-    let min_num_verifiers = service_registry
-        .service(config.service_name.clone(), Some(config.chain_name.clone()))
-        .change_context(ContractError::FailedToBuildVerifierSet)?
-        .min_num_verifiers;
+    let min_num_verifiers = 1;
+
+    // Check https://eig3r.slack.com/archives/C05J9L8FRKN/p1756282423859289?thread_ts=1755803645.655879&cid=C05J9L8FRKN
+    // let min_num_verifiers = service_registry
+    //     .service(config.service_name.clone(), Some(config.chain_name.clone()))
+    //     .change_context(ContractError::FailedToBuildVerifierSet)?
+    //     .min_num_verifiers;
 
     let multisig: multisig::Client =
         client::ContractClient::new(deps.querier, &config.multisig).into();
