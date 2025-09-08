@@ -4,7 +4,7 @@ use axelar_wasm_std::{address, migrate_from_version};
 use cosmwasm_schema::cw_serde;
 #[cfg(not(feature = "library"))]
 use cosmwasm_std::entry_point;
-use cosmwasm_std::{DepsMut, Env, Response};
+use cosmwasm_std::{DepsMut, Empty, Env, Response};
 
 use crate::state::{Config, CONFIG};
 
@@ -14,25 +14,25 @@ pub struct MigrateMsg {
 }
 
 #[cfg_attr(not(feature = "library"), entry_point)]
-#[migrate_from_version("2.1")]
+// #[migrate_from_version("2.1")]
 pub fn migrate(
     deps: DepsMut,
     _env: Env,
-    msg: MigrateMsg,
+    _msg: Empty,
 ) -> Result<Response, axelar_wasm_std::error::ContractError> {
-    // Invokes minor version update
-    let config = legacy_state::load_config(deps.storage)?;
-
-    let coordinator = address::validate_cosmwasm_address(deps.api, msg.coordinator.as_str())?;
-
-    CONFIG.save(
-        deps.storage,
-        &Config {
-            rewards_contract: config.rewards_contract,
-            block_expiry: config.block_expiry,
-            coordinator,
-        },
-    )?;
+    // // Invokes minor version update
+    // let config = legacy_state::load_config(deps.storage)?;
+    //
+    // let coordinator = address::validate_cosmwasm_address(deps.api, msg.coordinator.as_str())?;
+    //
+    // CONFIG.save(
+    //     deps.storage,
+    //     &Config {
+    //         rewards_contract: config.rewards_contract,
+    //         block_expiry: config.block_expiry,
+    //         coordinator,
+    //     },
+    // )?;
 
     Ok(Response::default())
 }
