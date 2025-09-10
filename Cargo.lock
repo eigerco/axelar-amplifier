@@ -127,7 +127,7 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "indexmap 2.10.0",
- "snarkvm",
+ "snarkvm-cosmwasm",
 ]
 
 [[package]]
@@ -240,6 +240,7 @@ dependencies = [
  "aleo-gmp-types",
  "hex",
  "multisig",
+ "multisig-prover",
  "plaintext-trait",
  "rand_chacha 0.3.1",
  "router-api",
