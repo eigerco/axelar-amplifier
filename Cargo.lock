@@ -239,7 +239,6 @@ version = "0.1.0"
 dependencies = [
  "aleo-gateway-types",
  "aleo-gmp-types",
- "hex",
  "multisig",
  "multisig-prover",
  "plaintext-trait",
