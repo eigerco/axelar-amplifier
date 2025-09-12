@@ -12,7 +12,7 @@ pub trait ClientTrait<N: Network>: Send {
     async fn get_transaction(
         &self,
         transaction_id: &N::TransactionID,
-    ) -> Result<aleo_utils::block_processor::Transaction, Error>;
+    ) -> Result<aleo_utils::block_processor::OwnedTransaction, Error>;
 
     async fn find_transaction(&self, transition_id: &N::TransitionID) -> Result<String, Error>;
 }
@@ -40,7 +40,7 @@ impl<N: Network> ClientTrait<N> for Client {
     async fn get_transaction(
         &self,
         transaction_id: &N::TransactionID,
-    ) -> Result<aleo_utils::block_processor::Transaction, Error> {
+    ) -> Result<aleo_utils::block_processor::OwnedTransaction, Error> {
         const ENDPOINT: &str = "transaction";
         let url = format!(
             "{}{}/{ENDPOINT}/{}",
@@ -56,11 +56,11 @@ impl<N: Network> ClientTrait<N> for Client {
             .map_err(Error::from)
             .attach_printable_lazy(|| format!("target url: '{url:?}'"))?;
 
+        let response_text = response.text().await.map_err(Error::from)?;
         let transaction: aleo_utils::block_processor::Transaction =
-            serde_json::from_str(&response.text().await.map_err(Error::from)?)
-                .map_err(Error::from)?;
+            serde_json::from_str(&response_text).map_err(Error::from)?;
 
-        Ok(transaction)
+        Ok(transaction.into_owned())
     }
 
     #[tracing::instrument(skip(self), fields(%transition_id))]

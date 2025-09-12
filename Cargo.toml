@@ -27,7 +27,7 @@ aleo-gmp-types = { path = "packages/aleo-gmp-types" }
 aleo-network-config = { path = "packages/aleo-network-config" }
 aleo-string-encoder = { git = "ssh://git@github.com/eigerco/axelar-aleo.git", branch = "update-to-snarkvm-4.1.0" }
 aleo-gateway-types = { path = "../reshape-crate/crates/aleo-gateway-types" }
-# aleo-utils = { git = "ssh://git@github.com/eigerco/axelar-aleo.git", branch = "dev" }
+plaintext-trait = { path = "../reshape-crate/crates/plaintext-trait" }
 aleo-utils = { path = "/home/angelos/Documents/work/reshape-crate/crates/aleo-utils" }
 alloy-primitives = { version = "0.7.6", default-features = false, features = [
   "std",
