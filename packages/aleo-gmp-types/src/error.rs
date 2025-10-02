@@ -27,4 +27,6 @@ pub enum Error {
     InvalidTokenManagerType,
     #[error("Invalid operator address")]
     InvalidOperatorAddress,
+    #[error("Invalid AxelarProof")]
+    InvalidAxelarProof
 }

@@ -1,12 +1,12 @@
 use aleo_network_config::network::NetworkConfig;
 #[cfg(not(feature = "library"))]
 use cosmwasm_std::entry_point;
-use cosmwasm_std::{to_json_binary, Binary, Deps, DepsMut, Empty, Env, MessageInfo, Response};
+use cosmwasm_std::{to_json_binary, Binary, Deps, DepsMut, Env, MessageInfo, Response};
 use execute::verify_signature;
 use signature_verifier_api::msg::{ExecuteMsg, QueryMsg};
 use snarkvm_cosmwasm::prelude::{CanaryV0, MainnetV0, TestnetV0};
 
-use crate::msg::{InstantiateMsg, Msg};
+use crate::msg::{InstantiateMsg, MigrateMsg, Msg};
 use crate::state::{Config, CONFIG};
 
 pub mod execute;
@@ -83,14 +83,14 @@ fn verify<N: snarkvm_cosmwasm::prelude::Network>(
 pub fn migrate(
     deps: DepsMut,
     _env: Env,
-    _msg: Empty,
+    msg: MigrateMsg,
 ) -> Result<Response, axelar_wasm_std::error::ContractError> {
     cw2::set_contract_version(deps.storage, CONTRACT_NAME, CONTRACT_VERSION)?;
 
     CONFIG.save(
         deps.storage,
         &Config {
-            network: NetworkConfig::TestnetV0, // Default value for migration
+            network: msg.network,
         },
     )?;
 

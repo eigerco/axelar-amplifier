@@ -2,10 +2,10 @@ use std::collections::HashMap;
 use std::mem::MaybeUninit;
 use std::str::FromStr;
 
-use aleo_gateway_types::constants::{SIGNATURE_CHUNKS, SIGNATURES_PER_CHUNK};
+use aleo_gateway_types::constants::{SIGNATURES_PER_CHUNK, SIGNATURE_CHUNKS};
 use aleo_gateway_types::{
-    FromRemoteDeployInterchainToken, IncomingInterchainTransfer, Message, Proof,
-    WeightedSigner, WeightedSigners,
+    FromRemoteDeployInterchainToken, IncomingInterchainTransfer, Message, Proof, WeightedSigner,
+    WeightedSigners,
 };
 use aleo_string_encoder::StringEncoder;
 use cosmwasm_std::Uint128;
@@ -152,7 +152,7 @@ impl<N: Network> AxelarProof<N> {
     pub fn new(
         weighted_signers: WeightedSigners<N>,
         signer_with_signature: Vec<multisig::msg::SignerWithSig>,
-    ) -> Self {
+    ) -> error_stack::Result<Self, Error> {
         let signer_with_signature_len = signer_with_signature.len();
         let mut address_signature: HashMap<Address<N>, Box<Signature<N>>> = signer_with_signature
             .into_iter()
@@ -176,7 +176,15 @@ impl<N: Network> AxelarProof<N> {
             })
             .collect();
 
-        assert!(address_signature.len() == signer_with_signature_len);
+        if address_signature.len() != signer_with_signature_len {
+            return Err(
+                error_stack::report!(Error::InvalidAxelarProof).attach_printable(format!(
+                    "Signature count mismatch: expected {}, got {}",
+                    signer_with_signature_len,
+                    address_signature.len()
+                )),
+            );
+        }
 
         let mut signature: Array2D<MaybeUninit<Box<Signature<N>>>> =
             unsafe { MaybeUninit::uninit().assume_init() };
@@ -203,10 +211,10 @@ impl<N: Network> AxelarProof<N> {
             >(signature)
         };
 
-        AxelarProof {
+        Ok(AxelarProof {
             weighted_signers,
             signature,
-        }
+        })
     }
 }
 
