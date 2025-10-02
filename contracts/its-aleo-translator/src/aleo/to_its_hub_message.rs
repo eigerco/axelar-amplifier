@@ -14,24 +14,13 @@ use router_api::ChainNameRaw;
 use snarkvm_cosmwasm::prelude::Network;
 
 use crate::aleo::Error;
+use crate::aleo::to_hex;
 
 /// Trait to convert a message to a HubMessage
 pub trait ToItsHubMessage {
     type Error;
 
     fn to_hub_message(self) -> Result<HubMessage, Self::Error>;
-}
-
-// Convert cosmwasm_std::HexBinary to nonempty::HexBinary
-fn from_hex_to_hex(hex: &str) -> nonempty::HexBinary {
-    cosmwasm_std::HexBinary::from_hex(hex)
-        .expect("Valid hex string")
-        .try_into()
-        .expect("Valid non-empty hex binary")
-}
-
-fn to_hex(data: &str) -> nonempty::HexBinary {
-    from_hex_to_hex(&hex::encode(data.as_bytes()))
 }
 
 impl<N: Network> ToItsHubMessage for WrappedSendLinkToken<N> {

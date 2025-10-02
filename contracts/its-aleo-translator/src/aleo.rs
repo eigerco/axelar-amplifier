@@ -133,6 +133,18 @@ pub fn aleo_outbound_hub_message<N: Network>(
     }
 }
 
+// Convert cosmwasm_std::HexBinary to nonempty::HexBinary
+fn from_hex_to_hex(hex: &str) -> nonempty::HexBinary {
+    HexBinary::from_hex(hex)
+        .expect("Valid hex string")
+        .try_into()
+        .expect("Valid non-empty hex binary")
+}
+
+fn to_hex(data: &str) -> nonempty::HexBinary {
+    from_hex_to_hex(&hex::encode(data.as_bytes()))
+}
+
 #[cfg(test)]
 mod tests {
     use std::str::FromStr;
@@ -161,18 +173,6 @@ mod tests {
 
     fn eth_sepolia_chain() -> ChainNameRaw {
         ChainNameRaw::from_str("eth-sepolia").unwrap()
-    }
-
-    // Convert cosmwasm_std::HexBinary to nonempty::HexBinary
-    fn from_hex_to_hex(hex: &str) -> nonempty::HexBinary {
-        HexBinary::from_hex(hex)
-            .expect("Valid hex string")
-            .try_into()
-            .expect("Valid non-empty hex binary")
-    }
-
-    fn to_hex(data: &str) -> nonempty::HexBinary {
-        from_hex_to_hex(&hex::encode(data.as_bytes()))
     }
 
     fn format_aleo_array(data: &[u128], len: usize) -> String {
