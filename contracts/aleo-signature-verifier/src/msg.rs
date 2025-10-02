@@ -8,7 +8,10 @@ pub struct InstantiateMsg {
     pub network: NetworkConfig,
 }
 
-pub type MigrateMsg = InstantiateMsg;
+#[cw_serde]
+pub struct MigrateMsg {
+    pub network: NetworkConfig,
+}
 
 pub struct Msg {
     pub signature: HexBinary,
