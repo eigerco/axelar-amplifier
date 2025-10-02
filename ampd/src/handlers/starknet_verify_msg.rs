@@ -7,8 +7,8 @@ use cosmrs::cosmwasm::MsgExecuteContract;
 use cosmrs::tx::Msg;
 use cosmrs::Any;
 use error_stack::ResultExt;
-use events::try_from;
 use events::Error::EventTypeMismatch;
+use events::{try_from, EventType};
 use futures::future::join_all;
 use itertools::Itertools;
 use lazy_static::lazy_static;
@@ -20,6 +20,7 @@ use tracing::info;
 use voting_verifier::msg::ExecuteMsg;
 
 use crate::event_processor::EventHandler;
+use crate::event_sub::event_filter::{EventFilter, EventFilters};
 use crate::handlers::errors::Error;
 use crate::handlers::errors::Error::DeserializeEvent;
 use crate::monitoring;
@@ -166,6 +167,16 @@ where
             .into_any()
             .expect("vote msg should serialize")])
     }
+
+    fn event_filters(&self) -> EventFilters {
+        EventFilters::new(
+            vec![EventFilter::EventTypeAndContract(
+                PollStartedEvent::event_type(),
+                self.voting_verifier.clone(),
+            )],
+            true,
+        )
+    }
 }
 
 #[cfg(test)]
@@ -191,6 +202,10 @@ mod tests {
     use crate::types::starknet::events::contract_call::ContractCallEvent;
     use crate::PREFIX;
 
+    const DESTINATION_ADDRESS: &str = "destination-address";
+    const STARKNET: &str = "starknet";
+    const ETHEREUM: &str = "ethereum";
+
     #[async_test]
     async fn should_correctly_validate_two_messages_within_the_same_tx() {
         // Setup the context
@@ -206,8 +221,8 @@ mod tests {
             .returning(|_| {
                 Some(ContractCallEvent {
                     from_contract_addr: String::from("source-gw-addr"),
-                    destination_address: String::from("destination-address"),
-                    destination_chain: "ethereum".parse().unwrap(),
+                    destination_address: String::from(DESTINATION_ADDRESS),
+                    destination_chain: ETHEREUM.parse().unwrap(),
                     source_address: Felt::ONE,
                     payload_hash: H256::from_slice(&[
                         28u8, 138, 255, 149, 6, 133, 194, 237, 75, 195, 23, 79, 52, 114, 40, 123,
@@ -261,8 +276,8 @@ mod tests {
             .returning(|_| {
                 Some(ContractCallEvent {
                     from_contract_addr: String::from("source-gw-addr"),
-                    destination_address: String::from("destination-address"),
-                    destination_chain: "ethereum".parse().unwrap(),
+                    destination_address: String::from(DESTINATION_ADDRESS),
+                    destination_chain: ETHEREUM.parse().unwrap(),
                     source_address: Felt::ONE,
                     payload_hash: H256::from_slice(&[
                         28u8, 138, 255, 149, 6, 133, 194, 237, 75, 195, 23, 79, 52, 114, 40, 123,
@@ -349,8 +364,8 @@ mod tests {
             .returning(|_| {
                 Some(ContractCallEvent {
                     from_contract_addr: String::from("source-gw-addr"),
-                    destination_address: String::from("destination-address"),
-                    destination_chain: "ethereum".parse().unwrap(),
+                    destination_address: String::from(DESTINATION_ADDRESS),
+                    destination_chain: ETHEREUM.parse().unwrap(),
                     source_address: Felt::ONE,
                     payload_hash: H256::from_slice(&[
                         28u8, 138, 255, 149, 6, 133, 194, 237, 75, 195, 23, 79, 52, 114, 40, 123,
@@ -501,7 +516,7 @@ mod tests {
         PollStarted::Messages {
             metadata: PollMetadata {
                 poll_id: "100".parse().unwrap(),
-                source_chain: chain_name!("starknet"),
+                source_chain: chain_name!(STARKNET),
                 source_gateway_address: "source-gw-addr".parse().unwrap(),
                 confirmation_height: 15,
                 expires_at,
@@ -521,12 +536,11 @@ mod tests {
                             .parse()
                             .unwrap(),
                     event_index: 0,
-                    source_address:
+                    source_address: address!(
                         "0x0000000000000000000000000000000000000000000000000000000000000001"
-                            .parse()
-                            .unwrap(),
-                    destination_chain: chain_name!("ethereum"),
-                    destination_address: address!("destination-address"),
+                    ),
+                    destination_chain: chain_name!(ETHEREUM),
+                    destination_address: address!(DESTINATION_ADDRESS),
                     payload_hash: H256::from_slice(&[
                         // keccak256("hello")
                         28, 138, 255, 149, 6, 133, 194, 237, 75, 195, 23, 79, 52, 114, 40, 123, 86,
@@ -567,7 +581,7 @@ mod tests {
         PollStarted::Messages {
             metadata: PollMetadata {
                 poll_id: "100".parse().unwrap(),
-                source_chain: chain_name!("starknet"),
+                source_chain: chain_name!(STARKNET),
                 source_gateway_address: "source-gw-addr".parse().unwrap(),
                 confirmation_height: 15,
                 expires_at,
@@ -587,12 +601,11 @@ mod tests {
                             .parse()
                             .unwrap(),
                     event_index: 0,
-                    source_address:
+                    source_address: address!(
                         "0x0000000000000000000000000000000000000000000000000000000000000001"
-                            .parse()
-                            .unwrap(),
-                    destination_chain: chain_name!("ethereum"),
-                    destination_address: address!("destination-address"),
+                    ),
+                    destination_chain: chain_name!(ETHEREUM),
+                    destination_address: address!(DESTINATION_ADDRESS),
                     payload_hash: H256::from_slice(&[
                         // keccak256("hello")
                         28, 138, 255, 149, 6, 133, 194, 237, 75, 195, 23, 79, 52, 114, 40, 123, 86,
@@ -610,12 +623,11 @@ mod tests {
                             .parse()
                             .unwrap(),
                     event_index: 1,
-                    source_address:
+                    source_address: address!(
                         "0x0000000000000000000000000000000000000000000000000000000000000001"
-                            .parse()
-                            .unwrap(),
-                    destination_chain: chain_name!("ethereum"),
-                    destination_address: address!("destination-address"),
+                    ),
+                    destination_chain: chain_name!(ETHEREUM),
+                    destination_address: address!(DESTINATION_ADDRESS),
                     payload_hash: H256::from_slice(&[
                         // keccak256("hello")
                         28u8, 138, 255, 149, 6, 133, 194, 237, 75, 195, 23, 79, 52, 114, 40, 123,
@@ -634,7 +646,7 @@ mod tests {
         PollStarted::Messages {
             metadata: PollMetadata {
                 poll_id: "100".parse().unwrap(),
-                source_chain: chain_name!("starknet"),
+                source_chain: chain_name!(STARKNET),
                 source_gateway_address: "source-gw-addr".parse().unwrap(),
                 confirmation_height: 15,
                 expires_at,
@@ -654,12 +666,11 @@ mod tests {
                             .parse()
                             .unwrap(),
                     event_index: 1,
-                    source_address:
+                    source_address: address!(
                         "0x0000000000000000000000000000000000000000000000000000000000000001"
-                            .parse()
-                            .unwrap(),
-                    destination_chain: chain_name!("ethereum"),
-                    destination_address: address!("destination-address"),
+                    ),
+                    destination_chain: chain_name!(ETHEREUM),
+                    destination_address: address!(DESTINATION_ADDRESS),
                     payload_hash: H256::from_slice(&[
                         // keccak256("hello")
                         28u8, 138, 255, 149, 6, 133, 194, 237, 75, 195, 23, 79, 52, 114, 40, 123,
@@ -677,12 +688,11 @@ mod tests {
                             .parse()
                             .unwrap(),
                     event_index: 1,
-                    source_address:
+                    source_address: address!(
                         "0x0000000000000000000000000000000000000000000000000000000000000001"
-                            .parse()
-                            .unwrap(),
-                    destination_chain: chain_name!("ethereum"),
-                    destination_address: address!("destination-address"),
+                    ),
+                    destination_chain: chain_name!(ETHEREUM),
+                    destination_address: address!(DESTINATION_ADDRESS),
                     payload_hash: H256::from_slice(&[
                         // keccak256("hello")
                         28u8, 138, 255, 149, 6, 133, 194, 237, 75, 195, 23, 79, 52, 114, 40, 123,

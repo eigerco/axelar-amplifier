@@ -7,8 +7,8 @@ use cosmrs::cosmwasm::MsgExecuteContract;
 use cosmrs::tx::Msg;
 use cosmrs::Any;
 use error_stack::ResultExt;
-use events::try_from;
 use events::Error::EventTypeMismatch;
+use events::{try_from, EventType};
 use multisig::verifier_set::VerifierSet;
 use router_api::ChainName;
 use serde::Deserialize;
@@ -19,6 +19,7 @@ use valuable::Valuable;
 use voting_verifier::msg::ExecuteMsg;
 
 use crate::event_processor::EventHandler;
+use crate::event_sub::event_filter::{EventFilter, EventFilters};
 use crate::handlers::errors::Error;
 use crate::monitoring;
 use crate::monitoring::metrics;
@@ -178,6 +179,16 @@ impl<C: SolanaRpcClientProxy> EventHandler for Handler<C> {
             .into_any()
             .expect("vote msg should serialize")])
     }
+
+    fn event_filters(&self) -> EventFilters {
+        EventFilters::new(
+            vec![EventFilter::EventTypeAndContract(
+                PollStartedEvent::event_type(),
+                self.voting_verifier_contract.clone(),
+            )],
+            true,
+        )
+    }
 }
 
 #[cfg(test)]
@@ -206,6 +217,8 @@ mod tests {
     use crate::monitoring::{metrics, test_utils};
     use crate::types::TMAddress;
     use crate::PREFIX;
+
+    const SOLANA: &str = "solana";
 
     struct EmptyResponseSolanaRpc;
     #[async_trait::async_trait]
@@ -267,7 +280,7 @@ mod tests {
         let (monitoring_client, _) = test_utils::monitoring_client();
 
         let handler = super::Handler::new(
-            chain_name!("solana"),
+            chain_name!(SOLANA),
             TMAddress::random(PREFIX),
             TMAddress::random(PREFIX),
             EmptyResponseSolanaRpc,
@@ -289,7 +302,7 @@ mod tests {
         let (monitoring_client, _) = test_utils::monitoring_client();
 
         let handler = super::Handler::new(
-            chain_name!("solana"),
+            chain_name!(SOLANA),
             TMAddress::random(PREFIX),
             TMAddress::random(PREFIX),
             EmptyResponseSolanaRpc,
@@ -312,7 +325,7 @@ mod tests {
         let (monitoring_client, _) = test_utils::monitoring_client();
 
         let handler = super::Handler::new(
-            chain_name!("solana"),
+            chain_name!(SOLANA),
             TMAddress::random(PREFIX),
             voting_verifier,
             EmptyResponseSolanaRpc,
@@ -342,7 +355,7 @@ mod tests {
         let (monitoring_client, _) = test_utils::monitoring_client();
 
         let handler = super::Handler::new(
-            chain_name!("solana"),
+            chain_name!(SOLANA),
             verifier,
             voting_verifier,
             ValidResponseSolanaRpc,
@@ -374,7 +387,7 @@ mod tests {
         let (monitoring_client, _) = test_utils::monitoring_client();
 
         let handler = super::Handler::new(
-            chain_name!("solana"),
+            chain_name!(SOLANA),
             worker,
             voting_verifier,
             ValidResponseSolanaRpc,
@@ -401,7 +414,7 @@ mod tests {
         let (monitoring_client, mut receiver) = test_utils::monitoring_client();
 
         let handler = super::Handler::new(
-            chain_name!("solana"),
+            chain_name!(SOLANA),
             worker,
             voting_verifier,
             ValidResponseSolanaRpc,
@@ -417,7 +430,7 @@ mod tests {
             metrics,
             metrics::Msg::VerificationVote {
                 vote_decision: Vote::NotFound,
-                chain_name: chain_name!("solana"),
+                chain_name: chain_name!(SOLANA),
             }
         );
 
@@ -434,7 +447,7 @@ mod tests {
         PollStarted::VerifierSet {
             metadata: PollMetadata {
                 poll_id: "100".parse().unwrap(),
-                source_chain: chain_name!("solana"),
+                source_chain: chain_name!(SOLANA),
                 source_gateway_address: axelar_solana_gateway::ID.to_string().parse().unwrap(),
                 confirmation_height: 15,
                 expires_at,

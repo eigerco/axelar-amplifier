@@ -2,7 +2,45 @@
 
 ## [Unreleased](https://github.com/axelarnetwork/axelar-amplifier/tree/HEAD)
 
-[Full Changelog](https://github.com/axelarnetwork/axelar-amplifier/compare/ampd-v1.10.0..HEAD)
+[Full Changelog](https://github.com/axelarnetwork/axelar-amplifier/compare/ampd-v1.12.1..HEAD)
+
+## [v1.12.1](https://github.com/axelarnetwork/axelar-amplifier/tree/ampd-v1.12.1) (2025-09-25)
+
+[Full Changelog](https://github.com/axelarnetwork/axelar-amplifier/compare/ampd-v1.12.0..ampd-v1.12.1)
+
+- add event filtering to event handlers [#1049](https://github.com/axelarnetwork/axelar-amplifier/pull/1049)
+
+## [v1.12.0](https://github.com/axelarnetwork/axelar-amplifier/tree/ampd-v1.12.0) (2025-09-19)
+
+[Full Changelog](https://github.com/axelarnetwork/axelar-amplifier/compare/ampd-v1.11.0..ampd-v1.12.0)
+
+- retry when there is a sequence mismatch error [#1042](https://github.com/axelarnetwork/axelar-amplifier/pull/1042)
+- add latest block height method to grpc server [#1040](https://github.com/axelarnetwork/axelar-amplifier/pull/1040)
+- deserialize cosmrs message values [#1032](https://github.com/axelarnetwork/axelar-amplifier/pull/1032)
+- add config module [#1022](https://github.com/axelarnetwork/axelar-amplifier/pull/1022)
+- fix compilation error when not using `dummy-grpc-broadcast` [#1030](https://github.com/axelarnetwork/axelar-amplifier/pull/1030)
+- setup message logger for evm handler [#1026](https://github.com/axelarnetwork/axelar-amplifier/pull/1026)
+- implement blockchain service method `contracts` [#1009](https://github.com/axelarnetwork/axelar-amplifier/pull/1009)
+- move hardcoded values into config [#1019](https://github.com/axelarnetwork/axelar-amplifier/pull/1019)
+- miscellaneous changes to add `router_api` macros to tests [#1004](https://github.com/axelarnetwork/axelar-amplifier/pull/1004)
+- track ampd error in monitoring server [#998](https://github.com/axelarnetwork/axelar-amplifier/pull/998)
+- ampd release doc update [#1012](https://github.com/axelarnetwork/axelar-amplifier/pull/1012)
+- add custom linter to basic workflow [#981](https://github.com/axelarnetwork/axelar-amplifier/pull/981)
+- record stage metrics in monitoring server [#985](https://github.com/axelarnetwork/axelar-amplifier/pull/985)
+- track error returns by rpc nodes [#973](https://github.com/axelarnetwork/axelar-amplifier/pull/973)
+
+## [v1.11.0](https://github.com/axelarnetwork/axelar-amplifier/tree/ampd-v1.11.0) (2025-08-14)
+
+[Full Changelog](https://github.com/axelarnetwork/axelar-amplifier/compare/ampd-v1.10.0..ampd-v1.11.0)
+
+- stellar protocol v23 update [#968](https://github.com/axelarnetwork/axelar-amplifier/pull/968)
+- use `address!` macro instead of string literal conversion [#996](https://github.com/axelarnetwork/axelar-amplifier/pull/996)
+- use `chain_name!` macro instead of string literal conversion [#992](https://github.com/axelarnetwork/axelar-amplifier/pull/992)
+- use `chain_name_raw!` macro instead of string literal conversion [#993](https://github.com/axelarnetwork/axelar-amplifier/pull/993)
+- reset sequence number before enqueuing message for broadcast [#994](https://github.com/axelarnetwork/axelar-amplifier/pull/994)
+- add ampd cpu and memory usage metrics tracking [#965](https://github.com/axelarnetwork/axelar-amplifier/pull/965)
+- track vote verification outcome in voting handler [#959](https://github.com/axelarnetwork/axelar-amplifier/pull/959)
+- unify Rust setup across workflows [#987](https://github.com/axelarnetwork/axelar-amplifier/pull/987)
 
 ## [v1.10.0](https://github.com/axelarnetwork/axelar-amplifier/tree/ampd-v1.10.0) (2025-07-28)
 
@@ -29,7 +67,7 @@
 - expose derive macros via feature flag [#902](https://github.com/axelarnetwork/axelar-amplifier/pull/902)
 - add eol normalization [#907](https://github.com/axelarnetwork/axelar-amplifier/pull/907)
 
-## [v1.9.0](https://github.com/axelarnetwork/axelar-amplifier/tree/ampd-v1.9.0)
+## [v1.9.0](https://github.com/axelarnetwork/axelar-amplifier/tree/ampd-v1.9.0) (2025-06-04)
 
 [Full Changelog](https://github.com/axelarnetwork/axelar-amplifier/compare/ampd-v1.8.0..ampd-v1.9.0)
 

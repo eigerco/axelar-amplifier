@@ -1,17 +1,17 @@
 [workspace]
 members = [
-    "ampd",
-    "ampd-handlers",
-    "contracts/*",
-    "external-gateways/*",
-    "integration-tests",
-    "packages/*",
-    "tools/*",
+  "ampd",
+  "ampd-handlers",
+  "contracts/*",
+  "external-gateways/*",
+  "integration-tests",
+  "packages/*",
+  "tools/*",
 ]
 resolver = "2"
 
 [workspace.package]
-rust-version = "1.86.0" # be sure there is an optimizer release supporting this version before updating. See https://github.com/CosmWasm/optimizer
+rust-version = "1.86.0"       # be sure there is an optimizer release supporting this version before updating. See https://github.com/CosmWasm/optimizer
 edition = "2021"
 license = "MIT OR Apache-2.0"
 
@@ -20,12 +20,12 @@ license = "MIT OR Apache-2.0"
 [[workspace.metadata.dylint.libraries]]
 git = "https://github.com/axelarnetwork/axelar-lints"
 pattern = "amplifier-lints"
-rev = "ebfed5dde7990739367c182338a3b6c2dd11ef09"
+rev = "ee5e8764895207da8a28cf5c41c4e326948ad620"
 
 [workspace.dependencies]
 aleo-gateway = { path = "packages/aleo-gateway" }
 aleo-gmp-types = { path = "packages/aleo-gmp-types" }
-aleo-string-encoder = { git = "ssh://git@github.com/eigerco/axelar-aleo.git", branch = "dev" }
+aleo-string-encoder = { git = "ssh://git@github.com/eigerco/aleo-program-rust-support.git", branch = "main", package = "aleo-string-encoder" }
 alloy-primitives = { version = "0.7.6", default-features = false, features = [
   "std",
 ] }
@@ -48,8 +48,9 @@ bech32 = "0.11.0"
 bs58 = "0.5.1"
 bytemuck = "1.10.1"
 client = { version = "^1.0.0", path = "packages/client" }
+config = "0.15.11"
 const-str = "0.6.2"
-coordinator = { version = "^2.0.0", path = "contracts/coordinator" }
+coordinator = { version = "^2.1.0", path = "contracts/coordinator" }
 cosmrs = "0.22.0"
 cosmwasm-crypto = "2.1.4"
 cosmwasm-schema = "2.1.4"
@@ -86,7 +87,7 @@ its-msg-translator-api = { version = "^1.0.0", path = "packages/its-msg-translat
 k256 = { version = "0.13.1", features = ["ecdsa"] }
 mockall = "0.12.1"
 msgs-derive = { version = "^1.0.0", path = "packages/msgs-derive" }
-multisig = { version = "^2.2.0", path = "contracts/multisig" }
+multisig = { version = "^2.3.1", path = "contracts/multisig" }
 multisig-prover = { version = "^1.1.1", path = "contracts/multisig-prover" }
 multisig-prover-api = { version = "1.0.0", path = "packages/multisig-prover-api" }
 num-traits = { version = "0.2.14", default-features = false }
@@ -101,7 +102,7 @@ schemars = "0.8.10"
 semver = "1.0"
 serde = { version = "1.0.145", default-features = false, features = ["derive"] }
 serde_json = "1.0.134"
-service-registry = { version = "^1.1.0", path = "contracts/service-registry" }
+service-registry = { version = "^1.2.0", path = "contracts/service-registry" }
 service-registry-api = { version = "^1.0.0", path = "packages/service-registry-api" }
 sha3 = { version = "0.10.8", default-features = false, features = [] }
 signature-verifier-api = { version = "^1.0.0", path = "packages/signature-verifier-api" }
@@ -111,13 +112,15 @@ starknet-core = "0.12.0"
 starknet-providers = "0.12.0"
 starknet-types-core = { version = "0.1.7" }
 stellar = { version = "^1.0.0", path = "external-gateways/stellar" }
-stellar-xdr = { version = "21.2.0" }
+stellar-rpc-client = { version = "23.0.0-rc.5" }
+stellar-strkey = { version = "0.0.10" }
+stellar-xdr = { version = "23.0.0-rc.3" }
 strum = { version = "0.25", default-features = false, features = ["derive"] }
 sui-gateway = { version = "^1.0.0", path = "packages/sui-gateway" }
 sui-types = { version = "^1.0.0", path = "packages/sui-types" }
 syn = "2.0.92"
 tendermint = "0.35.0"
-thiserror = "1.0.61"
+thiserror = "2.0.17"
 tofn = { version = "1.1" }
 tokio = "1.44.2"
 tokio-stream = "0.1.11"
@@ -125,7 +128,7 @@ tokio-util = "0.7.11"
 tracing = { version = "0.1.37", features = ["valuable", "log"] }
 tracing-core = { version = "0.1.30", features = ["valuable"] }
 tracing-error = { version = "0.2.1", features = ["traced-error"] }
-tracing-subscriber = { version = "0.3.16", features = [
+tracing-subscriber = { version = "0.3.20", features = [
   "json",
   "valuable",
   "env-filter",

@@ -9,7 +9,7 @@ use cosmrs::tx::Msg;
 use cosmrs::Any;
 use error_stack::ResultExt;
 use events::Error::EventTypeMismatch;
-use events::{try_from, Event};
+use events::{try_from, Event, EventType};
 use lazy_static::lazy_static;
 use multiversx_sdk::data::address::Address;
 use router_api::{chain_name, ChainName};
@@ -20,6 +20,7 @@ use valuable::Valuable;
 use voting_verifier::msg::ExecuteMsg;
 
 use crate::event_processor::EventHandler;
+use crate::event_sub::event_filter::{EventFilter, EventFilters};
 use crate::handlers::errors::Error;
 use crate::monitoring;
 use crate::monitoring::metrics;
@@ -186,6 +187,16 @@ where
             .into_any()
             .expect("vote msg should serialize")])
     }
+
+    fn event_filters(&self) -> EventFilters {
+        EventFilters::new(
+            vec![EventFilter::EventTypeAndContract(
+                PollStartedEvent::event_type(),
+                self.voting_verifier_contract.clone(),
+            )],
+            true,
+        )
+    }
 }
 
 #[cfg(test)]
@@ -199,7 +210,7 @@ mod tests {
     use cosmwasm_std;
     use ethers_core::types::H160;
     use hex::ToHex;
-    use router_api::chain_name;
+    use router_api::{address, chain_name};
     use tokio::sync::watch;
     use tokio::test as async_test;
     use voting_verifier::events::{PollMetadata, PollStarted, TxEventConfirmation};
@@ -430,9 +441,7 @@ mod tests {
                 .to_string()
                 .parse()
                 .unwrap(),
-                source_address: "erd1qqqqqqqqqqqqqpgqzqvm5ywqqf524efwrhr039tjs29w0qltkklsa05pk7"
-                    .parse()
-                    .unwrap(),
+                source_address: address!("erd1qqqqqqqqqqqqqpgqzqvm5ywqqf524efwrhr039tjs29w0qltkklsa05pk7"),
                 destination_chain: chain_name!("ethereum"),
                 destination_address: format!("0x{:x}", H160::repeat_byte(2)).parse().unwrap(),
                 payload_hash: [1;32],

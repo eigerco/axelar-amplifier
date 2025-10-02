@@ -9,8 +9,8 @@ use cosmrs::tx::Msg;
 use cosmrs::Any;
 use error_stack::ResultExt;
 use ethers_core::types::{TransactionReceipt, U64};
-use events::try_from;
 use events::Error::EventTypeMismatch;
+use events::{try_from, EventType};
 use futures::future::join_all;
 use router_api::ChainName;
 use serde::Deserialize;
@@ -20,6 +20,7 @@ use valuable::Valuable;
 use voting_verifier::msg::ExecuteMsg;
 
 use crate::event_processor::EventHandler;
+use crate::event_sub::event_filter::{EventFilter, EventFilters};
 use crate::evm::finalizer;
 use crate::evm::finalizer::Finalization;
 use crate::evm::json_rpc::EthereumClient;
@@ -233,6 +234,16 @@ where
             .into_any()
             .expect("vote msg should serialize")])
     }
+
+    fn event_filters(&self) -> EventFilters {
+        EventFilters::new(
+            vec![EventFilter::EventTypeAndContract(
+                PollStartedEvent::event_type(),
+                self.voting_verifier_contract.clone(),
+            )],
+            true,
+        )
+    }
 }
 
 #[cfg(test)]
@@ -261,6 +272,8 @@ mod tests {
     use crate::types::{Hash, TMAddress};
     use crate::PREFIX;
 
+    const ETHEREUM: &str = "ethereum";
+
     fn poll_started_event(participants: Vec<TMAddress>, expires_at: u64) -> PollStarted {
         let msg_ids = [
             HexTxHashAndEventIndex::new(H256::repeat_byte(1), 0u64),
@@ -270,7 +283,7 @@ mod tests {
         PollStarted::Messages {
             metadata: PollMetadata {
                 poll_id: "100".parse().unwrap(),
-                source_chain: chain_name!("ethereum"),
+                source_chain: chain_name!(ETHEREUM),
                 source_gateway_address: "0x4f4495243837681061c4743b74eedf548d5686a5"
                     .parse()
                     .unwrap(),
@@ -288,7 +301,7 @@ mod tests {
                     event_index: u32::try_from(msg_ids[0].event_index).unwrap(),
                     message_id: msg_ids[0].to_string().parse().unwrap(),
                     source_address: format!("0x{:x}", H160::repeat_byte(1)).parse().unwrap(),
-                    destination_chain: chain_name!("ethereum"),
+                    destination_chain: chain_name!(ETHEREUM),
                     destination_address: format!("0x{:x}", H160::repeat_byte(2)).parse().unwrap(),
                     payload_hash: H256::repeat_byte(4).to_fixed_bytes(),
                 },
@@ -297,7 +310,7 @@ mod tests {
                     event_index: u32::try_from(msg_ids[1].event_index).unwrap(),
                     message_id: msg_ids[1].to_string().parse().unwrap(),
                     source_address: format!("0x{:x}", H160::repeat_byte(3)).parse().unwrap(),
-                    destination_chain: chain_name!("ethereum"),
+                    destination_chain: chain_name!(ETHEREUM),
                     destination_address: format!("0x{:x}", H160::repeat_byte(4)).parse().unwrap(),
                     payload_hash: H256::repeat_byte(5).to_fixed_bytes(),
                 },
@@ -306,7 +319,7 @@ mod tests {
                     event_index: u32::try_from(msg_ids[2].event_index).unwrap(),
                     message_id: msg_ids[2].to_string().parse().unwrap(),
                     source_address: format!("0x{:x}", H160::repeat_byte(5)).parse().unwrap(),
-                    destination_chain: chain_name!("ethereum"),
+                    destination_chain: chain_name!(ETHEREUM),
                     destination_address: format!("0x{:x}", H160::repeat_byte(6)).parse().unwrap(),
                     payload_hash: H256::repeat_byte(6).to_fixed_bytes(),
                 },
@@ -394,7 +407,7 @@ mod tests {
         let handler = super::Handler::new(
             verifier,
             voting_verifier_contract,
-            chain_name!("ethereum"),
+            chain_name!(ETHEREUM),
             Finalization::RPCFinalizedBlock,
             rpc_client,
             rx,
@@ -436,7 +449,7 @@ mod tests {
         let handler = super::Handler::new(
             verifier,
             voting_verifier_contract,
-            chain_name!("ethereum"),
+            chain_name!(ETHEREUM),
             Finalization::RPCFinalizedBlock,
             rpc_client,
             watch::channel(0).1,
@@ -452,7 +465,7 @@ mod tests {
                 metrics,
                 metrics::Msg::VerificationVote {
                     vote_decision: Vote::NotFound,
-                    chain_name: chain_name!("ethereum"),
+                    chain_name: chain_name!(ETHEREUM),
                 }
             );
         }

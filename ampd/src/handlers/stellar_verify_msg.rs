@@ -9,7 +9,7 @@ use cosmrs::tx::Msg;
 use cosmrs::Any;
 use error_stack::ResultExt;
 use events::Error::EventTypeMismatch;
-use events::{try_from, Event};
+use events::{try_from, Event, EventType};
 use lazy_static::lazy_static;
 use router_api::{chain_name, ChainName};
 use serde::Deserialize;
@@ -21,6 +21,7 @@ use valuable::Valuable;
 use voting_verifier::msg::ExecuteMsg;
 
 use crate::event_processor::EventHandler;
+use crate::event_sub::event_filter::{EventFilter, EventFilters};
 use crate::handlers::errors::Error;
 use crate::handlers::errors::Error::DeserializeEvent;
 use crate::monitoring;
@@ -181,6 +182,16 @@ impl EventHandler for Handler {
             .vote_msg(poll_id, votes)
             .into_any()
             .expect("vote msg should serialize")])
+    }
+
+    fn event_filters(&self) -> EventFilters {
+        EventFilters::new(
+            vec![EventFilter::EventTypeAndContract(
+                PollStartedEvent::event_type(),
+                self.voting_verifier_contract.clone(),
+            )],
+            true,
+        )
     }
 }
 
@@ -377,10 +388,12 @@ mod tests {
             metadata: PollMetadata {
                 poll_id: "100".parse().unwrap(),
                 source_chain: chain_name!("stellar"),
-                source_gateway_address: ScAddress::Contract(stellar_xdr::curr::Hash::from([1; 32]))
-                    .to_string()
-                    .try_into()
-                    .unwrap(),
+                source_gateway_address: ScAddress::Contract(
+                    stellar_xdr::curr::Hash::from([1; 32]).into(),
+                )
+                .to_string()
+                .try_into()
+                .unwrap(),
                 confirmation_height: 15,
                 expires_at,
                 participants: participants
@@ -397,10 +410,12 @@ mod tests {
                         tx_id: msg_id.tx_hash_as_hex(),
                         event_index: u32::try_from(msg_id.event_index).unwrap(),
                         message_id: msg_id.to_string().parse().unwrap(),
-                        source_address: ScAddress::Contract(stellar_xdr::curr::Hash::from([2; 32]))
-                            .to_string()
-                            .try_into()
-                            .unwrap(),
+                        source_address: ScAddress::Contract(
+                            stellar_xdr::curr::Hash::from([2; 32]).into(),
+                        )
+                        .to_string()
+                        .try_into()
+                        .unwrap(),
                         destination_chain: chain_name!("ethereum"),
                         destination_address: format!("0x{:x}", H160::repeat_byte(i))
                             .parse()

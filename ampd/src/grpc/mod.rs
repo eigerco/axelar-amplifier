@@ -6,11 +6,16 @@ use std::time::Duration;
 use ampd_proto::blockchain_service_server::BlockchainServiceServer;
 use ampd_proto::crypto_service_server::CryptoServiceServer;
 use axelar_wasm_std::nonempty;
+#[cfg(test)]
+pub use blockchain_service::ChainConfig as BlockchainServiceChainConfig;
+#[cfg(test)]
+pub use blockchain_service::Config as BlockchainServiceConfig;
 use error_stack::Result;
 use report::{ErrorExt, LoggableError};
 use serde::de::{self, Deserializer};
 use serde::{Deserialize, Serialize};
 use thiserror::Error;
+use tokio::sync::watch::Receiver;
 use tokio_util::sync::CancellationToken;
 use tonic::transport;
 use tower::limit::ConcurrencyLimitLayer;
@@ -20,7 +25,8 @@ use typed_builder::TypedBuilder;
 use valuable::Valuable;
 
 use crate::types::debug::REDACTED_VALUE;
-use crate::{broadcast, cosmos, event_sub, tofnd};
+use crate::types::TMAddress;
+use crate::{broadcast, cosmos, event_sub, monitoring, tofnd};
 
 mod blockchain_service;
 mod crypto_service;
@@ -52,6 +58,8 @@ pub struct Config {
     /// Uses humantime_serde for parsing human-readable duration formats in configuration files
     #[serde(with = "humantime_serde")]
     pub request_timeout: Duration,
+    /// Blockchain service configuration
+    pub blockchain_service: blockchain_service::Config,
 }
 
 impl Default for Config {
@@ -66,6 +74,7 @@ impl Default for Config {
                 .try_into()
                 .expect("default concurrency limit per connection must be valid"),
             request_timeout: Duration::from_secs(30),
+            blockchain_service: blockchain_service::Config::default(),
         }
     }
 }
@@ -107,6 +116,10 @@ pub struct Server {
     msg_queue_client: broadcast::MsgQueueClient<cosmos::CosmosGrpcClient>,
     cosmos_grpc_client: cosmos::CosmosGrpcClient,
     multisig_client: tofnd::MultisigClient,
+    service_registry: TMAddress,
+    latest_block_height: Receiver<u64>,
+    rewards: TMAddress,
+    monitoring_client: monitoring::Client,
 }
 
 impl Server {
@@ -144,10 +157,16 @@ impl Server {
                     .event_sub(self.event_sub)
                     .msg_queue_client(self.msg_queue_client)
                     .cosmos_client(self.cosmos_grpc_client)
+                    .service_registry(self.service_registry)
+                    .rewards(self.rewards)
+                    .latest_block_height(self.latest_block_height)
+                    .config(self.config.blockchain_service)
+                    .monitoring_client(self.monitoring_client.clone())
                     .build(),
             ))
-            .add_service(CryptoServiceServer::new(crypto_service::Service::from(
+            .add_service(CryptoServiceServer::new(crypto_service::Service::new(
                 self.multisig_client,
+                self.monitoring_client.clone(),
             )));
 
         info!(%addr, "gRPC server started");

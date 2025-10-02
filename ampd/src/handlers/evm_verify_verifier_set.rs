@@ -8,8 +8,8 @@ use cosmrs::tx::Msg;
 use cosmrs::Any;
 use error_stack::ResultExt;
 use ethers_core::types::{TransactionReceipt, U64};
-use events::try_from;
 use events::Error::EventTypeMismatch;
+use events::{try_from, EventType};
 use multisig::verifier_set::VerifierSet;
 use router_api::ChainName;
 use serde::Deserialize;
@@ -19,6 +19,7 @@ use valuable::Valuable;
 use voting_verifier::msg::ExecuteMsg;
 
 use crate::event_processor::EventHandler;
+use crate::event_sub::event_filter::{EventFilter, EventFilters};
 use crate::evm::finalizer;
 use crate::evm::finalizer::Finalization;
 use crate::evm::json_rpc::EthereumClient;
@@ -207,6 +208,16 @@ where
             .into_any()
             .expect("vote msg should serialize")])
     }
+
+    fn event_filters(&self) -> EventFilters {
+        EventFilters::new(
+            vec![EventFilter::EventTypeAndContract(
+                PollStartedEvent::event_type(),
+                self.voting_verifier_contract.clone(),
+            )],
+            true,
+        )
+    }
 }
 
 #[cfg(test)]
@@ -234,6 +245,8 @@ mod tests {
     use crate::monitoring::{metrics, test_utils};
     use crate::types::{Hash, TMAddress};
     use crate::PREFIX;
+
+    const ETHEREUM: &str = "ethereum";
 
     #[test]
     fn evm_verify_verifier_set_should_deserialize_correct_event() {
@@ -271,7 +284,7 @@ mod tests {
         let handler = super::Handler::new(
             verifier,
             voting_verifier,
-            chain_name!("ethereum"),
+            chain_name!(ETHEREUM),
             Finalization::RPCFinalizedBlock,
             rpc_client,
             rx,
@@ -314,7 +327,7 @@ mod tests {
         let handler = super::Handler::new(
             verifier,
             voting_verifier_contract,
-            chain_name!("ethereum"),
+            chain_name!(ETHEREUM),
             Finalization::RPCFinalizedBlock,
             rpc_client,
             watch::channel(0).1,
@@ -329,7 +342,7 @@ mod tests {
             metrics,
             metrics::Msg::VerificationVote {
                 vote_decision: Vote::NotFound,
-                chain_name: chain_name!("ethereum"),
+                chain_name: chain_name!(ETHEREUM),
             }
         );
 
@@ -348,7 +361,7 @@ mod tests {
             },
             metadata: PollMetadata {
                 poll_id: "100".parse().unwrap(),
-                source_chain: chain_name!("ethereum"),
+                source_chain: chain_name!(ETHEREUM),
                 source_gateway_address: "0x4f4495243837681061c4743b74eedf548d5686a5"
                     .parse()
                     .unwrap(),
