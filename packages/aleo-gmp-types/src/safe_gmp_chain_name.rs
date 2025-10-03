@@ -23,7 +23,7 @@ impl SafeGmpChainName {
 
         ensure!(
             ChainNameRaw::is_raw_chain_name(&encoded_chain_name),
-            Error::InvalidChainName(encoded_chain_name.clone())
+            Error::InvalidChainName(encoded_chain_name)
         );
 
         Ok(Self { chain_name })

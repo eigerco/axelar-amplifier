@@ -36,25 +36,21 @@ impl<N: Network> ToItsHubMessage for WrappedSendLinkToken<N> {
             .map_err(|e| Error::InvalidChainName(e.to_string()))?;
 
         let destination_token_address: nonempty::HexBinary = {
-            let destination_token_address =
+            let decoded =
                 StringEncoder::from_slice(&link_token.destination_token_address).decode()?;
-
-            let destination_token_address = destination_token_address
-                .strip_prefix("0x")
-                .unwrap_or(&destination_token_address);
-
-            nonempty::HexBinary::try_from(hex::decode(destination_token_address)?)?
+            let without_prefix = decoded.strip_prefix("0x").unwrap_or(&decoded);
+            nonempty::HexBinary::try_from(hex::decode(without_prefix)?)?
         };
 
         let params = {
             let operator = StringEncoder::from_slice(&link_token.operator).decode()?;
 
-            let oprator = operator.strip_prefix("0x").unwrap_or(&operator);
+            let without_prefix = operator.strip_prefix("0x").unwrap_or(&operator);
 
-            if oprator.is_empty() {
+            if without_prefix.is_empty() {
                 None
             } else {
-                Some(nonempty::HexBinary::try_from(hex::decode(oprator)?)?)
+                Some(nonempty::HexBinary::try_from(hex::decode(without_prefix)?)?)
             }
         };
 
@@ -97,17 +93,15 @@ impl ToItsHubMessage for RemoteDeployInterchainToken {
             StringEncoder::from_slice(&[deploy_interchain_token.symbol]).decode()?,
         )?;
 
-        let decimals = deploy_interchain_token.decimals;
-
         let minter = {
             let minter = StringEncoder::from_slice(&deploy_interchain_token.minter).decode()?;
 
-            let minter = minter.strip_prefix("0x").unwrap_or(&minter);
+            let without_prefix = minter.strip_prefix("0x").unwrap_or(&minter);
 
-            if minter.is_empty() {
+            if without_prefix.is_empty() {
                 None
             } else {
-                Some(nonempty::HexBinary::try_from(hex::decode(minter)?)?)
+                Some(nonempty::HexBinary::try_from(hex::decode(without_prefix)?)?)
             }
         };
 
@@ -115,7 +109,7 @@ impl ToItsHubMessage for RemoteDeployInterchainToken {
             token_id,
             name,
             symbol,
-            decimals,
+            decimals: deploy_interchain_token.decimals,
             minter,
         };
 
@@ -147,15 +141,11 @@ impl<N: Network> ToItsHubMessage for ItsOutgoingInterchainTransfer<N> {
                 .try_into()?;
 
         let destination_address = {
-            let destination_address =
+            let decoded =
                 StringEncoder::from_slice(&outgoing_interchain_transfer.destination_address)
                     .decode()?;
-
-            let destination_address = destination_address
-                .strip_prefix("0x")
-                .unwrap_or(&destination_address);
-
-            nonempty::HexBinary::try_from(hex::decode(destination_address)?)?
+            let without_prefix = decoded.strip_prefix("0x").unwrap_or(&decoded);
+            nonempty::HexBinary::try_from(hex::decode(without_prefix)?)?
         };
 
         let amount =

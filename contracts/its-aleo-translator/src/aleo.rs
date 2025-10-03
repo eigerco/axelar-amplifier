@@ -96,12 +96,12 @@ pub fn aleo_inbound_hub_message<N: Network>(
 pub fn aleo_outbound_hub_message<N: Network>(
     payload: HexBinary,
 ) -> Result<HubMessage, Report<Error>> {
-    let v = Value::<N>::from_bytes_le(&payload).map_err(|e| report!(Error::SnarkVm(e)))?;
-    let plaintext = match v {
-        Value::Plaintext(p) => p,
-        _ => bail!(Error::TranslationFailed(
+    let Value::Plaintext(plaintext) =
+        Value::<N>::from_bytes_le(&payload).map_err(|e| report!(Error::SnarkVm(e)))?
+    else {
+        bail!(Error::TranslationFailed(
             "Expected Value to be of Plaintext variant".to_string()
-        )),
+        ))
     };
 
     if let Ok(its_outbound_transfer) =
@@ -260,14 +260,14 @@ mod tests {
             let source_chain = format_chain_name(&self.external_chain);
 
             let aleo_message = format!(
-                "{{
-                    inner_message: {{
-                        its_token_id: {its_token_id},
-                        source_address: {source_address},
-                        destination_address: {destination_address},
-                        amount: {amount}u128
-                    }},
-                    source_chain: {source_chain}
+                "{{\
+                    inner_message: {{\
+                        its_token_id: {its_token_id},\
+                        source_address: {source_address},\
+                        destination_address: {destination_address},\
+                        amount: {amount}u128\
+                    }},\
+                    source_chain: {source_chain}\
                 }}"
             );
             aleo_message
@@ -281,14 +281,14 @@ mod tests {
             let destination_address = format_address(&self.destination_address);
 
             format!(
-                "{{
-                    inner_message: {{
-                        its_token_id: {its_token_id},
-                        source_address: {source_address},
-                        destination_address: {destination_address},
-                        amount: {amount}u128
-                    }},
-                    destination_chain: {destination_chain}
+                "{{\
+                    inner_message: {{\
+                        its_token_id: {its_token_id},\
+                        source_address: {source_address},\
+                        destination_address: {destination_address},\
+                        amount: {amount}u128\
+                    }},\
+                    destination_chain: {destination_chain}\
                 }}",
             )
         }
@@ -391,15 +391,15 @@ mod tests {
             let destination_chain = format_chain_name(&self.external_chain);
 
             format!(
-                "{{
-                    payload: {{
-                        its_token_id: {its_token_id},
-                        name: {token_name}u128,
-                        symbol: {token_symbol}u128,
-                        decimals: {decimals}u8,
-                        minter: {minter}
-                    }},
-                    destination_chain: {destination_chain}
+                "{{\
+                    payload: {{\
+                        its_token_id: {its_token_id},\
+                        name: {token_name}u128,\
+                        symbol: {token_symbol}u128,\
+                        decimals: {decimals}u8,\
+                        minter: {minter}\
+                    }},\
+                    destination_chain: {destination_chain}\
                 }}",
             )
         }
@@ -424,15 +424,15 @@ mod tests {
                 .consume()[0];
 
             format!(
-                "{{
-                inner_message: {{
-                    its_token_id: {its_token_id},
-                    name: {aleo_token_name}u128,
-                    symbol: {aleo_token_symbol}u128,
-                    decimals: {decimals}u8,
-                    minter: {minter}
-                }},
-                source_chain: {source_chain}
+                "{{\
+                inner_message: {{\
+                    its_token_id: {its_token_id},\
+                    name: {aleo_token_name}u128,\
+                    symbol: {aleo_token_symbol}u128,\
+                    decimals: {decimals}u8,\
+                    minter: {minter}\
+                }},\
+                source_chain: {source_chain}\
             }}"
             )
         }
@@ -494,15 +494,15 @@ mod tests {
             let operator = Address::<CurrentNetwork>::zero().to_string();
 
             let aleo_message = format!(
-                "{{
-                    link_token: {{
-                        its_token_id: {its_token_id},
-                        token_manager_type: {token_manager_type}u8,
-                        source_token_address: {source_token_address},
-                        destination_token_address: {destination_token_address},
-                        operator: {operator}
-                    }},
-                    source_chain: {source_chain}
+                "{{\
+                    link_token: {{\
+                        its_token_id: {its_token_id},\
+                        token_manager_type: {token_manager_type}u8,\
+                        source_token_address: {source_token_address},\
+                        destination_token_address: {destination_token_address},\
+                        operator: {operator}\
+                    }},\
+                    source_chain: {source_chain}\
                 }}"
             );
             aleo_message
@@ -517,15 +517,15 @@ mod tests {
             let operator = format_aleo_array(&[0], GMP_ADDRESS_LENGTH);
 
             format!(
-                "{{
-                    link_token: {{
-                        token_id: {its_token_id},
-                        token_manager_type: {token_manager_type}u8,
-                        aleo_token_id: {source_token_address},
-                        destination_token_address: {destination_token_address},
-                        operator: {operator}
-                    }},
-                    destination_chain: {destination_chain}
+                "{{\
+                    link_token: {{\
+                        token_id: {its_token_id},\
+                        token_manager_type: {token_manager_type}u8,\
+                        aleo_token_id: {source_token_address},\
+                        destination_token_address: {destination_token_address},\
+                        operator: {operator}\
+                    }},\
+                    destination_chain: {destination_chain}\
                 }}",
             )
         }
