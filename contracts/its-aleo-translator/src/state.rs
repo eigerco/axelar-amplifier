@@ -1,4 +1,4 @@
-use aleo_gateway::network::NetworkConfig;
+use aleo_network_config::network::NetworkConfig;
 use cosmwasm_schema::cw_serde;
 use cw_storage_plus::Item;
 

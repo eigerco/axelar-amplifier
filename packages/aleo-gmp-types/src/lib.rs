@@ -1,5 +1,7 @@
+pub mod aleo_struct;
 mod safe_gmp_chain_name;
 pub use safe_gmp_chain_name::*;
+pub mod token_id_conversion;
 
 pub mod error;
 
