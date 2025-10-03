@@ -56,7 +56,7 @@ impl<N: Network> ToItsHubMessage for WrappedSendLinkToken<N> {
 
         let source_token_address = {
             let s = link_token.aleo_token_id.to_string();
-            to_hex(&s)
+            to_hex(&s)?
         };
 
         Ok(HubMessage::SendToHub {
@@ -172,7 +172,7 @@ impl<N: Network> ToItsHubMessage for RegisterTokenMetadata<N> {
     fn to_hub_message(self) -> Result<HubMessage, Self::Error> {
         let register_token_metadata = interchain_token_service_std::RegisterTokenMetadata {
             decimals: self.decimals,
-            token_address: to_hex(&self.token_address.to_string()),
+            token_address: to_hex(&self.token_address.to_string())?,
         };
 
         Ok(HubMessage::RegisterTokenMetadata(register_token_metadata))
