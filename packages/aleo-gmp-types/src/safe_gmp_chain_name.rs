@@ -23,13 +23,13 @@ impl SafeGmpChainName {
 
         ensure!(
             ChainNameRaw::is_raw_chain_name(&encoded_chain_name),
-            Error::InvalidChainName(encoded_chain_name.clone())
+            Error::InvalidChainName(encoded_chain_name)
         );
 
         Ok(Self { chain_name })
     }
 
-    pub fn chain_name(self) -> GmpChainName {
+    pub fn aleo_chain_name(self) -> GmpChainName {
         self.chain_name
     }
 }
