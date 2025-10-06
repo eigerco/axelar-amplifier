@@ -13,8 +13,7 @@ use interchain_token_service_std::{
 use router_api::ChainNameRaw;
 use snarkvm_cosmwasm::prelude::Network;
 
-use crate::aleo::to_hex;
-use crate::aleo::Error;
+use crate::aleo::{to_hex, Error};
 
 /// Trait to convert a message to a HubMessage
 pub trait ToItsHubMessage {
