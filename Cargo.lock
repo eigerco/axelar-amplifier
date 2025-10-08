@@ -166,6 +166,26 @@ dependencies = [
 ]
 
 [[package]]
+name = "aleo-signature-verifier"
+version = "0.1.0"
+dependencies = [
+ "aleo-compatible-keccak",
+ "aleo-network-config",
+ "axelar-wasm-std",
+ "cosmwasm-schema",
+ "cosmwasm-std",
+ "cw-storage-plus",
+ "cw2",
+ "error-stack",
+ "hex",
+ "rand 0.8.5",
+ "signature-verifier-api",
+ "snarkos-account",
+ "snarkvm-cosmwasm",
+ "thiserror 2.0.17",
+]
+
+[[package]]
 name = "aleo-std"
 version = "1.0.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1577,8 +1597,8 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "33415e24172c1b7d6066f6d999545375ab8e1d95421d6784bdfff9496f292387"
 dependencies = [
  "bitcoin_hashes 0.13.0",
- "rand 0.7.3",
- "rand_core 0.5.1",
+ "rand 0.8.5",
+ "rand_core 0.6.4",
  "serde",
  "unicode-normalization",
 ]
@@ -1806,7 +1826,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "115e54d64eb62cdebad391c19efc9dce4981c690c85a33a12199d99bb9546fee"
 dependencies = [
  "borsh-derive 0.10.4",
- "hashbrown 0.12.3",
+ "hashbrown 0.13.2",
 ]
 
 [[package]]
@@ -2241,7 +2261,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "117725a109d387c937a1533ce01b450cbde6b88abceea8473c4d7a85853cda3c"
 dependencies = [
  "lazy_static",
- "windows-sys 0.48.0",
+ "windows-sys 0.59.0",
 ]
 
 [[package]]
@@ -7114,6 +7134,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "num-format"
+version = "0.4.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "a652d9771a63711fd3c3deb670acfbe5c30a4072e664d7a3bf5a9e1056ac72c3"
+dependencies = [
+ "arrayvec",
+ "itoa",
+]
+
+[[package]]
 name = "num-integer"
 version = "0.1.46"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -10154,6 +10184,29 @@ name = "snap"
 version = "1.1.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "1b6b67fb9a61334225b5b790716f609cd58395f895b3fe8b328786812a40bc3b"
+
+[[package]]
+name = "snarkos-account"
+version = "4.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "9d742e44e41b22039106706b6b0a311d5eaa90b4447196b516a45bc7a899dcde"
+dependencies = [
+ "colored",
+ "snarkvm",
+]
+
+[[package]]
+name = "snarkvm"
+version = "4.1.0"
+source = "git+https://github.com/eigerco/snarkVM?tag=snarkvm-with-cosmwasm#adce115aba07a5025c6481002d856ea13da91150"
+dependencies = [
+ "anstyle",
+ "anyhow",
+ "num-format",
+ "rand 0.8.5",
+ "snarkvm-console",
+ "walkdir",
+]
 
 [[package]]
 name = "snarkvm-algorithms"
@@ -14406,7 +14459,7 @@ version = "0.1.9"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "cf221c93e13a30d793f7645a0e7762c55d169dbb0a49671918a2319d289b10bb"
 dependencies = [
- "windows-sys 0.48.0",
+ "windows-sys 0.59.0",
 ]
 
 [[package]]

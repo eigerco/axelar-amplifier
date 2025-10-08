@@ -1,12 +1,12 @@
 [workspace]
 members = [
-  "ampd",
-  "ampd-handlers",
-  "contracts/*",
-  "external-gateways/*",
-  "integration-tests",
-  "packages/*",
-  "tools/*",
+    "ampd",
+    "ampd-handlers",
+    "contracts/*",
+    "external-gateways/*",
+    "integration-tests",
+    "packages/*",
+    "tools/*",
 ]
 resolver = "2"
 
@@ -27,6 +27,7 @@ aleo-compatible-keccak = { git = "ssh://git@github.com/eigerco/aleo-program-rust
 aleo-gateway-types = { git = "ssh://git@github.com/eigerco/aleo-program-rust-support.git", branch = "main", package = "aleo-gateway-types" }
 aleo-gmp-types = { path = "packages/aleo-gmp-types" }
 aleo-network-config = { path = "packages/aleo-network-config" }
+aleo-signature-verifier = { path = "contracts/aleo-signature-verifier" }
 aleo-string-encoder = { git = "ssh://git@github.com/eigerco/aleo-program-rust-support.git", branch = "main", package = "aleo-string-encoder" }
 alloy-primitives = { version = "0.7.6", default-features = false, features = [
   "std",
@@ -108,7 +109,8 @@ service-registry = { version = "^1.2.0", path = "contracts/service-registry" }
 service-registry-api = { version = "^1.0.0", path = "packages/service-registry-api" }
 sha3 = { version = "0.10.8", default-features = false, features = [] }
 signature-verifier-api = { version = "^1.0.0", path = "packages/signature-verifier-api" }
-snarkvm-cosmwasm = { git = "https://github.com/eigerco/snarkVM", tag = "snarkvm-with-cosmwasm" }
+snarkos-account = "=4.1.0"
+snarkvm-cosmwasm = { git = "https://github.com/eigerco/snarkVM.git", tag = "snarkvm-with-cosmwasm", package = "snarkvm-cosmwasm" }
 starknet-checked-felt = { version = "^1.0.0", path = "packages/starknet-checked-felt" }
 starknet-core = "0.12.0"
 starknet-providers = "0.12.0"
@@ -159,3 +161,7 @@ debug-assertions = false
 codegen-units = 1
 incremental = false
 overflow-checks = true
+
+[patch.crates-io]
+# Use our fork of snarkVM so we use the same snarkVM code in axelar-aleo and axelar-amplifier.
+snarkvm = { git = "https://github.com/eigerco/snarkVM", tag = "snarkvm-with-cosmwasm" }
