@@ -253,7 +253,7 @@ checksum = "14edf4007a98323f763701688bcbe3bc6ecf33e20c3a81b3eb8d6661ff01b217"
 [[package]]
 name = "aleo-string-encoder"
 version = "0.1.0"
-source = "git+ssh://git@github.com/eigerco/aleo-program-rust-support.git?branch=main#e3fad1f238f539a39c8738a07f1a3433a3880725"
+source = "git+ssh://git@github.com/eigerco/aleo-program-rust-support.git?branch=main#24b1aff1fdcaf4c1d1abb4e5448071c545026afe"
 dependencies = [
  "thiserror 2.0.17",
 ]
@@ -379,7 +379,7 @@ dependencies = [
 
 [[package]]
 name = "ampd"
-version = "1.12.1"
+version = "1.12.2"
 dependencies = [
  "ampd-proto",
  "assert_ok",
@@ -456,6 +456,7 @@ dependencies = [
  "sui-json-rpc-types",
  "sui-types 0.1.0",
  "sysinfo",
+ "temp-env",
  "tendermint 0.35.0",
  "tendermint-proto 0.40.4",
  "tendermint-rpc",
@@ -2457,7 +2458,7 @@ dependencies = [
 
 [[package]]
 name = "coordinator"
-version = "2.1.0"
+version = "2.1.1"
 dependencies = [
  "axelar-wasm-std",
  "client",
@@ -8714,6 +8715,7 @@ dependencies = [
  "error-stack",
  "eyre",
  "itertools 0.14.0",
+ "temp-env",
  "thiserror 2.0.17",
  "tracing",
  "tracing-core",
@@ -12929,6 +12931,7 @@ version = "0.3.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "96374855068f47402c3121c6eed88d29cb1de8f3ab27090e273e420bdabcf050"
 dependencies = [
+ "futures",
  "parking_lot",
 ]
 
