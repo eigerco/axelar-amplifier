@@ -10,6 +10,10 @@ pub enum Error {
     AxelarInvalidChainName(#[from] axelar_wasm_std::chain::Error),
     #[error(transparent)]
     SnarkVM(#[from] snarkvm_cosmwasm::prelude::Error),
+    #[error("Conversion failed")]
+    ConversionFailed,
+    #[error("Invalid public key")]
+    InvalidPublicKey,
     #[error("Utf8Error: {0}")]
     Utf8(#[from] std::str::Utf8Error),
     #[error("ConversionOverflowError: {0}")]
@@ -18,4 +22,6 @@ pub enum Error {
     InvalidTokenManagerType,
     #[error("Invalid operator address")]
     InvalidOperatorAddress,
+    #[error("Invalid AxelarProof")]
+    InvalidAxelarProof
 }

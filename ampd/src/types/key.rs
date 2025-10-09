@@ -1,5 +1,6 @@
 use std::fmt;
 
+use aleo_gmp_types::ALEO_ADDRESS_LENGTH;
 use cosmwasm_std::HexBinary;
 use ed25519_dalek::PUBLIC_KEY_LENGTH;
 use error_stack::{self, Report, ResultExt};
@@ -21,6 +22,17 @@ pub enum Error {
 pub enum PublicKey {
     Secp256k1(k256::ecdsa::VerifyingKey),
     Ed25519(ed25519_dalek::VerifyingKey),
+    AleoSchnorr([u8; ALEO_ADDRESS_LENGTH]),
+}
+
+fn convert_aleo_pub_key_to_array(bytes: impl AsRef<[u8]>) -> Result<[u8; ALEO_ADDRESS_LENGTH]> {
+    let slice = bytes.as_ref();
+
+    error_stack::ensure!(slice.len() == ALEO_ADDRESS_LENGTH, Error::InvalidRawBytes);
+
+    let mut array = [0u8; ALEO_ADDRESS_LENGTH];
+    array.copy_from_slice(slice);
+    Ok(array)
 }
 
 impl PublicKey {
@@ -29,6 +41,12 @@ impl PublicKey {
             k256::ecdsa::VerifyingKey::from_sec1_bytes(bytes.as_ref())
                 .change_context(Error::InvalidRawBytes)?,
         ))
+    }
+
+    pub fn new_aleo_schnorr(bytes: impl AsRef<[u8]>) -> Result<Self> {
+        Ok(PublicKey::AleoSchnorr(convert_aleo_pub_key_to_array(
+            bytes,
+        )?))
     }
 
     pub fn new_ed25519(bytes: impl AsRef<[u8]>) -> Result<Self> {
@@ -45,6 +63,7 @@ impl PublicKey {
         match self {
             PublicKey::Secp256k1(key) => key.to_sec1_bytes().to_vec(),
             PublicKey::Ed25519(key) => key.to_bytes().to_vec(),
+            PublicKey::AleoSchnorr(key) => key.to_vec(),
         }
     }
 }
@@ -62,6 +81,14 @@ impl fmt::Display for PublicKey {
             PublicKey::Ed25519(key) => {
                 write!(f, "ed25519: {}", HexBinary::from(key.to_bytes()).to_hex())
             }
+            PublicKey::AleoSchnorr(key) => {
+                // TODO: handle Aleo network generally
+                write!(
+                    f,
+                    "aleo_schnorr: {}",
+                    <snarkvm::prelude::Address::<snarkvm::prelude::TestnetV0> as snarkvm::prelude::FromBytes>::from_bytes_le(key).unwrap()
+                )
+            }
         }
     }
 }
@@ -73,6 +100,7 @@ impl TryFrom<&multisig::key::PublicKey> for PublicKey {
         match key {
             multisig::key::PublicKey::Ecdsa(key) => Self::new_secp256k1(key),
             multisig::key::PublicKey::Ed25519(key) => Self::new_ed25519(key),
+            multisig::key::PublicKey::AleoSchnorr(key) => Self::new_aleo_schnorr(key),
         }
     }
 }
@@ -96,6 +124,9 @@ impl TryFrom<&PublicKey> for CosmosPublicKey {
             )
             .expect("must be valid ed25519 key")
             .into()),
+            PublicKey::AleoSchnorr(_) => {
+                Err(Report::new(Error::UnsupportedConversionForCosmosKey(*key)))
+            }
         }
     }
 }

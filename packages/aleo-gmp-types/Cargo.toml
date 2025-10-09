@@ -13,6 +13,9 @@ bytemuck = { workspace = true }
 cosmwasm-std = { workspace = true }
 error-stack = { workspace = true }
 interchain-token-service-std = { workspace = true }
+multisig = { workspace = true, features = ["library"] }
+router-api = { workspace = true }
+serde = { workspace = true }
 snarkvm-cosmwasm = { workspace = true }
 thiserror = { workspace = true }
 

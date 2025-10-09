@@ -4,9 +4,10 @@ use cosmwasm_schema::cw_serde;
 use cosmwasm_std::{HexBinary, StdError, StdResult};
 use cw_storage_plus::{KeyDeserialize, PrimaryKey};
 use enum_display_derive::Display;
-use error_stack::{Report, ResultExt};
+use error_stack::{report, Report, ResultExt};
 use serde::de::Error;
 use serde::{Deserialize, Deserializer};
+use snarkvm_cosmwasm::prelude::{FromBytes, ToBytes};
 
 use crate::ed25519::{ed25519_verify, ED25519_SIGNATURE_LEN};
 use crate::secp256k1::ecdsa_verify;
@@ -19,6 +20,7 @@ const ECDSA_COMPRESSED_PUBKEY_LEN: usize = 33;
 pub enum KeyType {
     Ecdsa,
     Ed25519,
+    AleoSchnorr,
 }
 
 #[cw_serde]
@@ -27,6 +29,7 @@ pub enum Signature {
     Ecdsa(NonRecoverable),
     EcdsaRecoverable(Recoverable),
     Ed25519(HexBinary),
+    AleoSchnorr(HexBinary),
 }
 
 #[cw_serde]
@@ -124,6 +127,9 @@ pub enum PublicKey {
 
     #[serde(deserialize_with = "deserialize_ed25519_key")]
     Ed25519(HexBinary),
+
+    #[serde(deserialize_with = "deserialize_aleo_address")]
+    AleoSchnorr(HexBinary),
 }
 
 fn deserialize_ecdsa_key<'de, D>(deserializer: D) -> Result<HexBinary, D::Error>
@@ -146,6 +152,16 @@ where
     Ok(pk)
 }
 
+fn deserialize_aleo_address<'de, D>(deserializer: D) -> Result<HexBinary, D::Error>
+where
+    D: Deserializer<'de>,
+{
+    let pk: HexBinary = Deserialize::deserialize(deserializer)?;
+    PublicKey::try_from((KeyType::AleoSchnorr, pk.clone()))
+        .map_err(|err| Error::custom(format!("failed to deserialize public key: {}", err)))?;
+    Ok(pk)
+}
+
 pub trait KeyTyped {
     fn matches_type<T>(&self, other: &T) -> bool
     where
@@ -162,6 +178,7 @@ impl KeyTyped for PublicKey {
         match self {
             PublicKey::Ecdsa(_) => KeyType::Ecdsa,
             PublicKey::Ed25519(_) => KeyType::Ed25519,
+            PublicKey::AleoSchnorr(_) => KeyType::AleoSchnorr,
         }
     }
 }
@@ -171,6 +188,7 @@ impl KeyTyped for Signature {
         match self {
             Signature::Ecdsa(_) | Signature::EcdsaRecoverable(_) => KeyType::Ecdsa,
             Signature::Ed25519(_) => KeyType::Ed25519,
+            Signature::AleoSchnorr(_) => KeyType::AleoSchnorr,
         }
     }
 }
@@ -188,6 +206,10 @@ impl Signature {
         let res = match self.key_type() {
             KeyType::Ecdsa => ecdsa_verify(msg.as_ref(), self.as_ref(), pub_key.as_ref()),
             KeyType::Ed25519 => ed25519_verify(msg.as_ref(), self.as_ref(), pub_key.as_ref()),
+            KeyType::AleoSchnorr => Err(ContractError::UnsupportedSignatureType {
+                // THIS IS NOT IMPLEMENTED BECAUSE ITS HANDLE BY ALEO sig-verifier
+                signature_type: self.key_type(),
+            }),
         }?;
 
         if !res {
@@ -255,6 +277,27 @@ fn validate_and_normalize_public_key(
         .change_context(ContractError::InvalidPublicKey)?
         .to_bytes()
         .into()),
+        KeyType::AleoSchnorr => {
+            // NOTE: We should be able to know which network we expect to use here.
+            // To minimize the changes at multisig, we test all the possible networks
+            // and return the first one that works.
+            // This should be revisited in the future.
+            use snarkvm_cosmwasm::prelude::{Address, CanaryV0, MainnetV0, TestnetV0};
+
+            let try_testnet =
+                Address::<TestnetV0>::from_bytes_le(&pub_key).and_then(|addr| addr.to_bytes_le());
+            let try_mainnet =
+                Address::<MainnetV0>::from_bytes_le(&pub_key).and_then(|addr| addr.to_bytes_le());
+            let try_canary =
+                Address::<CanaryV0>::from_bytes_le(&pub_key).and_then(|addr| addr.to_bytes_le());
+
+            let addr_bytes = try_testnet
+                .or(try_mainnet)
+                .or(try_canary)
+                .map_err(|_| report!(ContractError::InvalidPublicKey))?;
+
+            Ok(addr_bytes.into())
+        }
     }
 }
 
@@ -267,6 +310,7 @@ impl TryFrom<(KeyType, HexBinary)> for PublicKey {
         match key_type {
             KeyType::Ecdsa => Ok(PublicKey::Ecdsa(pub_key)),
             KeyType::Ed25519 => Ok(PublicKey::Ed25519(pub_key)),
+            KeyType::AleoSchnorr => Ok(PublicKey::AleoSchnorr(pub_key)),
         }
     }
 }
@@ -279,6 +323,7 @@ impl TryFrom<(KeyType, HexBinary)> for Signature {
             (KeyType::Ecdsa, Recoverable::LEN) => Ok(Signature::EcdsaRecoverable(Recoverable(sig))),
             (KeyType::Ecdsa, NonRecoverable::LEN) => Ok(Signature::Ecdsa(NonRecoverable(sig))),
             (KeyType::Ed25519, ED25519_SIGNATURE_LEN) => Ok(Signature::Ed25519(sig)),
+            (KeyType::AleoSchnorr, _) => Ok(Signature::AleoSchnorr(sig)),
             (_, _) => Err(ContractError::InvalidSignatureFormat {
                 reason: format!(
                     "could not find a match for key type {} and signature length {}",
@@ -295,6 +340,7 @@ impl AsRef<[u8]> for PublicKey {
         match self {
             PublicKey::Ecdsa(pk) => pk.as_ref(),
             PublicKey::Ed25519(pk) => pk.as_ref(),
+            PublicKey::AleoSchnorr(pk) => pk.as_ref(),
         }
     }
 }
@@ -305,6 +351,7 @@ impl AsRef<[u8]> for Signature {
             Signature::Ecdsa(sig) => sig.as_ref(),
             Signature::EcdsaRecoverable(sig) => sig.as_ref(),
             Signature::Ed25519(sig) => sig.as_ref(),
+            Signature::AleoSchnorr(sig) => sig.as_ref(),
         }
     }
 }
@@ -314,6 +361,7 @@ impl From<PublicKey> for HexBinary {
         match original {
             PublicKey::Ecdsa(key) => key,
             PublicKey::Ed25519(key) => key,
+            PublicKey::AleoSchnorr(key) => key,
         }
     }
 }

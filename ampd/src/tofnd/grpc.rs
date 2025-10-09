@@ -17,6 +17,16 @@ use super::Error;
 use crate::types::debug::REDACTED_VALUE;
 use crate::types::PublicKey;
 
+// Check for multiple features enabled (mutual exclusion)
+#[cfg(all(feature = "aleo-testnet", feature = "aleo-mainnet"))]
+compile_error!("Only one of 'aleo-testnet', 'aleo-mainnet' or 'aleo-canary', features can be enabled at a time");
+
+#[cfg(all(feature = "aleo-testnet", feature = "aleo-canary"))]
+compile_error!("Only one of 'aleo-testnet', 'aleo-mainnet' or 'aleo-canary', features can be enabled at a time");
+
+#[cfg(all(feature = "aleo-mainnet", feature = "aleo-canary"))]
+compile_error!("Only one of 'aleo-testnet', 'aleo-mainnet' or 'aleo-canary', features can be enabled at a time");
+
 type Result<T> = error_stack::Result<T, Error>;
 
 #[automock]
@@ -88,6 +98,7 @@ impl Multisig for MultisigClient {
                 KeygenResponse::PubKey(pub_key) => match algorithm {
                     Algorithm::Ecdsa => PublicKey::new_secp256k1(pub_key),
                     Algorithm::Ed25519 => PublicKey::new_ed25519(pub_key),
+                    Algorithm::AleoSchnorr => PublicKey::new_aleo_schnorr(pub_key),
                 }
                 .change_context(Error::InvalidKeygenResponse)
                 .inspect_err(|err| {
@@ -143,6 +154,43 @@ impl Multisig for MultisigClient {
                     }
                     Algorithm::Ed25519 => {
                         ed25519_dalek::Signature::from_slice(signature).map(|sig| sig.to_vec())
+                    }
+                    Algorithm::AleoSchnorr => {
+                        #[cfg(feature = "aleo-testnet")]
+                        {
+                            use snarkvm::prelude::{FromBytes as _, ToBytes};
+                            let sig = snarkvm::prelude::Signature::<snarkvm::prelude::TestnetV0>::from_bytes_le(signature)
+                                .map_err(|_| report!(Error::InvalidSignResponse))?;
+                            let res = sig.to_bytes_le().map_err(|_| report!(Error::InvalidSignResponse))?;
+
+                            Ok(res)
+                        }
+
+                        #[cfg(feature = "aleo-mainnet")]
+                        {
+                            use snarkvm::prelude::{FromBytes as _, ToBytes};
+                            let sig = snarkvm::prelude::Signature::<snarkvm::prelude::MainnetV0>::from_bytes_le(signature)
+                                .map_err(|_| report!(Error::InvalidSignResponse))?;
+                            let res = sig.to_bytes_le().map_err(|_| report!(Error::InvalidSignResponse))?;
+
+                            Ok(res)
+                        }
+
+                        #[cfg(feature = "aleo-canary")]
+                        {
+                            use snarkvm::prelude::{FromBytes as _, ToBytes};
+                            let sig = snarkvm::prelude::Signature::<snarkvm::prelude::CanaryV0>::from_bytes_le(signature)
+                                .map_err(|_| report!(Error::InvalidSignResponse))?;
+                            let res = sig.to_bytes_le().map_err(|_| report!(Error::InvalidSignResponse))?;
+
+                            Ok(res)
+                        }
+
+                        #[cfg(not(any(feature = "aleo-testnet", feature = "aleo-mainnet", feature = "aleo-canary")))]
+                        {
+                            error!("Received an Aleo signature but no Aleo network feature is enabled.");
+                            error_stack::bail!(Error::InvalidSignResponse)
+                        }
                     }
                 }
                 .change_context(Error::InvalidSignResponse)

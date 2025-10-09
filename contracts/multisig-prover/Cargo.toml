@@ -21,6 +21,10 @@ path = "src/bin/schema.rs"
 library = []
 
 [dependencies]
+aleo-compatible-keccak = { workspace = true }
+aleo-gateway-types = { workspace = true }
+aleo-gmp-types = { workspace = true }
+aleo-network-config = { workspace = true }
 axelar-wasm-std = { workspace = true, features = ["derive"] }
 bcs = "0.1.5"
 client = { workspace = true }
@@ -42,13 +46,16 @@ k256 = { workspace = true }
 msgs-derive = { workspace = true }
 multisig = { workspace = true, features = ["library"] }
 multisig-prover-api = { workspace = true }
+plaintext-trait = { workspace = true }
 report = { workspace = true }
 router-api = { workspace = true }
 semver = { workspace = true }
+serde = { workspace = true }
 serde_json = { workspace = true }
 service-registry = { workspace = true }
 service-registry-api = { workspace = true }
 sha3 = { workspace = true }
+snarkvm-cosmwasm = { workspace = true }
 stellar = { workspace = true }
 stellar-xdr = { workspace = true }
 sui-gateway = { workspace = true }
@@ -56,13 +63,16 @@ thiserror = { workspace = true }
 voting-verifier = { workspace = true, features = ["library"] }
 
 [dev-dependencies]
-anyhow = "1.0"
+aleo-utils = { workspace = true }
 assert_ok = { workspace = true }
 cw-multi-test = { workspace = true }
 elliptic-curve = "0.13.5"
 generic-array = "0.14.7"
 goldie = { workspace = true }
 prost = "0.12.4"
+rand = { workspace = true }
+snarkos-account = { workspace = true }
+snarkvm = { workspace = true }
 
 [lints]
 workspace = true

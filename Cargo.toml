@@ -29,6 +29,8 @@ aleo-gmp-types = { path = "packages/aleo-gmp-types" }
 aleo-network-config = { path = "packages/aleo-network-config" }
 aleo-signature-verifier = { path = "contracts/aleo-signature-verifier" }
 aleo-string-encoder = { git = "ssh://git@github.com/eigerco/aleo-program-rust-support.git", branch = "main", package = "aleo-string-encoder" }
+
+aleo-utils = { git = "ssh://git@github.com/eigerco/axelar-aleo.git", branch = "dev", package = "aleo-utils" }
 alloy-primitives = { version = "0.7.6", default-features = false, features = [
   "std",
 ] }
@@ -94,6 +96,7 @@ multisig = { version = "^2.3.1", path = "contracts/multisig" }
 multisig-prover = { version = "^1.1.1", path = "contracts/multisig-prover" }
 multisig-prover-api = { version = "1.0.0", path = "packages/multisig-prover-api" }
 num-traits = { version = "0.2.14", default-features = false }
+plaintext-trait = { git = "ssh://git@github.com/eigerco/aleo-program-rust-support.git", branch = "main", package = "plaintext-trait" }
 proc-macro2 = "1.0.92"
 quote = "1.0.38"
 rand = "0.8.5"
@@ -110,6 +113,7 @@ service-registry-api = { version = "^1.0.0", path = "packages/service-registry-a
 sha3 = { version = "0.10.8", default-features = false, features = [] }
 signature-verifier-api = { version = "^1.0.0", path = "packages/signature-verifier-api" }
 snarkos-account = "=4.1.0"
+snarkvm = { version = "4.1.0", default-features = false }
 snarkvm-cosmwasm = { git = "https://github.com/eigerco/snarkVM.git", tag = "snarkvm-with-cosmwasm", package = "snarkvm-cosmwasm" }
 starknet-checked-felt = { version = "^1.0.0", path = "packages/starknet-checked-felt" }
 starknet-core = "0.12.0"

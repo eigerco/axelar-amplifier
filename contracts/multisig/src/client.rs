@@ -203,7 +203,8 @@ mod test {
     use crate::msg::QueryMsg;
     use crate::multisig::Multisig;
     use crate::test::common::{
-        build_verifier_set, ecdsa_test_data, ed25519_test_data, signature_test_data, TestSigner,
+        aleo_schnorr_test_data, build_verifier_set, ecdsa_test_data, ed25519_test_data,
+        signature_test_data, TestSigner, VerifierSetId,
     };
     use crate::types::MultisigState;
 
@@ -398,10 +399,17 @@ mod test {
         (querier, cosmos_addr!(ADDR))
     }
 
-    fn signing_keys() -> (String, String) {
+    fn signing_keys() -> (VerifierSetId, VerifierSetId, VerifierSetId) {
         (
-            build_verifier_set(KeyType::Ecdsa, &ecdsa_test_data::signers()).id(),
-            build_verifier_set(KeyType::Ed25519, &ed25519_test_data::signers()).id(),
+            VerifierSetId::Ecdsa(
+                build_verifier_set(KeyType::Ecdsa, &ecdsa_test_data::signers()).id(),
+            ),
+            VerifierSetId::Ed25519(
+                build_verifier_set(KeyType::Ed25519, &ed25519_test_data::signers()).id(),
+            ),
+            VerifierSetId::AleoSchnorr(
+                build_verifier_set(KeyType::AleoSchnorr, &aleo_schnorr_test_data::signers()).id(),
+            ),
         )
     }
 
@@ -432,6 +440,7 @@ mod test {
                 let pub_key = match key_type {
                     KeyType::Ecdsa => PublicKey::Ecdsa(signer.pub_key),
                     KeyType::Ed25519 => PublicKey::Ed25519(signer.pub_key),
+                    KeyType::AleoSchnorr => PublicKey::AleoSchnorr(signer.pub_key),
                 };
 
                 match client.register_public_key(pub_key, signer.signed_address) {
@@ -444,38 +453,44 @@ mod test {
 
     #[test]
     fn construct_submit_signature_msg() {
-        let (ecdsa_subkey, ed25519_subkey) = signing_keys();
+        let (ecdsa_subkey, ed25519_subkey, aleo_schnorr_subkey) = signing_keys();
 
         let (querier, addr) = setup_queries_to_succeed();
         let client: Client =
             client::ContractClient::new(QuerierWrapper::new(&querier), &addr).into();
 
-        goldie::assert_json!(&signature_test_data(&ecdsa_subkey, &ed25519_subkey)
-            .into_iter()
-            .flat_map(
-                |(_, _, signers, session_id)| validate_submit_signature_msgs_construction(
-                    &client, session_id, signers
-                )
-            )
-            .collect::<Vec<WasmMsg>>());
+        goldie::assert_json!(&signature_test_data(
+            &ecdsa_subkey,
+            &ed25519_subkey,
+            &aleo_schnorr_subkey
+        )
+        .into_iter()
+        .flat_map(|(_, _, signers, session_id)| {
+            validate_submit_signature_msgs_construction(&client, session_id, signers)
+        })
+        .collect::<Vec<WasmMsg>>());
     }
 
     #[test]
     fn construct_register_public_key_msg() {
-        let (ecdsa_subkey, ed25519_subkey) = signing_keys();
+        let (ecdsa_subkey, ed25519_subkey, aleo_schnorr_subkey) = signing_keys();
 
         let (querier, addr) = setup_queries_to_succeed();
         let client: Client =
             client::ContractClient::new(QuerierWrapper::new(&querier), &addr).into();
 
-        goldie::assert_json!(&signature_test_data(&ecdsa_subkey, &ed25519_subkey)
-            .into_iter()
-            .flat_map(
-                |(key_type, _, signers, _)| validate_register_public_key_msgs_construction(
-                    &client, key_type, signers
-                )
+        goldie::assert_json!(&signature_test_data(
+            &ecdsa_subkey,
+            &ed25519_subkey,
+            &aleo_schnorr_subkey
+        )
+        .into_iter()
+        .flat_map(
+            |(key_type, _, signers, _)| validate_register_public_key_msgs_construction(
+                &client, key_type, signers
             )
-            .collect::<Vec<WasmMsg>>());
+        )
+        .collect::<Vec<WasmMsg>>());
     }
 
     #[test]

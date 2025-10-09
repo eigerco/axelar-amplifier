@@ -15,6 +15,12 @@ pub enum ContractError {
     #[error("message is invalid")]
     InvalidMessage,
 
+    #[error("failed to create payload digest")]
+    CreatePayloadDigestFailed,
+
+    #[error("failed to serialize proof")]
+    SerializeProofFailed,
+
     #[error("public key is invalid: {reason}")]
     InvalidPublicKey { reason: String },
 
