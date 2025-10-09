@@ -72,7 +72,7 @@ pub fn construct_proof(
         verifier_set_id: verifier_set.id(),
         msg: digest.into(),
         chain_name: config.chain_name,
-        sig_verifier: None,
+        sig_verifier: config.sig_verifier,
     };
 
     let wasm_msg =
@@ -554,6 +554,7 @@ mod tests {
             coordinator: cosmos_addr!(DUMMY),
             service_registry: cosmos_addr!(DUMMY),
             voting_verifier: cosmos_addr!(DUMMY),
+            sig_verifier: None,
             signing_threshold: Threshold::try_from((2, 3)).unwrap().try_into().unwrap(),
             service_name: "validators".to_string(),
             chain_name: chain_name!("ethereum"),

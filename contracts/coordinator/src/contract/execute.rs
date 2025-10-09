@@ -133,13 +133,18 @@ fn instantiate_verifier(
     )
 }
 
-fn instantiate_prover(
-    ctx: &InstantiateContext,
-    label: String,
+struct ContractAddresses {
     gateway_address: Addr,
     service_registry_address: Addr,
     multisig_address: Addr,
     verifier_address: Addr,
+    sig_verifier_address: Option<Addr>,
+}
+
+fn instantiate_prover(
+    ctx: &InstantiateContext,
+    label: String,
+    contract_addresses: ContractAddresses,
     prover_msg: &ProverMsg,
 ) -> Result<(WasmMsg, Addr), Error> {
     launch_contract(
@@ -149,12 +154,15 @@ fn instantiate_prover(
         ctx.prover_code_id,
         cosmwasm_std::to_json_binary(&multisig_prover_api::msg::InstantiateMsg {
             admin_address: prover_msg.admin_address.to_string(),
-            governance_address: prover_msg.governance_address.to_string().clone(),
-            coordinator_address: ctx.env.contract.address.to_string().clone(),
-            gateway_address: gateway_address.to_string().clone(),
-            multisig_address: multisig_address.to_string().clone(),
-            service_registry_address: service_registry_address.to_string().clone(),
-            voting_verifier_address: verifier_address.to_string().clone(),
+            governance_address: prover_msg.governance_address.to_string(),
+            coordinator_address: ctx.env.contract.address.to_string(),
+            gateway_address: contract_addresses.gateway_address.to_string(),
+            multisig_address: contract_addresses.multisig_address.to_string(),
+            service_registry_address: contract_addresses.service_registry_address.to_string(),
+            voting_verifier_address: contract_addresses.verifier_address.to_string(),
+            sig_verifier_address: contract_addresses
+                .sig_verifier_address
+                .map(|a| a.to_string()),
             signing_threshold: prover_msg.signing_threshold,
             service_name: prover_msg.service_name.to_string(),
             chain_name: prover_msg.chain_name.to_string(),
@@ -219,6 +227,15 @@ pub fn instantiate_chain_contracts(
                 .map_err(|_| Error::InvalidAddress(params.prover.contract_admin.to_string()))?
                 .to_string();
 
+            let sig_verifier_address = params
+                .signature_verifier_address
+                .map(|a| {
+                    deps.api
+                        .addr_validate(a.as_str())
+                        .map_err(|_| Error::InvalidAddress(a.to_string()))
+                })
+                .transpose()?;
+
             let ctx = InstantiateContext {
                 deps,
                 env,
@@ -250,13 +267,18 @@ pub fn instantiate_chain_contracts(
 
             response = response.add_message(msg);
 
+            let contract_addresses = ContractAddresses {
+                gateway_address: gateway_address.clone(),
+                service_registry_address: protocol.service_registry.clone(),
+                multisig_address: protocol.multisig.clone(),
+                verifier_address: voting_verifier_address.clone(),
+                sig_verifier_address,
+            };
+
             let (msg, multisig_prover_address) = instantiate_prover(
                 &ctx,
                 params.prover.label.clone(),
-                gateway_address.clone(),
-                protocol.service_registry.clone(),
-                protocol.multisig.clone(),
-                voting_verifier_address.clone(),
+                contract_addresses,
                 &params.prover.msg,
             )?;
 
