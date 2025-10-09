@@ -2606,6 +2606,32 @@ dependencies = [
 
 [[package]]
 name = "coordinator"
+version = "2.1.0"
+source = "git+https://github.com/eigerco/axelar-amplifier?branch=aleo-all-changes-v2#e15945162012065ea2f1d05a0ae2772899e0780d"
+dependencies = [
+ "axelar-wasm-std 1.0.0 (git+https://github.com/eigerco/axelar-amplifier?branch=aleo-all-changes-v2)",
+ "client 1.0.0 (git+https://github.com/eigerco/axelar-amplifier?branch=aleo-all-changes-v2)",
+ "cosmwasm-schema",
+ "cosmwasm-std",
+ "cw-storage-plus",
+ "cw2",
+ "error-stack",
+ "gateway-api 1.0.0 (git+https://github.com/eigerco/axelar-amplifier?branch=aleo-all-changes-v2)",
+ "itertools 0.14.0",
+ "msgs-derive 1.0.0 (git+https://github.com/eigerco/axelar-amplifier?branch=aleo-all-changes-v2)",
+ "multisig 2.3.1 (git+https://github.com/eigerco/axelar-amplifier?branch=aleo-all-changes-v2)",
+ "multisig-prover-api 1.0.0 (git+https://github.com/eigerco/axelar-amplifier?branch=aleo-all-changes-v2)",
+ "report 1.0.0 (git+https://github.com/eigerco/axelar-amplifier?branch=aleo-all-changes-v2)",
+ "router-api 1.0.0 (git+https://github.com/eigerco/axelar-amplifier?branch=aleo-all-changes-v2)",
+ "semver 1.0.26",
+ "serde_json",
+ "service-registry-api 1.0.0 (git+https://github.com/eigerco/axelar-amplifier?branch=aleo-all-changes-v2)",
+ "thiserror 1.0.69",
+ "voting-verifier-api 1.0.0 (git+https://github.com/eigerco/axelar-amplifier?branch=aleo-all-changes-v2)",
+]
+
+[[package]]
+name = "coordinator"
 version = "2.1.1"
 dependencies = [
  "axelar-wasm-std 1.0.0",
@@ -2631,32 +2657,6 @@ dependencies = [
  "thiserror 1.0.69",
  "tofn",
  "voting-verifier-api 1.0.0",
-]
-
-[[package]]
-name = "coordinator"
-version = "2.1.0"
-source = "git+https://github.com/eigerco/axelar-amplifier?branch=aleo-all-changes-v2#e15945162012065ea2f1d05a0ae2772899e0780d"
-dependencies = [
- "axelar-wasm-std 1.0.0 (git+https://github.com/eigerco/axelar-amplifier?branch=aleo-all-changes-v2)",
- "client 1.0.0 (git+https://github.com/eigerco/axelar-amplifier?branch=aleo-all-changes-v2)",
- "cosmwasm-schema",
- "cosmwasm-std",
- "cw-storage-plus",
- "cw2",
- "error-stack",
- "gateway-api 1.0.0 (git+https://github.com/eigerco/axelar-amplifier?branch=aleo-all-changes-v2)",
- "itertools 0.14.0",
- "msgs-derive 1.0.0 (git+https://github.com/eigerco/axelar-amplifier?branch=aleo-all-changes-v2)",
- "multisig 2.3.1 (git+https://github.com/eigerco/axelar-amplifier?branch=aleo-all-changes-v2)",
- "multisig-prover-api 1.0.0 (git+https://github.com/eigerco/axelar-amplifier?branch=aleo-all-changes-v2)",
- "report 1.0.0 (git+https://github.com/eigerco/axelar-amplifier?branch=aleo-all-changes-v2)",
- "router-api 1.0.0 (git+https://github.com/eigerco/axelar-amplifier?branch=aleo-all-changes-v2)",
- "semver 1.0.26",
- "serde_json",
- "service-registry-api 1.0.0 (git+https://github.com/eigerco/axelar-amplifier?branch=aleo-all-changes-v2)",
- "thiserror 1.0.69",
- "voting-verifier-api 1.0.0 (git+https://github.com/eigerco/axelar-amplifier?branch=aleo-all-changes-v2)",
 ]
 
 [[package]]
@@ -5640,7 +5640,7 @@ dependencies = [
  "anyhow",
  "axelar-core-std",
  "axelar-wasm-std 1.0.0",
- "coordinator 2.1.0",
+ "coordinator 2.1.1",
  "cosmwasm-std",
  "cw-multi-test",
  "error-stack",
@@ -7147,7 +7147,7 @@ dependencies = [
  "axelar-wasm-std 1.0.0",
  "bcs",
  "client 1.0.0",
- "coordinator 2.1.0",
+ "coordinator 2.1.1",
  "cosmwasm-schema",
  "cosmwasm-std",
  "cw-multi-test",
@@ -7202,7 +7202,7 @@ dependencies = [
  "axelar-wasm-std 1.0.0 (git+https://github.com/eigerco/axelar-amplifier?branch=aleo-all-changes-v2)",
  "bcs",
  "client 1.0.0 (git+https://github.com/eigerco/axelar-amplifier?branch=aleo-all-changes-v2)",
- "coordinator 2.1.0 (git+https://github.com/eigerco/axelar-amplifier?branch=aleo-all-changes-v2)",
+ "coordinator 2.1.0",
  "cosmwasm-schema",
  "cosmwasm-std",
  "cw-storage-plus",
@@ -10385,7 +10385,7 @@ version = "1.2.0"
 dependencies = [
  "axelar-wasm-std 1.0.0",
  "client 1.0.0",
- "coordinator 2.1.0",
+ "coordinator 2.1.1",
  "cosmwasm-schema",
  "cosmwasm-std",
  "cw-multi-test",
@@ -10414,7 +10414,7 @@ source = "git+https://github.com/eigerco/axelar-amplifier?branch=aleo-all-change
 dependencies = [
  "axelar-wasm-std 1.0.0 (git+https://github.com/eigerco/axelar-amplifier?branch=aleo-all-changes-v2)",
  "client 1.0.0 (git+https://github.com/eigerco/axelar-amplifier?branch=aleo-all-changes-v2)",
- "coordinator 2.1.0 (git+https://github.com/eigerco/axelar-amplifier?branch=aleo-all-changes-v2)",
+ "coordinator 2.1.0",
  "cosmwasm-schema",
  "cosmwasm-std",
  "cw-storage-plus",

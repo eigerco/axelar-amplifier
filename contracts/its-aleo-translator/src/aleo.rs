@@ -30,6 +30,8 @@ pub enum Error {
     ConversionOverflow(#[from] ConversionOverflowError),
     #[error("Hex: {0}")]
     Hex(#[from] hex::FromHexError),
+    #[error("Failed to convert to/from HexBinary: {0}")]
+    HexConversion(String),
     #[error("Invalid chain name: {0}")]
     InvalidChainName(String),
 }
@@ -96,12 +98,12 @@ pub fn aleo_inbound_hub_message<N: Network>(
 pub fn aleo_outbound_hub_message<N: Network>(
     payload: HexBinary,
 ) -> Result<HubMessage, Report<Error>> {
-    let v = Value::<N>::from_bytes_le(&payload).map_err(|e| report!(Error::SnarkVm(e)))?;
-    let plaintext = match v {
-        Value::Plaintext(p) => p,
-        _ => bail!(Error::TranslationFailed(
+    let Value::Plaintext(plaintext) =
+        Value::<N>::from_bytes_le(&payload).map_err(|e| report!(Error::SnarkVm(e)))?
+    else {
+        bail!(Error::TranslationFailed(
             "Expected Value to be of Plaintext variant".to_string()
-        )),
+        ))
     };
 
     if let Ok(its_outbound_transfer) =
@@ -133,21 +135,19 @@ pub fn aleo_outbound_hub_message<N: Network>(
     }
 }
 
-// Convert cosmwasm_std::HexBinary to nonempty::HexBinary
-fn from_hex_to_hex(hex: &str) -> nonempty::HexBinary {
-    HexBinary::from_hex(hex)
-        .expect("Valid hex string")
+fn to_hex(data: &str) -> Result<nonempty::HexBinary, Error> {
+    HexBinary::from(data.as_bytes())
         .try_into()
-        .expect("Valid non-empty hex binary")
-}
-
-fn to_hex(data: &str) -> nonempty::HexBinary {
-    from_hex_to_hex(&hex::encode(data.as_bytes()))
+        .map_err(|e: nonempty::Error| Error::HexConversion(e.to_string()))
 }
 
 #[cfg(test)]
 mod tests {
     use std::str::FromStr;
+
+    fn decode_hex(hex: &str) -> Result<nonempty::HexBinary, Error> {
+        hex::decode(hex)?.try_into().map_err(Error::NonEmpty)
+    }
 
     use aleo_gateway_types::constants::{CHAIN_NAME_LEN, TOKEN_ID_LEN};
     use aleo_gmp_types::token_id_conversion::ItsTokenIdNewType;
@@ -231,8 +231,8 @@ mod tests {
                 source_chain: self.external_chain.clone(),
                 message: Message::InterchainTransfer(InterchainTransfer {
                     token_id: self.token_id,
-                    source_address: to_hex(&self.source_address),
-                    destination_address: to_hex(&self.destination_address),
+                    source_address: to_hex(&self.source_address).expect("Valid address"),
+                    destination_address: to_hex(&self.destination_address).expect("Valid address"),
                     amount: self.amount.try_into().expect("Valid amount"),
                     data: None,
                 }),
@@ -244,8 +244,9 @@ mod tests {
                 destination_chain: self.external_chain.clone(),
                 message: Message::InterchainTransfer(InterchainTransfer {
                     token_id: self.token_id,
-                    source_address: to_hex(&self.source_address),
-                    destination_address: from_hex_to_hex(&self.destination_address),
+                    source_address: to_hex(&self.source_address).expect("Valid address"),
+                    destination_address: decode_hex(&self.destination_address)
+                        .expect("Valid address"),
                     amount: self.amount.try_into().expect("Valid amount"),
                     data: None,
                 }),
@@ -260,14 +261,14 @@ mod tests {
             let source_chain = format_chain_name(&self.external_chain);
 
             let aleo_message = format!(
-                "{{
-                    inner_message: {{
-                        its_token_id: {its_token_id},
-                        source_address: {source_address},
-                        destination_address: {destination_address},
-                        amount: {amount}u128
-                    }},
-                    source_chain: {source_chain}
+                "{{\
+                    inner_message: {{\
+                        its_token_id: {its_token_id},\
+                        source_address: {source_address},\
+                        destination_address: {destination_address},\
+                        amount: {amount}u128\
+                    }},\
+                    source_chain: {source_chain}\
                 }}"
             );
             aleo_message
@@ -281,14 +282,14 @@ mod tests {
             let destination_address = format_address(&self.destination_address);
 
             format!(
-                "{{
-                    inner_message: {{
-                        its_token_id: {its_token_id},
-                        source_address: {source_address},
-                        destination_address: {destination_address},
-                        amount: {amount}u128
-                    }},
-                    destination_chain: {destination_chain}
+                "{{\
+                    inner_message: {{\
+                        its_token_id: {its_token_id},\
+                        source_address: {source_address},\
+                        destination_address: {destination_address},\
+                        amount: {amount}u128\
+                    }},\
+                    destination_chain: {destination_chain}\
                 }}",
             )
         }
@@ -339,7 +340,10 @@ mod tests {
                             .try_into()
                             .expect("Valid token symbol"),
                         decimals: self.decimals,
-                        minter: self.minter.as_ref().map(|m| to_hex(m)),
+                        minter: self
+                            .minter
+                            .as_ref()
+                            .map(|m| to_hex(m).expect("Valid minter")),
                     },
                 ),
             }
@@ -362,7 +366,10 @@ mod tests {
                             .try_into()
                             .expect("Valid token symbol"),
                         decimals: self.decimals,
-                        minter: self.minter.as_ref().map(|m| from_hex_to_hex(m)),
+                        minter: self
+                            .minter
+                            .as_ref()
+                            .map(|m| decode_hex(m).expect("Valid minter")),
                     },
                 ),
             }
@@ -391,15 +398,15 @@ mod tests {
             let destination_chain = format_chain_name(&self.external_chain);
 
             format!(
-                "{{
-                    payload: {{
-                        its_token_id: {its_token_id},
-                        name: {token_name}u128,
-                        symbol: {token_symbol}u128,
-                        decimals: {decimals}u8,
-                        minter: {minter}
-                    }},
-                    destination_chain: {destination_chain}
+                "{{\
+                    payload: {{\
+                        its_token_id: {its_token_id},\
+                        name: {token_name}u128,\
+                        symbol: {token_symbol}u128,\
+                        decimals: {decimals}u8,\
+                        minter: {minter}\
+                    }},\
+                    destination_chain: {destination_chain}\
                 }}",
             )
         }
@@ -424,15 +431,15 @@ mod tests {
                 .consume()[0];
 
             format!(
-                "{{
-                inner_message: {{
-                    its_token_id: {its_token_id},
-                    name: {aleo_token_name}u128,
-                    symbol: {aleo_token_symbol}u128,
-                    decimals: {decimals}u8,
-                    minter: {minter}
-                }},
-                source_chain: {source_chain}
+                "{{\
+                inner_message: {{\
+                    its_token_id: {its_token_id},\
+                    name: {aleo_token_name}u128,\
+                    symbol: {aleo_token_symbol}u128,\
+                    decimals: {decimals}u8,\
+                    minter: {minter}\
+                }},\
+                source_chain: {source_chain}\
             }}"
             )
         }
@@ -465,8 +472,10 @@ mod tests {
                 message: Message::LinkToken(LinkToken {
                     token_id: self.token_id,
                     token_manager_type: self.token_manager_type.into(),
-                    source_token_address: to_hex(self.source_token_address.as_str()),
-                    destination_token_address: to_hex(&self.destination_token_address),
+                    source_token_address: to_hex(self.source_token_address.as_str())
+                        .expect("Valid address"),
+                    destination_token_address: to_hex(&self.destination_token_address)
+                        .expect("Valid address"),
                     params: None,
                 }),
             }
@@ -478,8 +487,10 @@ mod tests {
                 message: Message::LinkToken(LinkToken {
                     token_id: self.token_id,
                     token_manager_type: self.token_manager_type.into(),
-                    source_token_address: to_hex(&self.source_token_address),
-                    destination_token_address: from_hex_to_hex(&self.destination_token_address),
+                    source_token_address: to_hex(&self.source_token_address)
+                        .expect("Valid address"),
+                    destination_token_address: decode_hex(&self.destination_token_address)
+                        .expect("Valid address"),
                     params: None,
                 }),
             }
@@ -494,15 +505,15 @@ mod tests {
             let operator = Address::<CurrentNetwork>::zero().to_string();
 
             let aleo_message = format!(
-                "{{
-                    link_token: {{
-                        its_token_id: {its_token_id},
-                        token_manager_type: {token_manager_type}u8,
-                        source_token_address: {source_token_address},
-                        destination_token_address: {destination_token_address},
-                        operator: {operator}
-                    }},
-                    source_chain: {source_chain}
+                "{{\
+                    link_token: {{\
+                        its_token_id: {its_token_id},\
+                        token_manager_type: {token_manager_type}u8,\
+                        source_token_address: {source_token_address},\
+                        destination_token_address: {destination_token_address},\
+                        operator: {operator}\
+                    }},\
+                    source_chain: {source_chain}\
                 }}"
             );
             aleo_message
@@ -517,15 +528,15 @@ mod tests {
             let operator = format_aleo_array(&[0], GMP_ADDRESS_LENGTH);
 
             format!(
-                "{{
-                    link_token: {{
-                        token_id: {its_token_id},
-                        token_manager_type: {token_manager_type}u8,
-                        aleo_token_id: {source_token_address},
-                        destination_token_address: {destination_token_address},
-                        operator: {operator}
-                    }},
-                    destination_chain: {destination_chain}
+                "{{\
+                    link_token: {{\
+                        token_id: {its_token_id},\
+                        token_manager_type: {token_manager_type}u8,\
+                        aleo_token_id: {source_token_address},\
+                        destination_token_address: {destination_token_address},\
+                        operator: {operator}\
+                    }},\
+                    destination_chain: {destination_chain}\
                 }}",
             )
         }
@@ -677,7 +688,7 @@ mod tests {
             let expected = HubMessage::RegisterTokenMetadata(
                 interchain_token_service_std::RegisterTokenMetadata {
                     decimals,
-                    token_address: to_hex(&token_address.to_string()),
+                    token_address: to_hex(&token_address.to_string()).expect("Valid token address"),
                 },
             );
 

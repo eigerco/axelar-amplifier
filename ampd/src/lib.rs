@@ -329,7 +329,7 @@ impl App {
                     network.to_string(),
                 );
 
-                let label = format!("{}-msg-verifier", chain.name);
+                let task_name = format!("{}-msg-verifier", chain.name);
 
                 macro_rules! create_handler_for_aleo_network {
                     ($network:ty) => {{
@@ -343,11 +343,14 @@ impl App {
                         )
                         .change_context(Error::AleoNetworkHandler)?;
 
-                        Ok(self.create_handler_task(
-                            label,
-                            handler,
-                            event_processor_config.clone(),
-                            self.monitoring_client.clone(),
+                        Ok((
+                            task_name.clone(),
+                            self.create_handler_task(
+                                task_name,
+                                handler,
+                                event_processor_config.clone(),
+                                self.monitoring_client.clone(),
+                            ),
                         ))
                     }};
                 }
@@ -380,7 +383,7 @@ impl App {
                     network.to_string(),
                 );
 
-                let label = format!("{}-verifier-set-verifier", chain.name);
+                let task_name = format!("{}-verifier-set-verifier", chain.name);
 
                 macro_rules! create_handler_for_aleo_network {
                     ($network:ty) => {{
@@ -395,11 +398,14 @@ impl App {
                             )
                             .change_context(Error::AleoNetworkHandler)?;
 
-                        Ok(self.create_handler_task(
-                            label,
-                            handler,
-                            event_processor_config.clone(),
-                            self.monitoring_client.clone(),
+                        Ok((
+                            task_name.clone(),
+                            self.create_handler_task(
+                                task_name,
+                                handler,
+                                event_processor_config.clone(),
+                                self.monitoring_client.clone(),
+                            ),
                         ))
                     }};
                 }

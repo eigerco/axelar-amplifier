@@ -79,6 +79,7 @@ pub fn validate_address(address: &str, format: &AddressFormat) -> Result<(), Err
                 pubkey.len() == SOLANA_PUBKEY_LEN,
                 Error::InvalidAddress(address.to_string())
             );
+        }
         AddressFormat::Aleo(network) => {
             validate_aleo_address(network, address)
                 .change_context(Error::InvalidAddress(address.to_string()))?;
