@@ -247,7 +247,7 @@ dependencies = [
  "ampd-proto",
  "assert_ok",
  "async-trait",
- "axelar-solana-encoding",
+ "axelar-solana-encoding 0.1.0 (git+https://github.com/axelarnetwork/axelar-amplifier-solana.git?rev=6f2d7f1fc818648e8115220b55a264f73f42ff6b)",
  "axelar-solana-gateway",
  "axelar-wasm-std",
  "axum 0.7.9",
@@ -1014,6 +1014,21 @@ dependencies = [
 [[package]]
 name = "axelar-solana-encoding"
 version = "0.1.0"
+source = "git+https://github.com/axelarnetwork/axelar-amplifier-solana.git?rev=6f2d7f1fc818648e8115220b55a264f73f42ff6b#6f2d7f1fc818648e8115220b55a264f73f42ff6b"
+dependencies = [
+ "arrayref",
+ "borsh 1.5.7",
+ "bs58 0.5.1",
+ "hex",
+ "rs_merkle",
+ "sha3",
+ "thiserror 1.0.69",
+ "udigest",
+]
+
+[[package]]
+name = "axelar-solana-encoding"
+version = "0.1.0"
 source = "git+https://github.com/eigerco/solana-axelar.git?rev=f167d2b#f167d2b6d3c9b922b41a4660dd69298559b3b6a9"
 dependencies = [
  "arrayref",
@@ -1043,7 +1058,7 @@ version = "0.1.0"
 source = "git+https://github.com/eigerco/solana-axelar.git?rev=f167d2b#f167d2b6d3c9b922b41a4660dd69298559b3b6a9"
 dependencies = [
  "axelar-message-primitives",
- "axelar-solana-encoding",
+ "axelar-solana-encoding 0.1.0 (git+https://github.com/eigerco/solana-axelar.git?rev=f167d2b)",
  "bincode",
  "bitvec 1.0.1",
  "borsh 1.5.7",
@@ -10278,7 +10293,7 @@ version = "0.2.0"
 dependencies = [
  "anyhow",
  "assert_ok",
- "axelar-solana-encoding",
+ "axelar-solana-encoding 0.1.0 (git+https://github.com/axelarnetwork/axelar-amplifier-solana.git?rev=6f2d7f1fc818648e8115220b55a264f73f42ff6b)",
  "axelar-wasm-std",
  "bcs",
  "client",
