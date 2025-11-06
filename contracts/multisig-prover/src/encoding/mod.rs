@@ -43,7 +43,7 @@ impl EncoderExt for Encoder {
             Encoder::StellarXdr => {
                 stellar_xdr::payload_digest(domain_separator, verifier_set, payload)
             }
-            Encoder::Solana => solana::payload_digest(domain_separator, verifier_set, payload),
+            Encoder::Solana => solana::payload_digest(domain_separator, payload),
         }
     }
 
