@@ -16,8 +16,6 @@ dummy-grpc-broadcast = []  # TEMPORARY: Enable dummy broadcast for debugging
 [dependencies]
 ampd-proto = { workspace = true }
 async-trait = { workspace = true }
-axelar-solana-encoding = { workspace = true }
-axelar-solana-gateway = { workspace = true }
 axelar-wasm-std = { workspace = true }
 axum = "0.7.5"
 base64 = "0.21.2"
@@ -41,7 +39,6 @@ ethers-providers = { version = "2.0.13", default-features = false, features = [
 events = { workspace = true, features = ["derive"] }
 evm-gateway = { workspace = true }
 futures = { workspace = true }
-gateway-event-stack = { workspace = true }
 hex = { version = "0.4.3", features = ["serde"] }
 humantime-serde = "1.1.1"
 itertools = { workspace = true }
@@ -70,10 +67,6 @@ serde_json = { workspace = true }
 serde_with = "3.2.0"
 service-registry-api = { workspace = true }
 sha3 = { workspace = true }
-solana-client = "=2.1.21"
-solana-sdk = "=2.1.21"
-solana-transaction-status = "=2.1.21"
-solana-zk-token-sdk = "=2.1.21"
 starknet-checked-felt = { workspace = true }
 
 starknet-core = { workspace = true }
