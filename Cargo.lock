@@ -930,7 +930,7 @@ dependencies = [
 [[package]]
 name = "axelar-solana-encoding"
 version = "0.1.0"
-source = "git+https://github.com/axelarnetwork/axelar-amplifier-solana.git?rev=6f2d7f1fc818648e8115220b55a264f73f42ff6b#6f2d7f1fc818648e8115220b55a264f73f42ff6b"
+source = "git+https://github.com/axelarnetwork/axelar-amplifier-solana.git?branch=feat%2Fdrop_ed25519#eb0a5be803c92c8c492060a86b73efbec94bfb34"
 dependencies = [
  "arrayref",
  "borsh",
@@ -8801,7 +8801,7 @@ dependencies = [
 
 [[package]]
 name = "solana-multisig-prover"
-version = "0.2.0"
+version = "0.4.0"
 dependencies = [
  "anyhow",
  "assert_ok",
