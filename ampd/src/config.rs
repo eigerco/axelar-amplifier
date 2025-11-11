@@ -77,7 +77,6 @@ mod tests {
     use crate::{grpc, monitoring};
 
     const PREFIX: &str = "axelar";
-    const SOLANA: &str = "solana";
     const STACKS: &str = "stacks";
 
     #[test]
@@ -313,26 +312,6 @@ mod tests {
             rpc_url = 'http://localhost:7545'
 
             [[handlers]]
-            type = 'SolanaMsgVerifier'
-            chain_name = 'solana'
-            cosmwasm_contract = '{}'
-            rpc_url = 'http://127.0.0.1'
-
-            [handlers.rpc_timeout]
-            secs = 3
-            nanos = 0
-
-            [[handlers]]
-            type = 'SolanaVerifierSetVerifier'
-            chain_name = 'solana'
-            cosmwasm_contract = '{}'
-            rpc_url = 'http://127.0.0.1'
-
-            [handlers.rpc_timeout]
-            secs = 3
-            nanos = 0
-
-            [[handlers]]
             type = 'StacksMsgVerifier'
             chain_name = 'stacks'
             cosmwasm_contract = '{}'
@@ -352,8 +331,6 @@ mod tests {
             secs = 3
             nanos = 0
             ",
-            TMAddress::random(PREFIX),
-            TMAddress::random(PREFIX),
             TMAddress::random(PREFIX),
             TMAddress::random(PREFIX),
             TMAddress::random(PREFIX),
@@ -590,22 +567,6 @@ mod tests {
                     ),
                     rpc_url: Url::new_non_sensitive("http://127.0.0.1").unwrap(),
                 },
-                HandlerConfig::SolanaMsgVerifier {
-                    chain_name: chain_name!(SOLANA),
-                    cosmwasm_contract: TMAddress::from(
-                        AccountId::new("axelar", &[0u8; 32]).unwrap(),
-                    ),
-                    rpc_url: Url::new_non_sensitive("http://127.0.0.1").unwrap(),
-                    rpc_timeout: Some(Duration::from_secs(3)),
-                },
-                HandlerConfig::SolanaVerifierSetVerifier {
-                    chain_name: chain_name!(SOLANA),
-                    cosmwasm_contract: TMAddress::from(
-                        AccountId::new("axelar", &[0u8; 32]).unwrap(),
-                    ),
-                    rpc_url: Url::new_non_sensitive("http://127.0.0.1").unwrap(),
-                    rpc_timeout: Some(Duration::from_secs(3)),
-                },
                 HandlerConfig::StacksMsgVerifier {
                     chain_name: chain_name!(STACKS),
                     cosmwasm_contract: TMAddress::from(
@@ -628,18 +589,6 @@ mod tests {
                     chains: vec![
                         grpc::BlockchainServiceChainConfig {
                             chain_name: chain_name!("ethereum"),
-                            voting_verifier: TMAddress::from(
-                                AccountId::new("axelar", &[0u8; 32]).unwrap(),
-                            ),
-                            multisig_prover: TMAddress::from(
-                                AccountId::new("axelar", &[0u8; 32]).unwrap(),
-                            ),
-                            multisig: TMAddress::from(
-                                AccountId::new("axelar", &[0u8; 32]).unwrap(),
-                            ),
-                        },
-                        grpc::BlockchainServiceChainConfig {
-                            chain_name: chain_name!("solana"),
                             voting_verifier: TMAddress::from(
                                 AccountId::new("axelar", &[0u8; 32]).unwrap(),
                             ),
