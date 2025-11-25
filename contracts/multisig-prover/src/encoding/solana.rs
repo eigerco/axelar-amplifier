@@ -74,14 +74,19 @@ pub fn payload_digest(
     domain_separator: &Hash,
     payload: &Payload,
 ) -> error_stack::Result<Hash, ContractError> {
-    let payload = to_payload(payload)?;
-    let hash = solana_axelar_std::execute_data::hash_payload::<Hasher>(domain_separator, payload)
-        .map_err(|err| ContractError::SolanaEncoding {
-        reason: err.to_string(),
-    })?;
+    let solana_payload = to_payload(payload)?;
+    let hash =
+        solana_axelar_std::execute_data::hash_payload::<Hasher>(domain_separator, solana_payload)
+            .map_err(|err| ContractError::SolanaEncoding {
+            reason: err.to_string(),
+        })?;
+
+    let pre_prefixed_message = [&[payload.variant_to_u8()], hash.as_slice()].concat();
+
+    let inner_hash: Hash = Keccak256::digest(pre_prefixed_message).into();
 
     // Add prefix for Solana offchain signing (matches gateway implementation)
-    let prefixed_message = [PREFIX, hash.as_slice()].concat();
+    let prefixed_message = [PREFIX, inner_hash.as_slice()].concat();
 
     Ok(Keccak256::digest(prefixed_message).into())
 }
@@ -468,35 +473,43 @@ mod tests {
                 .to_array()
                 .unwrap();
 
-        // 2. Get unprefixed hash directly from encoding library
+        // 2. Get hash from solana encoding library
         let payload_encoded = to_payload(&payload).unwrap();
-        let unprefixed_hash = solana_axelar_std::execute_data::hash_payload::<Hasher>(
+        let hash = solana_axelar_std::execute_data::hash_payload::<Hasher>(
             &domain_separator,
             payload_encoded,
         )
         .unwrap();
 
-        // 3. Get prefixed hash from our function
-        let prefixed_hash = payload_digest(&domain_separator, &payload).unwrap();
+        // 3. Get final digest from our function
+        let final_digest = payload_digest(&domain_separator, &payload).unwrap();
 
-        // 4. Manually compute expected prefixed hash
-        let expected_prefixed_hash = {
-            let prefixed_message = [PREFIX, unprefixed_hash.as_slice()].concat();
+        // 4. Manually compute expected digest using new mechanism
+        let expected_digest = {
+            // Step 1: Create pre-prefixed message with payload variant byte
+            let pre_prefixed_message = [&[payload.variant_to_u8()], hash.as_slice()].concat();
+
+            // Step 2: Hash the pre-prefixed message
+            let inner_hash: axelar_wasm_std::hash::Hash =
+                Keccak256::digest(pre_prefixed_message).into();
+
+            // Step 3: Add Solana prefix and hash again
+            let prefixed_message = [PREFIX, inner_hash.as_slice()].concat();
             Keccak256::digest(prefixed_message)
         };
 
         // 5. Verify they match
         assert_eq!(
-            prefixed_hash.as_slice(),
-            expected_prefixed_hash.as_slice(),
-            "payload_digest should return keccak256(PREFIX + unprefixed_hash)"
+            final_digest.as_slice(),
+            expected_digest.as_slice(),
+            "payload_digest should return keccak256(PREFIX + keccak256([payload_variant] + hash))"
         );
 
-        // 6. Verify they are NOT the same (prefix actually changes the hash)
+        // 6. Verify the digest is different from the original hash
         assert_ne!(
-            prefixed_hash.as_slice(),
-            unprefixed_hash.as_slice(),
-            "prefixed hash should be different from unprefixed hash"
+            final_digest.as_slice(),
+            hash.as_slice(),
+            "final digest should be different from original hash"
         );
     }
 }
