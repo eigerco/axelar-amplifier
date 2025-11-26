@@ -53,7 +53,7 @@ pub fn encode_execute_data(
     // Encode all the data
     // Note: This sends UNPREFIXED execute data (verifier_set_encoded, payload_encoded)
     // The gateway will add the prefix during verification to match our prefixed_payload_hash
-    let bytes = solana_axelar_std::execute_data::encode::<Hasher>(
+    let bytes = solana_axelar_std::execute_data::encode(
         &verifier_set_encoded,
         &signers_with_signatures,
         *domain_separator,
@@ -75,7 +75,7 @@ pub fn payload_digest(
     payload: &Payload,
 ) -> error_stack::Result<Hash, ContractError> {
     let payload = to_payload(payload)?;
-    let hash = solana_axelar_std::execute_data::hash_payload::<Hasher>(domain_separator, payload)
+    let hash: [u8; 32] = solana_axelar_std::execute_data::hash_payload::<Hasher>(domain_separator, payload)
         .map_err(|err| ContractError::SolanaEncoding {
         reason: err.to_string(),
     })?;
@@ -470,7 +470,7 @@ mod tests {
 
         // 2. Get unprefixed hash directly from encoding library
         let payload_encoded = to_payload(&payload).unwrap();
-        let unprefixed_hash = solana_axelar_std::execute_data::hash_payload::<Hasher>(
+        let unprefixed_hash: [u8; 32] = solana_axelar_std::execute_data::hash_payload::<Hasher>(
             &domain_separator,
             payload_encoded,
         )
