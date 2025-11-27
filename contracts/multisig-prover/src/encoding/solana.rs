@@ -81,14 +81,9 @@ pub fn payload_digest(
             reason: err.to_string(),
         })?;
 
-    let pre_prefixed_message = [&[payload.variant_to_u8()], hash.as_slice()].concat();
-
-    let inner_hash: Hash = Keccak256::digest(pre_prefixed_message).into();
-
-    // Add prefix for Solana offchain signing (matches gateway implementation)
-    let prefixed_message = [PREFIX, inner_hash.as_slice()].concat();
-
-    Ok(Keccak256::digest(prefixed_message).into())
+    let prefixed_message = [PREFIX, &[payload.variant_to_u8()], hash.as_slice()].concat();
+    let hash: Hash = Keccak256::digest(prefixed_message).into();
+    Ok(hash)
 }
 
 /// Transform from Axelar VerifierSet to axelar_solana_encoding VerifierSet
@@ -486,15 +481,7 @@ mod tests {
 
         // 4. Manually compute expected digest using new mechanism
         let expected_digest = {
-            // Step 1: Create pre-prefixed message with payload variant byte
-            let pre_prefixed_message = [&[payload.variant_to_u8()], hash.as_slice()].concat();
-
-            // Step 2: Hash the pre-prefixed message
-            let inner_hash: axelar_wasm_std::hash::Hash =
-                Keccak256::digest(pre_prefixed_message).into();
-
-            // Step 3: Add Solana prefix and hash again
-            let prefixed_message = [PREFIX, inner_hash.as_slice()].concat();
+            let prefixed_message = [PREFIX, &[payload.variant_to_u8()], hash.as_slice()].concat();
             Keccak256::digest(prefixed_message)
         };
 
