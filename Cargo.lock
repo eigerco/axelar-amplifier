@@ -8888,8 +8888,8 @@ dependencies = [
 
 [[package]]
 name = "solana-axelar-std"
-version = "0.1.0"
-source = "git+https://github.com/axelarnetwork/axelar-amplifier-solana.git?branch=std-crate#05ac875b2aac964c0a891f5798c0d8fae8ebeea9"
+version = "0.1.2"
+source = "git+https://github.com/axelarnetwork/axelar-amplifier-solana.git?branch=its-arda-fixes#a9d9c8709954dfa566b8f18ba98534af337092fa"
 dependencies = [
  "alloy-primitives",
  "arrayref",

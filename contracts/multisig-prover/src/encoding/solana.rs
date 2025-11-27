@@ -9,17 +9,12 @@ use multisig::key::{PublicKey, Recoverable, Signature};
 use multisig::msg::SignerWithSig;
 use multisig::verifier_set::VerifierSet;
 use router_api::Message;
-use sha3::{Digest, Keccak256};
 use solana_axelar_std::hasher::Hasher;
 use solana_axelar_std::pubkey::SECP256K1_COMPRESSED_PUBKEY_LEN;
+use solana_axelar_std::PayloadType;
 
 use crate::error::ContractError;
 use crate::payload::Payload;
-
-// Solana offchain signature prefix (matches gateway implementation)
-// This prefix is prepended to hashes before signing to prevent cross-context attacks
-// Pattern: keccak256(PREFIX + unprefixed_hash)
-const PREFIX: &[u8] = b"\xffsolana offchain";
 
 pub fn encode_execute_data(
     signers_with_sigs: Vec<SignerWithSig>,
@@ -53,7 +48,7 @@ pub fn encode_execute_data(
     // Encode all the data
     // Note: This sends UNPREFIXED execute data (verifier_set_encoded, payload_encoded)
     // The gateway will add the prefix during verification to match our prefixed_payload_hash
-    let bytes = solana_axelar_std::execute_data::encode::<Hasher>(
+    let bytes = solana_axelar_std::execute_data::encode(
         &verifier_set_encoded,
         &signers_with_signatures,
         *domain_separator,
@@ -75,14 +70,22 @@ pub fn payload_digest(
     payload: &Payload,
 ) -> error_stack::Result<Hash, ContractError> {
     let solana_payload = to_payload(payload)?;
-    let hash =
+    let payload_merkle_root =
         solana_axelar_std::execute_data::hash_payload::<Hasher>(domain_separator, solana_payload)
             .map_err(|err| ContractError::SolanaEncoding {
             reason: err.to_string(),
         })?;
 
-    let prefixed_message = [PREFIX, &[payload.variant_to_u8()], hash.as_slice()].concat();
-    let hash: Hash = Keccak256::digest(prefixed_message).into();
+    let payload_type = match payload {
+        Payload::Messages(_) => PayloadType::ApproveMessages,
+        Payload::VerifierSet(_) => PayloadType::RotateSigners,
+    };
+
+    let hash = solana_axelar_std::execute_data::prefixed_message_hash_payload_type(
+        payload_type,
+        &payload_merkle_root,
+    );
+
     Ok(hash)
 }
 
@@ -121,7 +124,7 @@ fn to_pub_key(pk: &PublicKey) -> error_stack::Result<solana_axelar_std::PublicKe
     }
 }
 
-fn to_payload(
+pub fn to_payload(
     payload: &Payload,
 ) -> error_stack::Result<solana_axelar_std::execute_data::Payload, ContractError> {
     let payload = match payload {
@@ -207,8 +210,10 @@ mod tests {
     use sha3::{Digest, Keccak256};
     use solana_axelar_std::hasher::Hasher;
 
-    use super::{encode_execute_data, payload_digest, to_payload, PREFIX};
+    use super::{encode_execute_data, payload_digest, to_payload};
     use crate::payload::Payload;
+
+    const SOLANA_OFFCHAIN_PREFIX: &[u8] = b"\xffsolana offchain";
 
     #[test]
     fn solana_messages_payload_digest() {
@@ -481,7 +486,12 @@ mod tests {
 
         // 4. Manually compute expected digest using new mechanism
         let expected_digest = {
-            let prefixed_message = [PREFIX, &[payload.variant_to_u8()], hash.as_slice()].concat();
+            let prefixed_message = [
+                SOLANA_OFFCHAIN_PREFIX,
+                &[payload.variant_to_u8()],
+                hash.as_slice(),
+            ]
+            .concat();
             Keccak256::digest(prefixed_message)
         };
 
@@ -489,7 +499,7 @@ mod tests {
         assert_eq!(
             final_digest.as_slice(),
             expected_digest.as_slice(),
-            "payload_digest should return keccak256(PREFIX + keccak256([payload_variant] + hash))"
+            "payload_digest should return keccak256(SOLANA_OFFCHAIN_PREFIX + keccak256([payload_variant] + hash))"
         );
 
         // 6. Verify the digest is different from the original hash
