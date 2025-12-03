@@ -6,7 +6,7 @@ use cosmwasm_std::{DepsMut, Empty, Env, Response};
 pub type MigrateMsg = Empty;
 
 #[cfg_attr(not(feature = "library"), entry_point)]
-#[migrate_from_version("0.4")]
+#[migrate_from_version("0.5")]
 pub fn migrate(
     deps: DepsMut,
     _env: Env,
