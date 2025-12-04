@@ -53,7 +53,7 @@ pub fn encode_execute_data(
     // Encode all the data
     // Note: This sends UNPREFIXED execute data (verifier_set_encoded, payload_encoded)
     // The gateway will add the prefix during verification to match our prefixed_payload_hash
-    let bytes = solana_axelar_std::execute_data::encode::<Hasher>(
+    let bytes = solana_axelar_std::execute_data::encode(
         &verifier_set_encoded,
         &signers_with_signatures,
         *domain_separator,

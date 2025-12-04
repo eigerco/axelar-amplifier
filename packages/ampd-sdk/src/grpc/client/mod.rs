@@ -131,6 +131,7 @@ impl Client for GrpcClient {
                 .map(|filter| ampd_proto::EventFilter {
                     r#type: filter.event_type,
                     contract: Default::default(),
+                    attributes: Default::default(),
                 })
                 .collect(),
             include_block_begin_end,

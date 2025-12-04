@@ -44,6 +44,7 @@ pub struct ChainConfig {
     pub voting_verifier: TMAddress,
     pub multisig_prover: TMAddress,
     pub multisig: TMAddress,
+    pub event_verifier: Option<TMAddress>,
 }
 
 #[derive(Debug, TypedBuilder)]
@@ -210,6 +211,7 @@ where
             service_registry: self.service_registry.to_string(),
             rewards: self.rewards.to_string(),
             multisig: chain_config.multisig.to_string(),
+            event_verifier: chain_config.event_verifier.as_ref().map(|a| a.to_string()),
         }))
     }
 
