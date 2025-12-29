@@ -265,6 +265,7 @@ mod tests {
                 diagnostic_events: vec![],
                 transaction_events: vec![],
             },
+            ledger: None,
         }
     }
 
@@ -294,6 +295,7 @@ mod tests {
                 diagnostic_events: vec![],
                 transaction_events: vec![],
             },
+            ledger: None,
         }
     }
 
