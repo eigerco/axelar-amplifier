@@ -32,7 +32,7 @@ impl Payload {
         Keccak256::digest(id).to_vec().into()
     }
 
-    fn variant_to_u8(&self) -> u8 {
+    pub fn variant_to_u8(&self) -> u8 {
         match self {
             Payload::Messages(_) => 0,
             Payload::VerifierSet(_) => 1,

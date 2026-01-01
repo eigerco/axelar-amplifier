@@ -10166,8 +10166,7 @@ dependencies = [
 [[package]]
 name = "solana-axelar-std"
 version = "0.1.4"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c21a7b7466230e3becfc98ed62d201ed40192d044746e23d1dfc720f1d4290dc"
+source = "git+https://github.com/axelarnetwork/axelar-amplifier-solana.git?branch=main#e735faa152f5d6414bdabdc64ff11f8633d4a465"
 dependencies = [
  "alloy-primitives",
  "arrayref",
